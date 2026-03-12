@@ -1,4 +1,17 @@
 {
-  "cleanUrls": true,
-  "trailingSlash": false
+  "rewrites": [
+    { "source": "/sala/:shop", "destination": "/display.html" },
+    { "source": "/admin/:shop", "destination": "/admin.html" },
+    { "source": "/registro", "destination": "/register.html" },
+    { "source": "/superadmin", "destination": "/superadmin.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
+    }
+  ]
 }
