@@ -414,7 +414,7 @@ select.form-input option{background:#111318;}
       </div>
       <div class="form-group">
         <label class="form-label">Webhook n8n (URL completa)</label>
-        <input class="form-input" id="webhookUrl" placeholder="https://donovan01.app.n8n.cloud/webhook/..." value="">
+        <input class="form-input" id="webhookUrl" placeholder="https://donovan01.app.n8n.cloud/webhook/barberos-sim" value="">
       </div>
       <div class="form-group">
         <label class="form-label">Número simulado (From)</label>
@@ -513,6 +513,7 @@ let msgHistory=[];
 let sending=false;
 let pollTimer=null;
 let lastConvUpdate=null;
+let lastShownMsg='';  // evita mostrar el mismo mensaje del bot dos veces
 
 async function init(){
   log('info','Conectando a Supabase...');
@@ -547,10 +548,10 @@ function onShopChange(){
   document.getElementById('waName').textContent=currentShop.nombre;
   document.getElementById('waStatus').textContent='BarberOS Bot · '+currentShop.slug;
   document.getElementById('waPhone').textContent=currentShop.twilio_number||'sin número';
-  if(currentShop.webhook_url){
-    document.getElementById('webhookUrl').value=currentShop.webhook_url;
-    log('info','Webhook autocompletado desde Supabase');
-  }
+  // Siempre usar el webhook del simulador
+  const simWebhook='https://donovan01.app.n8n.cloud/webhook/barberos-sim';
+  document.getElementById('webhookUrl').value=simWebhook;
+  log('info','Webhook simulador: '+simWebhook);
   setStatus('ok','Listo para simular');
   log('success','Shop: '+currentShop.nombre+' ('+currentShop.slug+')');
   clearMessages();
@@ -636,42 +637,46 @@ async function sendMessage(){
 }
 
 async function pollBotReply(){
-  if(!currentShop)return;
-  const phone=document.getElementById('simPhone').value.trim()||'+18099999999';
-  const chatId='whatsapp:'+phone;
-  try{
-    const convs=await sbGet('conversaciones',`shop_id=eq.${currentShop.id}&chat_id=eq.${encodeURIComponent(chatId)}&select=*`);
-    if(convs&&convs.length){
-      const conv=convs[0];
-      const convTime=conv.ultima_actualizacion;
-      if(convTime!==lastConvUpdate){
-        lastConvUpdate=convTime;
-        showTyping(false);
-        if(conv.ultimo_mensaje){
-          const msgs=document.querySelectorAll('.msg-row.in .bubble');
-          const lastIn=msgs.length?msgs[msgs.length-1].textContent:'';
-          if(conv.ultimo_mensaje!==lastIn) addMsg('in',conv.ultimo_mensaje);
-        }
-        updateState(conv);
-        log('info','Supabase actualizado: '+conv.estado_conversacion);
-      }
-    }
-  }catch(e){
-    log('warn','Poll error: '+e.message);
+  // Intenta hasta 8 veces (8 seg) esperando respuesta del bot
+  for(let i=0;i<8;i++){
+    await new Promise(r=>setTimeout(r,1000));
+    const before=lastShownMsg;
+    await loadConversation(true);
+    if(lastShownMsg!==before){ showTyping(false); return; } // got reply
   }
+  showTyping(false);
+  log('warn','Timeout esperando respuesta del bot');
 }
 
-async function loadConversation(){
+async function refreshState(){
+  // Solo actualiza el panel de estado lateral, sin mostrar mensajes
   if(!currentShop)return;
   const phone=document.getElementById('simPhone').value.trim()||'+18099999999';
-  const chatId='whatsapp:'+phone;
+  const chatId=phone;
+  try{
+    const convs=await sbGet('conversaciones',`shop_id=eq.${currentShop.id}&chat_id=eq.${encodeURIComponent(chatId)}&select=*`);
+    if(convs&&convs.length) updateState(convs[0]);
+  }catch(e){}
+}
+
+async function loadConversation(showMsg=false){
+  if(!currentShop)return;
+  const phone=document.getElementById('simPhone').value.trim()||'+18099999999';
+  const chatId=phone; // sin 'whatsapp:'
   try{
     const convs=await sbGet('conversaciones',`shop_id=eq.${currentShop.id}&chat_id=eq.${encodeURIComponent(chatId)}&select=*`);
     if(convs&&convs.length){
       const conv=convs[0];
+      // Solo mostrar mensaje si showMsg=true Y es un mensaje nuevo
+      if(showMsg && conv.ultimo_mensaje && conv.ultimo_mensaje!==lastShownMsg){
+        lastShownMsg=conv.ultimo_mensaje;
+        showTyping(false);
+        addMsg('in',conv.ultimo_mensaje);
+        log('success','Bot: '+conv.ultimo_mensaje.substring(0,50));
+      }
       lastConvUpdate=conv.ultima_actualizacion;
       updateState(conv);
-      log('info','Conversación encontrada en Supabase');
+      if(!showMsg) log('info','Conversación encontrada en Supabase');
     }else{
       log('info','No hay conversación previa');
       updateState(null);
@@ -682,17 +687,21 @@ async function loadConversation(){
 }
 
 function startPoll(){
+  // Poll automático desactivado — evita bucle de mensajes
   if(pollTimer)clearInterval(pollTimer);
+  // Solo carga estado inicial sin mostrar mensajes
+  return;
   pollTimer=setInterval(async()=>{
     if(!currentShop||sending)return;
-    await loadConversation();
+    // Solo actualizar el panel de estado — nunca mostrar mensajes automáticamente
+    await refreshState();
   },4000);
 }
 
 async function resetConversation(){
   if(!currentShop){toast('Selecciona una barbería primero','warn');return;}
   const phone=document.getElementById('simPhone').value.trim()||'+18099999999';
-  const chatId='whatsapp:'+phone;
+  const chatId=phone; // sin 'whatsapp:'
   if(!confirm('¿Borrar la conversación de '+phone+' en Supabase?'))return;
   try{
     await sbDelete('conversaciones',`shop_id=eq.${currentShop.id}&chat_id=eq.${encodeURIComponent(chatId)}`);
@@ -700,6 +709,7 @@ async function resetConversation(){
     addSystemMsg('Conversación reseteada ✓');
     updateState(null);
     lastConvUpdate=null;
+    lastShownMsg='';
     log('success','Conversación borrada de Supabase');
     toast('Conversación reseteada ✓');
   }catch(e){
