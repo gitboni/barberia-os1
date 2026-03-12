@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BarberOS — Registro</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#030407;--surface:#080A10;--border:rgba(255,255,255,0.07);--text:#E8E6E0;--muted:#4A4845;--gold:#C9A84C;--gold2:#E8C96A;--green:#00E676;--red:#FF3355;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(201,168,76,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,0.02) 1px,transparent 1px);background-size:56px 56px;pointer-events:none;}
+.container{position:relative;z-index:1;width:100%;max-width:560px;}
+.back-link{font-size:0.52rem;color:var(--muted);letter-spacing:0.16em;text-decoration:none;display:inline-flex;align-items:center;gap:6px;margin-bottom:20px;transition:color 0.2s;cursor:pointer;}
+.back-link:hover{color:var(--gold);}
+.brand{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:0.14em;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:3px;}
+.brand-sub{font-size:0.48rem;color:var(--muted);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:22px;}
+
+/* Steps indicator */
+.steps{display:flex;gap:0;margin-bottom:22px;}
+.step{flex:1;height:3px;background:var(--border);transition:background 0.3s;}
+.step.done{background:var(--gold);}
+.step.active{background:linear-gradient(90deg,var(--gold),var(--gold2));}
+.step-labels{display:flex;justify-content:space-between;margin-top:6px;margin-bottom:16px;}
+.step-lbl{font-size:0.42rem;color:var(--muted);letter-spacing:0.14em;text-transform:uppercase;transition:color 0.3s;}
+.step-lbl.active{color:var(--gold);}
+
+/* Card */
+.card{background:var(--surface);border:1px solid var(--border);padding:28px;position:relative;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--gold2));}
+.card-title{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:0.1em;margin-bottom:4px;}
+.card-sub{font-size:0.58rem;color:var(--muted);margin-bottom:20px;line-height:1.7;}
+
+/* Form */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-group{margin-bottom:13px;}
+.form-label{font-size:0.46rem;color:var(--muted);letter-spacing:0.2em;text-transform:uppercase;display:block;margin-bottom:5px;}
+.form-input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 12px;font-family:'DM Mono',monospace;font-size:0.7rem;outline:none;transition:border-color 0.2s;}
+.form-input:focus{border-color:var(--gold);}
+.form-hint{font-size:0.46rem;color:var(--muted);margin-top:4px;}
+
+/* Plan cards */
+.plan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0;}
+.plan-opt{padding:16px 12px;border:1px solid var(--border);cursor:pointer;text-align:center;transition:all 0.2s;}
+.plan-opt:hover{border-color:var(--gold);}
+.plan-opt.selected{border-color:var(--gold);background:rgba(201,168,76,0.06);}
+.plan-name{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--gold);}
+.plan-price{font-size:0.52rem;color:var(--muted);margin-top:3px;}
+.plan-feats{text-align:left;margin-top:10px;}
+.plan-feat{font-size:0.5rem;color:var(--muted);padding:2px 0;display:flex;gap:5px;}
+.plan-feat::before{content:'›';color:var(--gold);}
+
+/* Barbero row */
+.barbero-row{display:flex;gap:8px;align-items:center;margin-bottom:8px;}
+.barbero-input{flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.66rem;outline:none;}
+.barbero-input:focus{border-color:var(--gold);}
+.btn-remove{background:transparent;border:1px solid rgba(255,51,85,0.3);color:var(--red);padding:7px 10px;cursor:pointer;font-size:0.7rem;transition:all 0.2s;}
+.btn-remove:hover{background:var(--red);color:#fff;}
+.btn-add{background:transparent;border:1px solid var(--border);color:var(--muted);padding:8px 14px;font-family:'DM Mono',monospace;font-size:0.56rem;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;margin-top:4px;}
+.btn-add:hover{border-color:var(--gold);color:var(--gold);}
+
+/* Actions */
+.actions{display:flex;gap:10px;justify-content:space-between;margin-top:20px;}
+.btn{padding:10px 20px;font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;border:none;transition:all 0.2s;}
+.btn-next{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;flex:1;}
+.btn-next:hover{box-shadow:0 0 20px rgba(201,168,76,0.3);}
+.btn-back{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.btn-back:hover{border-color:var(--gold);color:var(--gold);}
+.btn-next:disabled{opacity:0.4;cursor:not-allowed;}
+
+/* Payment */
+.payment-opts{display:flex;gap:10px;margin:10px 0;}
+.pay-opt{flex:1;padding:12px;border:1px solid var(--border);cursor:pointer;text-align:center;transition:all 0.2s;font-size:0.62rem;}
+.pay-opt:hover,.pay-opt.selected{border-color:var(--gold);background:rgba(201,168,76,0.06);}
+
+/* Success */
+.success-screen{text-align:center;padding:20px 0;}
+.success-icon{font-size:3rem;margin-bottom:14px;}
+.success-title{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;letter-spacing:0.1em;color:var(--green);margin-bottom:8px;}
+.success-msg{font-size:0.66rem;color:var(--muted);line-height:1.9;margin-bottom:20px;}
+.success-links{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.success-link{padding:10px 18px;font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;text-decoration:none;transition:all 0.2s;}
+.success-link.primary{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;}
+.success-link.ghost{border:1px solid var(--border);color:var(--muted);}
+.success-link.ghost:hover{border-color:var(--gold);color:var(--gold);}
+.creds-box{background:var(--bg);border:1px solid rgba(201,168,76,0.25);padding:16px;margin:16px 0;text-align:left;}
+.cred-row{display:flex;justify-content:space-between;padding:4px 0;font-size:0.6rem;}
+.cred-key{color:var(--muted);}
+.cred-val{color:var(--gold);}
+
+/* Error */
+.field-error{font-size:0.48rem;color:var(--red);margin-top:4px;display:none;}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--red);padding:12px 16px;font-size:0.62rem;z-index:9001;transform:translateX(120%);transition:transform 0.3s;}
+.toast.show{transform:translateX(0);}
+
+/* Confetti */
+.confetti{position:fixed;pointer-events:none;z-index:9999;}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <a class="back-link" href="/">← Volver al inicio</a>
+  <div class="brand">BarberOS</div>
+  <div class="brand-sub">Registro — Sistema de Reservas</div>
+
+  <!-- STEPS BAR -->
+  <div class="steps">
+    <div class="step active" id="step1"></div>
+    <div class="step" id="step2"></div>
+    <div class="step" id="step3"></div>
+    <div class="step" id="step4"></div>
+    <div class="step" id="step5"></div>
+  </div>
+  <div class="step-labels">
+    <span class="step-lbl active" id="lbl1">Barbería</span>
+    <span class="step-lbl" id="lbl2">Horario</span>
+    <span class="step-lbl" id="lbl3">Barberos</span>
+    <span class="step-lbl" id="lbl4">Plan</span>
+    <span class="step-lbl" id="lbl5">Pago</span>
+  </div>
+
+  <div class="card">
+
+    <!-- STEP 1: Datos barbería -->
+    <div id="page1">
+      <div class="card-title">Datos de tu barbería</div>
+      <div class="card-sub">Completá la información básica para comenzar.</div>
+      <div class="form-group"><label class="form-label">Nombre de la barbería *</label><input class="form-input" id="f-nombre" placeholder="ej: King Cuts"></div>
+      <div class="form-group"><label class="form-label">Tu URL personalizada *</label>
+        <div style="display:flex;align-items:center;gap:0;">
+          <span style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-right:none;padding:10px 10px;font-size:0.6rem;color:var(--muted);white-space:nowrap;">barberos.app/sala/</span>
+          <input class="form-input" id="f-slug" placeholder="king-cuts" style="border-radius:0;">
+        </div>
+        <div class="form-hint">Solo letras, números y guiones</div>
+        <div class="field-error" id="err-slug">Slug no disponible o inválido</div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">WhatsApp del dueño *</label><input class="form-input" id="f-wa" placeholder="+18091234567"></div>
+        <div class="form-group"><label class="form-label">Número Twilio</label><input class="form-input" id="f-twilio" placeholder="+14155238886"></div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-next" id="next1">Continuar →</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: Horario -->
+    <div id="page2" style="display:none;">
+      <div class="card-title">Configuración de Horario</div>
+      <div class="card-sub">¿Cuándo trabaja tu barbería?</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Abre a las</label>
+          <select class="form-input" id="f-inicio">
+            <option value="7">7:00</option><option value="8">8:00</option>
+            <option value="9" selected>9:00</option><option value="10">10:00</option><option value="11">11:00</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Cierra a las</label>
+          <select class="form-input" id="f-fin">
+            <option value="17">17:00</option><option value="18" selected>18:00</option>
+            <option value="19">19:00</option><option value="20">20:00</option><option value="21">21:00</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Duración de cada turno</label>
+        <select class="form-input" id="f-duracion">
+          <option value="30">30 minutos</option><option value="45" selected>45 minutos</option>
+          <option value="60">60 minutos</option><option value="90">90 minutos</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Zona horaria</label>
+        <select class="form-input" id="f-tz">
+          <option value="America/Santo_Domingo" selected>Santo Domingo (RD)</option>
+          <option value="America/New_York">Nueva York (US-ET)</option>
+          <option value="America/Chicago">Chicago (US-CT)</option>
+          <option value="America/Los_Angeles">Los Ángeles (US-PT)</option>
+          <option value="America/Bogota">Bogotá (COL)</option>
+          <option value="America/Mexico_City">Ciudad de México</option>
+          <option value="America/Argentina/Buenos_Aires">Buenos Aires</option>
+          <option value="Europe/Madrid">Madrid (ESP)</option>
+        </select>
+      </div>
+      <div class="actions">
+        <button class="btn btn-back" onclick="goTo(1)">← Atrás</button>
+        <button class="btn btn-next" id="next2">Continuar →</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: Barberos -->
+    <div id="page3" style="display:none;">
+      <div class="card-title">Tus Barberos</div>
+      <div class="card-sub">Agregá los barberos de tu barbería.</div>
+      <div id="barberosList">
+        <div class="barbero-row"><input class="barbero-input" value="Barbero 1" placeholder="Nombre del barbero"><button class="btn-remove" onclick="removeBarbero(this)">✕</button></div>
+      </div>
+      <button class="btn-add" id="addBarberoBtn">+ Agregar barbero</button>
+      <div class="actions" style="margin-top:16px;">
+        <button class="btn btn-back" onclick="goTo(2)">← Atrás</button>
+        <button class="btn btn-next" id="next3">Continuar →</button>
+      </div>
+    </div>
+
+    <!-- STEP 4: Plan -->
+    <div id="page4" style="display:none;">
+      <div class="card-title">Elegí tu Plan</div>
+      <div class="card-sub">Podés cambiar de plan en cualquier momento.</div>
+      <div class="plan-grid">
+        <div class="plan-opt" data-plan="free">
+          <div class="plan-name">FREE</div><div class="plan-price">$0/mes</div>
+          <div class="plan-feats"><div class="plan-feat">1 barbero</div><div class="plan-feat">30 citas/mes</div><div class="plan-feat">Bot básico</div></div>
+        </div>
+        <div class="plan-opt selected" data-plan="pro">
+          <div class="plan-name" style="color:var(--gold)">PRO</div><div class="plan-price">$29/mes</div>
+          <div class="plan-feats"><div class="plan-feat">Ilimitados</div><div class="plan-feat">Recordatorios</div><div class="plan-feat">Panel completo</div></div>
+        </div>
+        <div class="plan-opt" data-plan="elite">
+          <div class="plan-name">ELITE</div><div class="plan-price">$79/mes</div>
+          <div class="plan-feats"><div class="plan-feat">Todo Pro</div><div class="plan-feat">Multi-sucursal</div><div class="plan-feat">Soporte VIP</div></div>
+        </div>
+      </div>
+      <div class="actions" style="margin-top:10px;">
+        <button class="btn btn-back" onclick="goTo(3)">← Atrás</button>
+        <button class="btn btn-next" id="next4">Continuar →</button>
+      </div>
+    </div>
+
+    <!-- STEP 5: Pago -->
+    <div id="page5" style="display:none;">
+      <div class="card-title">Método de Pago</div>
+      <div class="card-sub" id="paySubtitle">Seleccioná cómo pagar. Podés empezar gratis.</div>
+      <div class="payment-opts" id="paymentOpts">
+        <div class="pay-opt selected" data-pay="free">✓ Plan Gratis</div>
+        <div class="pay-opt" data-pay="stripe">💳 Tarjeta</div>
+        <div class="pay-opt" data-pay="paypal">🅿 PayPal</div>
+      </div>
+      <div id="payFreeMsg" style="font-size:0.6rem;color:var(--muted);padding:12px 0;line-height:1.8;">
+        Empezás con el plan Free. Podés actualizar a Pro en cualquier momento desde tu panel de control.
+      </div>
+      <div id="payProMsg" style="display:none;font-size:0.6rem;color:var(--muted);padding:12px 0;line-height:1.8;">
+        <strong style="color:var(--gold)">Plan Pro — $29/mes</strong><br>
+        7 días gratis, sin compromiso. Cancelá cuando quieras.
+      </div>
+      <div class="actions">
+        <button class="btn btn-back" onclick="goTo(4)">← Atrás</button>
+        <button class="btn btn-next" id="next5" onclick="createShop()">🚀 CREAR MI BARBERÍA</button>
+      </div>
+      <div style="font-size:0.48rem;color:var(--muted);text-align:center;margin-top:12px;">🔒 Procesado de forma segura</div>
+    </div>
+
+    <!-- SUCCESS -->
+    <div id="pageSuccess" style="display:none;">
+      <div class="success-screen">
+        <div class="success-icon">🎉</div>
+        <div class="success-title">¡Todo listo!</div>
+        <div class="success-msg">Tu barbería está activa. Guardá estos enlaces.</div>
+        <div class="creds-box" id="successCreds"></div>
+        <div class="success-links" id="successLinks"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<canvas class="confetti" id="confetti"></canvas>
+
+<script>
+'use strict';
+const SB_URL = 'https://mmokunpuslcfphalrwot.supabase.co';
+const SB_KEY = 'sb_publishable_aETz_9ECH5RcBMjmRhUnfw_g71zRdwT';
+
+let _currentStep = 1;
+let _selectedPlan = 'pro';
+let _selectedPay = 'free';
+
+// ── NAVIGATION ────────────────────────────────
+function goTo(step) {
+  document.getElementById('page'+_currentStep).style.display='none';
+  document.getElementById('page'+step).style.display='block';
+  for(let i=1;i<=5;i++){
+    document.getElementById('step'+i).className='step'+(i<step?' done':i===step?' active':'');
+    document.getElementById('lbl'+i).className='step-lbl'+(i===step?' active':'');
+  }
+  _currentStep = step;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// Auto-slug from name
+document.getElementById('f-nombre').addEventListener('input', e => {
+  document.getElementById('f-slug').value = e.target.value.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+});
+
+// Plan selection
+document.querySelectorAll('.plan-opt').forEach(o => {
+  o.addEventListener('click', () => {
+    o.closest('.plan-grid').querySelectorAll('.plan-opt').forEach(x=>x.classList.remove('selected'));
+    o.classList.add('selected');
+    _selectedPlan = o.dataset.plan;
+    const payFreeMsg = document.getElementById('payFreeMsg');
+    const payProMsg = document.getElementById('payProMsg');
+    if (payFreeMsg && payProMsg) {
+      payFreeMsg.style.display = _selectedPlan==='free'?'block':'none';
+      payProMsg.style.display  = _selectedPlan!=='free'?'block':'none';
+    }
+  });
+});
+
+// Payment selection
+document.querySelectorAll('.pay-opt').forEach(o => {
+  o.addEventListener('click', () => {
+    document.querySelectorAll('.pay-opt').forEach(x=>x.classList.remove('selected'));
+    o.classList.add('selected');
+    _selectedPay = o.dataset.pay;
+  });
+});
+
+// Barberos
+document.getElementById('addBarberoBtn').addEventListener('click', () => {
+  const list = document.getElementById('barberosList');
+  const count = list.querySelectorAll('.barbero-row').length + 1;
+  const row = document.createElement('div');
+  row.className = 'barbero-row';
+  row.innerHTML = `<input class="barbero-input" value="Barbero ${count}" placeholder="Nombre"><button class="btn-remove" onclick="removeBarbero(this)">✕</button>`;
+  list.appendChild(row);
+});
+function removeBarbero(btn) {
+  const rows = document.getElementById('barberosList').querySelectorAll('.barbero-row');
+  if (rows.length > 1) btn.closest('.barbero-row').remove();
+}
+
+// Step buttons
+document.getElementById('next1').addEventListener('click', () => {
+  const nombre = document.getElementById('f-nombre').value.trim();
+  const slug   = document.getElementById('f-slug').value.trim();
+  const wa     = document.getElementById('f-wa').value.trim();
+  if(!nombre||!slug||!wa){ showToast('Completá todos los campos requeridos'); return; }
+  if(!/^[a-z0-9-]+$/.test(slug)){ showToast('Slug inválido (solo letras, números, guiones)'); return; }
+  goTo(2);
+});
+document.getElementById('next2').addEventListener('click', () => goTo(3));
+document.getElementById('next3').addEventListener('click', () => goTo(4));
+document.getElementById('next4').addEventListener('click', () => goTo(5));
+
+// ── CREATE SHOP ───────────────────────────────
+async function createShop() {
+  const btn = document.getElementById('next5');
+  btn.disabled = true; btn.textContent = '⏳ Creando...';
+  const nombre   = document.getElementById('f-nombre').value.trim();
+  const slug     = document.getElementById('f-slug').value.trim();
+  const wa_dueño = document.getElementById('f-wa').value.trim();
+  const twilio   = document.getElementById('f-twilio').value.trim() || null;
+  const hora_inicio = parseInt(document.getElementById('f-inicio').value);
+  const hora_fin    = parseInt(document.getElementById('f-fin').value);
+  const duracion    = parseInt(document.getElementById('f-duracion').value);
+  const tz          = document.getElementById('f-tz').value;
+  const barberos    = Array.from(document.getElementById('barberosList').querySelectorAll('.barbero-input')).map(i=>i.value.trim()).filter(Boolean);
+
+  try {
+    // Create shop
+    const r = await fetch(`${SB_URL}/rest/v1/shops`, {
+      method:'POST',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify({ nombre, slug, whatsapp_dueño:wa_dueño, twilio_number:twilio, plan:_selectedPlan, hora_inicio, hora_fin, duracion_turno:duracion, timezone:tz, activo:false })  // pendiente de aprobación por SuperAdmin
+    });
+    if(!r.ok){ const e=await r.json(); throw new Error(e.message||e.details||JSON.stringify(e)); }
+    const shops = await r.json();
+    const shop_id = shops[0].id;
+
+    // Create barberos
+    for(let i=0;i<barberos.length;i++){
+      await fetch(`${SB_URL}/rest/v1/barberos`,{
+        method:'POST',
+        headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'},
+        body:JSON.stringify({shop_id,nombre:barberos[i],orden:i+1,activo:true})
+      });
+    }
+
+    // Show success
+    showSuccess(slug, wa_dueño, nombre);
+  } catch(e) {
+    btn.disabled = false; btn.textContent = '🚀 CREAR MI BARBERÍA';
+    if (e.message.includes('unique') || e.message.includes('duplicate')) showToast('Ese slug ya existe, elegí otro');
+    else showToast('Error: '+e.message);
+  }
+}
+
+function showSuccess(slug, wa, nombre) {
+  for(let i=1;i<=5;i++) document.getElementById('page'+i).style.display='none';
+  document.getElementById('pageSuccess').style.display='block';
+  document.querySelectorAll('.step').forEach(s=>s.className='step done');
+  // Show pending approval message
+  const pendingDiv = document.getElementById('pending-notice');
+  if(pendingDiv) pendingDiv.style.display='block';
+  document.getElementById('successCreds').innerHTML = `
+    <div style="background:rgba(255,165,0,0.1);border:1px solid rgba(255,165,0,0.3);border-radius:8px;padding:14px;margin-bottom:16px;text-align:center;">
+      <div style="font-size:1.4rem;margin-bottom:6px;">⏳</div>
+      <div style="font-weight:700;color:#ffa500;margin-bottom:4px;">Solicitud enviada — Pendiente de aprobación</div>
+      <div style="font-size:0.72rem;color:var(--muted,#888);">Recibirás una confirmación por WhatsApp cuando tu barbería sea activada.</div>
+    </div>
+    <div class="cred-row"><span class="cred-key">🏪 Barbería:</span><span class="cred-val">${nombre}</span></div>
+    <div class="cred-row"><span class="cred-key">🔗 Display:</span><span class="cred-val">barberos.app/sala/${slug}</span></div>
+    <div class="cred-row"><span class="cred-key">⚙ Admin:</span><span class="cred-val">barberos.app/admin/${slug}</span></div>
+    <div class="cred-row"><span class="cred-key">📱 WhatsApp:</span><span class="cred-val">${wa}</span></div>
+  `;
+  document.getElementById('successLinks').innerHTML = `
+    <a href="/sala/${slug}" target="_blank" class="success-link primary">Ver Display ↗</a>
+    <a href="/admin/${slug}" class="success-link ghost">Panel Admin</a>
+    <a href="/" class="success-link ghost">← Inicio</a>
+  `;
+  fireConfetti();
+}
+
+// ── TOAST ─────────────────────────────────────
+let _tt;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(_tt); _tt = setTimeout(()=>t.classList.remove('show'), 3200);
+}
+
+// ── CONFETTI ──────────────────────────────────
+function fireConfetti() {
+  const canvas = document.getElementById('confetti');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  canvas.style.top='0'; canvas.style.left='0'; canvas.style.width='100vw'; canvas.style.height='100vh';
+  const particles = Array.from({length:100},()=>({
+    x:Math.random()*canvas.width, y:-10,
+    vx:(Math.random()-0.5)*4, vy:Math.random()*4+2,
+    size:Math.random()*8+3,
+    color:['#C9A84C','#E8C96A','#00E676','#fff','#3498DB'][Math.floor(Math.random()*5)],
+    rot:Math.random()*360, rotV:(Math.random()-0.5)*6
+  }));
+  let frame=0;
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; p.rot+=p.rotV;
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot*Math.PI/180);
+      ctx.fillStyle=p.color; ctx.fillRect(-p.size/2,-p.size/4,p.size,p.size/2);
+      ctx.restore();
+    });
+    if(++frame<200) requestAnimationFrame(draw);
+    else { ctx.clearRect(0,0,canvas.width,canvas.height); }
+  }
+  draw();
+}
+</script>
+</body>
+</html>

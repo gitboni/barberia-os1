@@ -1,0 +1,31 @@
+{
+  "name": "BarberOS — Sistema de Turnos",
+  "short_name": "BarberOS",
+  "description": "Sistema de gestión de turnos para barberías",
+  "start_url": "/display.html",
+  "display": "fullscreen",
+  "background_color": "#020408",
+  "theme_color": "#00F5FF",
+  "orientation": "landscape-primary",
+  "categories": ["business", "utilities"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%23020408'/><text x='96' y='130' font-size='100' text-anchor='middle' fill='%2300F5FF'>✂</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Panel Admin",
+      "url": "/admin.html",
+      "description": "Abrir panel de administración"
+    },
+    {
+      "name": "Sala de Espera",
+      "url": "/display.html",
+      "description": "Pantalla sala de espera"
+    }
+  ]
+}

@@ -1,0 +1,540 @@
+{
+  "name": "Barberia Bot v4 — SaaS Multi-tenant",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": "={{ [\"com.twilio.messaging.inbound-message.received\"] }}"
+      },
+      "id": "2f9fa97d-0358-42ad-b17b-5a388afbf591",
+      "name": "Twilio WhatsApp Trigger",
+      "type": "n8n-nodes-base.twilioTrigger",
+      "typeVersion": 1,
+      "position": [-1392, 352],
+      "webhookId": "dc367bc0-18e8-44ad-a7ce-74ff6e277102",
+      "credentials": {
+        "twilioApi": {"id": "qv8DiFyCmZd2cNij", "name": "Twilio account"}
+      }
+    },
+    {
+      "parameters": {
+        "fields": {
+          "values": [
+            {"name": "telefono",       "stringValue": "={{ $json.From.replace('whatsapp:', '') }}"},
+            {"name": "mensaje",        "stringValue": "={{ $json.Body }}"},
+            {"name": "chat_id",        "stringValue": "={{ $json.From.replace('whatsapp:', '') }}"},
+            {"name": "nombre_telegram","stringValue": "Cliente"},
+            {
+              "name": "shop_id",
+              "stringValue": "={{ $json.To.includes('+14155238886') ? 'REEMPLAZA_CON_TU_SHOP_ID' : 'REEMPLAZA_CON_TU_SHOP_ID' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0e704004-0c04-4563-896b-ff7e4929d34a",
+      "name": "Extraer Datos + Shop ID",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [-1168, 352]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "conversaciones",
+        "filterType": "string",
+        "filterString": "chat_id=eq.{{ $json.chat_id }}&shop_id=eq.{{ $json.shop_id }}"
+      },
+      "id": "a979a633-757a-4914-a8c6-b98d11ef1f0d",
+      "name": "Leer Contexto Conversación",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [-944, 352],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {"id": "22AmE9s66g2OzCEQ", "name": "Supabase account"}
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $('Extraer Datos + Shop ID').first().json;\nconst chat_id = d.chat_id;\nconst shop_id = d.shop_id;\nlet contexto = null;\ntry {\n  const todas = $('Leer Contexto Conversación').all();\n  const dosHorasAtras = new Date(Date.now() - 2 * 60 * 60 * 1000);\n  const conv = todas.find(function(c) {\n    const r = c.json;\n    if (!r || !r.chat_id || r.chat_id !== chat_id) return false;\n    if (!r.ultima_actualizacion) return false;\n    return new Date(r.ultima_actualizacion) > dosHorasAtras && r.estado_conversacion !== 'completado';\n  });\n  if (conv && conv.json) {\n    contexto = {\n      estado: conv.json.estado_conversacion,\n      nombre: conv.json.nombre_parcial,\n      fecha: conv.json.fecha_parcial,\n      hora: conv.json.hora_parcial,\n      servicio: conv.json.servicio_parcial,\n      barbero: conv.json.barbero_parcial,\n      esperando_confirmacion: conv.json.esperando_confirmacion || false,\n      esperando_barbero: conv.json.esperando_barbero || false,\n      barberos_disponibles: conv.json.barberos_disponibles || '[]'\n    };\n  }\n} catch(e) {\n  contexto = null;\n}\nreturn [{ json: { telefono: d.telefono, mensaje: d.mensaje, chat_id: d.chat_id, nombre_telegram: d.nombre_telegram, shop_id: d.shop_id, contexto_previo: contexto } }];"
+      },
+      "id": "0f3fd14a-1568-4ecd-9c96-34dc1609f42b",
+      "name": "Recuperar Contexto",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-720, 352]
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $input.first().json;\nconst msg = (d.mensaje || '').toLowerCase().trim();\nconst ctx = d.contexto_previo;\n\nif (ctx && ctx.esperando_barbero) {\n  let barberos = [];\n  try { barberos = JSON.parse(ctx.barberos_disponibles || '[]'); } catch(e) {}\n  const num = parseInt(msg);\n  let barberoElegido = null;\n  if (!isNaN(num) && num >= 1 && num <= barberos.length) {\n    barberoElegido = barberos[num - 1];\n  } else {\n    barberoElegido = barberos.find(b => msg.includes(b.toLowerCase())) || null;\n  }\n  if (!barberoElegido) {\n    const lista = barberos.map((b,i) => (i+1)+'. '+b).join('\\n');\n    return [{ json: { ...d, accion: 'respuesta_directa', respuesta: 'No entendí tu elección. Por favor respondé con el número:\\n'+lista } }];\n  }\n  return [{ json: { ...d, accion: 'confirmar_barbero', barbero_elegido: barberoElegido, fecha_turno: ctx.fecha, hora_turno: ctx.hora, servicio: ctx.servicio || 'Corte de cabello' } }];\n}\n\nif (ctx && ctx.esperando_confirmacion) {\n  const confirma = /^(si|sí|s|ok|yes|confirmo|dale|bueno|listo|acepto|1)$/i.test(msg);\n  const cancela  = /^(no|cancel|nope|2)$/i.test(msg);\n  if (confirma) return [{ json: { ...d, accion: 'guardar_cita', fecha_turno: ctx.fecha, hora_turno: ctx.hora, barbero_elegido: ctx.barbero, servicio: ctx.servicio || 'Corte de cabello' } }];\n  if (cancela)  return [{ json: { ...d, accion: 'respuesta_directa', respuesta: '❌ Turno cancelado. Si querés agendar otro, solo avisame. 😊' } }];\n  return [{ json: { ...d, accion: 'respuesta_directa', respuesta: 'Respondé *Sí* para confirmar o *No* para cancelar.' } }];\n}\n\nif (/cancel|cancelar|anular/i.test(msg)) return [{ json: { ...d, accion: 'cancelar' } }];\nif (/consultar|ver.*turno|mi.*turno|tengo.*turno/i.test(msg)) return [{ json: { ...d, accion: 'consultar' } }];\n\nreturn [{ json: { ...d, accion: 'nuevo_turno' } }];"
+      },
+      "id": "2f65c046-8433-42ff-aafe-9e33152c0c15",
+      "name": "Detectar Acción",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-480, 352]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.accion }}",
+        "rules": {
+          "rules": [
+            {"value2": "nuevo_turno"},
+            {"value2": "confirmar_barbero", "output": 1},
+            {"value2": "guardar_cita",      "output": 2},
+            {"value2": "cancelar",          "output": 3},
+            {"value2": "consultar",         "output": 4},
+            {"value2": "respuesta_directa", "output": 5}
+          ]
+        },
+        "fallbackOutput": 0
+      },
+      "id": "36b21a06-fdff-4d12-8b90-dadfc175be40",
+      "name": "Router Acción",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [-240, 352]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "citas",
+        "filterType": "string",
+        "filterString": "shop_id=eq.{{ $json.shop_id }}&fecha=eq.{{ new Date().toISOString().split('T')[0] }}&estado=eq.Confirmada"
+      },
+      "id": "71332dc0-c1a2-4028-95c1-01e7eebcb5ac",
+      "name": "Leer Citas Hoy",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [0, 0],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {"id": "22AmE9s66g2OzCEQ", "name": "Supabase account"}
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Carga barberos activos del shop desde Supabase\nconst SUPABASE_URL = 'https://mmokunpuslcfphalrwot.supabase.co';\nconst SUPABASE_KEY = 'REEMPLAZA_CON_TU_ANON_KEY';\n\nconst citasHoy = $('Leer Citas Hoy').all().map(c => c.json);\nconst datos    = $('Detectar Acción').first().json;\nconst ctx      = datos.contexto_previo;\nconst shop_id  = datos.shop_id;\n\n// Cargar barberos activos del shop\nlet BARBEROS = ['Matías', 'Lucas', 'Gonzalo']; // fallback\ntry {\n  const res = await $http.request({\n    method: 'GET',\n    url: `${SUPABASE_URL}/rest/v1/barberos?shop_id=eq.${shop_id}&activo=eq.true&select=nombre`,\n    headers: {\n      'apikey': SUPABASE_KEY,\n      'Authorization': 'Bearer ' + SUPABASE_KEY\n    }\n  });\n  if (res && Array.isArray(res) && res.length > 0) {\n    BARBEROS = res.map(b => b.nombre);\n  }\n} catch(e) {\n  console.log('Usando barberos fallback:', e.message);\n}\n\nconst DURACION = 45;\nconst INICIO   = 9 * 60;\nconst FIN      = 18 * 60;\n\nconst horaAMin = h => { const [hh,mm] = (h||'00:00').substring(0,5).split(':').map(Number); return hh*60+mm; };\nconst minAHora = m => String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');\n\nconst ahora    = new Date();\nconst minAhora = ahora.getHours()*60 + ahora.getMinutes();\nconst hoy      = ahora.toISOString().split('T')[0];\n\nconst ocupados = {};\nBARBEROS.forEach(b => ocupados[b] = []);\ncitasHoy.forEach(c => {\n  if (c.barbero && ocupados[c.barbero] !== undefined) {\n    ocupados[c.barbero].push(horaAMin(c.hora));\n  }\n});\n\nconst desde = Math.max(INICIO, minAhora + 15);\nconst slots = [];\nfor (let min = INICIO; min + DURACION <= FIN; min += DURACION) {\n  if (min < desde) continue;\n  const hora = minAHora(min);\n  const barberosLibres = BARBEROS.filter(b => !ocupados[b].some(o => Math.abs(o - min) < DURACION));\n  if (barberosLibres.length > 0) {\n    slots.push({ hora, barberos: barberosLibres });\n    if (slots.length >= 3) break;\n  }\n}\n\nif (slots.length === 0) {\n  return [{ json: {\n    ...datos,\n    accion: 'respuesta_directa',\n    respuesta: '😔 No hay más turnos disponibles para hoy. ¿Querés agendar para mañana?'\n  }}];\n}\n\nconst primero = slots[0];\nconst listaBarberos = primero.barberos.map((b,i) => (i+1)+'. '+b).join('\\n');\nconst nombreCliente = (ctx && ctx.nombre) ? ctx.nombre : '';\n\nreturn [{ json: {\n  ...datos,\n  accion: 'esperando_barbero',\n  fecha_turno: hoy,\n  hora_turno: primero.hora,\n  barberos_disponibles: JSON.stringify(primero.barberos),\n  servicio: 'Corte de cabello',\n  respuesta: '👋 ¡Hola'+(nombreCliente ? ' '+nombreCliente : '')+'!\\n\\nEl próximo turno disponible es:\\n📅 Hoy '+hoy+'\\n🕐 '+primero.hora+' hs\\n\\nBarberos disponibles:\\n'+listaBarberos+'\\n\\nRespondé con el *número* del barbero que preferís.'\n}}];"
+      },
+      "id": "d45ce905-b041-4232-b19b-21226663229f",
+      "name": "Buscar Turno Libre",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [240, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $input.first().json;\nreturn [{ json: {\n  ...d,\n  accion: 'esperando_confirmacion',\n  respuesta: '✅ ¡Perfecto! Confirmá tu turno:\\n\\n📅 Hoy '+d.fecha_turno+'\\n🕐 '+d.hora_turno+' hs\\n✂️ Barbero: '+d.barbero_elegido+'\\n👨 Servicio: '+(d.servicio || 'Corte de cabello')+'\\n\\nRespondé *Sí* para confirmar o *No* para cancelar.'\n}}];"
+      },
+      "id": "6f52d38d-27b8-489c-bd69-2e4f10910035",
+      "name": "Preparar Confirmación",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 160]
+    },
+    {
+      "parameters": {
+        "tableId": "citas",
+        "fieldsUi": {
+          "fieldValues": [
+            {"fieldId": "shop_id",  "fieldValue": "={{ $json.shop_id }}"},
+            {"fieldId": "chat_id",  "fieldValue": "={{ $json.chat_id }}"},
+            {"fieldId": "nombre",   "fieldValue": "={{ $json.contexto_previo && $json.contexto_previo.nombre ? $json.contexto_previo.nombre : 'Cliente' }}"},
+            {"fieldId": "telefono", "fieldValue": "={{ $json.telefono }}"},
+            {"fieldId": "fecha",    "fieldValue": "={{ $json.fecha_turno }}"},
+            {"fieldId": "hora",     "fieldValue": "={{ $json.hora_turno }}"},
+            {"fieldId": "servicio", "fieldValue": "={{ $json.servicio || 'Corte de cabello' }}"},
+            {"fieldId": "barbero",  "fieldValue": "={{ $json.barbero_elegido }}"},
+            {"fieldId": "estado",   "fieldValue": "Confirmada"}
+          ]
+        }
+      },
+      "id": "222fd07c-c427-4e07-a52f-775ced13f1a2",
+      "name": "Guardar Cita en Supabase",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [480, 400],
+      "credentials": {
+        "supabaseApi": {"id": "22AmE9s66g2OzCEQ", "name": "Supabase account"}
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $('Detectar Acción').first().json;\nconst ctx = d.contexto_previo;\nconst nombre = (ctx && ctx.nombre) ? ctx.nombre : 'Cliente';\nreturn [{ json: {\n  ...d,\n  accion: 'completado',\n  nombre_guardado: nombre,\n  respuesta: '🎉 ¡Turno confirmado, '+nombre+'!\\n\\n📅 Fecha: '+d.fecha_turno+'\\n🕐 Hora: '+d.hora_turno+' hs\\n✂️ Barbero: '+d.barbero_elegido+'\\n👨 Servicio: '+(d.servicio || 'Corte de cabello')+'\\n\\nTe esperamos. Te recordaremos 1 hora antes. ✂️'\n}}];"
+      },
+      "id": "fc856176-fd9f-40f2-bfd6-e0f2c10d0d36",
+      "name": "Cita Confirmada",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [720, 400]
+    },
+    {
+      "parameters": {
+        "from": "whatsapp:+14155238886",
+        "to": "whatsapp:+18098498528",
+        "message": "={{ '✂️ *Nueva cita agendada!*\\n👤 Cliente: '+$json.nombre_guardado+'\\n📅 Fecha: '+$json.fecha_turno+'\\n🕐 Hora: '+$json.hora_turno+' hs\\n👨 Servicio: '+($json.servicio || 'Corte')+'\\n✂️ Barbero: '+$json.barbero_elegido+'\\n📞 Tel: '+$json.telefono }}",
+        "options": {}
+      },
+      "id": "314a917a-cafc-4b51-9320-2e969bb298ba",
+      "name": "Notificar al Barbero Twilio",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [720, 240],
+      "credentials": {
+        "twilioApi": {"id": "qv8DiFyCmZd2cNij", "name": "Twilio account"}
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "citas",
+        "filterType": "string",
+        "filterString": "shop_id=eq.{{ $json.shop_id }}&telefono=eq.{{ $json.telefono }}&estado=eq.Confirmada"
+      },
+      "id": "150f1b54-9cc0-42c8-997a-ce735a75ceb4",
+      "name": "Buscar Cita Para Cancelar",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [0, 720],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {"id": "22AmE9s66g2OzCEQ", "name": "Supabase account"}
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const citas   = $input.all();\nconst datos   = $('Detectar Acción').first().json;\nconst validas = citas.filter(c => c.json && c.json.estado === 'Confirmada');\nif (validas.length === 0) {\n  return [{ json: { ...datos, accion: 'respuesta_directa', respuesta: '📋 No tenés ninguna cita activa para cancelar. ¿Querés agendar una? ✂️' } }];\n}\nconst cita = validas[0].json;\nreturn [{ json: { ...datos, accion: 'completado', cita_id: cita.id, respuesta: '✅ Cita cancelada:\\n📅 '+cita.fecha+' a las '+(cita.hora||'').substring(0,5)+'\\n✂️ Barbero: '+cita.barbero+'\\n\\nSi querés reagendar, solo avisame. 😊' } }];"
+      },
+      "id": "123d66b6-39fe-4ccb-92db-87cabf7596ba",
+      "name": "Preparar Cancelación",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [240, 720]
+    },
+    {
+      "parameters": {
+        "dataType": "boolean",
+        "value1": "={{ $json.cita_id ? true : false }}",
+        "rules": {"rules": [{"value2": true}]},
+        "fallbackOutput": 1
+      },
+      "id": "87fb640e-d38e-4f86-987e-ad189e8b8179",
+      "name": "¿Tiene Cita Activa?",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [480, 720]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "citas",
+        "filterType": "string",
+        "filterString": "id=eq.{{ $json.cita_id }}",
+        "fieldsUi": {
+          "fieldValues": [{"fieldId": "estado", "fieldValue": "Cancelada"}]
+        }
+      },
+      "id": "4e689db6-76ce-49a0-b1f8-1a33e10496f6",
+      "name": "Cancelar Cita en Supabase",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [720, 640],
+      "credentials": {
+        "supabaseApi": {"id": "22AmE9s66g2OzCEQ", "name": "Supabase account"}
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "citas",
+        "filterType": "string",
+        "filterString": "shop_id=eq.{{ $json.shop_id }}&telefono=eq.{{ $json.telefono }}&estado=eq.Confirmada"
+      },
+      "id": "c2d3f6b9-9a9e-4741-a63a-8885e227aa05",
+      "name": "Buscar Cita Consulta",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [0, 960],
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {"id": "22AmE9s66g2OzCEQ", "name": "Supabase account"}
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const citas  = $input.all();\nconst datos  = $('Detectar Acción').first().json;\nconst validas = citas.filter(c => c.json && c.json.estado === 'Confirmada');\nif (validas.length === 0) {\n  return [{ json: { ...datos, accion: 'respuesta_directa', respuesta: '📋 No tenés ninguna cita activa. ¿Querés agendar una? ✂️' } }];\n}\nconst cita = validas[0].json;\nreturn [{ json: { ...datos, accion: 'respuesta_directa', respuesta: '📋 Tu próxima cita:\\n📅 '+cita.fecha+'\\n🕐 '+(cita.hora||'').substring(0,5)+' hs\\n✂️ Barbero: '+cita.barbero+'\\n👨 '+cita.servicio+'\\n\\nPara cancelar escribí *cancelar*.' } }];"
+      },
+      "id": "1eebce53-2828-4b93-854e-cd37036fbcde",
+      "name": "Formatear Consulta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [240, 960]
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $input.first().json;\nconst ahora = new Date().toISOString();\nlet estadoConv = 'en_progreso';\nlet esperandoConf = false;\nlet esperandoBarbero = false;\nlet barberos_disp = '[]';\nif (d.accion === 'completado') estadoConv = 'completado';\nelse if (d.accion === 'esperando_confirmacion') esperandoConf = true;\nelse if (d.accion === 'esperando_barbero') { esperandoBarbero = true; barberos_disp = d.barberos_disponibles || '[]'; }\nreturn [{ json: {\n  shop_id: d.shop_id,\n  chat_id: d.chat_id,\n  telefono: d.telefono || '',\n  estado_conversacion: estadoConv,\n  nombre_parcial: (d.contexto_previo && d.contexto_previo.nombre) ? d.contexto_previo.nombre : (d.nombre_guardado || ''),\n  fecha_parcial: d.fecha_turno || '',\n  hora_parcial: d.hora_turno || '',\n  servicio_parcial: d.servicio || 'Corte de cabello',\n  barbero_parcial: d.barbero_elegido || '',\n  esperando_confirmacion: esperandoConf,\n  esperando_barbero: esperandoBarbero,\n  barberos_disponibles: barberos_disp,\n  ultima_actualizacion: ahora,\n  ultimo_mensaje: d.respuesta || '',\n  respuesta: d.respuesta || ''\n}}];"
+      },
+      "id": "627ff375-9b24-4d9a-9521-0d63d6c5d190",
+      "name": "Preparar Datos Conversación",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 352]
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $input.first().json;\nconst SUPABASE_URL = 'https://mmokunpuslcfphalrwot.supabase.co';\nconst SUPABASE_KEY = 'REEMPLAZA_CON_TU_ANON_KEY';\n\nconst payload = {\n  shop_id: d.shop_id,\n  chat_id: d.chat_id,\n  telefono: d.telefono || '',\n  estado_conversacion: d.estado_conversacion,\n  nombre_parcial: d.nombre_parcial || '',\n  fecha_parcial: d.fecha_parcial || '',\n  hora_parcial: d.hora_parcial || '',\n  servicio_parcial: d.servicio_parcial || 'Corte de cabello',\n  barbero_parcial: d.barbero_parcial || '',\n  esperando_confirmacion: d.esperando_confirmacion,\n  esperando_barbero: d.esperando_barbero,\n  barberos_disponibles: d.barberos_disponibles || '[]',\n  ultima_actualizacion: d.ultima_actualizacion,\n  ultimo_mensaje: d.ultimo_mensaje || ''\n};\n\nawait $http.request({\n  method: 'POST',\n  url: SUPABASE_URL + '/rest/v1/conversaciones?on_conflict=chat_id,shop_id',\n  headers: {\n    'apikey': SUPABASE_KEY,\n    'Authorization': 'Bearer ' + SUPABASE_KEY,\n    'Content-Type': 'application/json',\n    'Prefer': 'resolution=merge-duplicates,return=minimal'\n  },\n  body: payload,\n  json: true\n});\n\nreturn [{ json: { chat_id: d.chat_id, shop_id: d.shop_id, respuesta: d.respuesta } }];"
+      },
+      "id": "code-upsert-http-v4",
+      "name": "Upsert Contexto Conversación",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1360, 352]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: $input.first().json }];"
+      },
+      "id": "24bd4497-978a-4843-85c8-2c527b8fb9d3",
+      "name": "Preparar Respuesta Final",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1600, 352]
+    },
+    {
+      "parameters": {
+        "from": "whatsapp:+14155238886",
+        "to": "={{ 'whatsapp:' + $json.chat_id }}",
+        "message": "={{ $json.respuesta }}",
+        "options": {}
+      },
+      "id": "abbe08a9-0097-4061-b99b-3005428e8a61",
+      "name": "Responder al Cliente Twilio",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [2080, 352],
+      "credentials": {
+        "twilioApi": {"id": "qv8DiFyCmZd2cNij", "name": "Twilio account"}
+      }
+    },
+    {
+      "parameters": {
+        "path": "barberia-citas",
+        "responseMode": "responseNode",
+        "options": {"allowedOrigins": "*"}
+      },
+      "id": "a3931ac8-cf15-46ad-8edb-3ebbbce82379",
+      "name": "Webhook GET Citas Frontend",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [-1392, 1440],
+      "webhookId": "barberia-citas-frontend-v4"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "citas",
+        "filterType": "string",
+        "filterString": "shop_id=eq.{{ $json.query.shop_id || 'REEMPLAZA_CON_TU_SHOP_ID' }}&fecha=eq.{{ new Date().toISOString().split('T')[0] }}&estado=neq.Cancelada&order=hora.asc"
+      },
+      "id": "73218d46-1531-4eeb-9c9a-3e7ab9bd26d9",
+      "name": "Leer Citas Hoy Supabase",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [-1168, 1440],
+      "credentials": {
+        "supabaseApi": {"id": "22AmE9s66g2OzCEQ", "name": "Supabase account"}
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const hoy = new Date().toISOString().split('T')[0];\nconst citas = $input.all().map(function(item) {\n  const r = item.json;\n  return { id: r.id, Nombre: r.nombre || '', Hora: (r.hora || '00:00').substring(0,5), Servicio: r.servicio || 'Corte', Barbero: r.barbero || '', Telefono: r.telefono || '', Fecha: r.fecha || hoy, Estado: r.estado || 'Confirmada' };\n});\nreturn [{ json: { citas: citas, total: citas.length, fecha: hoy, timestamp: new Date().toISOString() } }];"
+      },
+      "id": "7e4c79d8-818d-44c0-b051-c4fa833e343f",
+      "name": "Formatear para Frontend",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-944, 1440]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {"name": "Content-Type",                "value": "application/json"},
+              {"name": "Access-Control-Allow-Origin", "value": "*"}
+            ]
+          }
+        }
+      },
+      "id": "5f98599c-5528-44ec-9efa-fa62499a1866",
+      "name": "Responder JSON Frontend",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [-720, 1440]
+    },
+    {
+      "parameters": {
+        "rule": {"interval": [{"field": "minutes", "minutesInterval": 15}]}
+      },
+      "id": "e34de9dc-a047-46fb-9cd8-a50e11508409",
+      "name": "Trigger Cada 15 Min",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [-1392, 1840]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "citas",
+        "filterType": "string",
+        "filterString": "estado=eq.Confirmada"
+      },
+      "id": "23edfc5c-2f19-4247-af6e-85fb99371f98",
+      "name": "Leer Citas Confirmadas",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [-1168, 1840],
+      "credentials": {
+        "supabaseApi": {"id": "22AmE9s66g2OzCEQ", "name": "Supabase account"}
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const TIMEZONE = 'America/Santo_Domingo';\nconst now = new Date();\nconst nowLocal = new Date(now.toLocaleString('en-US', { timeZone: TIMEZONE }));\nconst hoy = nowLocal.toISOString().split('T')[0];\nconst recordatorios = [];\nconst noShows = [];\nfor (const item of $input.all()) {\n  const row = item.json;\n  if (!row.fecha || !row.hora || row.estado !== 'Confirmada') continue;\n  if (row.fecha !== hoy) continue;\n  const horaStr = (row.hora || '00:00').substring(0,5);\n  const citaDate = new Date(row.fecha + 'T' + horaStr + ':00');\n  if (isNaN(citaDate.getTime())) continue;\n  const diffMin = (citaDate - nowLocal) / (1000 * 60);\n  if (diffMin > 55 && diffMin <= 65) {\n    recordatorios.push({ tipo: 'recordatorio', shop_id: row.shop_id, telefono: row.telefono, chat_id: row.chat_id || row.telefono, nombre: row.nombre, fecha: row.fecha, hora: horaStr, servicio: row.servicio, barbero: row.barbero || '' });\n  }\n  if (diffMin < -40 && diffMin >= -55) {\n    noShows.push({ tipo: 'no_show', shop_id: row.shop_id, telefono: row.telefono, chat_id: row.chat_id || row.telefono, nombre: row.nombre, fecha: row.fecha, hora: horaStr, servicio: row.servicio, barbero: row.barbero || '', cita_id: row.id });\n  }\n}\nconst todos = recordatorios.concat(noShows);\nif (todos.length === 0) return [];\nreturn todos.map(x => ({ json: x }));"
+      },
+      "id": "390e0906-9e34-4871-90f8-43a2abc3208f",
+      "name": "Detectar Recordatorios y No-Shows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-944, 1840]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.tipo }}",
+        "rules": {
+          "rules": [
+            {"value2": "recordatorio"},
+            {"value2": "no_show", "output": 1}
+          ]
+        }
+      },
+      "id": "1cbbf60a-454b-4af0-9519-5de7cfa4d62c",
+      "name": "Router Recordatorio / No-Show",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [-720, 1840]
+    },
+    {
+      "parameters": {
+        "from": "whatsapp:+14155238886",
+        "to": "=whatsapp:{{ $json.chat_id }}",
+        "message": "={{ '⏰ ¡Hola '+$json.nombre+'! Te recordamos tu cita en *1 hora*:\\n📅 '+$json.fecha+'\\n🕐 '+$json.hora+' hs\\n✂️ Barbero: '+$json.barbero+'\\n👨 '+$json.servicio+'\\n\\nSi no podés venir, escribí *cancelar* para liberar el turno 🙏' }}",
+        "options": {}
+      },
+      "id": "c7c33c8c-96a5-4958-8b64-b8e069f9c753",
+      "name": "Enviar Recordatorio Twilio",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [-480, 1680],
+      "credentials": {
+        "twilioApi": {"id": "qv8DiFyCmZd2cNij", "name": "Twilio account"}
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "citas",
+        "filterType": "string",
+        "filterString": "id=eq.{{ $json.cita_id }}",
+        "fieldsUi": {
+          "fieldValues": [{"fieldId": "estado", "fieldValue": "No-Show"}]
+        }
+      },
+      "id": "c6d38e70-fe71-4afc-8bd9-4d6191f54918",
+      "name": "Marcar No-Show en Supabase",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [-480, 2000],
+      "credentials": {
+        "supabaseApi": {"id": "22AmE9s66g2OzCEQ", "name": "Supabase account"}
+      }
+    },
+    {
+      "parameters": {
+        "from": "whatsapp:+14155238886",
+        "to": "=whatsapp:{{ $json.chat_id }}",
+        "message": "={{ '👋 ¡Hola '+$json.nombre+'! Notamos que no pudiste venir a tu cita de las *'+$json.hora+'* para *'+$json.servicio+'*.\\n\\nSi querés reagendar, solo escribinos. 😊' }}",
+        "options": {}
+      },
+      "id": "14a2a90d-6a9c-442c-a855-4e1c4a63abcd",
+      "name": "Avisar No-Show Twilio",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [-480, 1840],
+      "credentials": {
+        "twilioApi": {"id": "qv8DiFyCmZd2cNij", "name": "Twilio account"}
+      }
+    }
+  ],
+  "connections": {
+    "Twilio WhatsApp Trigger": {"main": [[{"node": "Extraer Datos + Shop ID", "type": "main", "index": 0}]]},
+    "Extraer Datos + Shop ID":  {"main": [[{"node": "Leer Contexto Conversación", "type": "main", "index": 0}]]},
+    "Leer Contexto Conversación":{"main": [[{"node": "Recuperar Contexto", "type": "main", "index": 0}]]},
+    "Recuperar Contexto":        {"main": [[{"node": "Detectar Acción", "type": "main", "index": 0}]]},
+    "Detectar Acción":           {"main": [[{"node": "Router Acción", "type": "main", "index": 0}]]},
+    "Router Acción": {"main": [
+      [{"node": "Leer Citas Hoy",         "type": "main", "index": 0}],
+      [{"node": "Preparar Confirmación",  "type": "main", "index": 0}],
+      [{"node": "Guardar Cita en Supabase","type": "main", "index": 0}],
+      [{"node": "Buscar Cita Para Cancelar","type": "main", "index": 0}],
+      [{"node": "Buscar Cita Consulta",   "type": "main", "index": 0}],
+      [{"node": "Preparar Datos Conversación","type": "main", "index": 0}]
+    ]},
+    "Leer Citas Hoy":            {"main": [[{"node": "Buscar Turno Libre", "type": "main", "index": 0}]]},
+    "Buscar Turno Libre":        {"main": [[{"node": "Preparar Datos Conversación", "type": "main", "index": 0}]]},
+    "Preparar Confirmación":     {"main": [[{"node": "Preparar Datos Conversación", "type": "main", "index": 0}]]},
+    "Guardar Cita en Supabase":  {"main": [[{"node": "Cita Confirmada", "type": "main", "index": 0}, {"node": "Notificar al Barbero Twilio", "type": "main", "index": 0}]]},
+    "Cita Confirmada":           {"main": [[{"node": "Preparar Datos Conversación", "type": "main", "index": 0}]]},
+    "Buscar Cita Para Cancelar": {"main": [[{"node": "Preparar Cancelación", "type": "main", "index": 0}]]},
+    "Preparar Cancelación":      {"main": [[{"node": "¿Tiene Cita Activa?", "type": "main", "index": 0}]]},
+    "¿Tiene Cita Activa?": {"main": [
+      [{"node": "Cancelar Cita en Supabase", "type": "main", "index": 0}],
+      [{"node": "Preparar Datos Conversación", "type": "main", "index": 0}]
+    ]},
+    "Cancelar Cita en Supabase": {"main": [[{"node": "Preparar Datos Conversación", "type": "main", "index": 0}]]},
+    "Buscar Cita Consulta":      {"main": [[{"node": "Formatear Consulta", "type": "main", "index": 0}]]},
+    "Formatear Consulta":        {"main": [[{"node": "Preparar Datos Conversación", "type": "main", "index": 0}]]},
+    "Preparar Datos Conversación":{"main": [[{"node": "Upsert Contexto Conversación", "type": "main", "index": 0}]]},
+    "Upsert Contexto Conversación":{"main": [[{"node": "Preparar Respuesta Final", "type": "main", "index": 0}]]},
+    "Preparar Respuesta Final":  {"main": [[{"node": "Responder al Cliente Twilio", "type": "main", "index": 0}]]},
+    "Webhook GET Citas Frontend": {"main": [[{"node": "Leer Citas Hoy Supabase", "type": "main", "index": 0}]]},
+    "Leer Citas Hoy Supabase":   {"main": [[{"node": "Formatear para Frontend", "type": "main", "index": 0}]]},
+    "Formatear para Frontend":   {"main": [[{"node": "Responder JSON Frontend", "type": "main", "index": 0}]]},
+    "Trigger Cada 15 Min":       {"main": [[{"node": "Leer Citas Confirmadas", "type": "main", "index": 0}]]},
+    "Leer Citas Confirmadas":    {"main": [[{"node": "Detectar Recordatorios y No-Shows", "type": "main", "index": 0}]]},
+    "Detectar Recordatorios y No-Shows":{"main": [[{"node": "Router Recordatorio / No-Show", "type": "main", "index": 0}]]},
+    "Router Recordatorio / No-Show":{"main": [
+      [{"node": "Enviar Recordatorio Twilio", "type": "main", "index": 0}],
+      [{"node": "Avisar No-Show Twilio", "type": "main", "index": 0}, {"node": "Marcar No-Show en Supabase", "type": "main", "index": 0}]
+    ]}
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "meta": {
+    "instanceId": "82a43998fa399579ca7d2b1927da5e424901a1386786e82fde8045f18f03b467",
+    "version": "4.0.0-saas-multitenant",
+    "notes": "Versión SaaS multi-tenant. Requiere columna shop_id en tablas citas, conversaciones. Reemplaza REEMPLAZA_CON_TU_SHOP_ID y REEMPLAZA_CON_TU_ANON_KEY."
+  },
+  "id": "BarberiaBotV4SaaS",
+  "tags": ["barberia", "saas", "whatsapp", "multitenant"]
+}

@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BarberOS — Guía de Despliegue</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#0C0C0C;--bg2:#141414;--gold:#C9A84C;--green:#3ECF8E;--text:rgba(255,255,255,0.82);--muted:rgba(255,255,255,0.32);--border:rgba(255,255,255,0.07);}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;line-height:1.6;}
+.container{max-width:860px;margin:0 auto;padding:60px 32px;}
+h1{font-size:2.2rem;font-weight:800;margin-bottom:8px;}
+.subtitle{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:48px;}
+.phase{margin-bottom:48px;border:1px solid var(--border);background:var(--bg2);}
+.phase-header{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;}
+.phase-num{width:32px;height:32px;background:var(--gold);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:0.7rem;font-weight:500;color:#0C0C0C;flex-shrink:0;}
+.phase-title{font-size:1rem;font-weight:700;}
+.phase-tag{margin-left:auto;font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);letter-spacing:0.14em;text-transform:uppercase;}
+.phase-body{padding:20px 24px;display:flex;flex-direction:column;gap:14px;}
+.step-item{display:flex;gap:14px;align-items:flex-start;}
+.step-bullet{width:20px;height:20px;border:1px solid rgba(201,168,76,0.3);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--gold);flex-shrink:0;margin-top:2px;}
+.step-content{flex:1;}
+.step-title{font-size:0.88rem;font-weight:700;margin-bottom:4px;}
+.step-desc{font-size:0.82rem;color:var(--muted);line-height:1.6;}
+pre{background:rgba(0,0,0,0.5);border:1px solid var(--border);padding:14px 16px;font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--green);overflow-x:auto;margin-top:8px;line-height:1.6;}
+code{font-family:'DM Mono',monospace;font-size:0.78rem;background:rgba(201,168,76,0.1);color:var(--gold);padding:2px 6px;}
+.file-tree{background:rgba(0,0,0,0.4);border:1px solid var(--border);padding:14px 16px;font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted);line-height:2;margin-top:8px;}
+.file-tree .folder{color:var(--gold);}
+.file-tree .file{color:var(--green);}
+.checklist{display:flex;flex-direction:column;gap:6px;margin-top:8px;}
+.check-item{display:flex;gap:10px;font-size:0.82rem;color:var(--muted);}
+.check-item::before{content:'□';color:var(--gold);font-size:0.9rem;}
+.done::before{content:'✓';color:var(--green);}
+.alert-box{padding:12px 16px;border:1px solid rgba(201,168,76,0.25);background:rgba(201,168,76,0.04);font-size:0.82rem;color:var(--gold);}
+.env-table{width:100%;border-collapse:collapse;margin-top:8px;font-family:'DM Mono',monospace;font-size:0.68rem;}
+.env-table th{text-align:left;padding:7px 12px;border-bottom:1px solid var(--border);color:var(--muted);font-size:0.54rem;letter-spacing:0.18em;text-transform:uppercase;}
+.env-table td{padding:7px 12px;border-bottom:1px solid rgba(255,255,255,0.02);color:var(--text);}
+.env-table td:first-child{color:var(--green);}
+.env-table td:last-child{color:var(--muted);}
+.links{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+.link-btn{padding:7px 14px;border:1px solid var(--border);color:var(--gold);font-family:'DM Mono',monospace;font-size:0.58rem;text-decoration:none;letter-spacing:0.12em;text-transform:uppercase;transition:all 0.2s;}
+.link-btn:hover{border-color:var(--gold);background:rgba(201,168,76,0.06);}
+.summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px;}
+.sum-card{padding:14px;border:1px solid var(--border);background:rgba(0,0,0,0.3);}
+.sum-label{font-family:'DM Mono',monospace;font-size:0.48rem;color:var(--muted);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:5px;}
+.sum-val{font-size:1rem;font-weight:700;color:var(--gold);}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>🚀 BarberOS — Guía de Despliegue SaaS</h1>
+<div class="subtitle">// De local a producción en menos de 2 horas</div>
+
+<!-- FASE 1 -->
+<div class="phase">
+  <div class="phase-header">
+    <div class="phase-num">01</div>
+    <div class="phase-title">Estructura del proyecto</div>
+    <div class="phase-tag">5 minutos</div>
+  </div>
+  <div class="phase-body">
+    <div class="step-item">
+      <div class="step-bullet">1</div>
+      <div class="step-content">
+        <div class="step-title">Archivos del proyecto</div>
+        <div class="step-desc">Tu carpeta debe quedar así:</div>
+        <div class="file-tree">
+<span class="folder">barberia-saas/</span>
+├── <span class="file">index.html</span>          ← Landing page (ventas)
+├── <span class="file">admin.html</span>          ← Panel admin del dueño
+├── <span class="file">display.html</span>        ← Pantalla sala de espera (tablet)
+├── <span class="file">register.html</span>       ← Registro de nuevas barberías
+├── <span class="file">manifest.json</span>       ← PWA (instalar como app)
+├── <span class="file">vercel.json</span>         ← Config de despliegue
+└── <span class="file">deploy-guide.html</span>  ← Esta guía
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FASE 2 -->
+<div class="phase">
+  <div class="phase-header">
+    <div class="phase-num">02</div>
+    <div class="phase-title">Supabase — Base de datos multi-tenant</div>
+    <div class="phase-tag">20 minutos</div>
+  </div>
+  <div class="phase-body">
+    <div class="step-item">
+      <div class="step-bullet">1</div>
+      <div class="step-content">
+        <div class="step-title">Crear cuenta en Supabase</div>
+        <div class="step-desc">Ve a <code>supabase.com</code> → New Project → elige región "East US" (más cercano a RD)</div>
+        <div class="links"><a class="link-btn" href="https://supabase.com" target="_blank">→ supabase.com</a></div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-bullet">2</div>
+      <div class="step-content">
+        <div class="step-title">Ejecutar SQL de configuración</div>
+        <div class="step-desc">En el SQL Editor de Supabase, ejecuta este script completo:</div>
+        <pre>-- 1. TABLA DE BARBERÍAS (multi-tenant)
+CREATE TABLE shops (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  nombre TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
+  whatsapp TEXT,
+  plan TEXT DEFAULT 'free',
+  webhook_url TEXT,
+  duracion_turno INTEGER DEFAULT 45,
+  activo BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 2. TABLA DE CITAS (ya la tienes, agregar shop_id)
+ALTER TABLE citas 
+  ADD COLUMN IF NOT EXISTS shop_id UUID REFERENCES shops(id),
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
+
+-- 3. TABLA DE CONVERSACIONES (ya la tienes, agregar shop_id)
+ALTER TABLE conversaciones
+  ADD COLUMN IF NOT EXISTS shop_id UUID REFERENCES shops(id);
+
+-- 4. TABLA DE BARBEROS (nueva, reemplaza config estática)
+CREATE TABLE barberos (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  shop_id UUID REFERENCES shops(id),
+  nombre TEXT NOT NULL,
+  activo BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 5. INSERT de prueba — tu barbería
+INSERT INTO shops (nombre, slug, whatsapp, plan)
+VALUES ('Elite Cuts', 'elite-cuts', '+18098498528', 'pro')
+RETURNING id;
+-- Guarda el ID que retorna — lo usas como SHOP_ID
+
+-- 6. Índices para performance
+CREATE INDEX idx_citas_shop_fecha ON citas(shop_id, fecha);
+CREATE INDEX idx_conv_shop_chat ON conversaciones(shop_id, chat_id);
+CREATE INDEX idx_barberos_shop ON barberos(shop_id);</pre>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-bullet">3</div>
+      <div class="step-content">
+        <div class="step-title">Obtener credenciales</div>
+        <div class="step-desc">En Supabase: Settings → API → copia estos valores:</div>
+        <table class="env-table">
+          <thead><tr><th>Variable</th><th>Dónde encontrarla</th><th>Ejemplo</th></tr></thead>
+          <tbody>
+            <tr><td>SUPABASE_URL</td><td>Settings → API → URL</td><td>https://xxxx.supabase.co</td></tr>
+            <tr><td>SUPABASE_ANON_KEY</td><td>Settings → API → anon public</td><td>eyJhbGci...</td></tr>
+            <tr><td>SHOP_ID</td><td>Resultado del INSERT arriba</td><td>550e8400-e29b...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FASE 3 -->
+<div class="phase">
+  <div class="phase-header">
+    <div class="phase-num">03</div>
+    <div class="phase-title">Conectar display.html con Supabase real</div>
+    <div class="phase-tag">15 minutos</div>
+  </div>
+  <div class="phase-body">
+    <div class="step-item">
+      <div class="step-bullet">1</div>
+      <div class="step-content">
+        <div class="step-title">Editar las 3 variables al inicio del script en display.html</div>
+        <pre>// Al inicio del &lt;script&gt; en display.html — reemplazar:
+const SUPABASE_URL = 'https://mmokunpuslcfphalrwot.supabase.co';
+const SUPABASE_KEY = 'tu_anon_key_aqui';
+const SHOP_ID = 'tu_shop_id_aqui'; // UUID del INSERT anterior</pre>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-bullet">2</div>
+      <div class="step-content">
+        <div class="step-title">Agregar función de carga real (reemplaza loadState)</div>
+        <pre>// Función que carga citas REALES desde Supabase
+async function loadCitasSupabase() {
+  const hoy = new Date().toISOString().split('T')[0];
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/citas` +
+      `?shop_id=eq.${SHOP_ID}` +
+      `&fecha=eq.${hoy}` +
+      `&estado=neq.Cancelada` +
+      `&order=hora.asc`,
+      {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`
+        }
+      }
+    );
+    const citas = await res.json();
+    
+    // Mapear al formato del state existente
+    state.clients = citas.map(c => ({
+      name: (c.nombre || 'Cliente').toUpperCase(),
+      time: (c.hora || '00:00').substring(0, 5),
+      telefono: c.telefono || '',
+      servicio: (c.servicio || 'CORTE CLÁSICO').toUpperCase(),
+      barbero: (c.barbero || 'cualquiera').toUpperCase(),
+      status: 'wait'
+    }));
+    
+    updateStatuses();
+    render();
+    console.log(`✓ ${citas.length} citas cargadas desde Supabase`);
+  } catch(e) {
+    console.error('Error cargando citas:', e);
+    showToast('⚠ Error conectando con la base de datos', 'error');
+  }
+}
+
+// Auto-refresh cada 30 segundos
+loadCitasSupabase();
+setInterval(loadCitasSupabase, 30000);</pre>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-bullet">3</div>
+      <div class="step-content">
+        <div class="step-title">Actualizar el workflow n8n para incluir shop_id</div>
+        <div class="step-desc">En el nodo "Guardar Cita en Supabase" de n8n, agrega este campo:</div>
+        <pre>// En el nodo Supabase "Guardar Cita" — agregar fieldValue:
+{
+  "fieldId": "shop_id",
+  "fieldValue": "tu_shop_id_aqui"
+}</pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FASE 4 -->
+<div class="phase">
+  <div class="phase-header">
+    <div class="phase-num">04</div>
+    <div class="phase-title">Desplegar en Vercel</div>
+    <div class="phase-tag">10 minutos · Gratis</div>
+  </div>
+  <div class="phase-body">
+    <div class="step-item">
+      <div class="step-bullet">1</div>
+      <div class="step-content">
+        <div class="step-title">Subir a GitHub</div>
+        <pre>cd barberia-saas
+git init
+git add .
+git commit -m "BarberOS SaaS v1.0"
+# Crear repo en github.com y conectar:
+git remote add origin https://github.com/tuusuario/barberia-saas.git
+git push -u origin main</pre>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-bullet">2</div>
+      <div class="step-content">
+        <div class="step-title">Crear vercel.json</div>
+        <div class="step-desc">Crea este archivo en la raíz del proyecto:</div>
+        <pre>{
+  "rewrites": [
+    { "source": "/sala/:shop", "destination": "/display.html" },
+    { "source": "/admin/:shop", "destination": "/admin.html" },
+    { "source": "/registro", "destination": "/register.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" }
+      ]
+    }
+  ]
+}</pre>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-bullet">3</div>
+      <div class="step-content">
+        <div class="step-title">Conectar en Vercel</div>
+        <div class="step-desc">
+          1. Ve a <code>vercel.com</code> → New Project → Import Git Repository<br>
+          2. Selecciona tu repo<br>
+          3. Framework: <strong>Other</strong> (HTML estático)<br>
+          4. Click Deploy → listo en 60 segundos
+        </div>
+        <div class="links">
+          <a class="link-btn" href="https://vercel.com" target="_blank">→ vercel.com</a>
+        </div>
+        <div class="alert-box" style="margin-top:10px;">
+          ✓ Tu sistema queda en: <strong>tu-proyecto.vercel.app</strong><br>
+          Sala: <strong>tu-proyecto.vercel.app/sala/elite-cuts</strong><br>
+          Admin: <strong>tu-proyecto.vercel.app/admin/elite-cuts</strong>
+        </div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-bullet">4</div>
+      <div class="step-content">
+        <div class="step-title">Dominio personalizado (opcional — $10/año)</div>
+        <pre># En Vercel → Settings → Domains:
+# Agrega: barberos.app  (o tu dominio)
+# En Namecheap/GoDaddy apunta el DNS a Vercel
+# 
+# URLs resultantes:
+# barberos.app                     ← Landing
+# barberos.app/sala/elite-cuts     ← Tablet sala
+# barberos.app/admin/elite-cuts    ← Admin dueño</pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FASE 5 -->
+<div class="phase">
+  <div class="phase-header">
+    <div class="phase-num">05</div>
+    <div class="phase-title">Instalar en tablet Android como PWA / APK</div>
+    <div class="phase-tag">5 minutos</div>
+  </div>
+  <div class="phase-body">
+    <div class="step-item">
+      <div class="step-bullet">A</div>
+      <div class="step-content">
+        <div class="step-title">Opción A — PWA (recomendada, cero costo)</div>
+        <div class="step-desc">
+          1. Abre Chrome en la tablet Android<br>
+          2. Ve a <code>tu-proyecto.vercel.app/display.html</code><br>
+          3. Menú (⋮) → <strong>"Agregar a pantalla de inicio"</strong><br>
+          4. Se instala como app nativa con ícono<br>
+          5. Abre → pantalla completa, sin barra de Chrome<br>
+          6. ✓ Funciona aunque no haya internet (citas en caché)
+        </div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-bullet">B</div>
+      <div class="step-content">
+        <div class="step-title">Opción B — APK con WebIntoApp (gratis, 10 min)</div>
+        <div class="step-desc">
+          1. Ve a <code>webintoapp.com</code><br>
+          2. URL: <code>tu-proyecto.vercel.app/display.html</code><br>
+          3. Nombre: BarberOS · Orientación: Landscape<br>
+          4. Descarga APK → instala en tablet<br>
+          5. Distribuye por WhatsApp a tus clientes barberías
+        </div>
+        <div class="links">
+          <a class="link-btn" href="https://webintoapp.com" target="_blank">→ webintoapp.com</a>
+        </div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-bullet">C</div>
+      <div class="step-content">
+        <div class="step-title">Opción C — APK nativa Android Studio</div>
+        <div class="step-desc">Para publicar en Google Play Store. Solo 3 archivos necesarios:</div>
+        <pre>// MainActivity.java
+WebView webView = findViewById(R.id.webview);
+WebSettings settings = webView.getSettings();
+settings.setJavaScriptEnabled(true);
+settings.setDomStorageEnabled(true);
+settings.setLoadWithOverviewMode(true);
+settings.setUseWideViewPort(true);
+// Cargar en landscape:
+setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+webView.loadUrl("https://tu-proyecto.vercel.app/display.html?shop=" + shopSlug);</pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FASE 6 -->
+<div class="phase">
+  <div class="phase-header">
+    <div class="phase-num">06</div>
+    <div class="phase-title">Multi-tenant — Agregar nuevas barberías</div>
+    <div class="phase-tag">SaaS real</div>
+  </div>
+  <div class="phase-body">
+    <div class="step-item">
+      <div class="step-bullet">1</div>
+      <div class="step-content">
+        <div class="step-title">Cada nueva barbería = 1 fila en la tabla shops</div>
+        <pre>-- Agregar nueva barbería al SaaS:
+INSERT INTO shops (nombre, slug, whatsapp, plan, webhook_url)
+VALUES (
+  'Barber King',
+  'barber-king',
+  '+18095551234',
+  'pro',
+  'https://n8n.barberking.com/webhook/...'
+) RETURNING id;
+
+-- URL de sala para esa barbería:
+-- tu-proyecto.vercel.app/sala/barber-king
+-- 
+-- URL de admin:
+-- tu-proyecto.vercel.app/admin/barber-king</pre>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-bullet">2</div>
+      <div class="step-content">
+        <div class="step-title">El display.html lee el slug de la URL</div>
+        <pre>// En display.html — al inicio del script:
+const shopSlug = new URLSearchParams(location.search).get('shop')
+               || location.pathname.split('/').pop()
+               || 'elite-cuts';
+
+// Cargar shop_id desde Supabase usando el slug:
+async function loadShop() {
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/shops?slug=eq.${shopSlug}&select=id,nombre`,
+    { headers: { 'apikey': SUPABASE_KEY }}
+  );
+  const [shop] = await res.json();
+  if(shop) {
+    SHOP_ID = shop.id;
+    document.getElementById('shop-name').textContent = shop.nombre;
+    await loadCitasSupabase();
+  }
+}</pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COSTOS -->
+<div class="phase">
+  <div class="phase-header">
+    <div class="phase-num">07</div>
+    <div class="phase-title">Costos de infraestructura</div>
+    <div class="phase-tag">Para referencia</div>
+  </div>
+  <div class="phase-body">
+    <div class="summary-grid">
+      <div class="sum-card"><div class="sum-label">Vercel (hosting)</div><div class="sum-val">$0/mes</div></div>
+      <div class="sum-card"><div class="sum-label">Supabase DB</div><div class="sum-val">$0/mes</div></div>
+      <div class="sum-card"><div class="sum-label">Twilio WhatsApp</div><div class="sum-val">~$0.005/msg</div></div>
+      <div class="sum-card"><div class="sum-label">n8n Cloud</div><div class="sum-val">$20/mes</div></div>
+      <div class="sum-card"><div class="sum-label">Dominio</div><div class="sum-val">$10/año</div></div>
+      <div class="sum-card" style="border-color:rgba(201,168,76,0.3)"><div class="sum-label">Total mes (~3 barberías)</div><div class="sum-val" style="color:var(--green)">~$25/mes</div></div>
+    </div>
+    <div class="step-item" style="margin-top:14px;">
+      <div class="step-bullet">💡</div>
+      <div class="step-content">
+        <div class="step-title">Modelo de negocio</div>
+        <div class="step-desc">Con 3 clientes en plan Pro ($29/mes cada uno) ya cubres todos los costos. A partir del cliente #4, todo es ganancia. Con 10 barberías Pro: $290/mes ingresos vs $25/mes costos.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHECKLIST FINAL -->
+<div class="phase" style="border-color:rgba(62,207,142,0.2);">
+  <div class="phase-header" style="border-color:rgba(62,207,142,0.15);">
+    <div class="phase-num" style="background:var(--green);">✓</div>
+    <div class="phase-title">Checklist de lanzamiento</div>
+    <div class="phase-tag">¿Todo listo?</div>
+  </div>
+  <div class="phase-body">
+    <div class="checklist">
+      <div class="check-item">Supabase con tablas shops, citas, conversaciones, barberos</div>
+      <div class="check-item">SUPABASE_URL y SUPABASE_KEY en display.html y admin.html</div>
+      <div class="check-item">n8n workflow con shop_id en nodo Guardar Cita</div>
+      <div class="check-item">Proyecto subido a GitHub</div>
+      <div class="check-item">Deploy en Vercel funcionando</div>
+      <div class="check-item">manifest.json para PWA</div>
+      <div class="check-item">Tablet configurada con URL de sala en pantalla completa</div>
+      <div class="check-item">Prueba: cliente manda WhatsApp → cita aparece en sala</div>
+      <div class="check-item">Prueba: avanzar turno → sala se actualiza</div>
+      <div class="check-item">(Opcional) Dominio personalizado en Vercel</div>
+      <div class="check-item">(Opcional) APK generada con WebIntoApp</div>
+    </div>
+  </div>
+</div>
+
+<div style="text-align:center;padding:40px 0;font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);letter-spacing:0.2em;">
+  BarberOS · Sistema SaaS · Santiago, RD · 2025
+</div>
+
+</div>
+</body>
+</html>

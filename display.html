@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>BarberOS — Sala de Espera</title>
+<meta name="theme-color" content="#020408">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=Share+Tech+Mono&display=swap&font-display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --cyan:#00F5FF;--magenta:#FF006E;--gold:#FFD600;
+  --green:#00FF78;--purple:#B06EFF;--bg:#020408;--bg2:#060C14;
+  --glow-c:rgba(0,245,255,0.6);--glow-m:rgba(255,0,110,0.5);
+  --glow-g:rgba(0,255,120,0.5);--glow-p:rgba(176,110,255,0.5);
+}
+html,body{width:100%;height:100%;background:var(--bg);color:var(--cyan);font-family:'Rajdhani',sans-serif;overflow:hidden;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+@keyframes line-pulse{0%,100%{opacity:0.3}50%{opacity:1}}
+@keyframes orb-f{0%,100%{transform:translate(0,0)}50%{transform:translate(25px,-25px)}}
+@keyframes grid-drift{0%{background-position:0 0}100%{background-position:60px 60px}}
+@keyframes stripe-scroll{from{transform:translateY(0)}to{transform:translateY(-50%)}}
+@keyframes pole-glow{0%,100%{filter:drop-shadow(0 0 8px rgba(0,245,255,0.4))}50%{filter:drop-shadow(0 0 18px rgba(0,245,255,0.7))}}
+@keyframes flip-in{0%{transform:scale(0.6) translateY(-20px);opacity:0}60%{transform:scale(1.08)}100%{transform:scale(1) translateY(0);opacity:1}}
+@keyframes item-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pill-in{from{opacity:0;transform:translateX(-8px) scale(0.9)}to{opacity:1;transform:translateX(0) scale(1)}}
+@keyframes mini-in{from{opacity:0;transform:scale(0.93)}to{opacity:1;transform:scale(1)}}
+@keyframes scan{0%{left:-80%}100%{left:180%}}
+@keyframes alert-row{0%,100%{border-left-color:rgba(255,214,0,0.2)}50%{border-left-color:rgba(255,214,0,0.85)}}
+@keyframes tag-blink{0%,100%{opacity:0.7}50%{opacity:1}}
+@keyframes btn-pulse{0%,100%{box-shadow:0 0 24px rgba(0,255,120,0.18)}50%{box-shadow:0 0 60px rgba(0,255,120,0.5)}}
+@keyframes hero-pulse{0%,100%{text-shadow:0 0 30px var(--bc-glow,var(--glow-c)),0 0 80px var(--bc-glow,rgba(0,245,255,0.3))}50%{text-shadow:0 0 55px var(--bc-glow,var(--glow-c)),0 0 130px var(--bc-glow,rgba(0,245,255,0.4))}}
+/* TV Global: counter tick */
+@keyframes tv-tick{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
+@keyframes lbl-glow{0%,100%{opacity:0.7}50%{opacity:1}}
+/* ── TYPEWRITER / name-enter ── */
+@keyframes typewriter-in{0%{clip-path:inset(0 100% 0 0);opacity:0;}5%{opacity:1;}100%{clip-path:inset(0 0% 0 0);opacity:1;}}
+@keyframes cursor-blink{0%,100%{border-right-color:currentColor;}50%{border-right-color:transparent;}}
+@keyframes name-enter{0%{opacity:0;transform:translateY(18px) scale(0.94);}60%{transform:translateY(-3px) scale(1.02);}100%{opacity:1;transform:translateY(0) scale(1);}}
+.silla-name.name-enter{animation:name-enter 0.55s cubic-bezier(0.34,1.56,0.64,1) forwards;}
+.my-client-name.name-enter{animation:name-enter 0.55s cubic-bezier(0.34,1.56,0.64,1) forwards;}
+.silla-name.typing,.my-client-name.typing{
+  overflow:hidden;white-space:nowrap;
+  border-right:2px solid currentColor;
+  animation:typewriter-in 0.65s steps(22,end) forwards, cursor-blink 0.55s step-end 6;
+}
+/* ── TIMER EN SILLA ── */
+.silla-timer{display:flex;align-items:center;gap:6px;margin-top:8px;padding:4px 14px;border:1px solid rgba(0,255,120,0.2);background:rgba(0,255,120,0.03);font-family:'Orbitron',monospace;font-size:0.72rem;font-weight:600;color:rgba(0,255,120,0.55);letter-spacing:0.14em;transition:color 0.5s,border-color 0.5s;}
+.silla-timer.warm{border-color:rgba(255,214,0,0.25);color:rgba(255,214,0,0.65);}
+.silla-timer.hot{border-color:rgba(255,0,110,0.3);color:rgba(255,0,110,0.7);animation:blink 1.5s ease-in-out infinite;}
+.timer-dot{width:5px;height:5px;border-radius:50%;background:currentColor;box-shadow:0 0 5px currentColor;animation:blink 1.2s ease-in-out infinite;}
+/* ── MODAL WALK-IN / REAGENDAR ── */
+.action-modal{display:none;position:fixed;inset:0;z-index:300;background:rgba(2,4,8,0.94);backdrop-filter:blur(18px);align-items:center;justify-content:center;}
+.action-modal.open{display:flex;}
+.action-box{background:var(--bg2);border:1px solid rgba(0,245,255,0.15);padding:28px 32px;min-width:360px;max-width:500px;width:92%;position:relative;}
+.action-box::before{content:'';position:absolute;top:0;left:10%;right:10%;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);}
+.action-box.purple-modal::before{background:linear-gradient(90deg,transparent,var(--purple),transparent);}
+.action-title{font-family:'Orbitron',monospace;font-size:0.85rem;font-weight:700;letter-spacing:0.2em;color:var(--cyan);text-transform:uppercase;margin-bottom:5px;}
+.action-box.purple-modal .action-title{color:var(--purple);}
+.action-sub{font-family:'Share Tech Mono',monospace;font-size:0.44rem;color:rgba(0,245,255,0.28);letter-spacing:0.16em;text-transform:uppercase;margin-bottom:20px;}
+.action-box.purple-modal .action-sub{color:rgba(176,110,255,0.28);}
+.afield{margin-bottom:13px;}
+.afield label{font-family:'Share Tech Mono',monospace;font-size:0.42rem;color:rgba(0,245,255,0.3);letter-spacing:0.22em;text-transform:uppercase;display:block;margin-bottom:5px;}
+.action-box.purple-modal .afield label{color:rgba(176,110,255,0.32);}
+.ainp{width:100%;background:rgba(0,245,255,0.03);border:1px solid rgba(0,245,255,0.12);color:var(--cyan);padding:9px 13px;font-family:'Rajdhani',sans-serif;font-size:0.92rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;outline:none;transition:border-color 0.2s;}
+.ainp:focus{border-color:rgba(0,245,255,0.4);}
+.action-box.purple-modal .ainp{background:rgba(176,110,255,0.03);border-color:rgba(176,110,255,0.12);color:var(--purple);}
+.action-box.purple-modal .ainp:focus{border-color:rgba(176,110,255,0.45);}
+.barber-sel{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;}
+.barber-sel-btn{padding:6px 14px;border:1px solid rgba(0,245,255,0.12);background:transparent;color:rgba(0,245,255,0.38);font-family:'Share Tech Mono',monospace;font-size:0.46rem;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;}
+.barber-sel-btn:hover{border-color:rgba(0,245,255,0.3);color:rgba(0,245,255,0.7);}
+.barber-sel-btn.sel{border-color:var(--cyan);background:rgba(0,245,255,0.1);color:var(--cyan);}
+.action-box.purple-modal .barber-sel-btn{border-color:rgba(176,110,255,0.12);color:rgba(176,110,255,0.38);}
+.action-box.purple-modal .barber-sel-btn.sel{border-color:var(--purple);background:rgba(176,110,255,0.1);color:var(--purple);}
+.time-slots{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;max-height:110px;overflow-y:auto;margin-top:4px;}
+.time-slots::-webkit-scrollbar{width:2px;}
+.time-slots::-webkit-scrollbar-thumb{background:rgba(0,245,255,0.1);}
+.time-slot{padding:6px 4px;border:1px solid rgba(0,245,255,0.08);background:rgba(0,245,255,0.01);color:rgba(0,245,255,0.32);font-family:'Share Tech Mono',monospace;font-size:0.44rem;text-align:center;cursor:pointer;transition:all 0.15s;letter-spacing:0.04em;}
+.time-slot:hover{border-color:rgba(0,245,255,0.28);color:rgba(0,245,255,0.7);}
+.time-slot.sel{border-color:var(--cyan);background:rgba(0,245,255,0.1);color:var(--cyan);}
+.time-slot.taken{opacity:0.22;pointer-events:none;text-decoration:line-through;}
+.action-acts{display:flex;gap:8px;margin-top:20px;}
+.abtn{flex:1;padding:11px;font-family:'Orbitron',monospace;font-size:0.6rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;border:1px solid;}
+.abtn-confirm{background:rgba(0,245,255,0.1);border-color:rgba(0,245,255,0.35);color:var(--cyan);}
+.abtn-confirm:hover{background:rgba(0,245,255,0.2);box-shadow:0 0 20px rgba(0,245,255,0.15);}
+.action-box.purple-modal .abtn-confirm{background:rgba(176,110,255,0.1);border-color:rgba(176,110,255,0.35);color:var(--purple);}
+.action-box.purple-modal .abtn-confirm:hover{background:rgba(176,110,255,0.2);}
+.abtn-cancel{background:transparent;border-color:rgba(255,255,255,0.07);color:rgba(255,255,255,0.18);}
+.abtn-cancel:hover{border-color:rgba(255,255,255,0.2);color:rgba(255,255,255,0.4);}
+/* ── WALK-IN FAB ── */
+.walkin-fab{position:fixed;right:18px;bottom:100px;z-index:60;display:flex;align-items:center;gap:7px;padding:8px 16px;background:rgba(0,255,120,0.07);border:1px solid rgba(0,255,120,0.3);color:rgba(0,255,120,0.6);font-family:'Share Tech Mono',monospace;font-size:0.48rem;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;opacity:0.35;-webkit-tap-highlight-color:transparent;}
+.walkin-fab:hover{opacity:1;box-shadow:0 0 20px rgba(0,255,120,0.18);}
+.walkin-fab-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);}
+
+/* ── BG ── */
+.grid-bg{position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(0,245,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,255,0.03) 1px,transparent 1px);background-size:60px 60px;animation:grid-drift 25s linear infinite;}
+.scanline{position:fixed;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.05) 2px,rgba(0,0,0,0.05) 4px);}
+.orb{position:fixed;border-radius:50%;filter:blur(140px);pointer-events:none;z-index:0;}
+.orb1{width:700px;height:700px;background:rgba(0,245,255,0.05);top:-250px;left:-250px;animation:orb-f 9s ease-in-out infinite;}
+.orb2{width:600px;height:600px;background:rgba(255,0,110,0.04);bottom:-200px;right:-200px;animation:orb-f 11s ease-in-out infinite reverse;}
+
+/* ── SHELL ── */
+.app{position:relative;z-index:2;height:100vh;display:flex;flex-direction:column;}
+
+/* ── HEADER ── */
+header{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:10px 32px;border-bottom:1px solid rgba(0,245,255,0.1);background:rgba(2,4,8,0.7);backdrop-filter:blur(10px);position:relative;z-index:10;flex-shrink:0;}
+header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);animation:line-pulse 3s ease-in-out infinite;}
+.brand{display:flex;align-items:center;gap:12px;}
+.barber-pole-wrap{position:relative;width:28px;height:54px;flex-shrink:0;animation:pole-glow 3s ease-in-out infinite;}
+.pole-cap{position:absolute;left:0;width:28px;height:8px;background:linear-gradient(180deg,#1c1c3a,#0d0d20);border:1px solid rgba(0,245,255,0.4);box-shadow:0 0 10px rgba(0,245,255,0.3);z-index:10;}
+.pole-cap-top{top:0;border-radius:5px 5px 2px 2px;}
+.pole-cap-bot{bottom:0;border-radius:2px 2px 5px 5px;}
+.pole-body{position:absolute;top:7px;left:4px;width:20px;height:40px;border-radius:3px;overflow:hidden;background:#020510;border:1px solid rgba(0,245,255,0.15);z-index:5;}
+.pole-stripes{position:absolute;top:0;left:0;width:100%;height:200%;background:repeating-linear-gradient(-55deg,#c01020 0,#c01020 6px,#f5f5f5 6px,#f5f5f5 11px,#1133bb 11px,#1133bb 17px,#f5f5f5 17px,#f5f5f5 22px);animation:stripe-scroll 1.4s linear infinite;}
+.pole-shine{position:absolute;top:7px;left:4px;width:20px;height:40px;border-radius:3px;background:linear-gradient(90deg,rgba(0,0,0,0.35) 0%,rgba(255,255,255,0.22) 38%,rgba(0,0,0,0.25) 100%);pointer-events:none;z-index:8;}
+.brand-name{font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:900;letter-spacing:0.15em;color:var(--cyan);text-shadow:0 0 24px var(--glow-c);}
+.brand-sub{font-family:'Share Tech Mono',monospace;font-size:0.52rem;color:rgba(0,245,255,0.35);letter-spacing:0.3em;text-transform:uppercase;margin-top:2px;}
+.clock-block{text-align:center;}
+.clock-time{font-family:'Orbitron',monospace;font-size:2.2rem;font-weight:700;color:var(--cyan);letter-spacing:0.08em;text-shadow:0 0 30px var(--glow-c);line-height:1;}
+.clock-date{font-family:'Share Tech Mono',monospace;font-size:0.54rem;color:rgba(0,245,255,0.4);letter-spacing:0.18em;margin-top:4px;text-transform:uppercase;}
+.header-right{display:flex;justify-content:flex-end;align-items:center;gap:8px;}
+.hpill{display:flex;align-items:center;gap:6px;padding:5px 10px;border:1px solid;font-family:'Share Tech Mono',monospace;font-size:0.48rem;letter-spacing:0.1em;text-transform:uppercase;transition:all 0.4s;}
+.hpill-sys{border-color:rgba(0,245,255,0.15);color:rgba(0,245,255,0.5);}
+.hpill-rt{border-color:rgba(0,255,120,0.2);color:rgba(0,255,120,0.5);}
+.hpill-rt.connecting{border-color:rgba(255,214,0,0.2);color:rgba(255,214,0,0.5);}
+.hpill-rt.error{border-color:rgba(255,0,110,0.2);color:rgba(255,0,110,0.5);}
+.hpill-db.ok{border-color:rgba(0,255,120,0.25);color:rgba(0,255,120,0.5);}
+.hpill-db.err{border-color:rgba(255,0,110,0.3);color:rgba(255,0,110,0.5);animation:blink 1s ease-in-out infinite;}
+.hpill-db.loading{border-color:rgba(255,214,0,0.25);color:rgba(255,214,0,0.5);}
+.hpill-dot{width:5px;height:5px;border-radius:50%;background:currentColor;box-shadow:0 0 5px currentColor;animation:blink 1.8s ease-in-out infinite;}
+.sys-dot{width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan);animation:blink 1.5s ease-in-out infinite;}
+.fs-btn{background:rgba(0,245,255,0.05);border:1px solid rgba(0,245,255,0.15);color:rgba(0,245,255,0.5);padding:5px 10px;font-family:'Share Tech Mono',monospace;font-size:0.48rem;letter-spacing:0.12em;cursor:pointer;text-transform:uppercase;transition:all 0.2s;}
+.fs-btn:hover{background:rgba(0,245,255,0.12);color:var(--cyan);}
+
+/* ── CONTENT ── */
+.content{flex:1;display:flex;overflow:hidden;min-height:0;}
+
+/* ── COLORS POR BARBERO ── */
+.bc-0{--bc:#00F5FF;--bc-glow:rgba(0,245,255,0.5);}
+.bc-1{--bc:#B06EFF;--bc-glow:rgba(176,110,255,0.5);}
+.bc-2{--bc:#FFD600;--bc-glow:rgba(255,214,0,0.5);}
+.bc-3{--bc:#00FF78;--bc-glow:rgba(0,255,120,0.5);}
+.bc-4{--bc:#FF006E;--bc-glow:rgba(255,0,110,0.5);}
+
+/* ══════════════════════════════════════════════
+   MODO SELECTOR — panel pequeño, esquina sup izq (debajo del header)
+   Tres botones: TV | BARBERÍA | MI TURNO
+   ══════════════════════════════════════════════ */
+.mode-bar{
+  position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+  z-index:50;display:flex;align-items:center;gap:3px;
+  background:rgba(2,4,8,0.85);border:1px solid rgba(0,245,255,0.12);
+  padding:4px 6px;backdrop-filter:blur(12px);
+  opacity:0.25;transition:opacity 0.3s;
+}
+.mode-bar:hover{opacity:1;}
+.mode-btn{
+  display:flex;align-items:center;gap:5px;
+  padding:5px 12px;border:1px solid transparent;
+  font-family:'Share Tech Mono',monospace;font-size:0.48rem;
+  letter-spacing:0.14em;text-transform:uppercase;color:rgba(0,245,255,0.35);
+  background:transparent;cursor:pointer;transition:all 0.2s;
+  white-space:nowrap;
+}
+.mode-btn:hover{color:rgba(0,245,255,0.7);border-color:rgba(0,245,255,0.15);}
+.mode-btn.active{color:var(--cyan);border-color:rgba(0,245,255,0.4);background:rgba(0,245,255,0.07);text-shadow:0 0 10px var(--glow-c);}
+.mode-btn.mode-barber-active{color:var(--purple);border-color:rgba(176,110,255,0.4);background:rgba(176,110,255,0.07);}
+.mode-sep{width:1px;height:14px;background:rgba(0,245,255,0.1);}
+/* Barbero selector (aparece cuando mode=mi-turno) */
+.barber-picker{
+  display:none;flex-direction:column;gap:2px;
+  position:fixed;bottom:60px;left:50%;transform:translateX(-50%);
+  z-index:51;background:rgba(2,4,8,0.95);border:1px solid rgba(176,110,255,0.2);
+  padding:8px;backdrop-filter:blur(16px);min-width:200px;
+}
+.barber-picker.open{display:flex;}
+.bp-title{font-family:'Share Tech Mono',monospace;font-size:0.4rem;letter-spacing:0.28em;color:rgba(176,110,255,0.4);text-transform:uppercase;padding:0 4px 6px;border-bottom:1px solid rgba(176,110,255,0.1);margin-bottom:4px;}
+.bp-item{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:7px 10px;border:1px solid rgba(176,110,255,0.08);
+  cursor:pointer;transition:all 0.18s;
+}
+.bp-item:hover{background:rgba(176,110,255,0.08);border-color:rgba(176,110,255,0.22);}
+.bp-item.selected{background:rgba(176,110,255,0.1);border-color:rgba(176,110,255,0.4);}
+.bp-name{font-family:'Rajdhani',sans-serif;font-size:0.88rem;font-weight:600;color:#fff;letter-spacing:0.1em;text-transform:uppercase;}
+.bp-status{font-family:'Share Tech Mono',monospace;font-size:0.4rem;color:rgba(0,255,120,0.5);letter-spacing:0.1em;}
+.bp-status.off{color:rgba(255,0,110,0.45);}
+.bp-toggle{font-family:'Share Tech Mono',monospace;font-size:0.38rem;padding:2px 7px;border:1px solid;cursor:pointer;text-transform:uppercase;letter-spacing:0.1em;transition:all 0.2s;background:transparent;}
+.bp-toggle.on{color:rgba(255,0,110,0.6);border-color:rgba(255,0,110,0.25);}
+.bp-toggle.on:hover{background:rgba(255,0,110,0.08);}
+.bp-toggle.off{color:rgba(0,255,120,0.5);border-color:rgba(0,255,120,0.22);}
+.bp-toggle.off:hover{background:rgba(0,255,120,0.06);}
+
+/* ══════════════════════════════════════════════
+   MODO TV — GLOBAL para televisión
+   Tarjetas grandes por barbero + ticker abajo
+   ══════════════════════════════════════════════ */
+.tv-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:12px 16px 8px;gap:10px;}
+.tv-cards{flex:1;display:grid;gap:10px;min-height:0;}
+.tv-cards.n1{grid-template-columns:1fr;}
+.tv-cards.n2{grid-template-columns:repeat(2,1fr);}
+.tv-cards.n3{grid-template-columns:repeat(3,1fr);}
+.tv-cards.n4{grid-template-columns:repeat(4,1fr);}
+.tv-cards.n5{grid-template-columns:repeat(5,1fr);}
+.tv-card{
+  border:1px solid rgba(0,245,255,0.1);background:rgba(0,245,255,0.015);
+  display:flex;flex-direction:column;overflow:hidden;position:relative;
+}
+.tv-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--bc,var(--cyan)),transparent);opacity:0.6;}
+.tv-card.libre{opacity:0.35;filter:grayscale(60%);}
+.tv-card-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 14px;border-bottom:1px solid rgba(0,245,255,0.07);
+  background:rgba(2,4,8,0.5);flex-shrink:0;
+}
+.tv-barber-name{font-family:'Orbitron',monospace;font-size:0.7rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--bc,var(--cyan));text-shadow:0 0 10px var(--bc-glow,var(--glow-c));}
+.tv-status-badge{font-family:'Share Tech Mono',monospace;font-size:0.38rem;padding:2px 7px;border:1px solid;letter-spacing:0.1em;text-transform:uppercase;}
+.tv-status-badge.activo{border-color:rgba(0,255,120,0.3);color:rgba(0,255,120,0.6);}
+.tv-status-badge.libre{border-color:rgba(255,0,110,0.25);color:rgba(255,0,110,0.5);}
+.tv-card-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 14px;position:relative;min-height:0;}
+.tv-num{font-family:'Orbitron',monospace;font-weight:900;color:var(--bc,var(--cyan));line-height:1;letter-spacing:0.06em;animation:hero-pulse 3s ease-in-out infinite;transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);}
+.tv-num.flip{animation:flip-in 0.45s cubic-bezier(0.34,1.56,0.64,1);}
+/* TV num size adapts to card count */
+.tv-cards.n1 .tv-num,.tv-cards.n2 .tv-num{font-size:9rem;}
+.tv-cards.n3 .tv-num{font-size:6.5rem;}
+.tv-cards.n4 .tv-num{font-size:4.8rem;}
+.tv-cards.n5 .tv-num{font-size:3.8rem;}
+.tv-name{font-family:'Rajdhani',sans-serif;font-weight:700;color:#fff;letter-spacing:0.1em;text-transform:uppercase;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+.tv-cards.n1 .tv-name,.tv-cards.n2 .tv-name{font-size:1.4rem;}
+.tv-cards.n3 .tv-name{font-size:1.1rem;}
+.tv-cards.n4 .tv-name,.tv-cards.n5 .tv-name{font-size:0.9rem;}
+.tv-service{margin-top:5px;padding:3px 12px;border:1px solid rgba(255,214,0,0.25);background:rgba(255,214,0,0.04);font-family:'Share Tech Mono',monospace;font-size:0.52rem;color:var(--gold);letter-spacing:0.18em;text-transform:uppercase;}
+.tv-card-footer{padding:6px 14px;border-top:1px solid rgba(0,245,255,0.06);background:rgba(2,4,8,0.4);display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;flex-shrink:0;}
+.tv-next-label{font-family:'Share Tech Mono',monospace;font-size:0.38rem;letter-spacing:0.22em;color:rgba(0,245,255,0.22);text-transform:uppercase;}
+.tv-next-num{font-family:'Orbitron',monospace;font-size:0.9rem;font-weight:700;color:rgba(0,245,255,0.32);}
+.tv-next-name{font-family:'Rajdhani',sans-serif;font-size:0.82rem;font-weight:600;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tv-next-time{font-family:'Orbitron',monospace;font-size:0.75rem;color:var(--gold);opacity:0.7;}
+.tv-btn{
+  width:100%;padding:10px 0;
+  background:linear-gradient(135deg,rgba(0,255,120,0.1),rgba(0,245,255,0.05));
+  border:1px solid rgba(0,255,120,0.35);border-top:none;
+  color:var(--green);font-family:'Orbitron',monospace;font-size:0.65rem;font-weight:700;
+  letter-spacing:0.24em;text-transform:uppercase;cursor:pointer;
+  text-shadow:0 0 12px var(--glow-g);transition:all 0.2s;flex-shrink:0;
+  -webkit-tap-highlight-color:transparent;
+}
+.tv-btn:hover{background:linear-gradient(135deg,rgba(0,255,120,0.18),rgba(0,245,255,0.1));box-shadow:0 0 24px rgba(0,255,120,0.2);}
+.tv-btn:active{transform:scale(0.98);}
+.tv-btn.loading{opacity:0.5;pointer-events:none;}
+.tv-btn.success{border-color:rgba(0,245,255,0.5);color:var(--cyan);}
+/* TV bottom ticker */
+.tv-ticker{height:32px;border-top:1px solid rgba(0,245,255,0.07);background:rgba(2,4,8,0.6);display:flex;align-items:center;gap:0;overflow:hidden;flex-shrink:0;}
+.tv-ticker-label{padding:0 14px;font-family:'Share Tech Mono',monospace;font-size:0.42rem;color:rgba(0,245,255,0.25);letter-spacing:0.22em;text-transform:uppercase;white-space:nowrap;border-right:1px solid rgba(0,245,255,0.07);flex-shrink:0;}
+.tv-ticker-track{flex:1;overflow:hidden;position:relative;}
+.tv-ticker-inner{display:flex;gap:0;animation:ticker-move linear infinite;white-space:nowrap;}
+@keyframes ticker-move{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.tv-ticker-item{display:inline-flex;align-items:center;gap:8px;padding:0 20px;font-family:'Share Tech Mono',monospace;font-size:0.44rem;color:rgba(0,245,255,0.3);letter-spacing:0.1em;text-transform:uppercase;border-right:1px solid rgba(0,245,255,0.05);}
+.tv-ticker-item .t-n{font-family:'Orbitron',monospace;font-size:0.55rem;color:rgba(0,245,255,0.5);}
+.tv-ticker-item .t-b{color:var(--purple);opacity:0.6;}
+.tv-ticker-item.active{color:rgba(0,255,120,0.5);}
+.tv-ticker-item.active .t-n{color:var(--green);}
+
+/* ══════════════════════════════════════════════
+   MODO BARBERÍA — layout adaptativo (1 silla o multi-col)
+   IGUAL AL V7
+   ══════════════════════════════════════════════ */
+.layout-solo .barber-col{display:grid;grid-template-columns:360px 1fr;flex:1;}
+.layout-solo .col-left{display:flex;flex-direction:column;border-right:1px solid rgba(0,245,255,0.08);background:rgba(0,245,255,0.012);overflow:hidden;}
+.layout-solo .col-right{display:flex;flex-direction:column;padding:14px 20px 10px;overflow:hidden;gap:8px;}
+.layout-multi .barber-col{flex:1;display:flex;flex-direction:column;border-right:1px solid rgba(0,245,255,0.08);overflow:hidden;touch-action:pan-y;user-select:none;-webkit-user-select:none;}
+.layout-multi .barber-col:last-child{border-right:none;}
+.layout-multi .barber-col.libre{flex:0.55;opacity:0.4;filter:grayscale(50%);}
+
+/* Silla zone */
+.silla-zone{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:20px 24px 14px;position:relative;border-bottom:1px solid rgba(0,245,255,0.06);flex-shrink:0;}
+.layout-solo .silla-zone{flex:1;}
+.silla-zone::before,.silla-zone::after{content:'';position:absolute;width:36px;height:36px;border-style:solid;border-color:var(--bc,rgba(0,245,255,0.2));}
+.silla-zone::before{top:14px;left:14px;border-width:2px 0 0 2px;}
+.silla-zone::after{bottom:14px;right:14px;border-width:0 2px 2px 0;}
+.now-label{font-family:'Share Tech Mono',monospace;font-size:0.52rem;letter-spacing:0.5em;color:var(--magenta);text-transform:uppercase;margin-bottom:8px;text-shadow:0 0 12px var(--glow-m);animation:lbl-glow 2s ease-in-out infinite;}
+.hero-num-wrap{position:relative;margin-bottom:2px;}
+.hero-ghost{font-family:'Orbitron',monospace;font-weight:900;color:transparent;-webkit-text-stroke:1px rgba(0,245,255,0.05);position:absolute;top:50%;left:50%;transform:translate(-50%,-52%);user-select:none;white-space:nowrap;}
+.hero-num{font-family:'Orbitron',monospace;font-weight:900;color:var(--bc,var(--cyan));text-shadow:0 0 30px var(--bc-glow,var(--glow-c)),0 0 80px var(--bc-glow,rgba(0,245,255,0.25));line-height:1;letter-spacing:0.06em;position:relative;z-index:1;transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);animation:hero-pulse 3s ease-in-out infinite;}
+.hero-num.flip{animation:flip-in 0.45s cubic-bezier(0.34,1.56,0.64,1);}
+.layout-solo  .hero-num{font-size:7rem;}
+.layout-solo  .hero-ghost{font-size:10rem;}
+.layout-multi .hero-num.n1{font-size:7rem;}
+.layout-multi .hero-num.n2{font-size:5.5rem;}
+.layout-multi .hero-num.n3{font-size:4rem;}
+.layout-multi .hero-num.n4{font-size:3rem;}
+.layout-multi .hero-num.n5{font-size:2.5rem;}
+.layout-multi .hero-ghost{display:none;}
+.silla-name{font-family:'Rajdhani',sans-serif;font-weight:700;color:#fff;letter-spacing:0.12em;text-transform:uppercase;text-align:center;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+.layout-solo  .silla-name{font-size:1.5rem;}
+.layout-multi .silla-name.n1{font-size:1.5rem;}
+.layout-multi .silla-name.n2{font-size:1.2rem;}
+.layout-multi .silla-name.n3{font-size:1rem;}
+.layout-multi .silla-name.n4{font-size:0.88rem;}
+.layout-multi .silla-name.n5{font-size:0.78rem;}
+.silla-service{margin-top:6px;padding:4px 16px;border:1px solid rgba(255,214,0,0.28);background:rgba(255,214,0,0.05);font-family:'Share Tech Mono',monospace;font-size:0.64rem;letter-spacing:0.2em;color:var(--gold);text-transform:uppercase;}
+.layout-multi .silla-service{font-size:0.52rem;padding:3px 10px;margin-top:4px;}
+.silla-barber{margin-top:5px;padding:3px 12px;border:1px solid rgba(176,110,255,0.25);background:rgba(176,110,255,0.05);font-family:'Share Tech Mono',monospace;font-size:0.58rem;letter-spacing:0.18em;color:var(--purple);display:flex;align-items:center;gap:6px;}
+.layout-multi .silla-barber{display:none;}
+.barber-dot{width:5px;height:5px;border-radius:50%;background:var(--purple);box-shadow:0 0 6px var(--purple);}
+.swipe-flash{position:absolute;inset:0;background:rgba(0,255,120,0.1);opacity:0;pointer-events:none;transition:opacity 0.25s;z-index:20;}
+.swipe-flash.on{opacity:1;}
+/* Bottom zone */
+.bottom-zone{padding:12px 18px 14px;display:flex;flex-direction:column;gap:9px;flex-shrink:0;}
+.next-strip{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;padding:10px 14px;border:1px solid rgba(0,245,255,0.1);background:rgba(0,245,255,0.025);position:relative;}
+.next-strip::before{content:'PRÓXIMO';position:absolute;top:-8px;left:12px;background:var(--bg);padding:0 7px;font-family:'Share Tech Mono',monospace;font-size:0.44rem;letter-spacing:0.28em;color:rgba(0,245,255,0.28);}
+.next-n{font-family:'Orbitron',monospace;font-size:2rem;font-weight:700;color:rgba(0,245,255,0.4);}
+.next-info{display:flex;flex-direction:column;gap:2px;}
+.next-nom{font-family:'Rajdhani',sans-serif;font-size:0.95rem;font-weight:600;color:rgba(255,255,255,0.65);letter-spacing:0.1em;text-transform:uppercase;}
+.next-barber{font-family:'Share Tech Mono',monospace;font-size:0.52rem;color:rgba(176,110,255,0.5);}
+.next-time-badge{font-family:'Orbitron',monospace;font-size:0.85rem;color:var(--gold);}
+.disp-strip{display:flex;align-items:center;gap:8px;padding:6px 12px;border:1px solid rgba(0,255,120,0.12);background:rgba(0,255,120,0.025);font-family:'Share Tech Mono',monospace;font-size:0.5rem;letter-spacing:0.12em;color:rgba(0,255,120,0.4);text-transform:uppercase;}
+.disp-strip.conflict{border-color:rgba(255,0,110,0.2);background:rgba(255,0,110,0.025);color:rgba(255,0,110,0.5);}
+.disp-d{width:5px;height:5px;border-radius:50%;background:currentColor;box-shadow:0 0 5px currentColor;animation:blink 2s ease-in-out infinite;}
+/* Botón siguiente */
+.btn-siguiente{width:100%;padding:11px 0;background:linear-gradient(135deg,rgba(0,255,120,0.1),rgba(0,245,255,0.05));border:1px solid rgba(0,255,120,0.5);color:var(--green);font-family:'Orbitron',monospace;font-size:0.72rem;font-weight:700;letter-spacing:0.26em;text-transform:uppercase;cursor:pointer;position:relative;overflow:hidden;transition:all 0.2s;text-shadow:0 0 12px var(--glow-g);box-shadow:0 0 16px rgba(0,255,120,0.12),inset 0 0 14px rgba(0,255,120,0.04);flex-shrink:0;-webkit-tap-highlight-color:transparent;}
+.layout-multi .btn-siguiente{font-size:0.62rem;padding:9px 0;letter-spacing:0.18em;}
+.btn-siguiente::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(0,255,120,0.2),transparent);transition:left 0.45s;}
+.btn-siguiente:hover::before{left:100%;}
+.btn-siguiente:hover{box-shadow:0 0 55px rgba(0,255,120,0.38);transform:translateY(-2px);}
+.btn-siguiente:active{transform:scale(0.98);}
+.btn-siguiente.loading{pointer-events:none;opacity:0.6;animation:btn-pulse 0.6s ease-in-out infinite;}
+.btn-siguiente.success{border-color:var(--cyan);color:var(--cyan);}
+.sc{position:absolute;width:9px;height:9px;border-color:var(--green);border-style:solid;opacity:0.5;}
+.sc-tl{top:-1px;left:-1px;border-width:2px 0 0 2px;}
+.sc-tr{top:-1px;right:-1px;border-width:2px 2px 0 0;}
+.sc-bl{bottom:-1px;left:-1px;border-width:0 0 2px 2px;}
+.sc-br{bottom:-1px;right:-1px;border-width:0 2px 2px 0;}
+.swipe-hint{text-align:center;padding:2px 0;font-family:'Share Tech Mono',monospace;font-size:0.36rem;color:rgba(0,245,255,0.13);letter-spacing:0.16em;text-transform:uppercase;flex-shrink:0;display:none;}
+.layout-multi .swipe-hint{display:block;}
+/* Queue section (solo mode) */
+.queue-section{display:flex;flex-direction:column;gap:8px;overflow:hidden;flex:1;min-height:0;}
+.queue-header{display:flex;align-items:center;justify-content:space-between;padding-bottom:9px;border-bottom:1px solid rgba(0,245,255,0.08);position:relative;flex-shrink:0;}
+.queue-header::after{content:'';position:absolute;bottom:-1px;left:0;width:70px;height:1px;background:var(--cyan);box-shadow:0 0 12px var(--cyan);}
+.queue-title{font-family:'Orbitron',monospace;font-size:0.74rem;font-weight:600;letter-spacing:0.2em;color:var(--cyan);text-transform:uppercase;}
+.queue-meta{font-family:'Share Tech Mono',monospace;font-size:0.56rem;color:rgba(0,245,255,0.3);}
+.stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;flex-shrink:0;}
+.stat-card{padding:9px 12px;border:1px solid rgba(0,245,255,0.09);background:rgba(0,245,255,0.018);}
+.stat-val{font-family:'Orbitron',monospace;font-size:1.45rem;font-weight:800;color:var(--cyan);line-height:1;}
+.stat-val.gold{color:var(--gold);}
+.stat-val.green{color:var(--green);}
+.stat-val.purple{color:var(--purple);}
+.stat-lbl{font-family:'Share Tech Mono',monospace;font-size:0.44rem;color:rgba(0,245,255,0.28);letter-spacing:0.2em;text-transform:uppercase;margin-top:3px;}
+.stat-bar-line{height:2px;background:rgba(0,245,255,0.08);margin-top:6px;}
+.stat-bar-fill{height:100%;background:var(--cyan);box-shadow:0 0 6px var(--cyan);transition:width 1s ease;}
+.queue-body{display:flex;flex-direction:column;gap:4px;overflow:hidden;flex:1;min-height:0;}
+.done-strip{display:flex;align-items:center;gap:5px;padding:4px 7px;border:1px solid rgba(0,255,120,0.08);background:rgba(0,255,120,0.02);min-height:30px;overflow:hidden;flex-shrink:0;}
+.done-strip-label{font-family:'Share Tech Mono',monospace;font-size:0.4rem;letter-spacing:0.28em;color:rgba(0,255,120,0.28);text-transform:uppercase;white-space:nowrap;flex-shrink:0;padding-right:5px;border-right:1px solid rgba(0,255,120,0.1);}
+.done-pills{display:flex;gap:4px;flex:1;align-items:center;}
+.done-pill{display:flex;align-items:center;gap:5px;padding:2px 8px 2px 6px;border:1px solid rgba(0,255,120,0.15);background:rgba(0,255,120,0.04);animation:pill-in 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards;opacity:0;flex-shrink:0;}
+.done-pill-num{font-family:'Orbitron',monospace;font-size:0.62rem;font-weight:700;color:rgba(0,255,120,0.5);}
+.done-pill-name{font-family:'Rajdhani',sans-serif;font-size:0.75rem;font-weight:600;color:rgba(0,255,120,0.45);letter-spacing:0.06em;text-transform:uppercase;white-space:nowrap;}
+.done-pill-check{font-size:0.55rem;color:rgba(0,255,120,0.4);}
+.done-strip-empty{font-family:'Share Tech Mono',monospace;font-size:0.44rem;color:rgba(0,255,120,0.18);letter-spacing:0.15em;text-transform:uppercase;}
+.zone-a{display:flex;flex-direction:column;gap:3px;flex-shrink:0;}
+.q-col-header{display:grid;grid-template-columns:50px 1fr 96px 84px 96px;padding:0 10px 4px;font-family:'Share Tech Mono',monospace;font-size:0.4rem;letter-spacing:0.2em;color:rgba(0,245,255,0.18);text-transform:uppercase;border-bottom:1px solid rgba(0,245,255,0.06);}
+.q-item{display:grid;grid-template-columns:50px 1fr 96px 84px 96px;align-items:center;padding:8px 10px;border:1px solid rgba(0,245,255,0.07);background:rgba(0,245,255,0.018);position:relative;overflow:hidden;transition:border-color 0.3s,background 0.3s;animation:item-in 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards;opacity:0;}
+.q-item.s-active{border-left:3px solid var(--cyan);background:rgba(0,245,255,0.045);}
+.q-item.s-next{border-left:3px solid var(--gold);background:rgba(255,214,0,0.022);}
+.q-item.s-alert{border-left:3px solid rgba(255,214,0,0.5);animation:item-in 0.4s forwards,alert-row 2.5s ease-in-out infinite;}
+.q-item.s-wait{border-left:3px solid rgba(0,245,255,0.08);}
+.q-item.s-active::after{content:'';position:absolute;top:0;left:-80%;width:55%;height:100%;background:linear-gradient(90deg,transparent,rgba(0,245,255,0.07),transparent);animation:scan 3s linear infinite;}
+.q-num{font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:700;color:rgba(0,245,255,0.28);}
+.q-item.s-active .q-num{color:var(--cyan);text-shadow:0 0 12px var(--glow-c);}
+.q-item.s-next .q-num{color:var(--gold);}
+.q-name{font-family:'Rajdhani',sans-serif;font-size:0.98rem;font-weight:600;color:#fff;letter-spacing:0.08em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.q-svc{font-family:'Share Tech Mono',monospace;font-size:0.45rem;color:rgba(255,255,255,0.22);}
+.q-barber{font-family:'Share Tech Mono',monospace;font-size:0.53rem;color:rgba(176,110,255,0.42);text-align:center;}
+.q-item.s-active .q-barber{color:rgba(176,110,255,0.78);}
+.q-time{font-family:'Orbitron',monospace;font-size:0.8rem;color:var(--gold);text-align:center;}
+.status-tag{display:inline-flex;align-items:center;gap:4px;padding:3px 7px;font-family:'Share Tech Mono',monospace;font-size:0.44rem;letter-spacing:0.12em;text-transform:uppercase;}
+.tag-active{background:rgba(0,245,255,0.1);color:var(--cyan);border:1px solid rgba(0,245,255,0.3);}
+.tag-next{background:rgba(255,214,0,0.08);color:var(--gold);border:1px solid rgba(255,214,0,0.28);}
+.tag-alert{background:rgba(255,214,0,0.04);color:rgba(255,214,0,0.65);border:1px solid rgba(255,214,0,0.18);animation:tag-blink 1.5s ease-in-out infinite;}
+.tag-wait{background:rgba(255,255,255,0.02);color:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.05);}
+.tag-dot{width:4px;height:4px;border-radius:50%;background:currentColor;flex-shrink:0;}
+.zone-b-header{display:flex;align-items:center;gap:7px;padding:3px 0 2px;flex-shrink:0;font-family:'Share Tech Mono',monospace;font-size:0.4rem;letter-spacing:0.28em;color:rgba(0,245,255,0.2);text-transform:uppercase;}
+.zone-b-header::after{content:'';flex:1;height:1px;background:rgba(0,245,255,0.06);}
+.zone-b-count{background:rgba(0,245,255,0.05);border:1px solid rgba(0,245,255,0.12);padding:1px 6px;font-family:'Orbitron',monospace;font-size:0.44rem;color:rgba(0,245,255,0.35);}
+.zone-b{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;overflow-y:auto;flex-shrink:0;}
+.zone-b::-webkit-scrollbar{width:2px;}
+.zone-b::-webkit-scrollbar-thumb{background:rgba(0,245,255,0.1);}
+.q-mini{padding:5px 8px;border:1px solid rgba(0,245,255,0.06);background:rgba(0,245,255,0.012);position:relative;overflow:hidden;animation:mini-in 0.3s ease forwards;opacity:0;}
+.q-mini.ms-wait{border-left:2px solid rgba(0,245,255,0.12);}
+.q-mini.ms-alert{border-left:2px solid rgba(255,214,0,0.45);}
+.q-mini-num{font-family:'Orbitron',monospace;font-size:0.65rem;font-weight:700;color:rgba(0,245,255,0.3);line-height:1;margin-bottom:2px;}
+.q-mini-name{font-family:'Rajdhani',sans-serif;font-size:0.74rem;font-weight:600;color:rgba(255,255,255,0.5);letter-spacing:0.05em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.q-mini-meta{display:flex;align-items:center;justify-content:space-between;margin-top:2px;}
+.q-mini-time{font-family:'Orbitron',monospace;font-size:0.54rem;color:rgba(255,214,0,0.38);}
+.q-mini-barb{font-family:'Share Tech Mono',monospace;font-size:0.4rem;color:rgba(176,110,255,0.32);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:50%;}
+.wait-eta{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;margin-left:8px;border:1px solid rgba(255,214,0,0.2);background:rgba(255,214,0,0.04);font-family:'Share Tech Mono',monospace;font-size:0.5rem;color:rgba(255,214,0,0.55);vertical-align:middle;white-space:nowrap;}
+/* Multi col queue */
+.multi-queue{flex:1;overflow-y:auto;padding:5px 7px;display:flex;flex-direction:column;gap:3px;min-height:0;}
+.multi-queue::-webkit-scrollbar{width:2px;}
+.multi-queue::-webkit-scrollbar-thumb{background:rgba(0,245,255,0.1);}
+.mq-row{display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:5px;padding:7px 8px;border:1px solid rgba(0,245,255,0.07);background:rgba(0,245,255,0.015);position:relative;overflow:hidden;animation:item-in 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards;opacity:0;}
+.mq-row.mn{border-left:3px solid var(--gold);background:rgba(255,214,0,0.02);}
+.mq-row.ma{border-left:3px solid rgba(255,214,0,0.5);animation:item-in 0.35s forwards,alert-row 2.5s ease-in-out infinite;}
+.mq-row.mw{border-left:3px solid rgba(0,245,255,0.06);}
+.mq-n{font-family:'Orbitron',monospace;font-size:0.9rem;font-weight:700;color:rgba(0,245,255,0.25);}
+.mq-row.mn .mq-n{color:var(--gold);}
+.mq-info .mq-name{font-family:'Rajdhani',sans-serif;font-size:0.8rem;font-weight:600;color:#fff;letter-spacing:0.06em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mq-info .mq-svc{font-family:'Share Tech Mono',monospace;font-size:0.38rem;color:rgba(255,255,255,0.18);margin-top:1px;}
+.mq-r{display:flex;flex-direction:column;align-items:flex-end;gap:1px;}
+.mq-time{font-family:'Orbitron',monospace;font-size:0.68rem;color:var(--gold);}
+.mq-eta{font-family:'Share Tech Mono',monospace;font-size:0.36rem;color:rgba(255,214,0,0.38);}
+.multi-next{padding:5px 10px;border-top:1px solid rgba(0,245,255,0.06);display:flex;align-items:center;gap:8px;flex-shrink:0;position:relative;}
+.multi-next::before{content:'PRÓXIMO';position:absolute;top:-6px;left:9px;background:var(--bg);padding:0 5px;font-family:'Share Tech Mono',monospace;font-size:0.36rem;letter-spacing:0.28em;color:rgba(0,245,255,0.22);}
+.mn-n{font-family:'Orbitron',monospace;font-size:1.3rem;font-weight:700;color:rgba(0,245,255,0.28);}
+.mn-wrap{flex:1;min-width:0;}
+.mn-nom{font-family:'Rajdhani',sans-serif;font-size:0.78rem;font-weight:600;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mn-svc{font-family:'Share Tech Mono',monospace;font-size:0.36rem;color:rgba(255,255,255,0.18);margin-top:1px;}
+.mn-time{font-family:'Orbitron',monospace;font-size:0.7rem;color:var(--gold);}
+
+/* ══════════════════════════════════════════════
+   MODO MI TURNO — vista personal del barbero
+   Layout igual al modo solo pero con header personal
+   ══════════════════════════════════════════════ */
+.my-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.my-header{display:flex;align-items:center;justify-content:space-between;padding:8px 20px;border-bottom:1px solid rgba(176,110,255,0.12);background:rgba(176,110,255,0.03);flex-shrink:0;}
+.my-name-badge{display:flex;align-items:center;gap:10px;}
+.my-avatar{width:38px;height:38px;border-radius:50%;border:2px solid rgba(176,110,255,0.4);background:rgba(176,110,255,0.08);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;color:var(--purple);}
+.my-barber-name{font-family:'Orbitron',monospace;font-size:0.9rem;font-weight:700;letter-spacing:0.18em;color:var(--purple);text-shadow:0 0 12px var(--glow-p);}
+.my-sub{font-family:'Share Tech Mono',monospace;font-size:0.42rem;color:rgba(176,110,255,0.4);letter-spacing:0.2em;text-transform:uppercase;margin-top:2px;}
+.my-stats{display:flex;gap:16px;align-items:center;}
+.my-stat{text-align:center;padding:4px 12px;border:1px solid rgba(176,110,255,0.1);background:rgba(176,110,255,0.04);}
+.my-stat-val{font-family:'Orbitron',monospace;font-size:2rem;font-weight:900;line-height:1;color:var(--purple);text-shadow:0 0 20px var(--glow-p);}
+.my-stat-val.gold{color:var(--gold);text-shadow:0 0 20px rgba(255,214,0,0.4);}
+.my-stat-val.green{color:var(--green);text-shadow:0 0 20px var(--glow-g);}
+.my-stat-lbl{font-family:'Share Tech Mono',monospace;font-size:0.4rem;color:rgba(176,110,255,0.35);letter-spacing:0.18em;text-transform:uppercase;margin-top:3px;}
+.my-layout{flex:1;display:grid;grid-template-columns:340px 1fr;overflow:hidden;}
+.my-left{display:flex;flex-direction:column;border-right:1px solid rgba(176,110,255,0.08);background:rgba(176,110,255,0.008);}
+.my-right{display:flex;flex-direction:column;padding:14px 18px 10px;overflow:hidden;gap:8px;}
+/* Mi turno usa silla-zone pero con color púrpura */
+.my-silla-zone{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:20px 24px 14px;position:relative;border-bottom:1px solid rgba(176,110,255,0.08);flex:1;}
+.my-silla-zone::before,.my-silla-zone::after{content:'';position:absolute;width:36px;height:36px;border-style:solid;border-color:rgba(176,110,255,0.3);}
+.my-silla-zone::before{top:14px;left:14px;border-width:2px 0 0 2px;}
+.my-silla-zone::after{bottom:14px;right:14px;border-width:0 2px 2px 0;}
+.my-hero-num{font-family:'Orbitron',monospace;font-size:7rem;font-weight:900;color:var(--purple);text-shadow:0 0 30px var(--glow-p),0 0 80px rgba(176,110,255,0.25);line-height:1;letter-spacing:0.06em;animation:hero-pulse 3s ease-in-out infinite;}
+.my-hero-num.flip{animation:flip-in 0.45s cubic-bezier(0.34,1.56,0.64,1);}
+.my-client-name{font-family:'Rajdhani',sans-serif;font-size:1.5rem;font-weight:700;color:#fff;letter-spacing:0.12em;text-transform:uppercase;text-align:center;margin-top:2px;}
+.my-service{margin-top:6px;padding:4px 16px;border:1px solid rgba(255,214,0,0.25);background:rgba(255,214,0,0.04);font-family:'Share Tech Mono',monospace;font-size:0.62rem;letter-spacing:0.2em;color:var(--gold);text-transform:uppercase;}
+.my-bottom{padding:12px 18px 14px;display:flex;flex-direction:column;gap:8px;flex-shrink:0;}
+/* Btn siguiente purple variant */
+.btn-my-sig{width:100%;padding:11px 0;background:linear-gradient(135deg,rgba(176,110,255,0.1),rgba(176,110,255,0.04));border:1px solid rgba(176,110,255,0.5);color:var(--purple);font-family:'Orbitron',monospace;font-size:0.72rem;font-weight:700;letter-spacing:0.26em;text-transform:uppercase;cursor:pointer;position:relative;overflow:hidden;transition:all 0.2s;text-shadow:0 0 12px var(--glow-p);box-shadow:0 0 16px rgba(176,110,255,0.12);flex-shrink:0;-webkit-tap-highlight-color:transparent;}
+.btn-my-sig::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(176,110,255,0.2),transparent);transition:left 0.45s;}
+.btn-my-sig:hover::before{left:100%;}
+.btn-my-sig:hover{box-shadow:0 0 50px rgba(176,110,255,0.35);transform:translateY(-2px);}
+.btn-my-sig:active{transform:scale(0.98);}
+.btn-my-sig.loading{pointer-events:none;opacity:0.6;}
+.btn-my-sig.success{border-color:var(--green);color:var(--green);}
+/* Queue personal (mi turno) */
+.my-queue-title{font-family:'Orbitron',monospace;font-size:0.7rem;font-weight:600;letter-spacing:0.2em;color:var(--purple);text-transform:uppercase;padding-bottom:8px;border-bottom:1px solid rgba(176,110,255,0.1);flex-shrink:0;}
+.my-queue-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:4px;min-height:0;}
+.my-queue-list::-webkit-scrollbar{width:2px;}
+.my-queue-list::-webkit-scrollbar-thumb{background:rgba(176,110,255,0.1);}
+.my-q-item{display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:8px;padding:9px 10px;border:1px solid rgba(176,110,255,0.07);background:rgba(176,110,255,0.012);position:relative;overflow:hidden;animation:item-in 0.4s forwards;opacity:0;}
+.my-q-item.mqi-active{border-left:3px solid var(--purple);background:rgba(176,110,255,0.045);}
+.my-q-item.mqi-next{border-left:3px solid var(--gold);background:rgba(255,214,0,0.02);}
+.my-q-item.mqi-wait{border-left:3px solid rgba(176,110,255,0.1);}
+.my-q-item.mqi-done{opacity:0.35;border-left:3px solid rgba(0,255,120,0.25);}
+.my-q-item.mqi-active::after{content:'';position:absolute;top:0;left:-80%;width:55%;height:100%;background:linear-gradient(90deg,transparent,rgba(176,110,255,0.07),transparent);animation:scan 3s linear infinite;}
+.mqi-num{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:700;color:rgba(176,110,255,0.28);}
+.my-q-item.mqi-active .mqi-num{color:var(--purple);text-shadow:0 0 10px var(--glow-p);}
+.my-q-item.mqi-next .mqi-num{color:var(--gold);}
+.my-q-item.mqi-done .mqi-num{color:rgba(0,255,120,0.4);}
+.mqi-name{font-family:'Rajdhani',sans-serif;font-size:0.95rem;font-weight:600;color:#fff;letter-spacing:0.08em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mqi-svc{font-family:'Share Tech Mono',monospace;font-size:0.42rem;color:rgba(255,255,255,0.2);margin-top:1px;}
+.mqi-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;}
+.mqi-time{font-family:'Orbitron',monospace;font-size:0.75rem;color:var(--gold);}
+.mqi-tag{font-family:'Share Tech Mono',monospace;font-size:0.38rem;padding:2px 6px;border:1px solid;letter-spacing:0.1em;text-transform:uppercase;}
+.mqi-tag.a{color:var(--purple);border-color:rgba(176,110,255,0.3);}
+.mqi-tag.n{color:var(--gold);border-color:rgba(255,214,0,0.25);}
+.mqi-tag.w{color:rgba(255,255,255,0.2);border-color:rgba(255,255,255,0.06);}
+.mqi-tag.d{color:rgba(0,255,120,0.4);border-color:rgba(0,255,120,0.15);}
+/* Libre / sin cliente banner */
+.libre-banner{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;flex:1;padding:24px;}
+.libre-icon{font-size:3rem;opacity:0.2;}
+.libre-txt{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:700;color:rgba(176,110,255,0.3);letter-spacing:0.22em;text-transform:uppercase;}
+.libre-sub{font-family:'Share Tech Mono',monospace;font-size:0.5rem;color:rgba(176,110,255,0.2);letter-spacing:0.2em;text-transform:uppercase;margin-top:4px;}
+
+/* ── FOOTER ── */
+footer{border-top:1px solid rgba(0,245,255,0.08);padding:7px 32px;display:flex;align-items:center;justify-content:space-between;background:rgba(2,4,8,0.6);backdrop-filter:blur(8px);flex-shrink:0;}
+.footer-msg{font-family:'Rajdhani',sans-serif;font-size:1.05rem;font-weight:500;color:rgba(0,245,255,0.42);font-style:italic;letter-spacing:0.08em;text-shadow:0 0 18px rgba(0,245,255,0.18);animation:lbl-glow 4s ease-in-out infinite;}
+.barberos-bar{display:flex;gap:6px;align-items:center;}
+.barb-slot{display:flex;align-items:center;gap:5px;padding:4px 11px;border:1px solid rgba(176,110,255,0.14);background:rgba(176,110,255,0.03);font-family:'Share Tech Mono',monospace;font-size:0.52rem;color:rgba(176,110,255,0.35);letter-spacing:0.1em;text-transform:uppercase;transition:all 0.3s;}
+.barb-slot.active{border-color:rgba(176,110,255,0.38);color:var(--purple);background:rgba(176,110,255,0.09);}
+.barb-slot-dot{width:5px;height:5px;border-radius:50%;background:rgba(176,110,255,0.25);}
+.barb-slot.active .barb-slot-dot{background:var(--purple);box-shadow:0 0 6px var(--purple);animation:blink 2s ease-in-out infinite;}
+.footer-version{font-family:'Share Tech Mono',monospace;font-size:0.47rem;color:rgba(0,245,255,0.16);letter-spacing:0.2em;}
+
+/* ── MISC ── */
+.toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%) translateY(14px);background:var(--bg2);border:1px solid rgba(0,255,120,0.35);padding:9px 22px;font-family:'Share Tech Mono',monospace;font-size:0.58rem;letter-spacing:0.16em;color:var(--green);text-transform:uppercase;opacity:0;transition:all 0.3s;z-index:500;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.warn{border-color:rgba(255,214,0,0.35);color:var(--gold);}
+.toast.error{border-color:rgba(255,0,110,0.35);color:var(--magenta);}
+.toast.info{border-color:rgba(176,110,255,0.35);color:var(--purple);}
+.offline-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:999;padding:8px;background:rgba(255,0,110,0.12);border-bottom:1px solid rgba(255,0,110,0.3);text-align:center;font-family:'Share Tech Mono',monospace;font-size:0.58rem;color:rgba(255,0,110,0.7);letter-spacing:0.18em;text-transform:uppercase;}
+.offline-banner.show{display:block;}
+.cfg-btn{position:fixed;bottom:56px;right:18px;z-index:100;background:rgba(0,245,255,0.04);border:1px solid rgba(0,245,255,0.12);color:var(--cyan);padding:4px 10px;font-family:'Share Tech Mono',monospace;font-size:0.46rem;letter-spacing:0.14em;cursor:pointer;text-transform:uppercase;opacity:0.18;transition:opacity 0.2s;}
+.cfg-btn:hover{opacity:1;}
+.modal-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(2,4,8,0.92);backdrop-filter:blur(16px);align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:var(--bg2);border:1px solid rgba(0,245,255,0.15);padding:28px;min-width:340px;max-width:440px;width:90%;position:relative;}
+.modal-box::before{content:'';position:absolute;top:0;left:10%;right:10%;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);}
+.modal-title{font-family:'Orbitron',monospace;font-size:0.85rem;font-weight:700;color:var(--cyan);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:20px;}
+.modal-field{margin-bottom:14px;}
+.modal-lbl{font-family:'Share Tech Mono',monospace;font-size:0.46rem;color:rgba(0,245,255,0.35);letter-spacing:0.22em;text-transform:uppercase;display:block;margin-bottom:5px;}
+.modal-inp{width:100%;background:rgba(0,245,255,0.03);border:1px solid rgba(0,245,255,0.12);color:var(--cyan);padding:8px 12px;font-family:'Share Tech Mono',monospace;font-size:0.65rem;outline:none;transition:border-color 0.2s;}
+.modal-inp:focus{border-color:rgba(0,245,255,0.4);}
+.modal-acts{display:flex;gap:8px;margin-top:20px;}
+.mbtn{flex:1;padding:10px;font-family:'Orbitron',monospace;font-size:0.6rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;border:1px solid;}
+.mbtn-save{background:rgba(0,245,255,0.1);border-color:rgba(0,245,255,0.35);color:var(--cyan);}
+.mbtn-save:hover{background:rgba(0,245,255,0.2);}
+.mbtn-cancel{background:transparent;border-color:rgba(255,255,255,0.08);color:rgba(255,255,255,0.2);}
+
+@media(max-width:1024px){
+  .layout-solo .barber-col{grid-template-columns:300px 1fr;}
+  .my-layout{grid-template-columns:280px 1fr;}
+}
+@media(max-width:860px){
+  header{grid-template-columns:1fr 1fr;padding:8px 16px;}
+  .clock-block{display:none;}
+  .tv-cards.n3,.tv-cards.n4,.tv-cards.n5{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:600px){
+  .tv-cards.n2,.tv-cards.n3,.tv-cards.n4,.tv-cards.n5{grid-template-columns:1fr;}
+  .my-layout{grid-template-columns:1fr;}
+  .my-right{display:none;}
+}
+@media(min-width:1400px){
+  .layout-solo  .hero-num{font-size:11rem;}
+  .layout-solo  .silla-name{font-size:2rem;}
+  .layout-multi .hero-num.n2{font-size:8rem;}
+  .layout-multi .hero-num.n3{font-size:5.5rem;}
+  .tv-cards.n1 .tv-num,.tv-cards.n2 .tv-num{font-size:13rem;}
+  .tv-cards.n3 .tv-num{font-size:9rem;}
+  .tv-cards.n4 .tv-num{font-size:7rem;}
+  .my-hero-num{font-size:11rem;}
+}
+@media(min-width:1800px){
+  .tv-cards.n1 .tv-num,.tv-cards.n2 .tv-num{font-size:18rem;}
+  .tv-cards.n3 .tv-num{font-size:12rem;}
+}
+</style>
+</head>
+<body>
+<div class="offline-banner" id="ob">⚠ Sin conexión — datos en caché</div>
+<div class="grid-bg"></div><div class="scanline"></div>
+<div class="orb orb1"></div><div class="orb orb2"></div>
+
+<div class="app">
+  <header>
+    <div class="brand">
+      <div class="barber-pole-wrap" aria-hidden="true">
+        <div class="pole-cap pole-cap-top"></div>
+        <div class="pole-body"><div class="pole-stripes"></div></div>
+        <div class="pole-shine"></div>
+        <div class="pole-cap pole-cap-bot"></div>
+      </div>
+      <div>
+        <div class="brand-name" id="shop-name">BARBEROS</div>
+        <div class="brand-sub" id="brand-sub">Sistema de Turnos · BarberOS</div>
+      </div>
+    </div>
+    <div class="clock-block">
+      <div class="clock-time" id="clock">00:00:00</div>
+      <div class="clock-date" id="clock-date">—</div>
+    </div>
+    <div class="header-right">
+      <div class="hpill hpill-rt connecting" id="rt-pill"><span class="hpill-dot"></span><span id="rt-lbl">CONECTANDO...</span></div>
+      <div class="hpill hpill-db loading" id="db-pill"><span class="hpill-dot"></span><span id="db-lbl">DB...</span></div>
+      <div class="hpill hpill-sys"><span class="sys-dot"></span>SISTEMA ACTIVO</div>
+      <button class="fs-btn" id="fs-btn">⛶ FS</button>
+    </div>
+  </header>
+
+  <div class="content" id="content"></div>
+
+  <footer>
+    <div class="footer-msg" id="footer-msg">"El estilo es la firma del alma."</div>
+    <div class="barberos-bar" id="barberos-bar"></div>
+    <div class="footer-version" id="ft-ver">BarberOS v8 · 2025</div>
+  </footer>
+</div>
+
+<!-- MODE BAR (flotante, abajo centro) -->
+<div class="mode-bar" id="mode-bar">
+  <button class="mode-btn" id="mbtn-tv" onclick="setMode('tv')" title="Vista global para TV">📺 TV</button>
+  <div class="mode-sep"></div>
+  <button class="mode-btn active" id="mbtn-shop" onclick="setMode('shop')" title="Vista de barbería">💈 BARBERÍA</button>
+  <div class="mode-sep"></div>
+  <button class="mode-btn" id="mbtn-my" onclick="openBarberPicker()" title="Vista personal por barbero">✂ MI TURNO</button>
+</div>
+
+<!-- BARBER PICKER (flota sobre mode-bar) -->
+<div class="barber-picker" id="barber-picker">
+  <div class="bp-title">✂ Selecciona tu barbero</div>
+  <div id="bp-list"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+<button class="cfg-btn" id="cfg-open">⚙</button>
+
+<!-- WALK-IN FAB -->
+<button class="walkin-fab" id="walkin-fab" onclick="openWalkIn()">
+  <div class="walkin-fab-dot"></div>+ WALK-IN
+</button>
+
+<!-- MODAL WALK-IN -->
+<div class="action-modal" id="walkin-modal">
+  <div class="action-box">
+    <div class="action-title">➕ CLIENTE SIN CITA</div>
+    <div class="action-sub">Walk-in — se agrega al final de la cola</div>
+    <div class="afield"><label>Nombre del cliente</label><input class="ainp" id="wi-nombre" placeholder="CARLOS M." autocomplete="off"></div>
+    <div class="afield">
+      <label>Servicio</label>
+      <div class="barber-sel" id="wi-svc-sel">
+        <button class="barber-sel-btn sel" onclick="selectSvc(this,'CORTE')">CORTE</button>
+        <button class="barber-sel-btn" onclick="selectSvc(this,'CORTE + BARBA')">CORTE + BARBA</button>
+        <button class="barber-sel-btn" onclick="selectSvc(this,'BARBA')">BARBA</button>
+        <button class="barber-sel-btn" onclick="selectSvc(this,'FADE')">FADE</button>
+      </div>
+    </div>
+    <div class="afield">
+      <label>Barbero</label>
+      <div class="barber-sel" id="wi-barber-sel"></div>
+    </div>
+    <div class="action-acts">
+      <button class="abtn abtn-cancel" onclick="closeModal('walkin-modal')">CANCELAR</button>
+      <button class="abtn abtn-confirm" onclick="confirmWalkIn()">✓ AGREGAR A LA COLA</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL REAGENDAR -->
+<div class="action-modal" id="reag-modal">
+  <div class="action-box purple-modal">
+    <div class="action-title">↻ REAGENDAR TURNO</div>
+    <div class="action-sub" id="reag-sub">Mover cita a otro horario</div>
+    <div class="afield">
+      <label>Nuevo horario</label>
+      <div class="time-slots" id="reag-slots"></div>
+    </div>
+    <div class="action-acts">
+      <button class="abtn abtn-cancel" onclick="closeModal('reag-modal')">CANCELAR</button>
+      <button class="abtn abtn-confirm" onclick="confirmReagendar()">↻ CONFIRMAR CAMBIO</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="cfg-modal">
+  <div class="modal-box">
+    <div class="modal-title">⚙ Configuración</div>
+    <div class="modal-field"><label class="modal-lbl">Shop Slug</label><input class="modal-inp" id="cfg-shop" placeholder="elite-cuts"></div>
+    <div class="modal-field"><label class="modal-lbl">Minutos por turno</label><input class="modal-inp" id="cfg-dur" type="number" min="5" max="120" placeholder="45"></div>
+    <div class="modal-acts">
+      <button class="mbtn mbtn-cancel" id="cfg-cancel">CANCELAR</button>
+      <button class="mbtn mbtn-save" id="cfg-save">GUARDAR</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════
+//  BarberOS Display v8 — 3 modos en un archivo
+//  TV (global) | BARBERÍA (adaptativo) | MI TURNO (barbero)
+// ════════════════════════════════════════════════════
+const SB_URL='https://mmokunpuslcfphalrwot.supabase.co';
+const SB_KEY='sb_publishable_aETz_9ECH5RcBMjmRhUnfw_g71zRdwT';
+const BC=['#00F5FF','#B06EFF','#FFD600','#00FF78','#FF006E'];
+
+function resolveSlug(){
+  const qp=new URLSearchParams(location.search).get('shop');
+  if(qp&&qp!=='null'&&qp.length<50)return qp;
+  const parts=location.pathname.split('/').filter(Boolean);
+  const si=parts.indexOf('sala');
+  if(si!==-1&&parts[si+1])return parts[si+1];
+  const last=parts[parts.length-1];
+  if(last&&last!=='null'&&last.length<50&&!last.includes('.'))return last;
+  return 'elite-cuts';
+}
+const SLUG=resolveSlug();
+let DUR=45;
+
+// ── Estado global ──────────────────────────────────
+const S={
+  shopId:null,shopName:'BARBEROS',
+  barberos:[],    // [{id,nombre,activo,orden}]
+  citas:[],
+  queues:{},      // {barberName:{currentTurn,citas[]}}
+  lastUp:null,
+};
+// Modo actual: 'tv' | 'shop' | 'my'
+let MODE='shop';
+// Barbero seleccionado en modo MI TURNO
+let MY_BARBER=null;
+
+// ── Supabase helpers ───────────────────────────────
+const H={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'};
+async function sbGet(t,q=''){const r=await fetch(`${SB_URL}/rest/v1/${t}?${q}`,{headers:H});if(!r.ok)throw new Error('SB '+r.status);return r.json();}
+async function sbPatch(t,q,d){const r=await fetch(`${SB_URL}/rest/v1/${t}?${q}`,{method:'PATCH',headers:{...H,'Prefer':'return=minimal'},body:JSON.stringify(d)});if(!r.ok)throw new Error('SB PATCH '+r.status);}
+async function retry(fn,max=3){for(let i=0;i<=max;i++){try{return await fn();}catch(e){if(i===max)throw e;setDb('loading','RETRY '+(i+1)+'...');await new Promise(r=>setTimeout(r,Math.min(1000*Math.pow(2,i),8000)));}};}
+
+async function loadShop(){
+  const rows=await retry(()=>sbGet('shops','slug=eq.'+SLUG+'&select=id,nombre,duracion_turno,activo'));
+  if(!rows||!rows.length){setDb('err','NO ENCONTRADA');return false;}
+  const s=rows[0];
+  // ── GUARDIA: barbería desactivada ─────────────────────
+  if(s.activo===false){
+    showDisplaySuspended(s.nombre||SLUG);
+    return false;
+  }
+  S.shopId=s.id;S.shopName=(s.nombre||'BARBEROS').toUpperCase();
+  if(s.duracion_turno)DUR=s.duracion_turno;
+  document.getElementById('shop-name').textContent=S.shopName;
+  document.title=S.shopName+' — Sala de Espera';
+  document.getElementById('ft-ver').textContent=S.shopName+' · BarberOS v8';
+  return true;
+}
+// ── PANTALLA SUSPENDIDA EN TV ────────────────────────────
+function showDisplaySuspended(nombre){
+  setDb('err','SUSPENDIDA');setRt('error','INACTIVA');
+  const app=document.getElementById('app');
+  if(!app)return;
+  app.innerHTML=`
+  <div style="
+    min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:40px 24px;background:var(--bg);position:relative;z-index:10;
+  ">
+    <div style="position:absolute;inset:0;background:radial-gradient(ellipse 60% 40% at 50% 30%,rgba(255,0,110,0.06) 0%,transparent 60%);pointer-events:none;"></div>
+    <div style="font-size:4rem;margin-bottom:24px;opacity:0.4;">🔒</div>
+    <div style="font-family:'Orbitron',monospace;font-size:clamp(1.2rem,4vw,2.2rem);font-weight:900;letter-spacing:0.2em;color:rgba(255,0,110,0.8);text-transform:uppercase;margin-bottom:12px;text-shadow:0 0 40px rgba(255,0,110,0.3);">
+      SERVICIO PAUSADO
+    </div>
+    <div style="font-family:'Rajdhani',sans-serif;font-size:clamp(1rem,3vw,1.4rem);font-weight:600;color:rgba(255,255,255,0.5);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:36px;">
+      ${nombre}
+    </div>
+    <div style="background:rgba(255,0,110,0.04);border:1px solid rgba(255,0,110,0.15);padding:24px 36px;max-width:560px;margin-bottom:36px;">
+      <div style="font-family:'Share Tech Mono',monospace;font-size:clamp(0.55rem,1.5vw,0.72rem);color:rgba(255,255,255,0.35);line-height:2;letter-spacing:0.1em;">
+        Esta barbería está temporalmente inactiva.<br>
+        Para reactivar el servicio, contacta al administrador.
+      </div>
+    </div>
+    <div style="font-family:'Share Tech Mono',monospace;font-size:clamp(0.6rem,2vw,0.85rem);color:rgba(0,245,255,0.5);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:8px;">
+      SOPORTE · BARBEROS.APP
+    </div>
+    <a href="https://wa.me/18498528825" style="font-family:'Share Tech Mono',monospace;font-size:clamp(0.55rem,1.5vw,0.7rem);color:rgba(37,211,102,0.5);letter-spacing:0.15em;text-decoration:none;">
+      💬 WhatsApp: +1 (849) 852-8825
+    </a>
+    <div style="position:absolute;bottom:20px;font-family:'Share Tech Mono',monospace;font-size:0.42rem;color:rgba(255,255,255,0.1);letter-spacing:0.2em;">
+      BarberOS · Sistema de Gestión
+    </div>
+  </div>`;
+}
+
+async function loadBarberos(){
+  if(!S.shopId)return;
+  const rows=await sbGet('barberos','shop_id=eq.'+S.shopId+'&order=orden.asc');
+  S.barberos=rows.map(b=>({...b,nombre:b.nombre.toUpperCase()}));
+  renderBarberosBar();
+}
+async function loadCitas(){
+  if(!S.shopId)return;
+  // FIX: fecha en timezone America/Santo_Domingo
+  const rdNow=new Date(new Date().toLocaleString('en-US',{timeZone:'America/Santo_Domingo'}));
+  const hoy=rdNow.getFullYear()+'-'+String(rdNow.getMonth()+1).padStart(2,'0')+'-'+String(rdNow.getDate()).padStart(2,'0');
+  const rows=await retry(()=>sbGet('citas','shop_id=eq.'+S.shopId+'&fecha=eq.'+hoy+'&estado=neq.Cancelada&order=hora.asc'),3);
+  const prev=S.citas.length;
+  S.citas=rows.map(c=>({id:c.id,name:(c.nombre||'CLIENTE').toUpperCase(),time:(c.hora||'00:00').substring(0,5),servicio:(c.servicio||'CORTE').toUpperCase(),barbero:(c.barbero||'CUALQUIERA').toUpperCase(),estado:c.estado||'Confirmada'}));
+  if(rows.length>prev&&prev>0)showToast('✓ '+(rows.length-prev)+' nueva(s) cita(s)','info');
+  rebuildQueues();
+  S.lastUp=new Date();
+  setDb('ok','DB · '+rows.length+' CITAS');
+  setOffline(false);
+}
+function rebuildQueues(){
+  const blist=S.barberos.length>0
+    ?S.barberos.filter(b=>b.activo).map(b=>b.nombre)
+    :[...new Set(S.citas.map(c=>c.barbero))];
+  const nq={};
+  blist.forEach(name=>{
+    const mine=S.citas.filter(c=>c.barbero===name);
+    const prev=S.queues[name];
+    nq[name]={currentTurn:prev?Math.min(prev.currentTurn,mine.length+1):1,citas:mine};
+  });
+  S.queues=nq;
+  renderBarberosBar();
+}
+
+// ── Siguiente turno ────────────────────────────────
+function scHtml(){return '<span class="sc sc-tl"></span><span class="sc sc-tr"></span><span class="sc sc-bl"></span><span class="sc sc-br"></span>';}
+function safeId(s){return s.replace(/[^a-zA-Z0-9]/g,'_');}
+function calcETA(pos){if(pos<=0)return null;const m=pos*DUR;if(m<60)return '~'+m+'m';const h=Math.floor(m/60),mm=m%60;return mm?'~'+h+'h'+mm+'m':'~'+h+'h';}
+function calcAgo(d){const m=Math.round((Date.now()-d)/60000);return m===0?'AHORA':m+'m';}
+function hexGlow(hex){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return 'rgba('+r+','+g+','+b+',0.5)';}
+
+async function siguienteTurno(barber,btnId){
+  const q=S.queues[barber];if(!q)return;
+  const {citas,currentTurn}=q;
+  if(currentTurn>citas.length){showToast('⚠ '+barber.split(' ')[0]+': sin más turnos','warn');return;}
+  const btn=document.getElementById(btnId||'btn-'+safeId(barber));
+  if(btn){btn.classList.add('loading');btn.innerHTML=scHtml()+'⏳ PROCESANDO...';}
+  const cita=citas[currentTurn-1];
+  if(cita?.id&&S.shopId){
+    try{await retry(()=>sbPatch('citas','id=eq.'+cita.id,{estado:'Completada'}),2);}
+    catch(e){showToast('⚠ Sin conexión','warn');}
+  }
+  q.currentTurn+=1;
+  onTurnChanged(barber);
+  // flip animation
+  ['hn-'+safeId(barber),'my-hn'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.classList.remove('flip');void el.offsetWidth;el.classList.add('flip');}
+  });
+  render();
+  showToast('✓ '+barber.split(' ')[0]+': turno avanzado','ok');
+  if(btn){
+    btn.classList.remove('loading');btn.classList.add('success');
+    btn.innerHTML=scHtml()+'✓ AVANZADO';
+    setTimeout(()=>{btn.classList.remove('success');btn.innerHTML=scHtml()+'▶ SIGUIENTE TURNO';},2000);
+  }
+  setTimeout(async()=>{await loadCitas().catch(()=>{});render();},1500);
+}
+
+// ── TOGGLE BARBERO ACTIVO (desde Mi Turno) ──────────
+async function toggleBarberoActivo(barberoId,nombre,activo){
+  try{
+    await sbPatch('barberos','id=eq.'+barberoId,{activo:!activo});
+    await loadBarberos();
+    rebuildQueues();
+    render();
+    renderBarberPicker();
+    showToast((activo?'⏸ '+nombre+' desactivado':'▶ '+nombre+' activado'),(activo?'warn':'ok'));
+  }catch(e){showToast('⚠ Error al cambiar estado','error');}
+}
+
+// ════════════════════════════════════════════════════
+//  RENDER — DISPATCHER
+// ════════════════════════════════════════════════════
+function render(){
+  const c=document.getElementById('content');
+  if(MODE==='tv')renderTV(c);
+  else if(MODE==='my')renderMyTurn(c);
+  else renderShop(c);
+}
+
+// ════════════════════════════════════════════════════
+//  MODO TV — PANTALLA GLOBAL
+// ════════════════════════════════════════════════════
+function renderTV(c){
+  const bnames=Object.keys(S.queues);
+  const n=bnames.length||1;
+  const nc=Math.min(n,5);
+
+  // Build ticker items
+  const allActive=S.citas.filter(c=>c.estado!=='Completada');
+  let tickerHtml=allActive.map(c=>{
+    const q=S.queues[c.barbero];
+    const isActive=q&&q.citas[q.currentTurn-1]?.id===c.id;
+    return `<span class="tv-ticker-item${isActive?' active':''}"><span class="t-n">#${String(allActive.indexOf(c)+1).padStart(2,'0')}</span>${c.name}<span class="t-b">✂${c.barbero}</span>${c.time}</span>`;
+  }).join('');
+  if(!tickerHtml)tickerHtml='<span class="tv-ticker-item">— SIN CLIENTES HOY —</span>';
+  const tickerDouble=tickerHtml+tickerHtml;
+  const tickerDur=Math.max(20,allActive.length*3);
+
+  let cardsHtml='';
+  if(!bnames.length){
+    cardsHtml='<div style="grid-column:1/-1;display:flex;align-items:center;justify-content:center;font-family:\'Share Tech Mono\',monospace;font-size:0.6rem;color:rgba(0,245,255,0.2);letter-spacing:0.22em;">SIN BARBEROS ACTIVOS</div>';
+  } else {
+    bnames.forEach((name,idx)=>{
+      const q=S.queues[name];const{citas,currentTurn}=q;
+      const cur=citas[currentTurn-1];const nxt=citas[currentTurn];
+      const remaining=Math.max(0,citas.length-currentTurn+1);
+      const color=BC[idx%BC.length];
+      const bid=safeId(name);
+      cardsHtml+=`
+      <div class="tv-card bc-${idx%5}${remaining===0?' libre':''}" style="--bc:${color};--bc-glow:${hexGlow(color)};">
+        <div class="tv-card-head">
+          <div class="tv-barber-name">✂ ${name}</div>
+          <div class="tv-status-badge ${remaining>0?'activo':'libre'}">${remaining>0?remaining+' en espera':'LIBRE'}</div>
+        </div>
+        <div class="tv-card-body">
+          <div class="tv-num" id="hn-${bid}">${cur?String(currentTurn).padStart(2,'0'):'—'}</div>
+          <div class="tv-name">${cur?cur.name:'SIN CLIENTE'}</div>
+          ${cur?`<div class="tv-service">${cur.servicio}</div>`:''}
+        </div>
+        <div class="tv-card-footer">
+          <div>
+            <div class="tv-next-label">PRÓXIMO</div>
+            <div class="tv-next-num">${nxt?String(currentTurn+1).padStart(2,'0'):'—'}</div>
+          </div>
+          <div class="tv-next-name">${nxt?nxt.name:'Sin reserva'}</div>
+          <div class="tv-next-time">${nxt?nxt.time:'—:—'}</div>
+        </div>
+        <button class="tv-btn" id="btn-${bid}" onclick="siguienteTurno('${name.replace(/'/g,"\\'")}','btn-${bid}')">▶ SIGUIENTE TURNO</button>
+      </div>`;
+    });
+  }
+
+  c.innerHTML=`
+  <div class="tv-wrap">
+    <div class="tv-cards n${nc}">${cardsHtml}</div>
+    <div class="tv-ticker">
+      <div class="tv-ticker-label">◈ HOY</div>
+      <div class="tv-ticker-track">
+        <div class="tv-ticker-inner" style="animation-duration:${tickerDur}s;">${tickerDouble}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ════════════════════════════════════════════════════
+//  MODO BARBERÍA — adaptativo (1 silla o multi-col)
+// ════════════════════════════════════════════════════
+function renderShop(c){
+  const bnames=Object.keys(S.queues);
+  if(!bnames.length){
+    c.innerHTML='<div style="flex:1;display:flex;align-items:center;justify-content:center;font-family:\'Share Tech Mono\',monospace;font-size:0.6rem;color:rgba(0,245,255,0.2);letter-spacing:0.22em;">SIN BARBEROS ACTIVOS</div>';
+    return;
+  }
+  const isSolo=bnames.length===1;
+  // Check if DOM already matches
+  const existingLayout=c.querySelector('.layout-solo,.layout-multi');
+  const existingCount=c.querySelectorAll('.barber-col').length;
+  if(!existingLayout||existingCount!==bnames.length||
+     (isSolo&&!c.querySelector('.layout-solo'))||
+     (!isSolo&&!c.querySelector('.layout-multi'))){
+    c.innerHTML='';
+    if(isSolo){
+      const w=document.createElement('div');w.className='layout-solo';w.style.cssText='display:flex;flex:1;';
+      c.appendChild(w);
+      setupSwipe(w,bnames[0]);
+    } else {
+      const w=document.createElement('div');w.className='layout-multi';w.style.cssText='display:flex;flex:1;width:100%;overflow:hidden;';
+      bnames.forEach((name,idx)=>{
+        const col=document.createElement('div');col.className='barber-col bc-'+idx%5;col.id='col-'+safeId(name);col.dataset.barber=name;w.appendChild(col);
+        setupSwipe(col,name);
+      });
+      c.appendChild(w);
+    }
+  }
+  if(isSolo)renderSolo(bnames[0],c.querySelector('.layout-solo'));
+  else bnames.forEach(name=>renderMultiCol(name));
+}
+
+function statusClasses(s){
+  const m={active:{rc:'s-active',tc:'tag-active',tl:'EN SILLA'},next:{rc:'s-next',tc:'tag-next',tl:'PRÓXIMO'},alert:{rc:'s-alert',tc:'tag-alert',tl:'2 TURN.'},wait:{rc:'s-wait',tc:'tag-wait',tl:'ESPERA'}};
+  return m[s]||m.wait;
+}
+function checkConflicts(acts,ct){
+  const cc=[];const dur=DUR;
+  const toMin=h=>{if(!h)return 0;const[hh,mm]=(h+':00').split(':').map(Number);return hh*60+mm;};
+  acts.forEach((a,i)=>acts.forEach((b,j)=>{if(i>=j)return;const d=Math.abs(toMin(a.time)-toMin(b.time));if(d<dur&&a.barbero===b.barbero&&a.barbero!=='CUALQUIERA')cc.push({i,j});}));
+  return cc;
+}
+
+function renderSolo(barber,layout){
+  if(!layout)return;
+  const q=S.queues[barber];if(!q)return;
+  const{citas:allC,currentTurn}=q;
+  const cur=allC[currentTurn-1];const nxt=allC[currentTurn];
+  const bid=safeId(barber);
+  const withStatus=allC.map((c,i)=>{const pos=i-(currentTurn-1);let status='wait';if(pos<0)status='done';else if(pos===0)status='active';else if(pos===1)status='next';else if(pos===2)status='alert';return{...c,status,pos};});
+  const remaining=Math.max(0,allC.length-currentTurn+1);
+  const done=withStatus.filter(c=>c.status==='done');
+  const active=withStatus.filter(c=>c.status!=='done');
+  const zoneAItems=active.slice(0,5);
+  const zoneBItems=active.slice(5);
+  const conflicts=checkConflicts(allC.filter(c=>c.status!=='done'),currentTurn);
+  const conflictIdx=new Set(conflicts.flatMap(c=>[c.i,c.j]));
+
+  layout.innerHTML=`
+  <div class="barber-col bc-0" id="col-${bid}">
+    <div class="col-left">
+      <div class="silla-zone">
+        <div class="now-label">◆ EN SILLA AHORA ◆</div>
+        <div class="hero-num-wrap">
+          <div class="hero-ghost">${cur?String(currentTurn).padStart(2,'0'):'—'}</div>
+          <div class="hero-num" id="hn-${bid}">${cur?String(currentTurn).padStart(2,'0'):'—'}</div>
+        </div>
+        <div class="silla-name${cur?' typing':''}" id="sn-${bid}">${cur?cur.name:'SIN CLIENTES'}</div>
+        <div class="silla-service">${cur?cur.servicio:'—'}</div>
+        <div class="silla-barber"><div class="barber-dot"></div><span>✂ ${barber}</span></div>
+        ${cur?`<div class="silla-timer" id="timer-${bid}"><div class="timer-dot"></div><span id="timer-txt-${bid}">0m</span></div>`:''}
+        <div class="swipe-flash" id="fl-${bid}"></div>
+      </div>
+      <div class="bottom-zone">
+        <div class="next-strip">
+          <div class="next-n">${nxt?String(currentTurn+1).padStart(2,'0'):'—'}</div>
+          <div class="next-info"><div class="next-nom">${nxt?nxt.name:'Sin reserva'}</div><div class="next-barber">✂ ${barber}</div></div>
+          <div class="next-time-badge">${nxt?nxt.time:'—:—'}</div>
+        </div>
+        <div class="disp-strip${conflicts.length?' conflict':''}"><div class="disp-d"></div><span>${conflicts.length?'⚠ '+conflicts.length+' CONFLICTO(S)':'HORARIOS OK — SIN CONFLICTOS'}</span></div>
+        <button class="btn-siguiente" id="btn-${bid}" onclick="siguienteTurno('${barber.replace(/'/g,"\\'")}','btn-${bid}')">
+          ${scHtml()}▶ &nbsp; SIGUIENTE TURNO
+        </button>
+      </div>
+    </div>
+    <div class="col-right">
+      <div class="queue-section">
+        <div class="queue-header">
+          <div class="queue-title">⬡ TURNOS DEL DÍA</div>
+          <div class="queue-meta">${allC.length} REGISTRADOS · ${remaining} EN ESPERA${conflicts.length?' · ⚠ '+conflicts.length+' CONFLICTO':' · OK ✓'}</div>
+        </div>
+        <div class="stats-bar">
+          <div class="stat-card"><div class="stat-val">${allC.length}</div><div class="stat-lbl">Clientes hoy</div><div class="stat-bar-line"><div class="stat-bar-fill" style="width:100%"></div></div></div>
+          <div class="stat-card"><div class="stat-val gold">${remaining}</div><div class="stat-lbl">Restantes</div><div class="stat-bar-line" style="background:rgba(255,214,0,0.08)"><div class="stat-bar-fill" style="width:${allC.length?Math.round(remaining/allC.length*100):0}%;background:var(--gold);box-shadow:0 0 6px var(--gold)"></div></div></div>
+          <div class="stat-card"><div class="stat-val green">${remaining>0?calcETA(remaining)||remaining*DUR+'m':'0m'}</div><div class="stat-lbl">Tiempo espera</div></div>
+          <div class="stat-card"><div class="stat-val purple">${S.lastUp?calcAgo(S.lastUp):'—'}</div><div class="stat-lbl">Últ. actualiz.</div></div>
+        </div>
+        <div class="queue-body">
+          <div class="done-strip">
+            <div class="done-strip-label">✓ LISTOS</div>
+            <div class="done-pills">${done.length?done.slice(-3).map((c,i)=>`<div class="done-pill" style="animation-delay:${i*0.06}s"><div class="done-pill-num">${String(allC.indexOf(c)+1).padStart(2,'0')}</div><div class="done-pill-name">${c.name}</div><div class="done-pill-check">✓</div></div>`).join(''):'<span class="done-strip-empty">— ninguno aún —</span>'}</div>
+          </div>
+          <div class="zone-a">
+            <div class="q-col-header"><span>#</span><span>CLIENTE</span><span style="text-align:center">BARBERO</span><span style="text-align:center">HORA</span><span>ESTADO</span></div>
+            ${zoneAItems.map((c,idx)=>{const i=allC.indexOf(c),pos=i-(currentTurn-1),eta=calcETA(pos),num=i+1;const{rc,tc,tl}=statusClasses(c.status);return`<div class="q-item ${rc}" style="animation-delay:${idx*0.05}s"><div class="q-num">${String(num).padStart(2,'0')}</div><div><div class="q-name">${c.name}${eta?`<span class="wait-eta">⏱${eta}</span>`:''}</div><div class="q-svc">${c.servicio}</div></div><div class="q-barber">${barber}</div><div class="q-time">${c.time}</div><div><span class="status-tag ${tc}"><span class="tag-dot"></span>${tl}</span></div></div>`;}).join('')}
+          </div>
+          ${zoneBItems.length?`<div class="zone-b-header"><span>EN ESPERA</span><span class="zone-b-count">${zoneBItems.length}</span></div><div class="zone-b">${zoneBItems.map((c,idx)=>{const i=allC.indexOf(c),pos=i-(currentTurn-1),eta=calcETA(pos),num=i+1;return`<div class="q-mini ${c.status==='alert'?'ms-alert':'ms-wait'}" style="animation-delay:${idx*0.025}s">${conflictIdx.has(i)?'<div style="position:absolute;top:2px;right:3px;width:4px;height:4px;border-radius:50%;background:var(--magenta);box-shadow:0 0 4px var(--magenta);"></div>':''}<div class="q-mini-num">${String(num).padStart(2,'0')}</div><div class="q-mini-name">${c.name}</div><div class="q-mini-meta"><div class="q-mini-time">${eta||c.time}</div><div class="q-mini-barb">${barber}</div></div></div>`;}).join('')}</div>`:''}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderMultiCol(barber){
+  const bid=safeId(barber);
+  const col=document.getElementById('col-'+bid);if(!col)return;
+  const idx=Object.keys(S.queues).indexOf(barber);
+  const n=Object.keys(S.queues).length;
+  const color=BC[idx%BC.length];
+  col.style.setProperty('--bc',color);col.style.setProperty('--bc-glow',hexGlow(color));
+  const nsz='n'+Math.min(n,5);
+  const q=S.queues[barber];const{citas,currentTurn}=q;
+  const cur=citas[currentTurn-1];const nxt=citas[currentTurn];
+  const pending=citas.slice(currentTurn);
+  const remaining=Math.max(0,citas.length-currentTurn+1);
+  if(remaining===0)col.classList.add('libre');else col.classList.remove('libre');
+  col.innerHTML=
+    '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 12px;border-bottom:1px solid rgba(0,245,255,0.08);background:rgba(2,4,8,0.7);flex-shrink:0;position:relative;">'
+    +'<div style="font-family:\'Orbitron\',monospace;font-size:0.68rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--bc);text-shadow:0 0 10px var(--bc);">✂ '+barber+'</div>'
+    +'<span style="font-family:\'Share Tech Mono\',monospace;font-size:0.42rem;letter-spacing:0.1em;text-transform:uppercase;padding:2px 7px;border:1px solid var(--bc);color:var(--bc);opacity:0.6;">'+(remaining>0?remaining+' EN ESPERA':'LIBRE')+'</span>'
+    +'<div style="position:absolute;bottom:-1px;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--bc),transparent);opacity:0.4;"></div>'
+    +'</div>'
+    +'<div class="silla-zone"><div class="now-label">◆ EN SILLA ◆</div>'
+    +'<div class="hero-num-wrap"><div class="hero-num '+nsz+'" id="hn-'+bid+'">'+(cur?String(currentTurn).padStart(2,'0'):'—')+'</div></div>'
+    +'<div class="silla-name '+nsz+'">'+(cur?cur.name:'SIN CLIENTE')+'</div>'
+    +(cur?'<div class="silla-service">'+cur.servicio+'</div>':'')
+    +'<div class="swipe-flash" id="fl-'+bid+'"></div></div>'
+    +'<div class="multi-next">'
+    +'<div class="mn-n">'+(nxt?String(currentTurn+1).padStart(2,'0'):'—')+'</div>'
+    +'<div class="mn-wrap"><div class="mn-nom">'+(nxt?nxt.name:'Sin reserva')+'</div><div class="mn-svc">'+(nxt?nxt.servicio:'')+'</div></div>'
+    +'<div class="mn-time">'+(nxt?nxt.time:'—:—')+'</div></div>'
+    +'<div class="multi-queue">'
+    +(pending.length?pending.map((c,i)=>{const pos=i+2;const eta=calcETA(pos-1);const cls=i===0?'mn':i===1?'ma':'mw';const num=currentTurn+i+1;return'<div class="mq-row '+cls+'" style="animation-delay:'+i*0.04+'s"><div class="mq-n">'+String(num).padStart(2,'0')+'</div><div class="mq-info"><div class="mq-name">'+c.name+'</div><div class="mq-svc">'+c.servicio+'</div></div><div class="mq-r"><div class="mq-time">'+c.time+'</div>'+(eta?'<div class="mq-eta">⏱'+eta+'</div>':'')+'</div></div>';}).join(''):'<div style="padding:18px 8px;text-align:center;font-family:\'Share Tech Mono\',monospace;font-size:0.4rem;color:rgba(0,245,255,0.14);letter-spacing:0.2em;">SIN PENDIENTES</div>')
+    +'</div>'
+    +'<div class="swipe-hint">⟵ desliza o ▶ siguiente</div>'
+    +'<button class="btn-siguiente" id="btn-'+bid+'" onclick="siguienteTurno(\''+barber.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\',\'btn-'+bid+'\')">'+scHtml()+'▶ &nbsp; SIGUIENTE TURNO</button>';
+}
+
+// ════════════════════════════════════════════════════
+//  MODO MI TURNO — vista personal del barbero
+// ════════════════════════════════════════════════════
+function renderMyTurn(c){
+  if(!MY_BARBER){
+    c.innerHTML='<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;"><div style="font-family:\'Orbitron\',monospace;font-size:0.9rem;color:rgba(176,110,255,0.3);letter-spacing:0.22em;">SELECCIONA TU BARBERO</div><div style="font-family:\'Share Tech Mono\',monospace;font-size:0.5rem;color:rgba(176,110,255,0.2);letter-spacing:0.2em;">Presiona ✂ MI TURNO en el menú inferior</div></div>';
+    return;
+  }
+  const barber=MY_BARBER;
+  const bid=safeId(barber);
+  const q=S.queues[barber];
+  const bObj=S.barberos.find(b=>b.nombre===barber);
+  const isActive=bObj?bObj.activo:true;
+
+  if(!q){
+    c.innerHTML='<div style="flex:1;display:flex;align-items:center;justify-content:center;font-family:\'Share Tech Mono\',monospace;font-size:0.6rem;color:rgba(176,110,255,0.2);letter-spacing:0.22em;">BARBERO NO ACTIVO</div>';
+    return;
+  }
+  const{citas:allC,currentTurn}=q;
+  const cur=allC[currentTurn-1];const nxt=allC[currentTurn];
+  const remaining=Math.max(0,allC.length-currentTurn+1);
+  const done=allC.slice(0,currentTurn-1);
+  const pending=allC.slice(currentTurn-1);
+
+  // Toggle button
+  const toggleHtml=bObj?`<button onclick="toggleBarberoActivo('${bObj.id}','${barber}',${isActive})" style="padding:6px 14px;border:1px solid ${isActive?'rgba(255,0,110,0.35)':'rgba(0,255,120,0.35)'};background:${isActive?'rgba(255,0,110,0.06)':'rgba(0,255,120,0.06)'};color:${isActive?'rgba(255,0,110,0.7)':'rgba(0,255,120,0.7)'};font-family:'Share Tech Mono',monospace;font-size:0.46rem;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;">${isActive?'⏸ DESACTIVARME':'▶ ACTIVARME'}</button>`:'';
+
+  c.innerHTML=`
+  <div class="my-wrap">
+    <div class="my-header">
+      <div class="my-name-badge">
+        <div class="my-avatar">${barber.charAt(0)}</div>
+        <div>
+          <div class="my-barber-name">✂ ${barber}</div>
+          <div class="my-sub">${isActive?'● ACTIVO · MIS TURNOS':'○ DESACTIVADO'}</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div class="my-stats">
+          <div class="my-stat"><div class="my-stat-val">${allC.length}</div><div class="my-stat-lbl">Hoy</div></div>
+          <div class="my-stat"><div class="my-stat-val gold">${remaining}</div><div class="my-stat-lbl">Quedan</div></div>
+          <div class="my-stat"><div class="my-stat-val green">${done.length}</div><div class="my-stat-lbl">Listos</div></div>
+        </div>
+        ${toggleHtml}
+      </div>
+    </div>
+    <div class="my-layout">
+      <div class="my-left">
+        ${isActive&&cur?`
+        <div class="my-silla-zone">
+          <div class="now-label">◆ EN SILLA AHORA ◆</div>
+          <div class="my-hero-num" id="my-hn" id="hn-${bid}">${String(currentTurn).padStart(2,'0')}</div>
+          <div class="my-client-name typing" id="my-cn">${cur.name}</div>
+          <div class="my-service">${cur.servicio}</div>
+          <div class="silla-timer" id="timer-my"><div class="timer-dot"></div><span id="timer-txt-my">0m</span></div>
+          <div class="swipe-flash" id="fl-${bid}"></div>
+        </div>
+        `:isActive?`
+        <div class="libre-banner">
+          <div class="libre-icon">✓</div>
+          <div class="libre-txt">LIBRE</div>
+          <div class="libre-sub">No hay más turnos asignados</div>
+        </div>
+        `:`
+        <div class="libre-banner">
+          <div class="libre-icon">⏸</div>
+          <div class="libre-txt">DESACTIVADO</div>
+          <div class="libre-sub">Actívate para recibir turnos</div>
+        </div>
+        `}
+        <div class="my-bottom">
+          ${nxt?`
+          <div class="next-strip" style="border-color:rgba(176,110,255,0.15);">
+            <div class="next-n" style="color:rgba(176,110,255,0.4);">${String(currentTurn+1).padStart(2,'0')}</div>
+            <div class="next-info"><div class="next-nom">${nxt.name}</div><div class="next-barber">⏱ ${nxt.time}</div></div>
+            <div class="next-time-badge">${calcETA(1)||nxt.time}</div>
+          </div>`:''}
+          <button class="btn-my-sig${!isActive?' loading':''}" id="btn-my" onclick="siguienteTurno('${barber.replace(/'/g,"\\'")}','btn-my')" ${!isActive?'disabled':''}>
+            ${scHtml()}${isActive?'▶ &nbsp; SIGUIENTE TURNO':'⏸ &nbsp; DESACTIVADO'}
+          </button>
+        </div>
+      </div>
+      <div class="my-right">
+        <div class="my-queue-title">⬡ MIS TURNOS HOY</div>
+        <div class="my-queue-list">
+          ${allC.length===0?'<div style="padding:20px;text-align:center;font-family:\'Share Tech Mono\',monospace;font-size:0.44rem;color:rgba(176,110,255,0.18);letter-spacing:0.2em;">SIN CITAS ASIGNADAS</div>':''}
+          ${allC.map((c,i)=>{
+            const isDone=i<currentTurn-1;const isAct=i===currentTurn-1;const isNxt=i===currentTurn;
+            const cls=isDone?'mqi-done':isAct?'mqi-active':isNxt?'mqi-next':'mqi-wait';
+            const tag=isDone?`<span class="mqi-tag d">✓</span>`:isAct?`<span class="mqi-tag a">EN SILLA</span>`:isNxt?`<span class="mqi-tag n">PRÓXIMO</span>`:`<span class="mqi-tag w">ESPERA</span>`;
+            const eta=calcETA(i-(currentTurn-1));
+            return`<div class="my-q-item ${cls}" style="animation-delay:${i*0.04}s">
+              <div class="mqi-num">${String(i+1).padStart(2,'0')}</div>
+              <div><div class="mqi-name">${c.name}</div><div class="mqi-svc">${c.servicio}</div></div>
+              <div class="mqi-right">
+                <div class="mqi-time">${c.time}</div>${tag}
+                ${eta&&!isDone?`<span style="font-family:'Share Tech Mono',monospace;font-size:0.36rem;color:rgba(255,214,0,0.35);">⏱${eta}</span>`:''}
+                ${!isDone&&c.id?`<button onclick="openReagendar('${c.id}','${c.name.replace(/'/g,"\\'")}','${c.time}','${barber.replace(/'/g,"\\'")}')" style="margin-top:3px;padding:2px 7px;border:1px solid rgba(255,214,0,0.2);background:rgba(255,214,0,0.04);color:rgba(255,214,0,0.5);font-family:'Share Tech Mono',monospace;font-size:0.36rem;letter-spacing:0.1em;cursor:pointer;text-transform:uppercase;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(255,214,0,0.5)';this.style.color='rgba(255,214,0,0.9)';" onmouseout="this.style.borderColor='rgba(255,214,0,0.2)';this.style.color='rgba(255,214,0,0.5)';">↻ mover</button>`:''}
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  // Setup swipe on my-silla
+  const myLeft=c.querySelector('.my-left');
+  if(myLeft)setupSwipe(myLeft,barber);
+}
+
+// ── MODE SWITCHER ──────────────────────────────────
+function setMode(m,barber){
+  MODE=m;
+  if(m==='my'&&barber)MY_BARBER=barber;
+  ['tv','shop','my'].forEach(id=>{
+    const btn=document.getElementById('mbtn-'+id);if(!btn)return;
+    btn.classList.remove('active','mode-barber-active');
+  });
+  const activeBtn=document.getElementById('mbtn-'+(m==='my'?'my':''+m));
+  if(activeBtn){activeBtn.classList.add(m==='my'?'mode-barber-active':'active');}
+  // Update brand sub
+  const subs={tv:'Vista Global · TV',shop:'Vista Barbería',my:MY_BARBER?'✂ '+MY_BARBER:'Vista Personal'};
+  document.getElementById('brand-sub').textContent=subs[m]||'Sistema de Turnos · BarberOS';
+  // Update footer
+  const msgs={tv:'"Todos en la mira — vista global."',shop:'"El estilo es la firma del alma."',my:MY_BARBER?'"Tu turno, tu trabajo, tu orgullo."':'"El estilo es la firma del alma."'};
+  document.getElementById('footer-msg').textContent=msgs[m]||msgs.shop;
+  document.getElementById('content').innerHTML='';
+  render();
+}
+
+function openBarberPicker(){
+  renderBarberPicker();
+  document.getElementById('barber-picker').classList.toggle('open');
+}
+function renderBarberPicker(){
+  const list=document.getElementById('bp-list');list.innerHTML='';
+  const barberos=S.barberos.length>0?S.barberos:Object.keys(S.queues).map(n=>({nombre:n,activo:true}));
+  barberos.forEach(b=>{
+    const isSelected=b.nombre===MY_BARBER;
+    const item=document.createElement('div');
+    item.className='bp-item'+(isSelected?' selected':'');
+    const bname=b.nombre;
+    item.innerHTML=`
+      <div onclick="selectBarberMode('${bname}')" style="flex:1;display:flex;align-items:center;gap:10px;cursor:pointer;">
+        <div style="width:30px;height:30px;border-radius:50%;border:1px solid rgba(176,110,255,0.3);background:rgba(176,110,255,0.07);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:0.8rem;font-weight:700;color:var(--purple);">${bname.charAt(0)}</div>
+        <div><div class="bp-name">${bname}</div><div class="bp-status ${b.activo?'':'off'}">${b.activo?'● ACTIVO':'○ INACTIVO'}</div></div>
+      </div>
+      ${b.id?`<button class="bp-toggle ${b.activo?'on':'off'}" onclick="toggleBarberoActivo('${b.id}','${bname}',${b.activo})">${b.activo?'DESACTIVAR':'ACTIVAR'}</button>`:''}`;
+    list.appendChild(item);
+  });
+}
+function selectBarberMode(barber){
+  MY_BARBER=barber;
+  document.getElementById('barber-picker').classList.remove('open');
+  setMode('my',barber);
+}
+
+// ── Touch swipe ────────────────────────────────────
+function setupSwipe(el,barber){
+  let sx=0,sy=0,moved=false;
+  el.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;moved=false;},{passive:true});
+  el.addEventListener('touchmove',e=>{if(Math.abs(e.touches[0].clientX-sx)>10)moved=true;},{passive:true});
+  el.addEventListener('touchend',e=>{
+    const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
+    if(moved&&Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy)*1.4){
+      const fl=document.getElementById('fl-'+safeId(barber));
+      if(fl){fl.classList.add('on');setTimeout(()=>fl.classList.remove('on'),300);}
+      siguienteTurno(barber);
+    }
+  },{passive:true});
+}
+
+// ── Realtime ───────────────────────────────────────
+function subscribeRT(){
+  if(!S.shopId)return;
+  setRt('connecting','CONECTANDO RT...');
+  const wsUrl=SB_URL.replace('https://','wss://')+'/realtime/v1/websocket?apikey='+SB_KEY+'&vsn=1.0.0';
+  let ws,hb,rc=0,rt;
+  function conn(){
+    try{
+      ws=new WebSocket(wsUrl);
+      ws.onopen=()=>{
+  rc=0;setRt('ok','REALTIME ●');
+  // Suscripción 1: cambios en citas de esta shop
+  ws.send(JSON.stringify({topic:'realtime:public:citas:shop_id=eq.'+S.shopId,event:'phx_join',payload:{config:{broadcast:{self:false},presence:{key:''}}},ref:'1'}));
+  // Suscripción 2: cambios en la shop (activo, plan, etc.)
+  ws.send(JSON.stringify({topic:'realtime:public:shops:id=eq.'+S.shopId,event:'phx_join',payload:{config:{broadcast:{self:false},presence:{key:''}}},ref:'2'}));
+  hb=setInterval(()=>{if(ws.readyState===1)ws.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:'hb'}));},25000);
+};
+      ws.onmessage=async(ev)=>{
+        try{
+          const m=JSON.parse(ev.data);
+          if(['INSERT','UPDATE','DELETE'].includes(m.event)){
+            // Si la shop fue desactivada en tiempo real → mostrar pantalla suspendida
+            if(m.topic&&m.topic.includes('shops')&&m.payload?.record?.activo===false){
+              showDisplaySuspended(S.shopName);return;
+            }
+            await loadCitas().catch(()=>{});render();
+            showToast(m.event==='INSERT'?'✓ Nueva cita':'↻ Actualizado','info');
+          }
+        }catch(_){}
+      };
+      ws.onerror=()=>setRt('error','RT ERROR');
+      ws.onclose=()=>{clearInterval(hb);setRt('error','RT DESCONECTADO');rc++;rt=setTimeout(conn,Math.min(2000*Math.pow(1.5,rc),30000));};
+    }catch(e){setRt('error','SIN RT');}
+  }
+  conn();
+}
+
+// ════════════════════════════════════════════════════
+//  TIMER EN SILLA — rastrea cuándo entró el cliente actual
+// ════════════════════════════════════════════════════
+const SILLA_TIMES={}; // {barber: timestamp ms}
+
+function updateTimers(){
+  Object.keys(SILLA_TIMES).forEach(barber=>{
+    const start=SILLA_TIMES[barber];
+    if(!start)return;
+    const mins=Math.floor((Date.now()-start)/60000);
+    const bid=safeId(barber);
+    const ids=['timer-txt-'+bid];
+    if(barber===MY_BARBER)ids.push('timer-txt-my');
+    ids.forEach(id=>{
+      const el=document.getElementById(id);if(!el)return;
+      el.textContent=mins+'m';
+      const parent=el.closest('.silla-timer');
+      if(parent){
+        parent.classList.toggle('warm',mins>=DUR*0.6&&mins<DUR);
+        parent.classList.toggle('hot',mins>=DUR);
+      }
+    });
+  });
+}
+setInterval(updateTimers,30000);
+
+// Llamar cuando cambia el turno
+function onTurnChanged(barber){
+  SILLA_TIMES[barber]=Date.now();
+}
+
+// ════════════════════════════════════════════════════
+//  WALK-IN — agrega cliente sin cita
+// ════════════════════════════════════════════════════
+let WI_SVC='CORTE';
+let WI_BARBER=null;
+
+function openWalkIn(){
+  // Populate barber buttons
+  const sel=document.getElementById('wi-barber-sel');sel.innerHTML='';
+  const barbers=S.barberos.filter(b=>b.activo);
+  if(!barbers.length){showToast('⚠ No hay barberos activos','warn');return;}
+  barbers.forEach((b,i)=>{
+    const btn=document.createElement('button');
+    btn.className='barber-sel-btn'+(i===0?' sel':'');
+    btn.textContent=b.nombre;
+    btn.onclick=()=>{document.querySelectorAll('#wi-barber-sel .barber-sel-btn').forEach(x=>x.classList.remove('sel'));btn.classList.add('sel');WI_BARBER=b.nombre;};
+    sel.appendChild(btn);
+    if(i===0)WI_BARBER=b.nombre;
+  });
+  WI_SVC='CORTE';
+  document.getElementById('wi-nombre').value='';
+  document.getElementById('walkin-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('wi-nombre').focus(),120);
+}
+
+function selectSvc(btn,svc){
+  document.querySelectorAll('#wi-svc-sel .barber-sel-btn').forEach(x=>x.classList.remove('sel'));
+  btn.classList.add('sel');WI_SVC=svc;
+}
+
+async function confirmWalkIn(){
+  const nombre=document.getElementById('wi-nombre').value.trim().toUpperCase();
+  if(!nombre){document.getElementById('wi-nombre').focus();showToast('⚠ Escribe el nombre','warn');return;}
+  if(!WI_BARBER){showToast('⚠ Selecciona barbero','warn');return;}
+  if(!S.shopId){showToast('⚠ Sin conexión a DB','error');return;}
+
+  // FIX: fecha y hora en timezone America/Santo_Domingo
+  const rdNow2=new Date(new Date().toLocaleString('en-US',{timeZone:'America/Santo_Domingo'}));
+  const hoy=rdNow2.getFullYear()+'-'+String(rdNow2.getMonth()+1).padStart(2,'0')+'-'+String(rdNow2.getDate()).padStart(2,'0');
+  const hora=String(rdNow2.getHours()).padStart(2,'0')+':'+String(rdNow2.getMinutes()).padStart(2,'0');
+
+  const btn=document.querySelector('#walkin-modal .abtn-confirm');
+  btn.textContent='⏳ GUARDANDO...';btn.style.pointerEvents='none';
+
+  try{
+    const r=await fetch(SB_URL+'/rest/v1/citas',{
+      method:'POST',
+      headers:{...H,'Prefer':'return=representation'},
+      body:JSON.stringify({
+        shop_id:S.shopId,
+        nombre,
+        telefono:'walk-in',
+        chat_id:'walkin:'+Date.now(),
+        fecha:hoy,
+        hora,
+        servicio:WI_SVC,
+        barbero:WI_BARBER,
+        estado:'Confirmada'
+      })
+    });
+    if(!r.ok)throw new Error('POST '+r.status);
+    closeModal('walkin-modal');
+    await loadCitas();render();
+    showToast('✓ '+nombre+' agregado a la cola','ok');
+  }catch(e){
+    showToast('⚠ Error al guardar','error');
+    btn.textContent='✓ AGREGAR A LA COLA';btn.style.pointerEvents='';
+  }
+}
+
+// ════════════════════════════════════════════════════
+//  REAGENDAR — mover cita a otro horario del día
+// ════════════════════════════════════════════════════
+let REAG_ID=null;
+let REAG_HORA=null;
+let REAG_BARBER=null;
+
+function openReagendar(citaId,nombre,horaActual,barber){
+  REAG_ID=citaId;REAG_HORA=horaActual;REAG_BARBER=barber;
+  document.getElementById('reag-sub').textContent='Mover cita de '+nombre+' (actual: '+horaActual+')';
+
+  // Build time slots from shop hours
+  const slots=[];
+  const inicio=9,fin=18;
+  for(let h=inicio;h<fin;h++){
+    for(let m=0;m<60;m+=DUR){
+      const hstr=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+      slots.push(hstr);
+    }
+  }
+
+  // Taken slots by this barber
+  const takenByBarber=S.citas
+    .filter(c=>c.barbero===barber&&c.id!=citaId&&c.estado!=='Completada')
+    .map(c=>c.time);
+
+  const slotsHtml=slots.map(t=>{
+    const isCurrent=t===horaActual;
+    const isTaken=takenByBarber.includes(t);
+    return`<div class="time-slot${isCurrent?' sel':isTaken?' taken':''}" onclick="${isCurrent||isTaken?'':('selectTimeSlot(this,\''+t+'\')')}">${t}</div>`;
+  }).join('');
+
+  document.getElementById('reag-slots').innerHTML=slotsHtml;
+  document.getElementById('reag-modal').classList.add('open');
+}
+
+function selectTimeSlot(btn,hora){
+  document.querySelectorAll('#reag-slots .time-slot').forEach(x=>x.classList.remove('sel'));
+  btn.classList.add('sel');REAG_HORA=hora;
+}
+
+async function confirmReagendar(){
+  if(!REAG_ID||!REAG_HORA){showToast('⚠ Selecciona un horario','warn');return;}
+  const btn=document.querySelector('#reag-modal .abtn-confirm');
+  btn.textContent='⏳ GUARDANDO...';btn.style.pointerEvents='none';
+  try{
+    await sbPatch('citas','id=eq.'+REAG_ID,{hora:REAG_HORA+':00'});
+    closeModal('reag-modal');
+    await loadCitas();render();
+    showToast('↻ Cita movida a las '+REAG_HORA,'ok');
+  }catch(e){
+    showToast('⚠ Error al reagendar','error');
+    btn.textContent='↻ CONFIRMAR CAMBIO';btn.style.pointerEvents='';
+  }
+}
+
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+// ── Init ───────────────────────────────────────────
+async function init(){
+  setDb('loading','CONECTANDO...');
+  // Leer modo y barbero desde URL params
+  const up=new URLSearchParams(location.search);
+  const urlMode=up.get('mode');const urlBarber=up.get('barber');
+  if(urlMode==='tv')MODE='tv';
+  else if(urlMode==='my'&&urlBarber){MODE='my';MY_BARBER=decodeURIComponent(urlBarber);}
+  // Actualizar botón activo inicial
+  ['tv','shop','my'].forEach(id=>document.getElementById('mbtn-'+id)?.classList.remove('active','mode-barber-active'));
+  document.getElementById('mbtn-'+(MODE==='tv'?'tv':MODE==='my'?'my':'shop'))?.classList.add(MODE==='my'?'mode-barber-active':'active');
+
+  const ok=await loadShop().catch(()=>false);
+  if(ok){await loadBarberos().catch(()=>{});await loadCitas().catch(()=>{});subscribeRT();}
+  else loadDemo();
+  // Init timers — start counting from now for current clients
+  Object.keys(S.queues).forEach(b=>{ if(!SILLA_TIMES[b])SILLA_TIMES[b]=Date.now(); });
+  render();
+  updateTimers();
+  setInterval(updateTimers,30000);
+  setInterval(async()=>{await loadCitas().catch(()=>{});render();},30000);
+}
+
+function loadDemo(){
+  S.shopName='ELITE CUTS';
+  document.getElementById('shop-name').textContent=S.shopName;
+  S.barberos=[
+    {id:'b1',nombre:'MATÍAS',activo:true,orden:1},
+    {id:'b2',nombre:'LUCAS',activo:true,orden:2},
+    {id:'b3',nombre:'GONZALO',activo:true,orden:3},
+  ];
+  S.citas=[
+    {id:1,name:'CARLOS M.',time:'09:00',servicio:'CORTE CLÁSICO',barbero:'MATÍAS',estado:'Confirmada'},
+    {id:2,name:'PEDRO D.',time:'09:00',servicio:'CORTE + BARBA',barbero:'LUCAS',estado:'Confirmada'},
+    {id:3,name:'RAFAEL P.',time:'09:00',servicio:'FADE',barbero:'GONZALO',estado:'Confirmada'},
+    {id:4,name:'LUIS R.',time:'09:45',servicio:'CORTE',barbero:'MATÍAS',estado:'Confirmada'},
+    {id:5,name:'MIGUEL T.',time:'09:45',servicio:'BARBA',barbero:'LUCAS',estado:'Confirmada'},
+    {id:6,name:'ANDRÉS V.',time:'10:30',servicio:'FADE',barbero:'MATÍAS',estado:'Confirmada'},
+    {id:7,name:'DIEGO F.',time:'10:30',servicio:'CORTE',barbero:'LUCAS',estado:'Confirmada'},
+    {id:8,name:'ROBERTO S.',time:'11:15',servicio:'CORTE',barbero:'GONZALO',estado:'Confirmada'},
+  ];
+  setDb('err','MODO DEMO');setRt('error','SIN RT');
+  rebuildQueues();
+}
+
+// ── UI helpers ─────────────────────────────────────
+function renderBarberosBar(){
+  const bar=document.getElementById('barberos-bar');bar.innerHTML='';
+  S.barberos.forEach(b=>{
+    const s=document.createElement('div');s.className='barb-slot'+(b.activo?' active':'');
+    s.innerHTML='<div class="barb-slot-dot"></div>'+b.nombre;
+    bar.appendChild(s);
+  });
+}
+function setDb(t,l){document.getElementById('db-pill').className='hpill hpill-db '+t;document.getElementById('db-lbl').textContent=l;}
+function setRt(t,l){document.getElementById('rt-pill').className='hpill hpill-rt '+(t==='ok'?'':t);document.getElementById('rt-lbl').textContent=l;}
+function setOffline(v){document.getElementById('ob').classList.toggle('show',v);}
+let _tt;
+function showToast(msg,t='ok'){const el=document.getElementById('toast');el.textContent=msg;el.className='toast '+t+' show';clearTimeout(_tt);_tt=setTimeout(()=>el.classList.remove('show'),3200);}
+function toggleFS(){const el=document.documentElement;if(!document.fullscreenElement){(el.requestFullscreen||el.webkitRequestFullscreen||(() => {})).call(el);document.getElementById('fs-btn').textContent='⛶ EXIT';}else{(document.exitFullscreen||document.webkitExitFullscreen||(() => {})).call(document);document.getElementById('fs-btn').textContent='⛶ FS';}}
+document.getElementById('fs-btn').addEventListener('click',toggleFS);
+document.addEventListener('fullscreenchange',()=>{document.getElementById('fs-btn').textContent=document.fullscreenElement?'⛶ EXIT':'⛶ FS';});
+document.getElementById('cfg-open').addEventListener('click',()=>{document.getElementById('cfg-shop').value=SLUG;document.getElementById('cfg-dur').value=DUR;document.getElementById('cfg-modal').classList.add('open');});
+document.getElementById('cfg-cancel').addEventListener('click',()=>document.getElementById('cfg-modal').classList.remove('open'));
+document.getElementById('cfg-save').addEventListener('click',()=>{const shop=document.getElementById('cfg-shop').value.trim();const dur=parseInt(document.getElementById('cfg-dur').value)||DUR;DUR=dur;document.getElementById('cfg-modal').classList.remove('open');if(shop&&shop!==SLUG)location.href='?shop='+shop;else{showToast('✓ Guardado');render();}});
+document.getElementById('cfg-modal').addEventListener('click',e=>{if(e.target===document.getElementById('cfg-modal'))document.getElementById('cfg-modal').classList.remove('open');});
+// Cerrar barber picker al click fuera
+document.addEventListener('click',e=>{const bp=document.getElementById('barber-picker'),mb=document.getElementById('mode-bar');if(!bp.contains(e.target)&&!mb.contains(e.target))bp.classList.remove('open');});
+function tick(){const n=new Date(),p=v=>String(v).padStart(2,'0');document.getElementById('clock').textContent=p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds());const days=['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'],months=['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];document.getElementById('clock-date').textContent=days[n.getDay()]+' '+n.getDate()+' '+months[n.getMonth()]+' '+n.getFullYear();}
+setInterval(tick,1000);tick();
+document.addEventListener('keydown',e=>{
+  if(e.key==='f'||e.key==='F')toggleFS();
+  if(e.key==='r'||e.key==='R'){loadCitas().then(render);showToast('🔄 Recargando...','info');}
+  if(e.key==='t'||e.key==='T')setMode('tv');
+  if(e.key==='s'||e.key==='S')setMode('shop');
+  if(e.key==='Escape'){
+    document.getElementById('cfg-modal').classList.remove('open');
+    document.getElementById('barber-picker').classList.remove('open');
+    document.getElementById('walkin-modal').classList.remove('open');
+    document.getElementById('reag-modal').classList.remove('open');
+  }
+  const nn=parseInt(e.key);
+  if(nn>=1&&nn<=5&&MODE!=='tv'){const b=Object.keys(S.queues)[nn-1];if(b)siguienteTurno(b);}
+  if(e.key==='ArrowRight'||e.key==='n'||e.key==='N'){
+    if(MODE==='my'&&MY_BARBER)siguienteTurno(MY_BARBER,'btn-my');
+    else{const b=Object.keys(S.queues)[0];if(b)siguienteTurno(b);}
+  }
+});
+window.addEventListener('offline',()=>setOffline(true));
+window.addEventListener('online',()=>{setOffline(false);loadCitas().then(render);showToast('✓ Conexión restaurada','ok');});
+init();
+</script>
+</body>
+</html>
