@@ -177,7 +177,6 @@ select.form-input option{background:#111318;}
   pointer-events:none;
 }
 
-/* Barra superior del chat */
 .chat-topbar{
   background:#1F2C34;
   padding:10px 16px;
@@ -205,7 +204,6 @@ select.form-input option{background:#111318;}
   letter-spacing:0.1em;
 }
 
-/* Mensajes */
 .messages{
   flex:1;
   overflow-y:auto;
@@ -259,7 +257,6 @@ select.form-input option{background:#111318;}
 }
 .msg-check{margin-left:3px;color:#53BDEB;}
 
-/* Typing indicator */
 .typing-indicator{
   align-self:flex-start;
   background:var(--wa-in);
@@ -279,7 +276,6 @@ select.form-input option{background:#111318;}
 .typing-dot:nth-child(3){animation-delay:0.4s;}
 @keyframes typing{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-4px);}}
 
-/* Input area */
 .chat-input-bar{
   background:#1F2C34;
   border-top:1px solid rgba(255,255,255,0.05);
@@ -366,7 +362,6 @@ select.form-input option{background:#111318;}
 }
 .log-clear:hover{color:var(--text);}
 
-/* Supabase state viewer */
 .state-panel{
   border-top:1px solid var(--border);
   padding:10px;
@@ -380,7 +375,6 @@ select.form-input option{background:#111318;}
 .state-key{color:var(--muted);}
 .state-val{color:var(--text);font-family:'Share Tech Mono',monospace;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
-/* empty state */
 .empty-state{
   flex:1;display:flex;flex-direction:column;
   align-items:center;justify-content:center;
@@ -389,7 +383,6 @@ select.form-input option{background:#111318;}
 .empty-state .icon{font-size:2.5rem;margin-bottom:12px;opacity:0.3;}
 .empty-state .txt{font-size:0.58rem;line-height:1.8;letter-spacing:0.08em;}
 
-/* toast */
 .toast{
   position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
   background:#1F2C34;border:1px solid rgba(37,211,102,0.3);
@@ -402,7 +395,6 @@ select.form-input option{background:#111318;}
 </head>
 <body>
 
-<!-- HEADER -->
 <div class="header">
   <div class="header-logo">BarberOS</div>
   <div class="header-sep">·</div>
@@ -410,37 +402,29 @@ select.form-input option{background:#111318;}
   <div class="badge-test">⚠ Solo Pruebas</div>
 </div>
 
-<!-- LAYOUT -->
 <div class="layout">
-
-  <!-- SIDEBAR CONFIG -->
   <div class="sidebar">
     <div class="sidebar-section">
       <div class="sidebar-label">Configuración</div>
-
       <div class="form-group">
         <label class="form-label">Barbería</label>
         <select class="form-input" id="shopSelect" onchange="onShopChange()">
           <option value="">Cargando...</option>
         </select>
       </div>
-
       <div class="form-group">
         <label class="form-label">Webhook n8n (URL completa)</label>
         <input class="form-input" id="webhookUrl" placeholder="https://donovan01.app.n8n.cloud/webhook/..." value="">
       </div>
-
       <div class="form-group">
         <label class="form-label">Número simulado (From)</label>
         <input class="form-input" id="simPhone" placeholder="+18091234567" value="+18099999999">
       </div>
-
       <div class="status-row" id="configStatus">
         <span class="status-dot" id="statusDot"></span>
         <span id="statusTxt">Selecciona una barbería</span>
       </div>
     </div>
-
     <div class="sidebar-section">
       <div class="sidebar-label">Mensajes Rápidos</div>
       <div class="quick-msgs" id="quickMsgs">
@@ -455,7 +439,6 @@ select.form-input option{background:#111318;}
         <button class="qmsg" onclick="sendQuick('cancelar')">🚫 Cancelar cita</button>
       </div>
     </div>
-
     <div class="sidebar-section">
       <div class="sidebar-label">Acciones</div>
       <button class="btn danger" onclick="resetConversation()">🗑 Borrar conversación</button>
@@ -464,11 +447,8 @@ select.form-input option{background:#111318;}
     </div>
   </div>
 
-  <!-- CHAT PRINCIPAL -->
   <div class="chat-area">
     <div class="chat-bg"></div>
-
-    <!-- Topbar estilo WhatsApp -->
     <div class="chat-topbar">
       <div class="wa-avatar">💈</div>
       <div>
@@ -477,8 +457,6 @@ select.form-input option{background:#111318;}
       </div>
       <div class="wa-phone" id="waPhone"></div>
     </div>
-
-    <!-- Mensajes -->
     <div class="messages" id="messages">
       <div class="empty-state" id="emptyState">
         <div class="icon">💬</div>
@@ -490,8 +468,6 @@ select.form-input option{background:#111318;}
         <div class="typing-dot"></div>
       </div>
     </div>
-
-    <!-- Input -->
     <div class="chat-input-bar">
       <textarea class="chat-input" id="chatInput" placeholder="Escribe un mensaje..." rows="1"
         onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
@@ -499,14 +475,12 @@ select.form-input option{background:#111318;}
     </div>
   </div>
 
-  <!-- PANEL LOGS -->
   <div class="logs-panel">
     <div class="logs-header">
       Logs
       <button class="log-clear" onclick="clearLogs()">limpiar</button>
     </div>
     <div class="logs-body" id="logsBody"></div>
-
     <div class="state-panel">
       <div class="state-label">Estado Conversación (Supabase)</div>
       <div id="stateRows">
@@ -514,13 +488,11 @@ select.form-input option{background:#111318;}
       </div>
     </div>
   </div>
-
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ── CONFIG SUPABASE ─────────────────────────────────────
 const SB_URL = 'https://mmokunpuslcfphalrwot.supabase.co';
 const SB_KEY = 'sb_publishable_aETz_9ECH5RcBMjmRhUnfw_g71zRdwT';
 const H = {'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
@@ -535,15 +507,13 @@ async function sbDelete(t,q){
   if(!r.ok)throw new Error('SB '+r.status);
 }
 
-// ── STATE ────────────────────────────────────────────────
 let shops=[];
 let currentShop=null;
-let msgHistory=[]; // {role:'out'|'in'|'system', text, time}
+let msgHistory=[];
 let sending=false;
 let pollTimer=null;
-let lastMsgCount=0;
+let lastConvUpdate=null;
 
-// ── INIT ────────────────────────────────────────────────
 async function init(){
   log('info','Conectando a Supabase...');
   try{
@@ -564,7 +534,6 @@ async function init(){
   }
 }
 
-// ── SHOP CHANGE ─────────────────────────────────────────
 function onShopChange(){
   const id=document.getElementById('shopSelect').value;
   currentShop=shops.find(s=>s.id===id)||null;
@@ -578,13 +547,10 @@ function onShopChange(){
   document.getElementById('waName').textContent=currentShop.nombre;
   document.getElementById('waStatus').textContent='BarberOS Bot · '+currentShop.slug;
   document.getElementById('waPhone').textContent=currentShop.twilio_number||'sin número';
-
-  // Autocompletar webhook si la shop lo tiene
   if(currentShop.webhook_url){
     document.getElementById('webhookUrl').value=currentShop.webhook_url;
     log('info','Webhook autocompletado desde Supabase');
   }
-
   setStatus('ok','Listo para simular');
   log('success','Shop: '+currentShop.nombre+' ('+currentShop.slug+')');
   clearMessages();
@@ -593,7 +559,6 @@ function onShopChange(){
   startPoll();
 }
 
-// ── SEND ─────────────────────────────────────────────────
 async function sendMessage(){
   if(sending)return;
   const input=document.getElementById('chatInput');
@@ -614,7 +579,6 @@ async function sendMessage(){
   log('info','→ POST webhook: '+text.substring(0,40)+(text.length>40?'...':''));
 
   try{
-    // Formato exacto que Twilio manda a n8n
     const body=new URLSearchParams({
       From: 'whatsapp:'+phone,
       To: 'whatsapp:'+(currentShop.twilio_number||'+14155238886'),
@@ -623,12 +587,14 @@ async function sendMessage(){
       WaId: phone.replace(/\D/g,''),
       SmsMessageSid: 'SIM'+Date.now(),
       NumMedia: '0',
-      // Campos extra para identificar la shop en n8n
       shop_slug: currentShop.slug,
       shop_id: currentShop.id,
+      // ▼ PROXY: incluye el destino real para que el proxy lo reenvíe
+      webhook_url: webhook,
     });
 
-    const res=await fetch(webhook, {
+    // ▼ PROXY: llamamos a /api/webhook-proxy en Vercel (mismo dominio = sin CORS)
+    const res=await fetch('/api/webhook-proxy', {
       method:'POST',
       headers:{'Content-Type':'application/x-www-form-urlencoded'},
       body: body.toString(),
@@ -639,28 +605,22 @@ async function sendMessage(){
       throw new Error(`HTTP ${res.status}: ${errText.substring(0,100)}`);
     }
 
-    // Intentar leer respuesta del webhook (algunos n8n devuelven el mensaje)
-    const ct=res.headers.get('content-type')||'';
-    let webhookReply=null;
-    if(ct.includes('json')){
-      const data=await res.json().catch(()=>null);
-      if(data){
-        webhookReply=data.message||data.reply||data.body||data.Body||data.text||null;
-        if(!webhookReply&&typeof data==='string') webhookReply=data;
-      }
-    }else{
-      const txt=await res.text().catch(()=>'');
-      if(txt&&txt.length<500&&!txt.includes('<!DOCTYPE')) webhookReply=txt;
-    }
+    const proxyData=await res.json().catch(()=>null);
+    log('success','✓ Proxy respondió '+res.status);
 
-    log('success','✓ Webhook respondió '+res.status);
+    // Intentar extraer respuesta del bot desde la respuesta del proxy
+    let webhookReply=null;
+    if(proxyData&&proxyData.data){
+      const d=proxyData.data;
+      if(typeof d==='string'&&d.trim()&&!d.includes('<!DOCTYPE')) webhookReply=d.trim();
+      else if(typeof d==='object') webhookReply=d.message||d.reply||d.body||d.Body||d.text||null;
+    }
 
     if(webhookReply&&webhookReply.trim()){
       showTyping(false);
       addMsg('in',webhookReply.trim());
       log('success','Bot: '+webhookReply.substring(0,60));
     }else{
-      // Si no hay respuesta directa, esperamos la respuesta del bot desde Supabase
       log('info','Esperando respuesta del bot en Supabase...');
       setTimeout(()=>pollBotReply(),1200);
     }
@@ -675,9 +635,6 @@ async function sendMessage(){
   }
 }
 
-// ── POLL RESPUESTA BOT ───────────────────────────────────
-let lastConvUpdate=null;
-
 async function pollBotReply(){
   if(!currentShop)return;
   const phone=document.getElementById('simPhone').value.trim()||'+18099999999';
@@ -690,10 +647,10 @@ async function pollBotReply(){
       if(convTime!==lastConvUpdate){
         lastConvUpdate=convTime;
         showTyping(false);
-        // El último mensaje del bot está en ultimo_mensaje
         if(conv.ultimo_mensaje){
-          const isOut=conv.ultimo_mensaje===document.querySelector('.bubble:last-of-type')?.textContent;
-          if(!isOut) addMsg('in',conv.ultimo_mensaje);
+          const msgs=document.querySelectorAll('.msg-row.in .bubble');
+          const lastIn=msgs.length?msgs[msgs.length-1].textContent:'';
+          if(conv.ultimo_mensaje!==lastIn) addMsg('in',conv.ultimo_mensaje);
         }
         updateState(conv);
         log('info','Supabase actualizado: '+conv.estado_conversacion);
@@ -732,7 +689,6 @@ function startPoll(){
   },4000);
 }
 
-// ── RESET CONVERSACIÓN ──────────────────────────────────
 async function resetConversation(){
   if(!currentShop){toast('Selecciona una barbería primero','warn');return;}
   const phone=document.getElementById('simPhone').value.trim()||'+18099999999';
@@ -752,19 +708,15 @@ async function resetConversation(){
   }
 }
 
-// ── UI HELPERS ───────────────────────────────────────────
 function addMsg(role,text){
   const msgs=document.getElementById('messages');
   document.getElementById('emptyState').style.display='none';
   const typing=document.getElementById('typingIndicator');
-
   const row=document.createElement('div');
   row.className='msg-row '+role;
-
   const bubble=document.createElement('div');
   bubble.className='bubble';
   bubble.textContent=text;
-
   const time=document.createElement('span');
   time.className='msg-time';
   const now=new Date();
@@ -772,7 +724,6 @@ function addMsg(role,text){
   if(role==='out') time.innerHTML+=` <span class="msg-check">✓✓</span>`;
   bubble.appendChild(time);
   row.appendChild(bubble);
-
   msgs.insertBefore(row,typing);
   msgs.scrollTop=msgs.scrollHeight;
   msgHistory.push({role,text,time:now.toISOString()});
@@ -796,7 +747,6 @@ function clearMessages(){
   const msgs=document.getElementById('messages');
   const typing=document.getElementById('typingIndicator');
   const empty=document.getElementById('emptyState');
-  // Borrar todo excepto empty y typing
   Array.from(msgs.children).forEach(c=>{
     if(c!==typing&&c!==empty) msgs.removeChild(c);
   });
@@ -863,7 +813,6 @@ function openAdmin(){
   else toast('Selecciona una barbería primero','warn');
 }
 
-// ── LOGS ─────────────────────────────────────────────────
 function log(type,msg){
   const body=document.getElementById('logsBody');
   const ts=new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
@@ -872,15 +821,11 @@ function log(type,msg){
   div.innerHTML=`<span class="log-ts">${ts}</span>${msg}`;
   body.appendChild(div);
   body.scrollTop=body.scrollHeight;
-  // Máx 100 logs
   while(body.children.length>100) body.removeChild(body.firstChild);
 }
 
-function clearLogs(){
-  document.getElementById('logsBody').innerHTML='';
-}
+function clearLogs(){document.getElementById('logsBody').innerHTML='';}
 
-// ── TOAST ─────────────────────────────────────────────────
 function toast(msg,type='success'){
   const t=document.getElementById('toast');
   t.textContent=msg;
