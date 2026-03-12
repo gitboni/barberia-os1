@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BarberOS · Chat Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bebas+Neue&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#080A0E;
+  --surface:#0D0F14;
+  --surface2:#111318;
+  --border:rgba(255,255,255,0.07);
+  --gold:#C9A84C;
+  --green:#25D366;
+  --green-dim:rgba(37,211,102,0.12);
+  --blue:rgba(0,245,255,0.7);
+  --muted:#5A5855;
+  --text:#E8E6E0;
+  --wa-out:#005C4B;
+  --wa-in:#1F2C34;
+  --wa-bg:#0B141A;
+}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'DM Mono',monospace;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+/* ── HEADER ── */
+.header{
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  padding:12px 20px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  flex-shrink:0;
+}
+.header-logo{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.1rem;
+  letter-spacing:0.15em;
+  color:var(--gold);
+}
+.header-sep{color:var(--muted);font-size:0.7rem;}
+.header-title{font-size:0.65rem;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;}
+.badge-test{
+  margin-left:auto;
+  background:rgba(255,69,0,0.15);
+  border:1px solid rgba(255,69,0,0.4);
+  color:#FF6B35;
+  font-size:0.5rem;
+  letter-spacing:0.2em;
+  padding:3px 10px;
+  text-transform:uppercase;
+}
+
+/* ── LAYOUT ── */
+.layout{
+  display:flex;
+  flex:1;
+  overflow:hidden;
+}
+
+/* ── SIDEBAR CONFIG ── */
+.sidebar{
+  width:280px;
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  flex-shrink:0;
+  overflow-y:auto;
+}
+.sidebar-section{
+  padding:16px;
+  border-bottom:1px solid var(--border);
+}
+.sidebar-label{
+  font-size:0.5rem;
+  letter-spacing:0.2em;
+  color:var(--muted);
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+.form-group{margin-bottom:10px;}
+.form-label{font-size:0.55rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px;display:block;}
+.form-input{
+  width:100%;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  color:var(--text);
+  font-family:'DM Mono',monospace;
+  font-size:0.62rem;
+  padding:7px 10px;
+  outline:none;
+  transition:border-color 0.2s;
+}
+.form-input:focus{border-color:rgba(201,168,76,0.4);}
+.form-input::placeholder{color:var(--muted);}
+
+select.form-input option{background:#111318;}
+
+.status-dot{
+  display:inline-block;width:7px;height:7px;
+  border-radius:50%;margin-right:6px;
+  background:var(--muted);
+}
+.status-dot.ok{background:var(--green);box-shadow:0 0 6px rgba(37,211,102,0.5);}
+.status-dot.error{background:#E74C3C;}
+.status-dot.loading{background:var(--gold);animation:pulse 1s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+
+.status-row{
+  font-size:0.55rem;
+  color:var(--muted);
+  display:flex;
+  align-items:center;
+  gap:4px;
+  margin-top:4px;
+}
+
+.btn{
+  width:100%;
+  background:rgba(201,168,76,0.1);
+  border:1px solid rgba(201,168,76,0.3);
+  color:var(--gold);
+  font-family:'DM Mono',monospace;
+  font-size:0.58rem;
+  letter-spacing:0.15em;
+  padding:8px 0;
+  cursor:pointer;
+  text-transform:uppercase;
+  transition:all 0.2s;
+  margin-top:6px;
+}
+.btn:hover{background:rgba(201,168,76,0.2);border-color:rgba(201,168,76,0.5);}
+.btn.danger{background:rgba(231,76,60,0.1);border-color:rgba(231,76,60,0.3);color:#E74C3C;}
+.btn.danger:hover{background:rgba(231,76,60,0.2);}
+.btn.green{background:var(--green-dim);border-color:rgba(37,211,102,0.35);color:var(--green);}
+.btn.green:hover{background:rgba(37,211,102,0.2);}
+
+/* Sugerencias rápidas */
+.quick-msgs{display:flex;flex-direction:column;gap:5px;}
+.qmsg{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  color:var(--muted);
+  font-family:'DM Mono',monospace;
+  font-size:0.55rem;
+  padding:6px 10px;
+  cursor:pointer;
+  text-align:left;
+  transition:all 0.2s;
+}
+.qmsg:hover{color:var(--text);border-color:rgba(201,168,76,0.3);}
+
+/* ── MAIN CHAT ── */
+.chat-area{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  background:var(--wa-bg);
+  position:relative;
+}
+.chat-bg{
+  position:absolute;inset:0;
+  opacity:0.03;
+  background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5 L55 20 L55 40 L30 55 L5 40 L5 20Z' fill='none' stroke='white' stroke-width='0.5'/%3E%3C/svg%3E");
+  pointer-events:none;
+}
+
+.chat-topbar{
+  background:#1F2C34;
+  padding:10px 16px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-shrink:0;
+  border-bottom:1px solid rgba(255,255,255,0.05);
+  z-index:2;
+}
+.wa-avatar{
+  width:38px;height:38px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#25D366,#128C7E);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1rem;flex-shrink:0;
+}
+.wa-name{font-size:0.72rem;font-weight:500;color:#E9EDEF;letter-spacing:0.03em;}
+.wa-status{font-size:0.55rem;color:#8696A0;margin-top:1px;}
+.wa-phone{
+  margin-left:auto;
+  font-size:0.5rem;
+  color:var(--muted);
+  font-family:'Share Tech Mono',monospace;
+  letter-spacing:0.1em;
+}
+
+.messages{
+  flex:1;
+  overflow-y:auto;
+  padding:16px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  scroll-behavior:smooth;
+}
+.messages::-webkit-scrollbar{width:4px;}
+.messages::-webkit-scrollbar-track{background:transparent;}
+.messages::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);}
+
+.msg-row{display:flex;flex-direction:column;max-width:72%;}
+.msg-row.out{align-self:flex-end;align-items:flex-end;}
+.msg-row.in{align-self:flex-start;align-items:flex-start;}
+.msg-row.system{align-self:center;align-items:center;max-width:90%;}
+
+.bubble{
+  padding:7px 12px 16px;
+  position:relative;
+  font-size:0.62rem;
+  line-height:1.7;
+  white-space:pre-wrap;
+  word-break:break-word;
+}
+.msg-row.out .bubble{
+  background:var(--wa-out);
+  border-radius:8px 0 8px 8px;
+  color:#E9EDEF;
+}
+.msg-row.in .bubble{
+  background:var(--wa-in);
+  border-radius:0 8px 8px 8px;
+  color:#E9EDEF;
+}
+.msg-row.system .bubble{
+  background:rgba(134,150,160,0.15);
+  border-radius:8px;
+  color:#8696A0;
+  font-size:0.52rem;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  padding:5px 14px;
+}
+.msg-time{
+  position:absolute;
+  bottom:4px;right:8px;
+  font-size:0.45rem;
+  color:rgba(233,237,239,0.45);
+}
+.msg-check{margin-left:3px;color:#53BDEB;}
+
+.typing-indicator{
+  align-self:flex-start;
+  background:var(--wa-in);
+  border-radius:0 8px 8px 8px;
+  padding:10px 14px;
+  display:none;
+  gap:4px;
+  align-items:center;
+}
+.typing-indicator.show{display:flex;}
+.typing-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:#8696A0;
+  animation:typing 1.2s ease-in-out infinite;
+}
+.typing-dot:nth-child(2){animation-delay:0.2s;}
+.typing-dot:nth-child(3){animation-delay:0.4s;}
+@keyframes typing{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-4px);}}
+
+.chat-input-bar{
+  background:#1F2C34;
+  border-top:1px solid rgba(255,255,255,0.05);
+  padding:10px 12px;
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-shrink:0;
+  z-index:2;
+}
+.chat-input{
+  flex:1;
+  background:#2A3942;
+  border:none;
+  color:#E9EDEF;
+  font-family:'DM Mono',monospace;
+  font-size:0.65rem;
+  padding:9px 14px;
+  border-radius:20px;
+  outline:none;
+  resize:none;
+  max-height:120px;
+  line-height:1.5;
+}
+.chat-input::placeholder{color:#8696A0;}
+.send-btn{
+  width:40px;height:40px;
+  border-radius:50%;
+  background:var(--green);
+  border:none;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  transition:all 0.2s;
+  font-size:1rem;
+}
+.send-btn:hover{background:#20c45a;transform:scale(1.05);}
+.send-btn:disabled{background:#2A3942;cursor:not-allowed;transform:none;}
+
+/* ── PANEL LOGS ── */
+.logs-panel{
+  width:280px;
+  background:var(--surface);
+  border-left:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  flex-shrink:0;
+}
+.logs-header{
+  padding:14px 16px 10px;
+  border-bottom:1px solid var(--border);
+  font-size:0.5rem;
+  letter-spacing:0.2em;
+  color:var(--muted);
+  text-transform:uppercase;
+  display:flex;align-items:center;gap:8px;
+}
+.logs-body{
+  flex:1;
+  overflow-y:auto;
+  padding:10px;
+  font-family:'Share Tech Mono',monospace;
+  font-size:0.5rem;
+  color:var(--muted);
+  line-height:1.8;
+}
+.logs-body::-webkit-scrollbar{width:3px;}
+.logs-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);}
+.log-entry{margin-bottom:4px;padding:4px 8px;border-left:2px solid transparent;}
+.log-entry.info{border-color:rgba(0,245,255,0.3);color:rgba(0,245,255,0.5);}
+.log-entry.success{border-color:rgba(37,211,102,0.3);color:rgba(37,211,102,0.6);}
+.log-entry.error{border-color:rgba(231,76,60,0.4);color:rgba(231,76,60,0.6);}
+.log-entry.warn{border-color:rgba(201,168,76,0.3);color:rgba(201,168,76,0.5);}
+.log-ts{opacity:0.5;margin-right:6px;}
+.log-clear{
+  margin-left:auto;
+  background:none;
+  border:none;
+  color:var(--muted);
+  font-size:0.5rem;
+  cursor:pointer;
+  font-family:'DM Mono',monospace;
+  letter-spacing:0.1em;
+}
+.log-clear:hover{color:var(--text);}
+
+.state-panel{
+  border-top:1px solid var(--border);
+  padding:10px;
+}
+.state-label{font-size:0.48rem;letter-spacing:0.15em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;}
+.state-row{
+  display:flex;justify-content:space-between;
+  font-size:0.52rem;margin-bottom:4px;
+  padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.03);
+}
+.state-key{color:var(--muted);}
+.state-val{color:var(--text);font-family:'Share Tech Mono',monospace;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+.empty-state{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  color:var(--muted);text-align:center;padding:20px;
+}
+.empty-state .icon{font-size:2.5rem;margin-bottom:12px;opacity:0.3;}
+.empty-state .txt{font-size:0.58rem;line-height:1.8;letter-spacing:0.08em;}
+
+.toast{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  background:#1F2C34;border:1px solid rgba(37,211,102,0.3);
+  color:var(--green);font-size:0.58rem;letter-spacing:0.1em;
+  padding:8px 20px;z-index:999;opacity:0;transition:opacity 0.3s;
+  pointer-events:none;
+}
+.toast.show{opacity:1;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">BarberOS</div>
+  <div class="header-sep">·</div>
+  <div class="header-title">WhatsApp Chat Simulator</div>
+  <div class="badge-test">⚠ Solo Pruebas</div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Configuración</div>
+      <div class="form-group">
+        <label class="form-label">Barbería</label>
+        <select class="form-input" id="shopSelect" onchange="onShopChange()">
+          <option value="">Cargando...</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Webhook n8n (URL completa)</label>
+        <input class="form-input" id="webhookUrl" placeholder="https://donovan01.app.n8n.cloud/webhook/barberos-sim" value="">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Número simulado (From)</label>
+        <input class="form-input" id="simPhone" placeholder="+18091234567" value="+18099999999">
+      </div>
+      <div class="status-row" id="configStatus">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusTxt">Selecciona una barbería</span>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Mensajes Rápidos</div>
+      <div class="quick-msgs" id="quickMsgs">
+        <button class="qmsg" onclick="sendQuick('Hola')">👋 Hola</button>
+        <button class="qmsg" onclick="sendQuick('Quiero una cita')">📅 Quiero una cita</button>
+        <button class="qmsg" onclick="sendQuick('1')">1️⃣ Respuesta: 1</button>
+        <button class="qmsg" onclick="sendQuick('2')">2️⃣ Respuesta: 2</button>
+        <button class="qmsg" onclick="sendQuick('3')">3️⃣ Respuesta: 3</button>
+        <button class="qmsg" onclick="sendQuick('Sí')">✅ Confirmar: Sí</button>
+        <button class="qmsg" onclick="sendQuick('No')">❌ Cancelar: No</button>
+        <button class="qmsg" onclick="sendQuick('citas')">📋 Ver citas</button>
+        <button class="qmsg" onclick="sendQuick('cancelar')">🚫 Cancelar cita</button>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Acciones</div>
+      <button class="btn danger" onclick="resetConversation()">🗑 Borrar conversación</button>
+      <button class="btn" onclick="loadConversation()">🔄 Recargar estado</button>
+      <button class="btn green" onclick="openAdmin()">↗ Abrir Admin</button>
+    </div>
+  </div>
+
+  <div class="chat-area">
+    <div class="chat-bg"></div>
+    <div class="chat-topbar">
+      <div class="wa-avatar">💈</div>
+      <div>
+        <div class="wa-name" id="waName">—</div>
+        <div class="wa-status" id="waStatus">Selecciona una barbería</div>
+      </div>
+      <div class="wa-phone" id="waPhone"></div>
+    </div>
+    <div class="messages" id="messages">
+      <div class="empty-state" id="emptyState">
+        <div class="icon">💬</div>
+        <div class="txt">Configura la barbería y el webhook<br>para comenzar a simular</div>
+      </div>
+      <div class="typing-indicator" id="typingIndicator">
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+      </div>
+    </div>
+    <div class="chat-input-bar">
+      <textarea class="chat-input" id="chatInput" placeholder="Escribe un mensaje..." rows="1"
+        onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
+    </div>
+  </div>
+
+  <div class="logs-panel">
+    <div class="logs-header">
+      Logs
+      <button class="log-clear" onclick="clearLogs()">limpiar</button>
+    </div>
+    <div class="logs-body" id="logsBody"></div>
+    <div class="state-panel">
+      <div class="state-label">Estado Conversación (Supabase)</div>
+      <div id="stateRows">
+        <div class="state-row"><span class="state-key">—</span><span class="state-val"></span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SB_URL = 'https://mmokunpuslcfphalrwot.supabase.co';
+const SB_KEY = 'sb_publishable_aETz_9ECH5RcBMjmRhUnfw_g71zRdwT';
+const H = {'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
+
+async function sbGet(t,q=''){
+  const r=await fetch(`${SB_URL}/rest/v1/${t}?${q}`,{headers:H});
+  if(!r.ok)throw new Error('SB '+r.status+': '+await r.text());
+  return r.json();
+}
+async function sbDelete(t,q){
+  const r=await fetch(`${SB_URL}/rest/v1/${t}?${q}`,{method:'DELETE',headers:H});
+  if(!r.ok)throw new Error('SB '+r.status);
+}
+
+let shops=[];
+let currentShop=null;
+let msgHistory=[];
+let sending=false;
+let pollTimer=null;
+let lastConvUpdate=null;
+let lastShownMsg='';  // evita mostrar el mismo mensaje del bot dos veces
+
+async function init(){
+  log('info','Conectando a Supabase...');
+  try{
+    shops=await sbGet('shops','select=id,nombre,slug,webhook_url,twilio_number,activo&order=nombre.asc');
+    const sel=document.getElementById('shopSelect');
+    sel.innerHTML='<option value="">— Elige una barbería —</option>';
+    shops.forEach(s=>{
+      const opt=document.createElement('option');
+      opt.value=s.id;
+      opt.textContent=s.nombre+(s.activo===false?' (inactiva)':'');
+      sel.appendChild(opt);
+    });
+    log('success',`${shops.length} barberías cargadas`);
+    setStatus('','Elige una barbería');
+  }catch(e){
+    log('error','Error Supabase: '+e.message);
+    setStatus('error','Sin conexión');
+  }
+}
+
+function onShopChange(){
+  const id=document.getElementById('shopSelect').value;
+  currentShop=shops.find(s=>s.id===id)||null;
+  if(!currentShop){
+    setStatus('','Elige una barbería');
+    document.getElementById('waName').textContent='—';
+    document.getElementById('waStatus').textContent='Selecciona una barbería';
+    document.getElementById('waPhone').textContent='';
+    return;
+  }
+  document.getElementById('waName').textContent=currentShop.nombre;
+  document.getElementById('waStatus').textContent='BarberOS Bot · '+currentShop.slug;
+  document.getElementById('waPhone').textContent=currentShop.twilio_number||'sin número';
+  // Siempre usar el webhook del simulador
+  const simWebhook='https://donovan01.app.n8n.cloud/webhook/barberos-sim';
+  document.getElementById('webhookUrl').value=simWebhook;
+  log('info','Webhook simulador: '+simWebhook);
+  setStatus('ok','Listo para simular');
+  log('success','Shop: '+currentShop.nombre+' ('+currentShop.slug+')');
+  clearMessages();
+  addSystemMsg('Conversación con '+currentShop.nombre);
+  loadConversation();
+  startPoll();
+}
+
+async function sendMessage(){
+  if(sending)return;
+  const input=document.getElementById('chatInput');
+  const text=input.value.trim();
+  if(!text)return;
+
+  const webhook=document.getElementById('webhookUrl').value.trim();
+  if(!webhook){toast('⚠ Configura el webhook de n8n','warn');return;}
+  if(!currentShop){toast('⚠ Selecciona una barbería','warn');return;}
+
+  const phone=document.getElementById('simPhone').value.trim()||'+18099999999';
+
+  input.value='';
+  autoResize(input);
+  addMsg('out',text);
+  setSending(true);
+  showTyping(true);
+  log('info','→ POST webhook: '+text.substring(0,40)+(text.length>40?'...':''));
+
+  try{
+    const body=new URLSearchParams({
+      From: 'whatsapp:'+phone,
+      To: 'whatsapp:'+(currentShop.twilio_number||'+14155238886'),
+      Body: text,
+      ProfileName: 'Test User',
+      WaId: phone.replace(/\D/g,''),
+      SmsMessageSid: 'SIM'+Date.now(),
+      NumMedia: '0',
+      shop_slug: currentShop.slug,
+      shop_id: currentShop.id,
+      // ▼ PROXY: incluye el destino real para que el proxy lo reenvíe
+      webhook_url: webhook,
+    });
+
+    // ▼ PROXY: llamamos a /api/webhook-proxy en Vercel (mismo dominio = sin CORS)
+    const res=await fetch('/api/webhook-proxy', {
+      method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body: body.toString(),
+    });
+
+    if(!res.ok){
+      const errText=await res.text().catch(()=>'');
+      throw new Error(`HTTP ${res.status}: ${errText.substring(0,100)}`);
+    }
+
+    const proxyData=await res.json().catch(()=>null);
+    log('success','✓ Proxy respondió '+res.status);
+
+    // Intentar extraer respuesta del bot desde la respuesta del proxy
+    let webhookReply=null;
+    if(proxyData&&proxyData.data){
+      const d=proxyData.data;
+      if(typeof d==='string'&&d.trim()&&!d.includes('<!DOCTYPE')) webhookReply=d.trim();
+      else if(typeof d==='object') webhookReply=d.message||d.reply||d.body||d.Body||d.text||null;
+    }
+
+    if(webhookReply&&webhookReply.trim()){
+      showTyping(false);
+      addMsg('in',webhookReply.trim());
+      log('success','Bot: '+webhookReply.substring(0,60));
+    }else{
+      log('info','Esperando respuesta del bot en Supabase...');
+      setTimeout(()=>pollBotReply(),1200);
+    }
+
+  }catch(e){
+    showTyping(false);
+    log('error','Error: '+e.message);
+    addSystemMsg('Error al enviar: '+e.message);
+    toast('Error: '+e.message,'error');
+  }finally{
+    setSending(false);
+  }
+}
+
+async function pollBotReply(){
+  if(!currentShop)return;
+  const phone=document.getElementById('simPhone').value.trim()||'+18099999999';
+  const chatId=phone; // sin 'whatsapp:' — así está guardado en Supabase
+  try{
+    const convs=await sbGet('conversaciones',`shop_id=eq.${currentShop.id}&chat_id=eq.${encodeURIComponent(chatId)}&select=*`);
+    if(convs&&convs.length){
+      const conv=convs[0];
+      const convTime=conv.ultima_actualizacion;
+      if(convTime!==lastConvUpdate){
+        lastConvUpdate=convTime;
+        showTyping(false);
+        // Solo mostrar si es un mensaje nuevo que no hemos mostrado antes
+        if(conv.ultimo_mensaje && conv.ultimo_mensaje!==lastShownMsg){
+          lastShownMsg=conv.ultimo_mensaje;
+          addMsg('in',conv.ultimo_mensaje);
+        }
+        updateState(conv);
+        log('info','Supabase actualizado: '+conv.estado_conversacion);
+      }
+    }
+  }catch(e){
+    log('warn','Poll error: '+e.message);
+  }
+}
+
+async function loadConversation(){
+  if(!currentShop)return;
+  const phone=document.getElementById('simPhone').value.trim()||'+18099999999';
+  const chatId=phone; // sin 'whatsapp:'
+  try{
+    const convs=await sbGet('conversaciones',`shop_id=eq.${currentShop.id}&chat_id=eq.${encodeURIComponent(chatId)}&select=*`);
+    if(convs&&convs.length){
+      const conv=convs[0];
+      lastConvUpdate=conv.ultima_actualizacion;
+      updateState(conv);
+      log('info','Conversación encontrada en Supabase');
+    }else{
+      log('info','No hay conversación previa');
+      updateState(null);
+    }
+  }catch(e){
+    log('warn','Error cargando conversación: '+e.message);
+  }
+}
+
+function startPoll(){
+  if(pollTimer)clearInterval(pollTimer);
+  pollTimer=setInterval(async()=>{
+    if(!currentShop||sending)return;
+    await loadConversation();
+  },4000);
+}
+
+async function resetConversation(){
+  if(!currentShop){toast('Selecciona una barbería primero','warn');return;}
+  const phone=document.getElementById('simPhone').value.trim()||'+18099999999';
+  const chatId=phone; // sin 'whatsapp:'
+  if(!confirm('¿Borrar la conversación de '+phone+' en Supabase?'))return;
+  try{
+    await sbDelete('conversaciones',`shop_id=eq.${currentShop.id}&chat_id=eq.${encodeURIComponent(chatId)}`);
+    clearMessages();
+    addSystemMsg('Conversación reseteada ✓');
+    updateState(null);
+    lastConvUpdate=null;
+    lastShownMsg='';
+    log('success','Conversación borrada de Supabase');
+    toast('Conversación reseteada ✓');
+  }catch(e){
+    log('error','Error borrando: '+e.message);
+    toast('Error: '+e.message,'error');
+  }
+}
+
+function addMsg(role,text){
+  const msgs=document.getElementById('messages');
+  document.getElementById('emptyState').style.display='none';
+  const typing=document.getElementById('typingIndicator');
+  const row=document.createElement('div');
+  row.className='msg-row '+role;
+  const bubble=document.createElement('div');
+  bubble.className='bubble';
+  bubble.textContent=text;
+  const time=document.createElement('span');
+  time.className='msg-time';
+  const now=new Date();
+  time.textContent=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  if(role==='out') time.innerHTML+=` <span class="msg-check">✓✓</span>`;
+  bubble.appendChild(time);
+  row.appendChild(bubble);
+  msgs.insertBefore(row,typing);
+  msgs.scrollTop=msgs.scrollHeight;
+  msgHistory.push({role,text,time:now.toISOString()});
+}
+
+function addSystemMsg(text){
+  const msgs=document.getElementById('messages');
+  document.getElementById('emptyState').style.display='none';
+  const typing=document.getElementById('typingIndicator');
+  const row=document.createElement('div');
+  row.className='msg-row system';
+  const bubble=document.createElement('div');
+  bubble.className='bubble';
+  bubble.textContent=text;
+  row.appendChild(bubble);
+  msgs.insertBefore(row,typing);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+function clearMessages(){
+  const msgs=document.getElementById('messages');
+  const typing=document.getElementById('typingIndicator');
+  const empty=document.getElementById('emptyState');
+  Array.from(msgs.children).forEach(c=>{
+    if(c!==typing&&c!==empty) msgs.removeChild(c);
+  });
+  empty.style.display='flex';
+  msgHistory=[];
+}
+
+function showTyping(show){
+  document.getElementById('typingIndicator').classList.toggle('show',show);
+  document.getElementById('messages').scrollTop=document.getElementById('messages').scrollHeight;
+}
+
+function setSending(v){
+  sending=v;
+  document.getElementById('sendBtn').disabled=v;
+  document.getElementById('chatInput').disabled=v;
+}
+
+function setStatus(type,txt){
+  const dot=document.getElementById('statusDot');
+  dot.className='status-dot'+(type?' '+type:'');
+  document.getElementById('statusTxt').textContent=txt;
+}
+
+function updateState(conv){
+  const container=document.getElementById('stateRows');
+  if(!conv){
+    container.innerHTML='<div class="state-row"><span class="state-key">Sin conversación</span><span class="state-val"></span></div>';
+    return;
+  }
+  const fields=[
+    ['estado',conv.estado_conversacion],
+    ['nombre',conv.nombre_parcial],
+    ['fecha',conv.fecha_parcial],
+    ['hora',conv.hora_parcial],
+    ['servicio',conv.servicio_parcial],
+    ['barbero',conv.barbero_parcial],
+    ['esp.confirmación',conv.esperando_confirmacion?'sí':'no'],
+    ['esp.nombre',conv.esperando_nombre?'sí':'no'],
+    ['esp.barbero',conv.esperando_barbero?'sí':'no'],
+  ];
+  container.innerHTML=fields.map(([k,v])=>
+    v!=null&&v!==undefined&&v!==''?
+    `<div class="state-row"><span class="state-key">${k}</span><span class="state-val" title="${v}">${v}</span></div>`:''
+  ).join('');
+}
+
+function sendQuick(msg){
+  document.getElementById('chatInput').value=msg;
+  sendMessage();
+}
+
+function handleKey(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}
+}
+
+function autoResize(el){
+  el.style.height='auto';
+  el.style.height=Math.min(el.scrollHeight,120)+'px';
+}
+
+function openAdmin(){
+  if(currentShop) window.open('admin.html?shop='+currentShop.slug,'_blank');
+  else toast('Selecciona una barbería primero','warn');
+}
+
+function log(type,msg){
+  const body=document.getElementById('logsBody');
+  const ts=new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const div=document.createElement('div');
+  div.className='log-entry '+type;
+  div.innerHTML=`<span class="log-ts">${ts}</span>${msg}`;
+  body.appendChild(div);
+  body.scrollTop=body.scrollHeight;
+  while(body.children.length>100) body.removeChild(body.firstChild);
+}
+
+function clearLogs(){document.getElementById('logsBody').innerHTML='';}
+
+function toast(msg,type='success'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.borderColor=type==='error'?'rgba(231,76,60,0.4)':type==='warn'?'rgba(201,168,76,0.4)':'rgba(37,211,102,0.3)';
+  t.style.color=type==='error'?'#E74C3C':type==='warn'?'#C9A84C':'var(--green)';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+init();
+</script>
+</body>
+</html>
