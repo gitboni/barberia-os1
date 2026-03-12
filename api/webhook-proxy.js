@@ -38,16 +38,14 @@ export default async function handler(req, res) {
       body,
     });
 
-    const contentType = response.headers.get('content-type') || '';
-    let data;
-
-    if (contentType.includes('json')) {
-      data = await response.json();
-    } else {
-      data = await response.text();
+    // Leer texto crudo primero — evita crash si el body está vacío
+    const rawText = await response.text();
+    let data = rawText;
+    if (rawText && rawText.trim().startsWith('{')) {
+      try { data = JSON.parse(rawText); } catch(_) { data = rawText; }
     }
 
-    return res.status(response.status).json({
+    return res.status(200).json({
       ok: response.ok,
       status: response.status,
       data,
