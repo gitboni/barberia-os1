@@ -769,7 +769,26 @@ async function loadCitas(){
   const hoy=rdNow.getFullYear()+'-'+String(rdNow.getMonth()+1).padStart(2,'0')+'-'+String(rdNow.getDate()).padStart(2,'0');
   const rows=await retry(()=>sbGet('citas','shop_id=eq.'+S.shopId+'&fecha=eq.'+hoy+'&estado=neq.Cancelada&order=hora.asc'),3);
   const prev=S.citas.length;
-  S.citas=rows.map(c=>({id:c.id,name:(c.nombre||'CLIENTE').toUpperCase(),time:(c.hora||'00:00').substring(0,5),servicio:(c.servicio||'CORTE').toUpperCase(),barbero:(c.barbero||'CUALQUIERA').toUpperCase(),estado:c.estado||'Confirmada'}));
+  S.citas=rows.map(c=>{
+    // c.hora comes from Supabase as timetz e.g. "13:00:00+00" (UTC) or "11:00:00" (no offset = local stored)
+    // We need to display in America/Santo_Domingo time
+    let timeStr='00:00';
+    if(c.hora){
+      const raw=c.hora;
+      if(raw.includes('+') || raw.includes('Z')){
+        // Has UTC offset — convert to Santo Domingo local time
+        try{
+          const today=new Date().toISOString().substring(0,10);
+          const dt=new Date(today+'T'+raw.replace(/\+.*/,'').replace('Z','')+'Z');
+          timeStr=dt.toLocaleTimeString('en-US',{timeZone:'America/Santo_Domingo',hour:'2-digit',minute:'2-digit',hour12:false});
+        }catch(_){timeStr=raw.substring(0,5);}
+      } else {
+        // No offset — stored as local time, use directly
+        timeStr=raw.substring(0,5);
+      }
+    }
+    return{id:c.id,name:(c.nombre||'CLIENTE').toUpperCase(),time:timeStr,servicio:(c.servicio||'CORTE').toUpperCase(),barbero:(c.barbero||'CUALQUIERA').toUpperCase(),estado:c.estado||'Confirmada'};
+  });
   if(rows.length>prev&&prev>0)showToast('✓ '+(rows.length-prev)+' nueva(s) cita(s)','info');
   rebuildQueues();
   S.lastUp=new Date();
