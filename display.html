@@ -769,6 +769,7 @@ async function loadCitas(){
   const hoy=rdNow.getFullYear()+'-'+String(rdNow.getMonth()+1).padStart(2,'0')+'-'+String(rdNow.getDate()).padStart(2,'0');
   const rows=await retry(()=>sbGet('citas','shop_id=eq.'+S.shopId+'&fecha=eq.'+hoy+'&estado=neq.Cancelada&order=hora.asc'),3);
   const prev=S.citas.length;
+  console.log('RAW CITAS HORA:', rows.slice(0,3).map(c=>({hora:c.hora,nombre:c.nombre})));
   S.citas=rows.map(c=>{
     // c.hora comes from Supabase as timetz e.g. "13:00:00+00" (UTC) or "11:00:00" (no offset = local stored)
     // We need to display in America/Santo_Domingo time
