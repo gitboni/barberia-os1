@@ -784,7 +784,14 @@ function renderConfigPage(){
 }
 async function saveConfigPage(){
   const p={nombre:document.getElementById('cfg-nombre-pg').value.trim(),whatsapp_dueño:document.getElementById('cfg-whatsapp-pg').value.trim(),hora_inicio:parseInt(document.getElementById('cfg-inicio-pg').value)||9,hora_fin:parseInt(document.getElementById('cfg-fin-pg').value)||18,duracion_turno:parseInt(document.getElementById('cfg-dur-pg').value)||45,timezone:document.getElementById('cfg-tz-pg').value};
-  try{await sbPatch('shops','id=eq.'+S.shopId,p);Object.assign(S.shopData,p);document.getElementById('shop-name-sidebar').textContent=p.nombre;toast('Configuración guardada ✓');}catch(e){toast('Error: '+e.message,'error');}
+  try{
+    await sbPatch('shops','id=eq.'+S.shopId,p);
+    Object.assign(S.shopData,p);
+    document.getElementById('shop-name-sidebar').textContent=p.nombre;
+    // Refrescar la página de configuración para mostrar datos técnicos actualizados
+    renderPage();
+    toast('Configuración guardada ✓');
+  }catch(e){toast('Error: '+e.message,'error');}
 }
 
 // ── MODALS ──
