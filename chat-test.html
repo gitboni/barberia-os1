@@ -588,12 +588,6 @@ function onShopChange(){
   document.getElementById('waStatus').textContent='BarberOS Bot · '+currentShop.slug;
   document.getElementById('waPhone').textContent=currentShop.twilio_number||'sin número';
 
-  // Autocompletar webhook si la shop lo tiene
-  if(currentShop.webhook_url){
-    document.getElementById('webhookUrl').value=currentShop.webhook_url;
-    log('info','Webhook autocompletado desde Supabase');
-  }
-
   setStatus('ok','Listo para simular');
   log('success','Shop: '+currentShop.nombre+' ('+currentShop.slug+')');
   clearMessages();
