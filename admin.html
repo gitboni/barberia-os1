@@ -383,6 +383,7 @@ async function loadAll(){
       }catch(e){S.activity=[];}
     }
     renderPage();
+    loadServicios();
   }catch(e){console.warn(e);toast('Error: '+e.message,'error');}
 }
 
@@ -737,60 +738,169 @@ function renderBot(){
 // ── CONFIG PAGE ──
 function renderConfigPage(){
   const s=S.shopData||{};
-  return `<div class="two-col">
-    <div class="card">
-      <div class="card-header"><div class="card-title">Datos de la Barbería</div></div>
-      <div style="padding:18px;display:flex;flex-direction:column;gap:12px;">
-        <div class="fg"><label>Nombre del local</label><input type="text" id="cfg-nombre-pg" value="${s.nombre||''}"></div>
-        <div class="fg"><label>WhatsApp del dueño</label><input type="text" id="cfg-whatsapp-pg" value="${s.whatsapp_dueño||''}"></div>
-        <div class="fg-row">
-          <div class="fg"><label>Hora apertura</label><input type="number" id="cfg-inicio-pg" value="${s.hora_inicio||9}" min="0" max="23"></div>
-          <div class="fg"><label>Hora cierre</label><input type="number" id="cfg-fin-pg" value="${s.hora_fin||18}" min="0" max="23"></div>
+  const svcs=S.servicios||[];
+  const svcRows=svcs.map((sv,i)=>`
+    <tr id="svc-row-${sv.id}" style="border-bottom:1px solid var(--border);">
+      <td style="padding:8px 6px;">
+        <input type="text" value="${sv.nombre}" id="svc-nombre-${sv.id}"
+          style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:5px 8px;width:100%;font-family:'DM Mono',monospace;font-size:0.62rem;">
+      </td>
+      <td style="padding:8px 6px;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <input type="number" value="${sv.duracion_min}" id="svc-dur-${sv.id}" min="5" max="300"
+            style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:5px 8px;width:70px;font-family:'DM Mono',monospace;font-size:0.62rem;">
+          <span style="font-size:0.55rem;color:var(--muted);">min</span>
         </div>
-        <div class="fg"><label>Duración turno (min)</label><input type="number" id="cfg-dur-pg" value="${s.duracion_turno||45}" min="15" max="120"></div>
-        <div class="fg"><label>Zona horaria</label>
-          <select id="cfg-tz-pg">
-            <option value="America/Santo_Domingo" ${s.timezone==='America/Santo_Domingo'?'selected':''}>America/Santo_Domingo (RD)</option>
-            <option value="America/New_York" ${s.timezone==='America/New_York'?'selected':''}>America/New_York</option>
-            <option value="America/Bogota" ${s.timezone==='America/Bogota'?'selected':''}>America/Bogota</option>
-            <option value="America/Mexico_City" ${s.timezone==='America/Mexico_City'?'selected':''}>America/Mexico_City</option>
-          </select>
+      </td>
+      <td style="padding:8px 6px;text-align:center;">
+        <input type="checkbox" id="svc-activo-${sv.id}" ${sv.activo?'checked':''} style="width:16px;height:16px;accent-color:var(--gold);cursor:pointer;">
+      </td>
+      <td style="padding:8px 6px;text-align:right;">
+        <button onclick="saveServicio('${sv.id}')" style="background:var(--gold);color:#000;border:none;padding:4px 10px;font-size:0.5rem;font-family:'DM Mono',monospace;cursor:pointer;margin-right:4px;">GUARDAR</button>
+        <button onclick="deleteServicio('${sv.id}')" style="background:none;border:1px solid var(--danger,#e53e3e);color:var(--danger,#e53e3e);padding:4px 8px;font-size:0.5rem;font-family:'DM Mono',monospace;cursor:pointer;">✕</button>
+      </td>
+    </tr>`).join('');
+
+  return `<div style="display:flex;flex-direction:column;gap:20px;">
+    <div class="two-col">
+
+      <!-- DATOS BARBERÍA -->
+      <div class="card">
+        <div class="card-header"><div class="card-title">Datos de la Barbería</div></div>
+        <div style="padding:18px;display:flex;flex-direction:column;gap:12px;">
+          <div class="fg"><label>Nombre del local</label><input type="text" id="cfg-nombre-pg" value="${s.nombre||''}"></div>
+          <div class="fg"><label>WhatsApp del dueño</label><input type="text" id="cfg-whatsapp-pg" value="${s.whatsapp_dueño||''}"></div>
+          <div class="fg-row">
+            <div class="fg"><label>Hora apertura</label><input type="number" id="cfg-inicio-pg" value="${s.hora_inicio||9}" min="0" max="23"></div>
+            <div class="fg"><label>Hora cierre</label><input type="number" id="cfg-fin-pg" value="${s.hora_fin||18}" min="0" max="23"></div>
+          </div>
+          <div class="fg"><label>Zona horaria</label>
+            <select id="cfg-tz-pg">
+              <option value="America/Santo_Domingo" ${s.timezone==='America/Santo_Domingo'?'selected':''}>America/Santo_Domingo (RD)</option>
+              <option value="America/New_York" ${s.timezone==='America/New_York'?'selected':''}>America/New_York</option>
+              <option value="America/Bogota" ${s.timezone==='America/Bogota'?'selected':''}>America/Bogota</option>
+              <option value="America/Mexico_City" ${s.timezone==='America/Mexico_City'?'selected':''}>America/Mexico_City</option>
+            </select>
+          </div>
+          <div class="fg"><label>Días de atención</label>
+            <div class="horario-grid" style="margin-top:8px;">
+              ${['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map((d,i)=>`<div class="dia-toggle"><input type="checkbox" id="pgdia-${i}" ${i<6?'checked':''}><label for="pgdia-${i}"><div class="dia-check">✓</div>${d}</label></div>`).join('')}
+            </div>
+          </div>
+          <button class="btn-sm btn-gold" style="align-self:flex-start;padding:10px 24px;" onclick="saveConfigPage()">💾 Guardar cambios</button>
         </div>
-        <div class="fg"><label>Días de atención</label>
-          <div class="horario-grid" style="margin-top:8px;">
-            ${['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map((d,i)=>`<div class="dia-toggle"><input type="checkbox" id="pgdia-${i}" ${i<6?'checked':''}><label for="pgdia-${i}"><div class="dia-check">✓</div>${d}</label></div>`).join('')}
+      </div>
+
+      <!-- PANEL DERECHO -->
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Datos técnicos</div></div>
+          <div style="padding:16px;display:flex;flex-direction:column;gap:6px;">
+            ${[['Shop ID',s.id?s.id.substring(0,8)+'...':'—'],['Slug',s.slug||'—'],['Twilio #',s.twilio_number||'—'],['Horario',(s.hora_inicio||9)+':00 — '+(s.hora_fin||18)+':00'],['Servicios',svcs.filter(x=>x.activo).length+' activos']].map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-family:'DM Mono',monospace;font-size:0.54rem;color:var(--muted);">${k}</span><span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text);">${v}</span></div>`).join('')}
           </div>
         </div>
-        <button class="btn-sm btn-gold" style="align-self:flex-start;padding:10px 24px;" onclick="saveConfigPage()">💾 Guardar cambios</button>
-      </div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:16px;">
-      <div class="card">
-        <div class="card-header"><div class="card-title">Datos técnicos</div></div>
-        <div style="padding:16px;display:flex;flex-direction:column;gap:6px;">
-          ${[['Shop ID',s.id?s.id.substring(0,8)+'...':'—'],['Slug',s.slug||'—'],['Twilio #',s.twilio_number||'—'],['Horario',(s.hora_inicio||9)+':00 — '+(s.hora_fin||18)+':00'],['Turno',(s.duracion_turno||45)+' min']].map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-family:'DM Mono',monospace;font-size:0.54rem;color:var(--muted);">${k}</span><span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text);">${v}</span></div>`).join('')}
+        <div class="card">
+          <div class="card-header"><div class="card-title">Acceso rápido</div></div>
+          <div style="padding:16px;display:flex;flex-direction:column;gap:8px;">
+            <button class="btn-sm btn-dark" style="width:100%;padding:10px;" onclick="openModal('barbero')">+ Agregar barbero</button>
+            <button class="btn-sm btn-dark" style="width:100%;padding:10px;" onclick="openModal('cliente')">+ Agregar cliente</button>
+            <button class="btn-sm btn-dark" style="width:100%;padding:10px;" onclick="location.href='display.html?shop='+SHOP_SLUG">Ver sala de espera</button>
+          </div>
         </div>
       </div>
-      <div class="card">
-        <div class="card-header"><div class="card-title">Acceso rápido</div></div>
-        <div style="padding:16px;display:flex;flex-direction:column;gap:8px;">
-          <button class="btn-sm btn-dark" style="width:100%;padding:10px;" onclick="openModal('barbero')">+ Agregar barbero</button>
-          <button class="btn-sm btn-dark" style="width:100%;padding:10px;" onclick="openModal('cliente')">+ Agregar cliente</button>
-          <button class="btn-sm btn-dark" style="width:100%;padding:10px;" onclick="location.href='display.html?shop='+SHOP_SLUG">Ver sala de espera</button>
+    </div>
+
+    <!-- SERVICIOS -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">✂️ Servicios & Tiempos</div>
+        <div style="font-size:0.52rem;color:var(--muted);">Cada servicio tiene su propio tiempo — el bot asigna slots según la duración real</div>
+      </div>
+      <div style="padding:16px;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="border-bottom:2px solid var(--border);">
+              <th style="text-align:left;padding:6px;font-size:0.52rem;color:var(--muted);font-weight:400;letter-spacing:0.1em;">SERVICIO</th>
+              <th style="text-align:left;padding:6px;font-size:0.52rem;color:var(--muted);font-weight:400;letter-spacing:0.1em;">DURACIÓN</th>
+              <th style="text-align:center;padding:6px;font-size:0.52rem;color:var(--muted);font-weight:400;letter-spacing:0.1em;">ACTIVO</th>
+              <th style="text-align:right;padding:6px;font-size:0.52rem;color:var(--muted);font-weight:400;letter-spacing:0.1em;">ACCIÓN</th>
+            </tr>
+          </thead>
+          <tbody id="svc-tbody">${svcRows}</tbody>
+        </table>
+
+        <!-- AGREGAR NUEVO -->
+        <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+          <div class="fg" style="flex:2;min-width:140px;margin:0;">
+            <label style="font-size:0.52rem;color:var(--muted);letter-spacing:0.1em;">NUEVO SERVICIO</label>
+            <input type="text" id="svc-new-nombre" placeholder="Ej: Corte + Barba"
+              style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;width:100%;font-family:'DM Mono',monospace;font-size:0.62rem;margin-top:4px;">
+          </div>
+          <div class="fg" style="flex:1;min-width:90px;margin:0;">
+            <label style="font-size:0.52rem;color:var(--muted);letter-spacing:0.1em;">DURACIÓN (MIN)</label>
+            <input type="number" id="svc-new-dur" value="45" min="5" max="300"
+              style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;width:100%;font-family:'DM Mono',monospace;font-size:0.62rem;margin-top:4px;">
+          </div>
+          <button onclick="addServicio()" style="background:var(--gold);color:#000;border:none;padding:9px 20px;font-family:'DM Mono',monospace;font-size:0.55rem;letter-spacing:0.1em;cursor:pointer;white-space:nowrap;">+ AGREGAR</button>
         </div>
       </div>
     </div>
   </div>`;
 }
 async function saveConfigPage(){
-  const p={nombre:document.getElementById('cfg-nombre-pg').value.trim(),whatsapp_dueño:document.getElementById('cfg-whatsapp-pg').value.trim(),hora_inicio:parseInt(document.getElementById('cfg-inicio-pg').value)||9,hora_fin:parseInt(document.getElementById('cfg-fin-pg').value)||18,duracion_turno:parseInt(document.getElementById('cfg-dur-pg').value)||45,timezone:document.getElementById('cfg-tz-pg').value};
+  const p={nombre:document.getElementById('cfg-nombre-pg').value.trim(),whatsapp_dueño:document.getElementById('cfg-whatsapp-pg').value.trim(),hora_inicio:parseInt(document.getElementById('cfg-inicio-pg').value)||9,hora_fin:parseInt(document.getElementById('cfg-fin-pg').value)||18,timezone:document.getElementById('cfg-tz-pg').value};
   try{
     await sbPatch('shops','id=eq.'+S.shopId,p);
     Object.assign(S.shopData,p);
     document.getElementById('shop-name-sidebar').textContent=p.nombre;
-    // Refrescar la página de configuración para mostrar datos técnicos actualizados
     renderPage();
     toast('Configuración guardada ✓');
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+
+async function loadServicios(){
+  try{
+    const r=await sbGet('servicios','shop_id=eq.'+S.shopId+'&order=orden.asc&select=id,nombre,duracion_min,activo,orden');
+    S.servicios=r||[];
+  }catch(e){S.servicios=[];}
+}
+
+async function saveServicio(id){
+  const nombre=document.getElementById('svc-nombre-'+id).value.trim();
+  const duracion_min=parseInt(document.getElementById('svc-dur-'+id).value)||45;
+  const activo=document.getElementById('svc-activo-'+id).checked;
+  if(!nombre){toast('El nombre no puede estar vacío','error');return;}
+  try{
+    await sbPatch('servicios','id=eq.'+id,{nombre,duracion_min,activo});
+    const idx=S.servicios.findIndex(s=>s.id===id);
+    if(idx>=0)Object.assign(S.servicios[idx],{nombre,duracion_min,activo});
+    toast('Servicio guardado ✓');
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+
+async function deleteServicio(id){
+  if(!confirm('¿Eliminar este servicio?'))return;
+  try{
+    const r=await fetch(SUPABASE_URL+'/rest/v1/servicios?id=eq.'+id,{method:'DELETE',headers:H});
+    if(!r.ok)throw new Error(await r.text());
+    S.servicios=S.servicios.filter(s=>s.id!==id);
+    renderPage();
+    toast('Servicio eliminado');
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+
+async function addServicio(){
+  const nombre=document.getElementById('svc-new-nombre').value.trim();
+  const duracion_min=parseInt(document.getElementById('svc-new-dur').value)||45;
+  if(!nombre){toast('Ingresá el nombre del servicio','error');return;}
+  const orden=(S.servicios.length>0?Math.max(...S.servicios.map(s=>s.orden||0)):0)+1;
+  try{
+    const r=await fetch(SUPABASE_URL+'/rest/v1/servicios',{method:'POST',headers:{...H,'Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify({shop_id:S.shopId,nombre,duracion_min,activo:true,orden})});
+    if(!r.ok)throw new Error(await r.text());
+    const data=await r.json();
+    S.servicios.push(data[0]);
+    renderPage();
+    toast('Servicio agregado ✓');
   }catch(e){toast('Error: '+e.message,'error');}
 }
 
