@@ -183,14 +183,15 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .bc-3{--bc:#00FF78;--bc-glow:rgba(0,255,120,0.5);}
 .bc-4{--bc:#FF006E;--bc-glow:rgba(255,0,110,0.5);}
 
-.mode-bar{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:50;display:flex;align-items:center;gap:3px;background:rgba(2,4,8,0.85);border:1px solid rgba(0,245,255,0.12);padding:4px 6px;backdrop-filter:blur(12px);opacity:0.25;transition:opacity 0.3s;}
+.mode-bar{position:fixed;bottom:16px;left:68%;transform:translateX(-50%);z-index:50;display:flex;align-items:center;gap:3px;background:rgba(2,4,8,0.85);border:1px solid rgba(0,245,255,0.12);padding:4px 6px;backdrop-filter:blur(12px);opacity:0.22;transition:opacity 0.3s;}
 .mode-bar:hover{opacity:1;}
-.mode-btn{display:flex;align-items:center;gap:5px;padding:5px 12px;border:1px solid transparent;font-family:'Share Tech Mono',monospace;font-size:0.48rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(0,245,255,0.35);background:transparent;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
-.mode-btn:hover{color:rgba(0,245,255,0.7);border-color:rgba(0,245,255,0.15);}
+.mode-btn{display:flex;align-items:center;gap:5px;padding:6px 14px;border:1px solid transparent;font-family:'Share Tech Mono',monospace;font-size:0.48rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(0,245,255,0.4);background:transparent;cursor:pointer;transition:all 0.25s;white-space:nowrap;}
+.mode-btn:hover{color:var(--cyan);border-color:rgba(0,245,255,0.5);background:rgba(0,245,255,0.1);box-shadow:0 0 14px rgba(0,245,255,0.15);text-shadow:0 0 8px var(--glow-c);}
 .mode-btn.active{color:var(--cyan);border-color:rgba(0,245,255,0.4);background:rgba(0,245,255,0.07);text-shadow:0 0 10px var(--glow-c);}
 .mode-btn.mode-barber-active{color:var(--purple);border-color:rgba(176,110,255,0.4);background:rgba(176,110,255,0.07);}
+.mode-btn.mode-barber-active:hover{color:var(--purple);border-color:rgba(176,110,255,0.7);background:rgba(176,110,255,0.15);box-shadow:0 0 14px rgba(176,110,255,0.2);}
 .mode-sep{width:1px;height:14px;background:rgba(0,245,255,0.1);}
-.barber-picker{display:none;flex-direction:column;gap:2px;position:fixed;bottom:60px;left:50%;transform:translateX(-50%);z-index:51;background:rgba(2,4,8,0.95);border:1px solid rgba(176,110,255,0.2);padding:8px;backdrop-filter:blur(16px);min-width:200px;}
+.barber-picker{display:none;flex-direction:column;gap:2px;position:fixed;bottom:50px;left:50%;transform:translateX(-50%);z-index:51;background:rgba(2,4,8,0.95);border:1px solid rgba(176,110,255,0.2);padding:8px;backdrop-filter:blur(16px);min-width:200px;}
 .barber-picker.open{display:flex;}
 .bp-title{font-family:'Share Tech Mono',monospace;font-size:0.4rem;letter-spacing:0.28em;color:rgba(176,110,255,0.4);text-transform:uppercase;padding:0 4px 6px;border-bottom:1px solid rgba(176,110,255,0.1);margin-bottom:4px;}
 .bp-item{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 10px;border:1px solid rgba(176,110,255,0.08);cursor:pointer;transition:all 0.18s;}
@@ -426,8 +427,9 @@ html.fs-xl{font-size:150%;}
 .util-btn:hover{background:rgba(0,245,255,0.12);color:var(--cyan);}
 .util-btn.active{border-color:rgba(255,0,110,0.4);color:rgba(255,0,110,0.7);background:rgba(255,0,110,0.06);}
 .font-btns{display:flex;gap:3px;}
-.font-btn{background:rgba(0,245,255,0.04);border:1px solid rgba(0,245,255,0.1);color:rgba(0,245,255,0.5);padding:3px 7px;font-family:'Share Tech Mono',monospace;font-size:0.44rem;cursor:pointer;transition:all 0.2s;}
+.font-btn{background:rgba(0,245,255,0.04);border:1px solid rgba(0,245,255,0.1);color:rgba(0,245,255,0.5);padding:5px 14px;font-family:'Share Tech Mono',monospace;font-size:0.46rem;cursor:pointer;transition:all 0.2s;text-transform:uppercase;letter-spacing:0.1em;}
 .font-btn.active{border-color:var(--cyan);color:var(--cyan);background:rgba(0,245,255,0.1);}
+.font-btn:hover{border-color:rgba(0,245,255,0.4);color:rgba(0,245,255,0.8);}
 
 /* ── DAY PROGRESS BAR ── */
 .day-progress{display:flex;align-items:center;gap:8px;padding:5px 12px;border:1px solid rgba(0,245,255,0.08);background:rgba(0,245,255,0.012);flex-shrink:0;}
@@ -636,6 +638,8 @@ footer{border-top:1px solid rgba(0,245,255,0.08);padding:7px 32px;display:flex;a
   <div class="mode-sep"></div>
   <button class="mode-btn" id="mbtn-my" onclick="openBarberPicker()" title="Vista personal por barbero">✂ MI TURNO</button>
 </div>
+</div>
+
 
 <div class="barber-picker" id="barber-picker">
   <div class="bp-title">✂ Selecciona tu barbero</div>
@@ -645,16 +649,6 @@ footer{border-top:1px solid rgba(0,245,255,0.08);padding:7px 32px;display:flex;a
 <div class="toast" id="toast"></div>
 <button class="cfg-btn" id="cfg-open">⚙</button>
 
-<div class="util-bar" id="util-bar">
-  <button class="util-btn" id="zen-btn" onclick="toggleZen()">☽ ZEN</button>
-  <div class="font-btns">
-    <button class="font-btn" onclick="setFontSize('sm')">A-</button>
-    <button class="font-btn active" id="fs-sm" onclick="setFontSize('sm')">S</button>
-    <button class="font-btn" id="fs-md" onclick="setFontSize('md')">M</button>
-    <button class="font-btn" id="fs-lg" onclick="setFontSize('lg')">L</button>
-    <button class="font-btn" id="fs-xl" onclick="setFontSize('xl')">XL</button>
-  </div>
-</div>
 
 <button class="walkin-fab" id="walkin-fab" onclick="openWalkIn()">
   <div class="walkin-fab-dot"></div>+ WALK-IN
@@ -705,6 +699,19 @@ footer{border-top:1px solid rgba(0,245,255,0.08);padding:7px 32px;display:flex;a
     <div class="modal-title">⚙ Configuración</div>
     <div class="modal-field"><label class="modal-lbl">Shop Slug</label><input class="modal-inp" id="cfg-shop" placeholder="elite-cuts"></div>
     <div class="modal-field"><label class="modal-lbl">Minutos por turno</label><input class="modal-inp" id="cfg-dur" type="number" min="5" max="120" placeholder="45"></div>
+    <div class="modal-field">
+      <label class="modal-lbl">Tamaño de fuente</label>
+      <div style="display:flex;gap:6px;margin-top:4px;">
+        <button class="font-btn" id="fs-sm" onclick="setFontSize('sm')">S</button>
+        <button class="font-btn active" id="fs-md" onclick="setFontSize('md')">M</button>
+        <button class="font-btn" id="fs-lg" onclick="setFontSize('lg')">L</button>
+        <button class="font-btn" id="fs-xl" onclick="setFontSize('xl')">XL</button>
+      </div>
+    </div>
+    <div class="modal-field">
+      <label class="modal-lbl">Modo pantalla</label>
+      <button class="util-btn" id="zen-btn" onclick="toggleZen()" style="margin-top:4px;width:100%;padding:8px;">☽ MODO ZEN (exterior / sol directo)</button>
+    </div>
     <div class="modal-acts">
       <button class="mbtn mbtn-cancel" id="cfg-cancel">CANCELAR</button>
       <button class="mbtn mbtn-save" id="cfg-save">GUARDAR</button>
@@ -1584,11 +1591,11 @@ function toggleZen(){
   ZEN=!ZEN;
   document.body.classList.toggle('zen-mode',ZEN);
   const btn=document.getElementById('zen-btn');
-  if(btn){btn.classList.toggle('active',ZEN);btn.textContent=ZEN?'☀ NORMAL':'☽ ZEN';}
+  if(btn){btn.classList.toggle('active',ZEN);btn.textContent=ZEN?'☀ NORMAL (desactivar zen)':'☽ MODO ZEN (exterior / sol directo)';}
   try{localStorage.setItem('barberos_zen',ZEN?'1':'0');}catch(_){}
 }
 function initZen(){
-  try{if(localStorage.getItem('barberos_zen')==='1'){ZEN=true;document.body.classList.add('zen-mode');const btn=document.getElementById('zen-btn');if(btn){btn.classList.add('active');btn.textContent='☀ NORMAL';}}}catch(_){}
+  try{if(localStorage.getItem('barberos_zen')==='1'){ZEN=true;document.body.classList.add('zen-mode');const btn=document.getElementById('zen-btn');if(btn){btn.classList.add('active');btn.textContent='☀ NORMAL (desactivar zen)';}}}catch(_){}
 }
 
 // ════════════════════════════════════════════════════
