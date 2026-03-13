@@ -765,19 +765,104 @@ function renderReportes(){
 
 // ── BOT ──
 function renderBot(){
-  return `<div class="two-col">
-    <div class="card">
-      <div class="card-header"><div class="card-title">Estado del Bot</div><div class="status-live"><span class="live-dot"></span>ACTIVO</div></div>
-      <div style="padding:18px;display:flex;flex-direction:column;gap:12px;">
-        ${[['Número WhatsApp','whatsapp:+14155238886','var(--green)'],['Proveedor','Twilio Sandbox','var(--muted)'],['Workflow','BarberOS v6 Ultra','var(--gold)'],['Contexto','2 horas','var(--muted)'],['Recordatorios','Cada 15 min · Activo','var(--green)'],['No-Show auto','40 min post-turno','var(--green)']].map(([k,v,c])=>`<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);"><span style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);text-transform:uppercase;">${k}</span><span style="font-size:0.8rem;color:${c};">${v}</span></div>`).join('')}
+  const s=S.shopData||{};
+  const turnos=s.recordatorio_turnos??2;
+  const recActivo=s.recordatorio_activo!==false;
+  const botBarbero=s.bot_barbero_activo===true;
+  const msgTpl=s.recordatorio_msg||'¡Hola {nombre}! 👋 Tu turno con {barbero} está próximo — quedan {turnos} turno(s). ✂️ ¡Te esperamos en {shop}!';
+  const barbsConTel=(S.barberos||[]).filter(b=>b.telefono);
+
+  return `<div style="display:flex;flex-direction:column;gap:20px;">
+
+    <!-- ROW 1: estado + comandos -->
+    <div class="two-col">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Estado del Bot</div><div class="status-live"><span class="live-dot"></span>ACTIVO v7</div></div>
+        <div style="padding:18px;display:flex;flex-direction:column;gap:12px;">
+          ${[['Número WhatsApp',s.twilio_number||'No configurado','var(--green)'],['Recordatorio turno',recActivo?'Activo ✓':'Inactivo',recActivo?'var(--green)':'var(--muted)'],['Bot barberos',botBarbero?'Activo ✓':'Inactivo',botBarbero?'var(--green)':'var(--muted)'],['Barberos con tel.',barbsConTel.length+' / '+(S.barberos||[]).length,'var(--gold)']].map(([k,v,c])=>`<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);"><span style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);text-transform:uppercase;">${k}</span><span style="font-size:0.8rem;color:${c};">${v}</span></div>`).join('')}
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Comandos del Barbero</div><span class="card-meta">Desde su WhatsApp registrado</span></div>
+        <div style="padding:18px;display:flex;flex-direction:column;gap:8px;">
+          ${[['inactivo','Me desactivo y reasignan mis citas','var(--red)'],['activo','Me reactivo para recibir turnos','var(--green)'],['mis turnos','Ver mis citas del día','var(--gold)']].map(([cmd,desc,col])=>`<div style="padding:8px 12px;background:rgba(255,255,255,0.02);border:1px solid var(--border);"><div style="font-family:'DM Mono',monospace;font-size:0.62rem;color:${col};margin-bottom:2px;">${cmd}</div><div style="font-size:0.72rem;color:var(--muted);">${desc}</div></div>`).join('')}
+          <div style="margin-top:6px;padding:8px 12px;background:rgba(201,168,76,0.04);border:1px solid rgba(201,168,76,0.2);font-size:0.68rem;color:var(--muted);">
+            ⚠️ Requiere teléfono registrado en cada barbero. Activa <strong style="color:var(--gold);">Bot Barberos</strong> abajo.
+          </div>
+        </div>
       </div>
     </div>
+
+    <!-- F1: RECORDATORIOS -->
     <div class="card">
-      <div class="card-header"><div class="card-title">Comandos Admin</div><span class="card-meta">Solo desde número dueño</span></div>
-      <div style="padding:18px;display:flex;flex-direction:column;gap:8px;">
-        ${[['inactivo [nombre]','Desactiva barbero','var(--red)'],['activo [nombre]','Activa barbero','var(--green)'],['listo','Libera slot actual','var(--gold)'],['listo [nombre]','Libera slot de barbero','var(--gold)'],['citas','Ver agenda del día','var(--blue)']].map(([cmd,desc,col])=>`<div style="padding:8px 12px;background:rgba(255,255,255,0.02);border:1px solid var(--border);"><div style="font-family:'DM Mono',monospace;font-size:0.62rem;color:${col};margin-bottom:2px;">${cmd}</div><div style="font-size:0.72rem;color:var(--muted);">${desc}</div></div>`).join('')}
+      <div class="card-header">
+        <div class="card-title">🔔 Recordatorio automático al cliente</div>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <span style="font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);">ACTIVO</span>
+          <div class="toggle-switch" onclick="toggleBotRecordatorio(this)" data-on="${recActivo}">
+            <input type="checkbox" style="display:none;" ${recActivo?'checked':''}>
+            <span class="toggle-slider" style="background:${recActivo?'var(--gold)':'rgba(255,255,255,0.1)'};"></span>
+          </div>
+        </label>
+      </div>
+      <div style="padding:18px;display:flex;flex-direction:column;gap:16px;">
+        <div style="background:rgba(201,168,76,0.04);border:1px solid rgba(201,168,76,0.15);padding:12px 16px;font-size:0.75rem;color:var(--muted);line-height:1.6;">
+          El bot envía un WhatsApp al cliente cuando quedan <strong style="color:var(--gold);">N turnos</strong> antes del suyo. Por ejemplo, si N=2 y hay 3 clientes esperando, el tercer cliente en la fila recibe el recordatorio cuando el primer cliente termina.
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 2fr;gap:16px;align-items:start;">
+          <div class="fg" style="margin:0;">
+            <label>Avisar cuando queden N turnos</label>
+            <div style="display:flex;align-items:center;gap:10px;margin-top:6px;">
+              <input type="number" id="bot-turnos-n" value="${turnos}" min="1" max="10"
+                style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 12px;width:80px;font-family:'DM Mono',monospace;font-size:1.1rem;text-align:center;">
+              <span style="font-size:0.7rem;color:var(--muted);">turno(s) antes</span>
+            </div>
+          </div>
+          <div class="fg" style="margin:0;">
+            <label>Mensaje (variables: {nombre} {barbero} {turnos} {hora} {shop})</label>
+            <textarea id="bot-msg-tpl" rows="3"
+              style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 10px;width:100%;font-size:0.68rem;resize:vertical;margin-top:6px;box-sizing:border-box;">${msgTpl}</textarea>
+          </div>
+        </div>
+        <div>
+          <button class="btn-sm btn-gold" style="padding:9px 24px;" onclick="saveConfigBot()">💾 Guardar recordatorio</button>
+        </div>
       </div>
     </div>
+
+    <!-- F2: BOT BARBEROS -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">💬 Bot para barberos (auto-inactivar)</div>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <span style="font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);">ACTIVO</span>
+          <div class="toggle-switch" onclick="toggleBotBarbero(this)" data-on="${botBarbero}">
+            <input type="checkbox" style="display:none;" ${botBarbero?'checked':''}>
+            <span class="toggle-slider" style="background:${botBarbero?'var(--gold)':'rgba(255,255,255,0.1)'};"></span>
+          </div>
+        </label>
+      </div>
+      <div style="padding:18px;display:flex;flex-direction:column;gap:14px;">
+        <div style="background:rgba(201,168,76,0.04);border:1px solid rgba(201,168,76,0.15);padding:12px 16px;font-size:0.75rem;color:var(--muted);line-height:1.6;">
+          Si un barbero escribe <em>"inactivo"</em> al bot, el sistema lo desactiva automáticamente y reasigna sus citas pendientes al barbero con menos carga. Debe tener su número WhatsApp registrado.
+        </div>
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);letter-spacing:0.15em;margin-bottom:10px;">TELÉFONOS DE BARBEROS</div>
+          <div style="display:flex;flex-direction:column;gap:8px;" id="barberos-tel-list">
+            ${(S.barberos||[]).map(b=>`
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,255,255,0.02);border:1px solid var(--border);">
+              <div style="width:32px;height:32px;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.2);display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--gold);font-size:0.8rem;flex-shrink:0;">${b.nombre.charAt(0)}</div>
+              <div style="flex:1;font-size:0.8rem;font-weight:600;">${b.nombre}</div>
+              <input type="tel" placeholder="+1809xxxxxxx" value="${b.telefono||''}" id="btel-${b.id}"
+                style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:6px 10px;width:170px;font-family:'DM Mono',monospace;font-size:0.62rem;">
+              <button onclick="saveBarberoTel('${b.id}')" style="background:var(--gold);color:#000;border:none;padding:6px 14px;font-size:0.52rem;font-family:'DM Mono',monospace;cursor:pointer;white-space:nowrap;">GUARDAR</button>
+            </div>`).join('')}
+          </div>
+          ${(S.barberos||[]).length===0?`<div style="padding:20px;text-align:center;color:var(--muted);font-size:0.75rem;">No hay barberos registrados. Agrégalos en la sección Barberos.</div>`:''}
+        </div>
+      </div>
+    </div>
+
   </div>`;
 }
 
@@ -901,6 +986,52 @@ async function saveConfigPage(){
     document.getElementById('shop-name-sidebar').textContent=p.nombre;
     renderPage();
     toast('Configuración guardada ✓');
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+
+// ── BOT CONFIG FUNCTIONS ──
+async function saveConfigBot(){
+  const n=parseInt(document.getElementById('bot-turnos-n').value)||2;
+  const msg=document.getElementById('bot-msg-tpl').value.trim();
+  if(!msg){toast('El mensaje no puede estar vacío','error');return;}
+  try{
+    await sbPatch('shops','id=eq.'+S.shopId,{recordatorio_turnos:n,recordatorio_msg:msg});
+    Object.assign(S.shopData,{recordatorio_turnos:n,recordatorio_msg:msg});
+    toast('Recordatorio guardado ✓');
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+
+async function toggleBotRecordatorio(el){
+  const on=el.dataset.on==='true';
+  const newVal=!on;
+  try{
+    await sbPatch('shops','id=eq.'+S.shopId,{recordatorio_activo:newVal});
+    S.shopData.recordatorio_activo=newVal;
+    el.dataset.on=String(newVal);
+    el.querySelector('.toggle-slider').style.background=newVal?'var(--gold)':'rgba(255,255,255,0.1)';
+    toast(newVal?'Recordatorios activados ✓':'Recordatorios desactivados');
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+
+async function toggleBotBarbero(el){
+  const on=el.dataset.on==='true';
+  const newVal=!on;
+  try{
+    await sbPatch('shops','id=eq.'+S.shopId,{bot_barbero_activo:newVal});
+    S.shopData.bot_barbero_activo=newVal;
+    el.dataset.on=String(newVal);
+    el.querySelector('.toggle-slider').style.background=newVal?'var(--gold)':'rgba(255,255,255,0.1)';
+    toast(newVal?'Bot barberos activado ✓':'Bot barberos desactivado');
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+
+async function saveBarberoTel(id){
+  const tel=document.getElementById('btel-'+id).value.trim();
+  try{
+    await sbPatch('barberos','id=eq.'+id,{telefono:tel||null});
+    const b=S.barberos.find(x=>x.id===id);
+    if(b)b.telefono=tel||null;
+    toast('Teléfono guardado ✓');
   }catch(e){toast('Error: '+e.message,'error');}
 }
 
