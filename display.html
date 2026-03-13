@@ -105,16 +105,29 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--cyan);font-fam
 .walkin-fab-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);}
 
 .bg-base{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 120% 80% at 50% -10%, #030b18 0%, #020408 60%, #010206 100%);}
-.grid-bg{position:fixed;inset:0;z-index:1;background-image:linear-gradient(rgba(0,245,255,0.028) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,255,0.028) 1px,transparent 1px);background-size:60px 60px;animation:grid-drift 30s linear infinite, grid-pulse 8s ease-in-out infinite;}
-.grid-diagonal{position:fixed;inset:0;z-index:1;pointer-events:none;background-image:repeating-linear-gradient(45deg,transparent 0,transparent 120px,rgba(0,245,255,0.012) 120px,rgba(0,245,255,0.012) 121px);animation:diagonal-drift 20s linear infinite;}
-.scanline{position:fixed;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.04) 2px,rgba(0,0,0,0.04) 4px);}
+
+/* ── Hexagonal grid replacing square grid ── */
+.grid-bg{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0.6;animation:grid-pulse 10s ease-in-out infinite;}
+#hex-canvas{position:fixed;inset:0;z-index:1;pointer-events:none;}
+
+.grid-diagonal{display:none;}
+.scanline{position:fixed;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);}
 .barber-icon{position:fixed;pointer-events:none;z-index:1;font-size:1.6rem;opacity:0;animation:barber-fall linear infinite;filter:drop-shadow(0 0 4px currentColor);user-select:none;}
 .vignette{position:fixed;inset:0;z-index:2;pointer-events:none;background:radial-gradient(ellipse 90% 90% at 50% 50%, transparent 30%, rgba(0,0,0,0.55) 80%, rgba(0,0,0,0.88) 100%);animation:vignette-breathe 12s ease-in-out infinite;}
-.orb{position:fixed;border-radius:50%;filter:blur(120px);pointer-events:none;z-index:0;}
-.orb1{width:900px;height:700px;background:radial-gradient(ellipse, rgba(0,245,255,0.07) 0%, rgba(0,100,180,0.04) 50%, transparent 70%);top:-300px;left:-300px;animation:nebula-drift 18s ease-in-out infinite;}
-.orb2{width:800px;height:800px;background:radial-gradient(ellipse, rgba(255,0,110,0.06) 0%, rgba(120,0,60,0.03) 50%, transparent 70%);bottom:-300px;right:-300px;animation:nebula-drift2 22s ease-in-out infinite;}
-.orb3{width:600px;height:500px;background:radial-gradient(ellipse, rgba(176,110,255,0.05) 0%, rgba(80,40,140,0.025) 50%, transparent 70%);top:30%;left:50%;transform:translateX(-50%);animation:nebula-drift3 28s ease-in-out infinite;}
-.orb4{width:400px;height:350px;background:radial-gradient(ellipse, rgba(0,255,120,0.04) 0%, transparent 70%);bottom:10%;left:10%;animation:nebula-drift 14s ease-in-out infinite reverse;}
+
+/* ── Film grain overlay ── */
+.film-grain{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:0.045;}
+#grain-canvas{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:0.045;}
+
+/* ── Enhanced aurora orbs — more colors, softer ── */
+.orb{position:fixed;border-radius:50%;filter:blur(140px);pointer-events:none;z-index:0;}
+.orb1{width:1100px;height:800px;background:radial-gradient(ellipse, rgba(0,245,255,0.09) 0%, rgba(0,80,200,0.05) 40%, transparent 70%);top:-350px;left:-350px;animation:nebula-drift 22s ease-in-out infinite;}
+.orb2{width:900px;height:900px;background:radial-gradient(ellipse, rgba(255,0,110,0.07) 0%, rgba(120,0,80,0.04) 40%, transparent 70%);bottom:-350px;right:-350px;animation:nebula-drift2 26s ease-in-out infinite;}
+.orb3{width:700px;height:600px;background:radial-gradient(ellipse, rgba(176,110,255,0.07) 0%, rgba(60,20,140,0.03) 40%, transparent 70%);top:25%;left:50%;transform:translateX(-50%);animation:nebula-drift3 32s ease-in-out infinite;}
+.orb4{width:600px;height:500px;background:radial-gradient(ellipse, rgba(0,255,120,0.055) 0%, rgba(0,80,40,0.025) 40%, transparent 70%);bottom:5%;left:5%;animation:nebula-drift 18s ease-in-out infinite reverse;}
+/* New orbs for richer aurora */
+.orb5{width:500px;height:400px;background:radial-gradient(ellipse, rgba(255,200,0,0.04) 0%, transparent 70%);top:40%;right:-100px;animation:nebula-drift2 24s ease-in-out infinite reverse;}
+.orb6{width:600px;height:400px;background:radial-gradient(ellipse, rgba(0,180,255,0.05) 0%, transparent 70%);bottom:20%;left:30%;animation:nebula-drift3 20s ease-in-out infinite;}
 #star-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.7;}
 .corner-frame{position:fixed;z-index:3;pointer-events:none;}
 .corner-frame::before,.corner-frame::after{content:'';position:absolute;border-style:solid;border-color:rgba(0,245,255,0.12);}
@@ -524,12 +537,15 @@ footer{border-top:1px solid rgba(0,245,255,0.08);padding:7px 32px;display:flex;a
 
 <div class="bg-base"></div>
 <canvas id="star-canvas"></canvas>
+<canvas id="hex-canvas"></canvas>
+<canvas id="grain-canvas"></canvas>
 <div class="orb orb1"></div>
 <div class="orb orb2"></div>
 <div class="orb orb3"></div>
 <div class="orb orb4"></div>
+<div class="orb orb5"></div>
+<div class="orb orb6"></div>
 <div class="grid-bg"></div>
-<div class="grid-diagonal"></div>
 <div class="scanline"></div>
 <div id="barber-rain"></div>
 <div class="vignette"></div>
@@ -647,39 +663,10 @@ footer{border-top:1px solid rgba(0,245,255,0.08);padding:7px 32px;display:flex;a
 </div>
 
 <script>
-// ════════════════════════════════════════════════════
-//  BARBER RAIN
-// ════════════════════════════════════════════════════
-(function initBarberRain(){
-  const ICONS=['✂'];
-  const COLORS=['rgba(0,245,255,0.07)','rgba(176,110,255,0.06)','rgba(255,255,255,0.05)'];
-  const container=document.getElementById('barber-rain');
-  const COUNT=28;
-  function spawn(){
-    const el=document.createElement('span');
-    el.className='barber-icon';
-    const icon=ICONS[Math.floor(Math.random()*ICONS.length)];
-    const color=COLORS[Math.floor(Math.random()*COLORS.length)];
-    const size=Math.random()*2.2+1.1;
-    const left=Math.random()*98;
-    const dur=Math.random()*14+10;
-    const delay=Math.random()*20;
-    el.textContent=icon;
-    el.style.cssText=`left:${left}%;top:-80px;font-size:${size}rem;color:${color};animation-duration:${dur}s;animation-delay:${delay}s;`;
-    container.appendChild(el);
-    el.addEventListener('animationend',()=>{
-      el.style.animationDelay='0s';
-      el.style.left=Math.random()*98+'%';
-      el.style.fontSize=(Math.random()*2.2+1.1)+'rem';
-      el.style.animationDuration=(Math.random()*14+10)+'s';
-      el.style.color=COLORS[Math.floor(Math.random()*COLORS.length)];
-    });
-  }
-  for(let i=0;i<COUNT;i++)spawn();
-})();
+
 
 // ════════════════════════════════════════════════════
-//  STAR FIELD
+//  BarberOS Display v8
 // ════════════════════════════════════════════════════
 (function initStars(){
   const canvas=document.getElementById('star-canvas');
@@ -708,7 +695,74 @@ footer{border-top:1px solid rgba(0,245,255,0.08);padding:7px 32px;display:flex;a
 })();
 
 // ════════════════════════════════════════════════════
-//  BarberOS Display v8
+//  HEXAGONAL GRID
+// ════════════════════════════════════════════════════
+(function initHexGrid(){
+  const canvas=document.getElementById('hex-canvas');
+  const ctx=canvas.getContext('2d');
+  let W,H;
+  function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+  const SIZE=38;
+  const COLOR='rgba(0,245,255,';
+  let t=0;
+  function hexPath(cx,cy,s){
+    ctx.beginPath();
+    for(let i=0;i<6;i++){
+      const a=Math.PI/180*(60*i-30);
+      i===0?ctx.moveTo(cx+s*Math.cos(a),cy+s*Math.sin(a)):ctx.lineTo(cx+s*Math.cos(a),cy+s*Math.sin(a));
+    }
+    ctx.closePath();
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    t+=0.003;
+    const w=SIZE*2;
+    const h=Math.sqrt(3)*SIZE;
+    const cols=Math.ceil(W/w)+2;
+    const rows=Math.ceil(H/h)+2;
+    for(let row=-1;row<rows;row++){
+      for(let col=-1;col<cols;col++){
+        const cx=col*w*0.75;
+        const cy=row*h+(col%2===0?0:h/2);
+        const dist=Math.sqrt(Math.pow(cx-W/2,2)+Math.pow(cy-H/2,2));
+        const maxDist=Math.sqrt(W*W+H*H)/2;
+        const fade=1-(dist/maxDist);
+        const pulse=0.5+0.5*Math.sin(t+dist*0.003);
+        const alpha=(0.018+0.012*pulse)*fade*fade;
+        hexPath(cx,cy,SIZE-1);
+        ctx.strokeStyle=COLOR+alpha+')';
+        ctx.lineWidth=0.8;
+        ctx.stroke();
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+  resize();draw();
+  window.addEventListener('resize',resize);
+})();
+
+// ════════════════════════════════════════════════════
+//  FILM GRAIN
+// ════════════════════════════════════════════════════
+(function initGrain(){
+  const canvas=document.getElementById('grain-canvas');
+  const ctx=canvas.getContext('2d');
+  let W,H;
+  function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+  function drawGrain(){
+    const img=ctx.createImageData(W,H);
+    const d=img.data;
+    for(let i=0;i<d.length;i+=4){
+      const v=Math.random()*255|0;
+      d[i]=d[i+1]=d[i+2]=v;
+      d[i+3]=Math.random()*18|0;
+    }
+    ctx.putImageData(img,0,0);
+    setTimeout(()=>requestAnimationFrame(drawGrain),80);
+  }
+  resize();drawGrain();
+  window.addEventListener('resize',resize);
+})();
 // ════════════════════════════════════════════════════
 const SB_URL='https://mmokunpuslcfphalrwot.supabase.co';
 const SB_KEY='sb_publishable_aETz_9ECH5RcBMjmRhUnfw_g71zRdwT';
