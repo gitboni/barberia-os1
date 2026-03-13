@@ -401,7 +401,46 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .mn-svc{font-family:'Share Tech Mono',monospace;font-size:0.36rem;color:rgba(255,255,255,0.18);margin-top:1px;}
 .mn-time{font-family:'Orbitron',monospace;font-size:0.7rem;color:var(--gold);}
 
-/* ── MODO MI TURNO ── */
+/* ── MODO OSCURO EXTREMO ── */
+body.zen-mode .orb,
+body.zen-mode #hex-canvas,
+body.zen-mode #grain-canvas,
+body.zen-mode #star-canvas,
+body.zen-mode .grid-bg,
+body.zen-mode .scanline,
+body.zen-mode .vignette,
+body.zen-mode .corner-frame{opacity:0!important;}
+body.zen-mode .bg-base{background:#000!important;}
+body.zen-mode header,body.zen-mode footer{background:rgba(0,0,0,0.95)!important;backdrop-filter:none!important;}
+
+/* ── FONT SIZE ── */
+html.fs-sm{font-size:90%;}
+html.fs-md{font-size:112%;}
+html.fs-lg{font-size:130%;}
+html.fs-xl{font-size:150%;}
+
+/* ── UTILITY CONTROLS (zen + font) ── */
+.util-bar{position:fixed;bottom:56px;left:18px;z-index:100;display:flex;flex-direction:column;gap:4px;opacity:0.18;transition:opacity 0.2s;}
+.util-bar:hover{opacity:1;}
+.util-btn{background:rgba(0,245,255,0.04);border:1px solid rgba(0,245,255,0.12);color:rgba(0,245,255,0.6);padding:4px 9px;font-family:'Share Tech Mono',monospace;font-size:0.44rem;letter-spacing:0.12em;cursor:pointer;text-transform:uppercase;transition:all 0.2s;white-space:nowrap;}
+.util-btn:hover{background:rgba(0,245,255,0.12);color:var(--cyan);}
+.util-btn.active{border-color:rgba(255,0,110,0.4);color:rgba(255,0,110,0.7);background:rgba(255,0,110,0.06);}
+.font-btns{display:flex;gap:3px;}
+.font-btn{background:rgba(0,245,255,0.04);border:1px solid rgba(0,245,255,0.1);color:rgba(0,245,255,0.5);padding:3px 7px;font-family:'Share Tech Mono',monospace;font-size:0.44rem;cursor:pointer;transition:all 0.2s;}
+.font-btn.active{border-color:var(--cyan);color:var(--cyan);background:rgba(0,245,255,0.1);}
+
+/* ── DAY PROGRESS BAR ── */
+.day-progress{display:flex;align-items:center;gap:8px;padding:5px 12px;border:1px solid rgba(0,245,255,0.08);background:rgba(0,245,255,0.012);flex-shrink:0;}
+.day-prog-label{font-family:'Share Tech Mono',monospace;font-size:0.4rem;letter-spacing:0.2em;color:rgba(0,245,255,0.3);text-transform:uppercase;white-space:nowrap;}
+.day-prog-track{flex:1;height:4px;background:rgba(0,245,255,0.07);position:relative;overflow:hidden;}
+.day-prog-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--purple));box-shadow:0 0 8px rgba(0,245,255,0.4);transition:width 0.8s ease;}
+.day-prog-pct{font-family:'Orbitron',monospace;font-size:0.5rem;color:rgba(0,245,255,0.4);white-space:nowrap;}
+.day-prog-avg{font-family:'Share Tech Mono',monospace;font-size:0.4rem;color:rgba(176,110,255,0.5);white-space:nowrap;padding-left:8px;border-left:1px solid rgba(0,245,255,0.08);}
+
+/* ── COUNTDOWN ETA ── */
+.eta-live{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border:1px solid rgba(255,214,0,0.35);background:rgba(255,214,0,0.05);font-family:'Orbitron',monospace;font-size:0.44rem;color:rgba(255,214,0,0.8);letter-spacing:0.06em;}
+.eta-live.urgent{border-color:rgba(255,0,110,0.45);color:rgba(255,0,110,0.8);animation:blink 1.5s ease-in-out infinite;}
+
 .my-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 .my-header{display:flex;align-items:center;justify-content:space-between;padding:8px 20px;border-bottom:1px solid rgba(0,245,255,0.12);background:rgba(0,245,255,0.03);flex-shrink:0;}
 .my-name-badge{display:flex;align-items:center;gap:10px;}
@@ -605,6 +644,17 @@ footer{border-top:1px solid rgba(0,245,255,0.08);padding:7px 32px;display:flex;a
 
 <div class="toast" id="toast"></div>
 <button class="cfg-btn" id="cfg-open">⚙</button>
+
+<div class="util-bar" id="util-bar">
+  <button class="util-btn" id="zen-btn" onclick="toggleZen()">☽ ZEN</button>
+  <div class="font-btns">
+    <button class="font-btn" onclick="setFontSize('sm')">A-</button>
+    <button class="font-btn active" id="fs-sm" onclick="setFontSize('sm')">S</button>
+    <button class="font-btn" id="fs-md" onclick="setFontSize('md')">M</button>
+    <button class="font-btn" id="fs-lg" onclick="setFontSize('lg')">L</button>
+    <button class="font-btn" id="fs-xl" onclick="setFontSize('xl')">XL</button>
+  </div>
+</div>
 
 <button class="walkin-fab" id="walkin-fab" onclick="openWalkIn()">
   <div class="walkin-fab-dot"></div>+ WALK-IN
@@ -1110,11 +1160,12 @@ function renderSolo(barber,layout){
           <div class="queue-title">⬡ TURNOS DEL DÍA</div>
           <div class="queue-meta">${allC.length} REGISTRADOS · ${remaining} EN ESPERA${conflicts.length?' · ⚠ '+conflicts.length+' CONFLICTO':' · OK ✓'}</div>
         </div>
+        ${dayProgressHtml()}
         <div class="stats-bar">
           <div class="stat-card"><div class="stat-val">${allC.length}</div><div class="stat-lbl">Clientes hoy</div><div class="stat-bar-line"><div class="stat-bar-fill" style="width:100%"></div></div></div>
           <div class="stat-card"><div class="stat-val gold">${remaining}</div><div class="stat-lbl">Restantes</div><div class="stat-bar-line" style="background:rgba(255,214,0,0.08)"><div class="stat-bar-fill" style="width:${allC.length?Math.round(remaining/allC.length*100):0}%;background:var(--gold);box-shadow:0 0 6px var(--gold)"></div></div></div>
-          <div class="stat-card"><div class="stat-val green">${remaining>0?calcETA(remaining)||remaining*DUR+'m':'0m'}</div><div class="stat-lbl">Tiempo espera</div></div>
-          <div class="stat-card"><div class="stat-val purple">${S.lastUp?calcAgo(S.lastUp):'—'}</div><div class="stat-lbl">Últ. actualiz.</div></div>
+          <div class="stat-card"><div class="stat-val green">${remaining>0?(calcLiveETA(remaining,barber)||remaining*getAvgTime(barber)+'m'):'0m'}</div><div class="stat-lbl">Tiempo espera</div></div>
+          <div class="stat-card"><div class="stat-val purple">${getAvgTime(barber)}m</div><div class="stat-lbl">Prom. turno</div></div>
         </div>
         <div class="queue-body">
           <div class="done-strip">
@@ -1126,7 +1177,7 @@ function renderSolo(barber,layout){
             ${zoneAItems.map((c,idx)=>{
               const num=c.originalIdx+1;
               const pos=c.pos;
-              const eta=calcETA(pos);
+              const eta=pos>0?calcLiveETA(pos,barber):null;
               const{rc,tc,tl}=statusClasses(c.status);
               return`<div class="q-item ${rc}" style="animation-delay:${idx*0.05}s"><div class="q-num">${String(num).padStart(2,'0')}</div><div><div class="q-name">${c.name}${eta?`<span class="wait-eta">⏱${eta}</span>`:''}</div><div class="q-svc">${c.servicio}</div></div><div class="q-barber">${barber}</div><div class="q-time">${c.time}</div><div><span class="status-tag ${tc}"><span class="tag-dot"></span>${tl}</span></div></div>`;
             }).join('')}
@@ -1134,7 +1185,7 @@ function renderSolo(barber,layout){
           ${zoneBItems.length?`<div class="zone-b-header"><span>EN ESPERA</span><span class="zone-b-count">${zoneBItems.length}</span></div><div class="zone-b">${zoneBItems.map((c,idx)=>{
             const num=c.originalIdx+1;
             const pos=c.pos;
-            const eta=calcETA(pos);
+            const eta=pos>0?calcLiveETA(pos,barber):null;
             return`<div class="q-mini ${c.status==='alert'?'ms-alert':'ms-wait'}" style="animation-delay:${idx*0.025}s">${conflictIdx.has(c.originalIdx)?'<div style="position:absolute;top:2px;right:3px;width:4px;height:4px;border-radius:50%;background:var(--magenta);box-shadow:0 0 4px var(--magenta);"></div>':''}<div class="q-mini-num">${String(num).padStart(2,'0')}</div><div class="q-mini-name">${c.name}</div><div class="q-mini-meta"><div class="q-mini-time">${eta||c.time}</div><div class="q-mini-barb">${barber}</div></div></div>`;
           }).join('')}</div>`:''}
         </div>
@@ -1172,7 +1223,7 @@ function renderMultiCol(barber){
     +'<div class="mn-wrap"><div class="mn-nom">'+(nxt?nxt.name:'Sin reserva')+'</div><div class="mn-svc">'+(nxt?nxt.servicio:'')+'</div></div>'
     +'<div class="mn-time">'+(nxt?nxt.time:'—:—')+'</div></div>'
     +'<div class="multi-queue">'
-    +(pending.length?pending.map((c,i)=>{const pos=i+2;const eta=calcETA(pos-1);const cls=i===0?'mn':i===1?'ma':'mw';const num=currentTurn+i+1;return'<div class="mq-row '+cls+'" style="animation-delay:'+i*0.04+'s"><div class="mq-n">'+String(num).padStart(2,'0')+'</div><div class="mq-info"><div class="mq-name">'+c.name+'</div><div class="mq-svc">'+c.servicio+'</div></div><div class="mq-r"><div class="mq-time">'+c.time+'</div>'+(eta?'<div class="mq-eta">⏱'+eta+'</div>':'')+'</div></div>';}).join(''):'<div style="padding:18px 8px;text-align:center;font-family:\'Share Tech Mono\',monospace;font-size:0.4rem;color:rgba(0,245,255,0.14);letter-spacing:0.2em;">SIN PENDIENTES</div>')
+    +(pending.length?pending.map((c,i)=>{const pos=i+2;const eta=calcLiveETA(pos-1,barber);const cls=i===0?'mn':i===1?'ma':'mw';const num=currentTurn+i+1;return'<div class="mq-row '+cls+'" style="animation-delay:'+i*0.04+'s"><div class="mq-n">'+String(num).padStart(2,'0')+'</div><div class="mq-info"><div class="mq-name">'+c.name+'</div><div class="mq-svc">'+c.servicio+'</div></div><div class="mq-r"><div class="mq-time">'+c.time+'</div>'+(eta?'<div class="mq-eta">⏱'+eta+'</div>':'')+'</div></div>';}).join(''):'<div style="padding:18px 8px;text-align:center;font-family:\'Share Tech Mono\',monospace;font-size:0.4rem;color:rgba(0,245,255,0.14);letter-spacing:0.2em;">SIN PENDIENTES</div>')
     +'</div>'
     +'<div class="swipe-hint">⟵ desliza o ▶ siguiente</div>'
     +'<button class="btn-siguiente" id="btn-'+bid+'" onclick="siguienteTurno(\''+barber.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\',\'btn-'+bid+'\')">'+scHtml()+'▶ &nbsp; SIGUIENTE TURNO</button>';
@@ -1264,7 +1315,7 @@ function renderMyTurn(c){
           <div class="next-strip" style="border-color:rgba(0,245,255,0.15);">
             <div class="next-n" style="color:rgba(0,245,255,0.4);">${String(currentTurn+1).padStart(2,'0')}</div>
             <div class="next-info"><div class="next-nom">${nxt.name}</div><div class="next-barber">⏱ ${nxt.time}</div></div>
-            <div class="next-time-badge">${calcETA(1)||nxt.time}</div>
+            <div class="next-time-badge">${calcLiveETA(1,barber)||nxt.time}</div>
           </div>`:''}
           <button class="btn-my-sig${!isActive?' loading':''}" id="btn-my" onclick="siguienteTurno('${barber.replace(/'/g,"\\'")}','btn-my')" ${!isActive?'disabled':''}>
             ${scHtml()}${isActive?'▶ &nbsp; SIGUIENTE TURNO':'⏸ &nbsp; DESACTIVADO'}
@@ -1277,6 +1328,12 @@ function renderMyTurn(c){
             ⬡ MIS TURNOS HOY
             <span class="my-queue-meta">${allC.length} REGISTRADOS · ${remaining} EN ESPERA</span>
           </div>
+          ${dayProgressHtml()}
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;flex-shrink:0;">
+            <div class="stat-card"><div class="stat-val gold">${remaining}</div><div class="stat-lbl">Restantes</div></div>
+            <div class="stat-card"><div class="stat-val green">${remaining>0?(calcLiveETA(remaining,barber)||remaining*getAvgTime(barber)+'m'):'0m'}</div><div class="stat-lbl">Tiempo espera</div></div>
+            <div class="stat-card"><div class="stat-val purple">${getAvgTime(barber)}m</div><div class="stat-lbl">Prom. turno</div></div>
+          </div>
           <div class="done-strip" style="flex-shrink:0;">
             <div class="done-strip-label">✓ LISTOS</div>
             <div class="done-pills">${doneCitas.length?doneCitas.map((c,i)=>`<div class="done-pill" style="animation-delay:${i*0.06}s"><div class="done-pill-num">${String(allC.indexOf(c)+1).padStart(2,'0')}</div><div class="done-pill-name">${c.name}</div><div class="done-pill-check">✓</div></div>`).join(''):'<span class="done-strip-empty">— ninguno aún —</span>'}</div>
@@ -1288,13 +1345,14 @@ function renderMyTurn(c){
               const cls=isDone?'mqi-done':isAct?'mqi-active':isNxt?'mqi-next':'mqi-wait';
               const tag=isDone?`<span class="mqi-tag d">✓</span>`:isAct?`<span class="mqi-tag a">EN SILLA</span>`:isNxt?`<span class="mqi-tag n">PRÓXIMO</span>`:`<span class="mqi-tag w">ESPERA</span>`;
               const pos=i-(currentTurn-1);
-              const eta=!isDone?calcETA(pos):null;
+              const eta=!isDone&&pos>0?calcLiveETA(pos,barber):null;
+              const urgent=eta&&parseInt(eta)<=5;
               return`<div class="my-q-item ${cls}" style="animation-delay:${rowIdx*0.04}s;grid-template-columns:44px 1fr ${!isDone&&c.id?'auto ':''} auto;">
                 <div class="mqi-num">${String(i+1).padStart(2,'0')}</div>
                 <div>
                   <div class="mqi-name">${c.name}</div>
                   <div class="mqi-svc">${c.servicio}</div>
-                  ${eta&&!isDone?`<div style="display:inline-flex;align-items:center;gap:4px;margin-top:3px;padding:2px 7px;border:1px solid rgba(255,214,0,0.35);background:rgba(255,214,0,0.05);font-family:'Share Tech Mono',monospace;font-size:0.44rem;color:rgba(255,214,0,0.8);letter-spacing:0.08em;">⏱ ${eta}</div>`:''}
+                  ${eta?`<div class="eta-live${urgent?' urgent':''}">⏱ ${eta}</div>`:''}
                 </div>
                 ${!isDone&&c.id?`<button onclick="openReagendar('${c.id}','${c.name.replace(/'/g,"\\'")}','${c.time}','${barber.replace(/'/g,"\\'")}')" style="padding:3px 9px;border:1px solid rgba(0,245,255,0.15);background:transparent;color:rgba(0,245,255,0.25);font-family:'Share Tech Mono',monospace;font-size:0.38rem;letter-spacing:0.1em;cursor:pointer;text-transform:uppercase;transition:all 0.2s;text-align:center;align-self:center;font-weight:600;" onmouseover="this.style.background='rgba(0,245,255,0.1)';this.style.borderColor='rgba(0,245,255,0.5)';this.style.color='rgba(0,245,255,0.8)';" onmouseout="this.style.background='transparent';this.style.borderColor='rgba(0,245,255,0.15)';this.style.color='rgba(0,245,255,0.25)';">↻ MOVER</button>`:''}
                 <div class="mqi-right">
@@ -1425,8 +1483,6 @@ function updateTimers(){
 }
 setInterval(updateTimers,30000);
 
-function onTurnChanged(barber){SILLA_TIMES[barber]=Date.now();}
-
 let WI_SVC='CORTE';
 let WI_BARBER=null;
 
@@ -1520,7 +1576,111 @@ async function confirmReagendar(){
 
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 
+// ════════════════════════════════════════════════════
+//  ZEN MODE (modo oscuro extremo)
+// ════════════════════════════════════════════════════
+let ZEN=false;
+function toggleZen(){
+  ZEN=!ZEN;
+  document.body.classList.toggle('zen-mode',ZEN);
+  const btn=document.getElementById('zen-btn');
+  if(btn){btn.classList.toggle('active',ZEN);btn.textContent=ZEN?'☀ NORMAL':'☽ ZEN';}
+  try{localStorage.setItem('barberos_zen',ZEN?'1':'0');}catch(_){}
+}
+function initZen(){
+  try{if(localStorage.getItem('barberos_zen')==='1'){ZEN=true;document.body.classList.add('zen-mode');const btn=document.getElementById('zen-btn');if(btn){btn.classList.add('active');btn.textContent='☀ NORMAL';}}}catch(_){}
+}
+
+// ════════════════════════════════════════════════════
+//  FONT SIZE
+// ════════════════════════════════════════════════════
+const FS_SIZES=['sm','md','lg','xl'];
+let CURRENT_FS='md';
+function setFontSize(sz){
+  CURRENT_FS=sz;
+  const html=document.documentElement;
+  FS_SIZES.forEach(s=>html.classList.remove('fs-'+s));
+  html.classList.add('fs-'+sz);
+  FS_SIZES.forEach(s=>{const b=document.getElementById('fs-'+s);if(b)b.classList.toggle('active',s===sz);});
+  try{localStorage.setItem('barberos_fs',sz);}catch(_){}
+}
+function initFontSize(){
+  try{const s=localStorage.getItem('barberos_fs');if(s)setFontSize(s);}catch(_){}
+}
+
+// ════════════════════════════════════════════════════
+//  AVERAGE TURN TIME TRACKING
+// ════════════════════════════════════════════════════
+const TURN_TIMES={};  // barber -> array of durations in minutes
+function onTurnChanged(barber){
+  const now=Date.now();
+  if(SILLA_TIMES[barber]){
+    const mins=Math.round((now-SILLA_TIMES[barber])/60000);
+    if(mins>0&&mins<180){
+      if(!TURN_TIMES[barber])TURN_TIMES[barber]=[];
+      TURN_TIMES[barber].push(mins);
+    }
+  }
+  SILLA_TIMES[barber]=now;
+}
+function getAvgTime(barber){
+  const arr=TURN_TIMES[barber];
+  if(!arr||!arr.length)return DUR;
+  return Math.round(arr.reduce((a,b)=>a+b,0)/arr.length);
+}
+function getGlobalAvgTime(){
+  const all=Object.values(TURN_TIMES).flat();
+  if(!all.length)return DUR;
+  return Math.round(all.reduce((a,b)=>a+b,0)/all.length);
+}
+
+// ════════════════════════════════════════════════════
+//  DAY PROGRESS BAR
+// ════════════════════════════════════════════════════
+function getDayProgress(){
+  const total=S.citas.length;
+  if(!total)return{pct:0,done:0,total:0,avg:getGlobalAvgTime()};
+  const done=Object.values(S.queues).reduce((acc,q)=>acc+Math.max(0,q.currentTurn-1),0);
+  const pct=Math.round((done/total)*100);
+  return{pct,done,total,avg:getGlobalAvgTime()};
+}
+function dayProgressHtml(){
+  const{pct,done,total,avg}=getDayProgress();
+  return`<div class="day-progress">
+    <div class="day-prog-label">PROGRESO DEL DÍA</div>
+    <div class="day-prog-track"><div class="day-prog-fill" style="width:${pct}%"></div></div>
+    <div class="day-prog-pct">${pct}%</div>
+    <div class="day-prog-avg">✂ ${done}/${total} · ⊘ ${avg}m prom.</div>
+  </div>`;
+}
+
+// ════════════════════════════════════════════════════
+//  LIVE COUNTDOWN ETA
+// ════════════════════════════════════════════════════
+function calcLiveETA(pos, barber){
+  if(pos<=0)return null;
+  const avg=getAvgTime(barber||Object.keys(S.queues)[0]||'');
+  const startTime=SILLA_TIMES[barber];
+  const elapsedMins=startTime?Math.round((Date.now()-startTime)/60000):0;
+  const firstTurnRemaining=Math.max(0,avg-elapsedMins);
+  const totalMins=firstTurnRemaining+(pos-1)*avg;
+  if(totalMins<=0)return'<1m';
+  if(totalMins<60)return totalMins+'m';
+  const h=Math.floor(totalMins/60),m=totalMins%60;
+  return m?h+'h'+m+'m':h+'h';
+}
+function etaHtml(pos, barber, urgent=false){
+  const eta=calcLiveETA(pos, barber);
+  if(!eta)return'';
+  return`<div class="eta-live${urgent?' urgent':''}">⏱ ${eta}</div>`;
+}
+
+// Update countdown every minute
+setInterval(()=>{if(MODE!=='tv')render();},60000);
+
 async function init(){
+  initZen();
+  initFontSize();
   setDb('loading','CONECTANDO...');
   const up=new URLSearchParams(location.search);
   const urlMode=up.get('mode');const urlBarber=up.get('barber');
