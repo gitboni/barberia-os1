@@ -426,11 +426,6 @@ select.form-input option{background:#111318;}
       </div>
 
       <div class="form-group">
-        <label class="form-label">Webhook n8n (URL completa)</label>
-        <input class="form-input" id="webhookUrl" placeholder="https://donovan01.app.n8n.cloud/webhook/..." value="">
-      </div>
-
-      <div class="form-group">
         <label class="form-label">Número simulado (From)</label>
         <input class="form-input" id="simPhone" placeholder="+18091234567" value="+18099999999">
       </div>
@@ -600,9 +595,7 @@ async function sendMessage(){
   const text=input.value.trim();
   if(!text)return;
 
-  const webhook=document.getElementById('webhookUrl').value.trim();
-  if(!webhook){toast('⚠ Configura el webhook de n8n','warn');return;}
-  if(!currentShop){toast('⚠ Selecciona una barbería','warn');return;}
+  if(!currentShop){toast('⚠ Selecciona una barbería primero','warn');return;}
 
   const phone=document.getElementById('simPhone').value.trim()||'+18099999999';
 
@@ -614,56 +607,36 @@ async function sendMessage(){
   log('info','→ POST webhook: '+text.substring(0,40)+(text.length>40?'...':''));
 
   try{
-    // Formato exacto que Twilio manda a n8n
-    const body=new URLSearchParams({
-      From: 'whatsapp:'+phone,
-      To: 'whatsapp:'+(currentShop.twilio_number||'+14155238886'),
-      Body: text,
-      ProfileName: 'Test User',
-      WaId: phone.replace(/\D/g,''),
-      SmsMessageSid: 'SIM'+Date.now(),
-      NumMedia: '0',
-      // Campos extra para identificar la shop en n8n
-      shop_slug: currentShop.slug,
-      shop_id: currentShop.id,
-    });
-
-    const res=await fetch(webhook, {
+    // Llamar a la Edge Function de Supabase (sin CORS, con lógica del bot)
+    const EDGE_URL = 'https://mmokunpuslcfphalrwot.supabase.co/functions/v1/chat-simulator';
+    const res=await fetch(EDGE_URL, {
       method:'POST',
-      headers:{'Content-Type':'application/x-www-form-urlencoded'},
-      body: body.toString(),
+      headers:{
+        'Content-Type':'application/json',
+        'apikey': SB_KEY,
+      },
+      body: JSON.stringify({
+        mensaje: text,
+        telefono: phone,
+        shop_id: currentShop.id,
+      }),
     });
 
     if(!res.ok){
       const errText=await res.text().catch(()=>'');
-      throw new Error(`HTTP ${res.status}: ${errText.substring(0,100)}`);
+      throw new Error(`HTTP ${res.status}: ${errText.substring(0,200)}`);
     }
 
-    // Intentar leer respuesta del webhook (algunos n8n devuelven el mensaje)
-    const ct=res.headers.get('content-type')||'';
-    let webhookReply=null;
-    if(ct.includes('json')){
-      const data=await res.json().catch(()=>null);
-      if(data){
-        webhookReply=data.message||data.reply||data.body||data.Body||data.text||null;
-        if(!webhookReply&&typeof data==='string') webhookReply=data;
-      }
-    }else{
-      const txt=await res.text().catch(()=>'');
-      if(txt&&txt.length<500&&!txt.includes('<!DOCTYPE')) webhookReply=txt;
-    }
+    const data=await res.json();
+    log('success','✓ Bot respondió — acción: '+(data.accion||'?'));
 
-    log('success','✓ Webhook respondió '+res.status);
-
-    if(webhookReply&&webhookReply.trim()){
-      showTyping(false);
-      addMsg('in',webhookReply.trim());
-      log('success','Bot: '+webhookReply.substring(0,60));
-    }else{
-      // Si no hay respuesta directa, esperamos la respuesta del bot desde Supabase
-      log('info','Esperando respuesta del bot en Supabase...');
-      setTimeout(()=>pollBotReply(),1200);
+    showTyping(false);
+    if(data.respuesta&&data.respuesta.trim()){
+      addMsg('in', data.respuesta.trim());
+      log('success','Bot: '+data.respuesta.substring(0,60));
     }
+    // Actualizar estado de la conversación
+    await loadConversation();
 
   }catch(e){
     showTyping(false);
