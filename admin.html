@@ -883,6 +883,13 @@ function renderConfigPage(){
           <span style="font-size:0.55rem;color:var(--muted);">min</span>
         </div>
       </td>
+      <td style="padding:8px 6px;">
+        <div style="display:flex;align-items:center;gap:4px;">
+          <span style="font-size:0.55rem;color:var(--muted);">$</span>
+          <input type="number" value="${parseFloat(sv.precio||0).toFixed(0)}" id="svc-precio-${sv.id}" min="0" step="1"
+            style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:5px 8px;width:70px;font-family:'DM Mono',monospace;font-size:0.62rem;">
+        </div>
+      </td>
       <td style="padding:8px 6px;text-align:center;">
         <input type="checkbox" id="svc-activo-${sv.id}" ${sv.activo?'checked':''} style="width:16px;height:16px;accent-color:var(--gold);cursor:pointer;">
       </td>
@@ -953,6 +960,7 @@ function renderConfigPage(){
             <tr style="border-bottom:2px solid var(--border);">
               <th style="text-align:left;padding:6px;font-size:0.52rem;color:var(--muted);font-weight:400;letter-spacing:0.1em;">SERVICIO</th>
               <th style="text-align:left;padding:6px;font-size:0.52rem;color:var(--muted);font-weight:400;letter-spacing:0.1em;">DURACIÓN</th>
+              <th style="text-align:left;padding:6px;font-size:0.52rem;color:var(--muted);font-weight:400;letter-spacing:0.1em;">PRECIO</th>
               <th style="text-align:center;padding:6px;font-size:0.52rem;color:var(--muted);font-weight:400;letter-spacing:0.1em;">ACTIVO</th>
               <th style="text-align:right;padding:6px;font-size:0.52rem;color:var(--muted);font-weight:400;letter-spacing:0.1em;">ACCIÓN</th>
             </tr>
@@ -970,6 +978,11 @@ function renderConfigPage(){
           <div class="fg" style="flex:1;min-width:90px;margin:0;">
             <label style="font-size:0.52rem;color:var(--muted);letter-spacing:0.1em;">DURACIÓN (MIN)</label>
             <input type="number" id="svc-new-dur" value="45" min="5" max="300"
+              style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;width:100%;font-family:'DM Mono',monospace;font-size:0.62rem;margin-top:4px;">
+          </div>
+          <div class="fg" style="flex:1;min-width:80px;margin:0;">
+            <label style="font-size:0.52rem;color:var(--muted);letter-spacing:0.1em;">PRECIO ($)</label>
+            <input type="number" id="svc-new-precio" value="0" min="0" step="1"
               style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;width:100%;font-family:'DM Mono',monospace;font-size:0.62rem;margin-top:4px;">
           </div>
           <button onclick="addServicio()" style="background:var(--gold);color:#000;border:none;padding:9px 20px;font-family:'DM Mono',monospace;font-size:0.55rem;letter-spacing:0.1em;cursor:pointer;white-space:nowrap;">+ AGREGAR</button>
@@ -1037,7 +1050,7 @@ async function saveBarberoTel(id){
 
 async function loadServicios(){
   try{
-    const r=await sbGet('servicios','shop_id=eq.'+S.shopId+'&order=orden.asc&select=id,nombre,duracion_min,activo,orden');
+    const r=await sbGet('servicios','shop_id=eq.'+S.shopId+'&order=orden.asc&select=id,nombre,duracion_min,precio,activo,orden');
     S.servicios=r||[];
   }catch(e){S.servicios=[];}
 }
@@ -1045,12 +1058,14 @@ async function loadServicios(){
 async function saveServicio(id){
   const nombre=document.getElementById('svc-nombre-'+id).value.trim();
   const duracion_min=parseInt(document.getElementById('svc-dur-'+id).value)||45;
+  const precioEl=document.getElementById('svc-precio-'+id);
+  const precio=precioEl?parseFloat(precioEl.value)||0:0;
   const activo=document.getElementById('svc-activo-'+id).checked;
   if(!nombre){toast('El nombre no puede estar vacío','error');return;}
   try{
-    await sbPatch('servicios','id=eq.'+id,{nombre,duracion_min,activo});
+    await sbPatch('servicios','id=eq.'+id,{nombre,duracion_min,precio,activo});
     const idx=S.servicios.findIndex(s=>s.id===id);
-    if(idx>=0)Object.assign(S.servicios[idx],{nombre,duracion_min,activo});
+    if(idx>=0)Object.assign(S.servicios[idx],{nombre,duracion_min,precio,activo});
     toast('Servicio guardado ✓');
   }catch(e){toast('Error: '+e.message,'error');}
 }
@@ -1069,10 +1084,11 @@ async function deleteServicio(id){
 async function addServicio(){
   const nombre=document.getElementById('svc-new-nombre').value.trim();
   const duracion_min=parseInt(document.getElementById('svc-new-dur').value)||45;
+  const precio=parseFloat(document.getElementById('svc-new-precio').value)||0;
   if(!nombre){toast('Ingresá el nombre del servicio','error');return;}
   const orden=(S.servicios.length>0?Math.max(...S.servicios.map(s=>s.orden||0)):0)+1;
   try{
-    const r=await fetch(SUPABASE_URL+'/rest/v1/servicios',{method:'POST',headers:{...H,'Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify({shop_id:S.shopId,nombre,duracion_min,activo:true,orden})});
+    const r=await fetch(SUPABASE_URL+'/rest/v1/servicios',{method:'POST',headers:{...H,'Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify({shop_id:S.shopId,nombre,duracion_min,precio,activo:true,orden})});
     if(!r.ok)throw new Error(await r.text());
     const data=await r.json();
     S.servicios.push(data[0]);
