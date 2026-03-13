@@ -18,7 +18,6 @@
   --glow-g:rgba(0,255,120,0.5);--glow-p:rgba(176,110,255,0.5);
 }
 html,body{width:100%;height:100%;background:var(--bg);color:var(--cyan);font-family:'Rajdhani',sans-serif;overflow:hidden;}
-/* TV scale — makes everything ~15% larger */
 @media(min-width:1200px){html{font-size:112%;}}
 @media(min-width:1600px){html{font-size:120%;}}
 @media(min-width:1920px){html{font-size:130%;}}
@@ -42,8 +41,6 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--cyan);font-fam
 @keyframes typewriter-in{0%{clip-path:inset(0 100% 0 0);opacity:0;}5%{opacity:1;}100%{clip-path:inset(0 0% 0 0);opacity:1;}}
 @keyframes cursor-blink{0%,100%{border-right-color:currentColor;}50%{border-right-color:transparent;}}
 @keyframes name-enter{0%{opacity:0;transform:translateY(18px) scale(0.94);}60%{transform:translateY(-3px) scale(1.02);}100%{opacity:1;transform:translateY(0) scale(1);}}
-
-/* ── IMPROVED BACKGROUND ANIMATIONS ── */
 @keyframes nebula-drift{0%{transform:translate(0,0) scale(1);opacity:0.6}33%{transform:translate(40px,-30px) scale(1.08);opacity:0.8}66%{transform:translate(-20px,20px) scale(0.95);opacity:0.65}100%{transform:translate(0,0) scale(1);opacity:0.6}}
 @keyframes nebula-drift2{0%{transform:translate(0,0) scale(1);opacity:0.5}40%{transform:translate(-50px,30px) scale(1.1);opacity:0.7}80%{transform:translate(25px,-15px) scale(0.92);opacity:0.55}100%{transform:translate(0,0) scale(1);opacity:0.5}}
 @keyframes nebula-drift3{0%{transform:translate(0,0) scale(1);opacity:0.4}50%{transform:translate(30px,40px) scale(1.05);opacity:0.6}100%{transform:translate(0,0) scale(1);opacity:0.4}}
@@ -65,7 +62,6 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--cyan);font-fam
 .silla-timer.hot{border-color:rgba(255,0,110,0.3);color:rgba(255,0,110,0.7);animation:blink 1.5s ease-in-out infinite;}
 .timer-dot{width:5px;height:5px;border-radius:50%;background:currentColor;box-shadow:0 0 5px currentColor;animation:blink 1.2s ease-in-out infinite;}
 
-/* ── MODAL WALK-IN / REAGENDAR ── */
 .action-modal{display:none;position:fixed;inset:0;z-index:300;background:rgba(2,4,8,0.94);backdrop-filter:blur(18px);align-items:center;justify-content:center;}
 .action-modal.open{display:flex;}
 .action-box{background:var(--bg2);border:1px solid rgba(0,245,255,0.15);padding:28px 32px;min-width:360px;max-width:500px;width:92%;position:relative;}
@@ -104,83 +100,22 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--cyan);font-fam
 .abtn-cancel{background:transparent;border-color:rgba(255,255,255,0.07);color:rgba(255,255,255,0.18);}
 .abtn-cancel:hover{border-color:rgba(255,255,255,0.2);color:rgba(255,255,255,0.4);}
 
-/* ── WALK-IN FAB ── */
 .walkin-fab{position:fixed;right:18px;bottom:100px;z-index:60;display:flex;align-items:center;gap:7px;padding:8px 16px;background:rgba(0,255,120,0.07);border:1px solid rgba(0,255,120,0.3);color:rgba(0,255,120,0.6);font-family:'Share Tech Mono',monospace;font-size:0.48rem;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;opacity:0.35;-webkit-tap-highlight-color:transparent;}
 .walkin-fab:hover{opacity:1;box-shadow:0 0 20px rgba(0,255,120,0.18);}
 .walkin-fab-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);}
 
-/* ══════════════════════════════════════════════
-   IMPROVED BACKGROUND SYSTEM
-   ══════════════════════════════════════════════ */
-
-/* Base dark bg */
 .bg-base{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 120% 80% at 50% -10%, #030b18 0%, #020408 60%, #010206 100%);}
-
-/* Animated grid — subtle, pulsing */
-.grid-bg{
-  position:fixed;inset:0;z-index:1;
-  background-image:
-    linear-gradient(rgba(0,245,255,0.028) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(0,245,255,0.028) 1px,transparent 1px);
-  background-size:60px 60px;
-  animation:grid-drift 30s linear infinite, grid-pulse 8s ease-in-out infinite;
-}
-
-/* Diagonal accent lines */
-.grid-diagonal{
-  position:fixed;inset:0;z-index:1;pointer-events:none;
-  background-image:repeating-linear-gradient(
-    45deg,
-    transparent 0,transparent 120px,
-    rgba(0,245,255,0.012) 120px,rgba(0,245,255,0.012) 121px
-  );
-  animation:diagonal-drift 20s linear infinite;
-}
-
-/* CRT scanlines — very subtle */
+.grid-bg{position:fixed;inset:0;z-index:1;background-image:linear-gradient(rgba(0,245,255,0.028) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,255,0.028) 1px,transparent 1px);background-size:60px 60px;animation:grid-drift 30s linear infinite, grid-pulse 8s ease-in-out infinite;}
+.grid-diagonal{position:fixed;inset:0;z-index:1;pointer-events:none;background-image:repeating-linear-gradient(45deg,transparent 0,transparent 120px,rgba(0,245,255,0.012) 120px,rgba(0,245,255,0.012) 121px);animation:diagonal-drift 20s linear infinite;}
 .scanline{position:fixed;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.04) 2px,rgba(0,0,0,0.04) 4px);}
-
-/* Moving scan line across the screen */
 .barber-icon{position:fixed;pointer-events:none;z-index:1;font-size:1.6rem;opacity:0;animation:barber-fall linear infinite;filter:drop-shadow(0 0 4px currentColor);user-select:none;}
-
-/* Vignette */
-.vignette{
-  position:fixed;inset:0;z-index:2;pointer-events:none;
-  background:radial-gradient(ellipse 90% 90% at 50% 50%, transparent 30%, rgba(0,0,0,0.55) 80%, rgba(0,0,0,0.88) 100%);
-  animation:vignette-breathe 12s ease-in-out infinite;
-}
-
-/* Large nebula orbs — multiple, slower, richer */
+.vignette{position:fixed;inset:0;z-index:2;pointer-events:none;background:radial-gradient(ellipse 90% 90% at 50% 50%, transparent 30%, rgba(0,0,0,0.55) 80%, rgba(0,0,0,0.88) 100%);animation:vignette-breathe 12s ease-in-out infinite;}
 .orb{position:fixed;border-radius:50%;filter:blur(120px);pointer-events:none;z-index:0;}
-.orb1{
-  width:900px;height:700px;
-  background:radial-gradient(ellipse, rgba(0,245,255,0.07) 0%, rgba(0,100,180,0.04) 50%, transparent 70%);
-  top:-300px;left:-300px;
-  animation:nebula-drift 18s ease-in-out infinite;
-}
-.orb2{
-  width:800px;height:800px;
-  background:radial-gradient(ellipse, rgba(255,0,110,0.06) 0%, rgba(120,0,60,0.03) 50%, transparent 70%);
-  bottom:-300px;right:-300px;
-  animation:nebula-drift2 22s ease-in-out infinite;
-}
-.orb3{
-  width:600px;height:500px;
-  background:radial-gradient(ellipse, rgba(176,110,255,0.05) 0%, rgba(80,40,140,0.025) 50%, transparent 70%);
-  top:30%;left:50%;transform:translateX(-50%);
-  animation:nebula-drift3 28s ease-in-out infinite;
-}
-.orb4{
-  width:400px;height:350px;
-  background:radial-gradient(ellipse, rgba(0,255,120,0.04) 0%, transparent 70%);
-  bottom:10%;left:10%;
-  animation:nebula-drift 14s ease-in-out infinite reverse;
-}
-
-/* Star field canvas (generated via JS) */
+.orb1{width:900px;height:700px;background:radial-gradient(ellipse, rgba(0,245,255,0.07) 0%, rgba(0,100,180,0.04) 50%, transparent 70%);top:-300px;left:-300px;animation:nebula-drift 18s ease-in-out infinite;}
+.orb2{width:800px;height:800px;background:radial-gradient(ellipse, rgba(255,0,110,0.06) 0%, rgba(120,0,60,0.03) 50%, transparent 70%);bottom:-300px;right:-300px;animation:nebula-drift2 22s ease-in-out infinite;}
+.orb3{width:600px;height:500px;background:radial-gradient(ellipse, rgba(176,110,255,0.05) 0%, rgba(80,40,140,0.025) 50%, transparent 70%);top:30%;left:50%;transform:translateX(-50%);animation:nebula-drift3 28s ease-in-out infinite;}
+.orb4{width:400px;height:350px;background:radial-gradient(ellipse, rgba(0,255,120,0.04) 0%, transparent 70%);bottom:10%;left:10%;animation:nebula-drift 14s ease-in-out infinite reverse;}
 #star-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.7;}
-
-/* Corner accent frames */
 .corner-frame{position:fixed;z-index:3;pointer-events:none;}
 .corner-frame::before,.corner-frame::after{content:'';position:absolute;border-style:solid;border-color:rgba(0,245,255,0.12);}
 .cf-tl{top:0;left:0;}
@@ -196,10 +131,8 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--cyan);font-fam
 .cf-br::before{bottom:12px;right:12px;width:60px;height:60px;border-width:0 1px 1px 0;}
 .cf-br::after{bottom:18px;right:18px;width:30px;height:30px;border-width:0 1px 1px 0;border-color:rgba(0,245,255,0.06);}
 
-/* ── SHELL ── */
 .app{position:relative;z-index:4;height:100vh;display:flex;flex-direction:column;}
 
-/* ── HEADER ── */
 header{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:10px 32px;border-bottom:1px solid rgba(0,245,255,0.1);background:rgba(2,4,8,0.65);backdrop-filter:blur(16px);position:relative;z-index:10;flex-shrink:0;}
 header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);animation:line-pulse 3s ease-in-out infinite;}
 .brand{display:flex;align-items:center;gap:12px;}
@@ -229,50 +162,25 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .fs-btn{background:rgba(0,245,255,0.05);border:1px solid rgba(0,245,255,0.15);color:rgba(0,245,255,0.5);padding:5px 10px;font-family:'Share Tech Mono',monospace;font-size:0.48rem;letter-spacing:0.12em;cursor:pointer;text-transform:uppercase;transition:all 0.2s;}
 .fs-btn:hover{background:rgba(0,245,255,0.12);color:var(--cyan);}
 
-/* ── CONTENT ── */
 .content{flex:1;display:flex;overflow:hidden;min-height:0;}
 
-/* ── COLORS POR BARBERO ── */
 .bc-0{--bc:#00F5FF;--bc-glow:rgba(0,245,255,0.5);}
 .bc-1{--bc:#B06EFF;--bc-glow:rgba(176,110,255,0.5);}
 .bc-2{--bc:#FFD600;--bc-glow:rgba(255,214,0,0.5);}
 .bc-3{--bc:#00FF78;--bc-glow:rgba(0,255,120,0.5);}
 .bc-4{--bc:#FF006E;--bc-glow:rgba(255,0,110,0.5);}
 
-/* ── MODE BAR ── */
-.mode-bar{
-  position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
-  z-index:50;display:flex;align-items:center;gap:3px;
-  background:rgba(2,4,8,0.85);border:1px solid rgba(0,245,255,0.12);
-  padding:4px 6px;backdrop-filter:blur(12px);
-  opacity:0.25;transition:opacity 0.3s;
-}
+.mode-bar{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:50;display:flex;align-items:center;gap:3px;background:rgba(2,4,8,0.85);border:1px solid rgba(0,245,255,0.12);padding:4px 6px;backdrop-filter:blur(12px);opacity:0.25;transition:opacity 0.3s;}
 .mode-bar:hover{opacity:1;}
-.mode-btn{
-  display:flex;align-items:center;gap:5px;
-  padding:5px 12px;border:1px solid transparent;
-  font-family:'Share Tech Mono',monospace;font-size:0.48rem;
-  letter-spacing:0.14em;text-transform:uppercase;color:rgba(0,245,255,0.35);
-  background:transparent;cursor:pointer;transition:all 0.2s;
-  white-space:nowrap;
-}
+.mode-btn{display:flex;align-items:center;gap:5px;padding:5px 12px;border:1px solid transparent;font-family:'Share Tech Mono',monospace;font-size:0.48rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(0,245,255,0.35);background:transparent;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
 .mode-btn:hover{color:rgba(0,245,255,0.7);border-color:rgba(0,245,255,0.15);}
 .mode-btn.active{color:var(--cyan);border-color:rgba(0,245,255,0.4);background:rgba(0,245,255,0.07);text-shadow:0 0 10px var(--glow-c);}
 .mode-btn.mode-barber-active{color:var(--purple);border-color:rgba(176,110,255,0.4);background:rgba(176,110,255,0.07);}
 .mode-sep{width:1px;height:14px;background:rgba(0,245,255,0.1);}
-.barber-picker{
-  display:none;flex-direction:column;gap:2px;
-  position:fixed;bottom:60px;left:50%;transform:translateX(-50%);
-  z-index:51;background:rgba(2,4,8,0.95);border:1px solid rgba(176,110,255,0.2);
-  padding:8px;backdrop-filter:blur(16px);min-width:200px;
-}
+.barber-picker{display:none;flex-direction:column;gap:2px;position:fixed;bottom:60px;left:50%;transform:translateX(-50%);z-index:51;background:rgba(2,4,8,0.95);border:1px solid rgba(176,110,255,0.2);padding:8px;backdrop-filter:blur(16px);min-width:200px;}
 .barber-picker.open{display:flex;}
 .bp-title{font-family:'Share Tech Mono',monospace;font-size:0.4rem;letter-spacing:0.28em;color:rgba(176,110,255,0.4);text-transform:uppercase;padding:0 4px 6px;border-bottom:1px solid rgba(176,110,255,0.1);margin-bottom:4px;}
-.bp-item{
-  display:flex;align-items:center;justify-content:space-between;gap:8px;
-  padding:7px 10px;border:1px solid rgba(176,110,255,0.08);
-  cursor:pointer;transition:all 0.18s;
-}
+.bp-item{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 10px;border:1px solid rgba(176,110,255,0.08);cursor:pointer;transition:all 0.18s;}
 .bp-item:hover{background:rgba(176,110,255,0.08);border-color:rgba(176,110,255,0.22);}
 .bp-item.selected{background:rgba(176,110,255,0.1);border-color:rgba(176,110,255,0.4);}
 .bp-name{font-family:'Rajdhani',sans-serif;font-size:0.88rem;font-weight:600;color:#fff;letter-spacing:0.1em;text-transform:uppercase;}
@@ -284,9 +192,6 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .bp-toggle.off{color:rgba(0,255,120,0.5);border-color:rgba(0,255,120,0.22);}
 .bp-toggle.off:hover{background:rgba(0,255,120,0.06);}
 
-/* ══════════════════════════════════════════════
-   MODO TV
-   ══════════════════════════════════════════════ */
 .tv-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:12px 16px 8px;gap:10px;}
 .tv-cards{flex:1;display:grid;gap:10px;min-height:0;}
 .tv-cards.n1{grid-template-columns:1fr;}
@@ -294,20 +199,11 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .tv-cards.n3{grid-template-columns:repeat(3,1fr);}
 .tv-cards.n4{grid-template-columns:repeat(4,1fr);}
 .tv-cards.n5{grid-template-columns:repeat(5,1fr);}
-.tv-card{
-  border:1px solid rgba(0,245,255,0.1);
-  background:rgba(2,6,14,0.6);
-  display:flex;flex-direction:column;overflow:hidden;position:relative;
-  backdrop-filter:blur(8px);
-}
+.tv-card{border:1px solid rgba(0,245,255,0.1);background:rgba(2,6,14,0.6);display:flex;flex-direction:column;overflow:hidden;position:relative;backdrop-filter:blur(8px);}
 .tv-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--bc,var(--cyan)),transparent);opacity:0.7;}
 .tv-card::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,245,255,0.04) 0%, transparent 60%);pointer-events:none;}
 .tv-card.libre{opacity:0.35;filter:grayscale(60%);}
-.tv-card-head{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:8px 14px;border-bottom:1px solid rgba(0,245,255,0.07);
-  background:rgba(2,4,8,0.5);flex-shrink:0;position:relative;z-index:1;
-}
+.tv-card-head{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:1px solid rgba(0,245,255,0.07);background:rgba(2,4,8,0.5);flex-shrink:0;position:relative;z-index:1;}
 .tv-barber-name{font-family:'Orbitron',monospace;font-size:0.7rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--bc,var(--cyan));text-shadow:0 0 10px var(--bc-glow,var(--glow-c));}
 .tv-status-badge{font-family:'Share Tech Mono',monospace;font-size:0.38rem;padding:2px 7px;border:1px solid;letter-spacing:0.1em;text-transform:uppercase;}
 .tv-status-badge.activo{border-color:rgba(0,255,120,0.3);color:rgba(0,255,120,0.6);}
@@ -329,20 +225,11 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .tv-next-num{font-family:'Orbitron',monospace;font-size:0.9rem;font-weight:700;color:rgba(0,245,255,0.32);}
 .tv-next-name{font-family:'Rajdhani',sans-serif;font-size:0.82rem;font-weight:600;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .tv-next-time{font-family:'Orbitron',monospace;font-size:0.75rem;color:var(--gold);opacity:0.7;}
-.tv-btn{
-  width:100%;padding:10px 0;
-  background:linear-gradient(135deg,rgba(0,255,120,0.1),rgba(0,245,255,0.05));
-  border:1px solid rgba(0,255,120,0.35);border-top:none;
-  color:var(--green);font-family:'Orbitron',monospace;font-size:0.65rem;font-weight:700;
-  letter-spacing:0.24em;text-transform:uppercase;cursor:pointer;
-  text-shadow:0 0 12px var(--glow-g);transition:all 0.2s;flex-shrink:0;
-  -webkit-tap-highlight-color:transparent;position:relative;z-index:1;
-}
+.tv-btn{width:100%;padding:10px 0;background:linear-gradient(135deg,rgba(0,255,120,0.1),rgba(0,245,255,0.05));border:1px solid rgba(0,255,120,0.35);border-top:none;color:var(--green);font-family:'Orbitron',monospace;font-size:0.65rem;font-weight:700;letter-spacing:0.24em;text-transform:uppercase;cursor:pointer;text-shadow:0 0 12px var(--glow-g);transition:all 0.2s;flex-shrink:0;-webkit-tap-highlight-color:transparent;position:relative;z-index:1;}
 .tv-btn:hover{background:linear-gradient(135deg,rgba(0,255,120,0.18),rgba(0,245,255,0.1));box-shadow:0 0 24px rgba(0,255,120,0.2);}
 .tv-btn:active{transform:scale(0.98);}
 .tv-btn.loading{opacity:0.5;pointer-events:none;}
 .tv-btn.success{border-color:rgba(0,245,255,0.5);color:var(--cyan);}
-/* TV ticker */
 .tv-ticker{height:32px;border-top:1px solid rgba(0,245,255,0.07);background:rgba(2,4,8,0.7);display:flex;align-items:center;gap:0;overflow:hidden;flex-shrink:0;}
 .tv-ticker-label{padding:0 14px;font-family:'Share Tech Mono',monospace;font-size:0.42rem;color:rgba(0,245,255,0.25);letter-spacing:0.22em;text-transform:uppercase;white-space:nowrap;border-right:1px solid rgba(0,245,255,0.07);flex-shrink:0;}
 .tv-ticker-track{flex:1;overflow:hidden;position:relative;}
@@ -354,7 +241,6 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .tv-ticker-item.active{color:rgba(0,255,120,0.5);}
 .tv-ticker-item.active .t-n{color:var(--green);}
 
-/* ── MODO BARBERÍA ── */
 .layout-solo .barber-col{display:grid;grid-template-columns:360px 1fr;flex:1;}
 .layout-solo .col-left{display:flex;flex-direction:column;border-right:1px solid rgba(0,245,255,0.08);background:rgba(0,245,255,0.012);overflow:hidden;}
 .layout-solo .col-right{display:flex;flex-direction:column;padding:14px 20px 10px;overflow:hidden;gap:8px;}
@@ -362,7 +248,6 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .layout-multi .barber-col:last-child{border-right:none;}
 .layout-multi .barber-col.libre{flex:0.55;opacity:0.4;filter:grayscale(50%);}
 
-/* Silla zone */
 .silla-zone{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:20px 24px 14px;position:relative;border-bottom:1px solid rgba(0,245,255,0.06);flex-shrink:0;}
 .layout-solo .silla-zone{flex:1;}
 .silla-zone::before,.silla-zone::after{content:'';position:absolute;width:36px;height:36px;border-style:solid;border-color:var(--bc,rgba(0,245,255,0.2));}
@@ -395,7 +280,6 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .barber-dot{width:5px;height:5px;border-radius:50%;background:var(--purple);box-shadow:0 0 6px var(--purple);}
 .swipe-flash{position:absolute;inset:0;background:rgba(0,255,120,0.1);opacity:0;pointer-events:none;transition:opacity 0.25s;z-index:20;}
 .swipe-flash.on{opacity:1;}
-/* Bottom zone */
 .bottom-zone{padding:12px 18px 14px;display:flex;flex-direction:column;gap:9px;flex-shrink:0;}
 .next-strip{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;padding:10px 14px;border:1px solid rgba(0,245,255,0.1);background:rgba(0,245,255,0.025);position:relative;}
 .next-strip::before{content:'PRÓXIMO';position:absolute;top:-8px;left:12px;background:var(--bg);padding:0 7px;font-family:'Share Tech Mono',monospace;font-size:0.44rem;letter-spacing:0.28em;color:rgba(0,245,255,0.28);}
@@ -407,7 +291,6 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .disp-strip{display:flex;align-items:center;gap:8px;padding:6px 12px;border:1px solid rgba(0,255,120,0.12);background:rgba(0,255,120,0.025);font-family:'Share Tech Mono',monospace;font-size:0.5rem;letter-spacing:0.12em;color:rgba(0,255,120,0.4);text-transform:uppercase;}
 .disp-strip.conflict{border-color:rgba(255,0,110,0.2);background:rgba(255,0,110,0.025);color:rgba(255,0,110,0.5);}
 .disp-d{width:5px;height:5px;border-radius:50%;background:currentColor;box-shadow:0 0 5px currentColor;animation:blink 2s ease-in-out infinite;}
-/* Botón siguiente */
 .btn-siguiente{width:100%;padding:11px 0;background:linear-gradient(135deg,rgba(0,255,120,0.1),rgba(0,245,255,0.05));border:1px solid rgba(0,255,120,0.5);color:var(--green);font-family:'Orbitron',monospace;font-size:0.72rem;font-weight:700;letter-spacing:0.26em;text-transform:uppercase;cursor:pointer;position:relative;overflow:hidden;transition:all 0.2s;text-shadow:0 0 12px var(--glow-g);box-shadow:0 0 16px rgba(0,255,120,0.12),inset 0 0 14px rgba(0,255,120,0.04);flex-shrink:0;-webkit-tap-highlight-color:transparent;}
 .layout-multi .btn-siguiente{font-size:0.62rem;padding:9px 0;letter-spacing:0.18em;}
 .btn-siguiente::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(0,255,120,0.2),transparent);transition:left 0.45s;}
@@ -423,7 +306,6 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .sc-br{bottom:-1px;right:-1px;border-width:0 2px 2px 0;}
 .swipe-hint{text-align:center;padding:2px 0;font-family:'Share Tech Mono',monospace;font-size:0.36rem;color:rgba(0,245,255,0.13);letter-spacing:0.16em;text-transform:uppercase;flex-shrink:0;display:none;}
 .layout-multi .swipe-hint{display:block;}
-/* Queue section */
 .queue-section{display:flex;flex-direction:column;gap:8px;overflow:hidden;flex:1;min-height:0;}
 .queue-header{display:flex;align-items:center;justify-content:space-between;padding-bottom:9px;border-bottom:1px solid rgba(0,245,255,0.08);position:relative;flex-shrink:0;}
 .queue-header::after{content:'';position:absolute;bottom:-1px;left:0;width:70px;height:1px;background:var(--cyan);box-shadow:0 0 12px var(--cyan);}
@@ -484,7 +366,6 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .q-mini-time{font-family:'Orbitron',monospace;font-size:0.54rem;color:rgba(255,214,0,0.38);}
 .q-mini-barb{font-family:'Share Tech Mono',monospace;font-size:0.4rem;color:rgba(176,110,255,0.32);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:50%;}
 .wait-eta{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;margin-left:8px;border:1px solid rgba(255,214,0,0.2);background:rgba(255,214,0,0.04);font-family:'Share Tech Mono',monospace;font-size:0.5rem;color:rgba(255,214,0,0.55);vertical-align:middle;white-space:nowrap;}
-/* Multi col queue */
 .multi-queue{flex:1;overflow-y:auto;padding:5px 7px;display:flex;flex-direction:column;gap:3px;min-height:0;}
 .multi-queue::-webkit-scrollbar{width:2px;}
 .multi-queue::-webkit-scrollbar-thumb{background:rgba(0,245,255,0.1);}
@@ -520,9 +401,9 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .my-stat-val.gold{color:var(--gold);text-shadow:0 0 20px rgba(255,214,0,0.4);}
 .my-stat-val.green{color:var(--green);text-shadow:0 0 20px var(--glow-g);}
 .my-stat-lbl{font-family:'Share Tech Mono',monospace;font-size:0.4rem;color:rgba(0,245,255,0.35);letter-spacing:0.18em;text-transform:uppercase;margin-top:3px;}
-.my-layout{flex:1;display:grid;grid-template-columns:340px 1fr;overflow:hidden;}
-.my-left{display:flex;flex-direction:column;border-right:1px solid rgba(0,245,255,0.1);background:rgba(0,245,255,0.01);}
-.my-right{display:flex;flex-direction:column;padding:14px 18px 10px;overflow:hidden;gap:8px;}
+.my-layout{flex:1;display:grid;grid-template-columns:360px 1fr;overflow:hidden;}
+.my-left{display:flex;flex-direction:column;border-right:1px solid rgba(0,245,255,0.08);background:rgba(0,245,255,0.012);overflow:hidden;}
+.my-right{display:flex;flex-direction:column;padding:14px 20px 10px;overflow:hidden;gap:8px;}
 .my-silla-zone{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:20px 24px 14px;position:relative;border-bottom:1px solid rgba(0,245,255,0.08);flex:1;}
 .my-silla-zone::before,.my-silla-zone::after{content:'';position:absolute;width:36px;height:36px;border-style:solid;border-color:rgba(0,245,255,0.3);}
 .my-silla-zone::before{top:14px;left:14px;border-width:2px 0 0 2px;}
@@ -539,7 +420,11 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .btn-my-sig:active{transform:scale(0.98);}
 .btn-my-sig.loading{pointer-events:none;opacity:0.6;}
 .btn-my-sig.success{border-color:var(--green);color:var(--green);}
-.my-queue-title{font-family:'Orbitron',monospace;font-size:0.7rem;font-weight:600;letter-spacing:0.2em;color:var(--cyan);text-transform:uppercase;padding-bottom:8px;border-bottom:1px solid rgba(0,245,255,0.1);flex-shrink:0;}
+.my-queue-section{display:flex;flex-direction:column;gap:8px;overflow:hidden;flex:1;min-height:0;}
+.my-queue-title{font-family:'Orbitron',monospace;font-size:0.74rem;font-weight:600;letter-spacing:0.2em;color:var(--cyan);text-transform:uppercase;padding-bottom:8px;border-bottom:1px solid rgba(0,245,255,0.1);flex-shrink:0;position:relative;}
+.my-queue-title::after{content:'';position:absolute;bottom:-1px;left:0;width:70px;height:1px;background:var(--cyan);box-shadow:0 0 12px var(--cyan);}
+.my-queue-meta{font-family:'Share Tech Mono',monospace;font-size:0.56rem;color:rgba(0,245,255,0.3);float:right;margin-top:2px;}
+.my-stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;flex-shrink:0;}
 .my-queue-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:4px;min-height:0;}
 .my-queue-list::-webkit-scrollbar{width:2px;}
 .my-queue-list::-webkit-scrollbar-thumb{background:rgba(0,245,255,0.1);}
@@ -567,7 +452,6 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .libre-txt{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:700;color:rgba(0,245,255,0.3);letter-spacing:0.22em;text-transform:uppercase;}
 .libre-sub{font-family:'Share Tech Mono',monospace;font-size:0.5rem;color:rgba(0,245,255,0.2);letter-spacing:0.2em;text-transform:uppercase;margin-top:4px;}
 
-/* ── FOOTER ── */
 footer{border-top:1px solid rgba(0,245,255,0.08);padding:7px 32px;display:flex;align-items:center;justify-content:space-between;background:rgba(2,4,8,0.7);backdrop-filter:blur(12px);flex-shrink:0;}
 .footer-msg{font-family:'Rajdhani',sans-serif;font-size:1.05rem;font-weight:500;color:rgba(0,245,255,0.42);font-style:italic;letter-spacing:0.08em;text-shadow:0 0 18px rgba(0,245,255,0.18);animation:lbl-glow 4s ease-in-out infinite;}
 .barberos-bar{display:flex;gap:6px;align-items:center;}
@@ -577,7 +461,6 @@ footer{border-top:1px solid rgba(0,245,255,0.08);padding:7px 32px;display:flex;a
 .barb-slot.active .barb-slot-dot{background:var(--cyan);box-shadow:0 0 6px var(--cyan);animation:blink 2s ease-in-out infinite;}
 .footer-version{font-family:'Share Tech Mono',monospace;font-size:0.47rem;color:rgba(0,245,255,0.16);letter-spacing:0.2em;}
 
-/* ── MISC ── */
 .toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%) translateY(14px);background:var(--bg2);border:1px solid rgba(0,255,120,0.35);padding:9px 22px;font-family:'Share Tech Mono',monospace;font-size:0.58rem;letter-spacing:0.16em;color:var(--green);text-transform:uppercase;opacity:0;transition:all 0.3s;z-index:500;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .toast.warn{border-color:rgba(255,214,0,0.35);color:var(--gold);}
@@ -604,7 +487,7 @@ footer{border-top:1px solid rgba(0,245,255,0.08);padding:7px 32px;display:flex;a
 
 @media(max-width:1024px){
   .layout-solo .barber-col{grid-template-columns:300px 1fr;}
-  .my-layout{grid-template-columns:280px 1fr;}
+  .my-layout{grid-template-columns:300px 1fr;}
 }
 @media(max-width:860px){
   header{grid-template-columns:1fr 1fr;padding:8px 16px;}
@@ -635,7 +518,6 @@ footer{border-top:1px solid rgba(0,245,255,0.08);padding:7px 32px;display:flex;a
 <body>
 <div class="offline-banner" id="ob">⚠ Sin conexión — datos en caché</div>
 
-<!-- IMPROVED BACKGROUND LAYERS -->
 <div class="bg-base"></div>
 <canvas id="star-canvas"></canvas>
 <div class="orb orb1"></div>
@@ -648,7 +530,6 @@ footer{border-top:1px solid rgba(0,245,255,0.08);padding:7px 32px;display:flex;a
 <div id="barber-rain"></div>
 <div class="vignette"></div>
 
-<!-- Corner frame accents -->
 <div class="corner-frame cf-tl"></div>
 <div class="corner-frame cf-tr"></div>
 <div class="corner-frame cf-bl"></div>
@@ -689,7 +570,6 @@ footer{border-top:1px solid rgba(0,245,255,0.08);padding:7px 32px;display:flex;a
   </footer>
 </div>
 
-<!-- MODE BAR -->
 <div class="mode-bar" id="mode-bar">
   <button class="mode-btn" id="mbtn-tv" onclick="setMode('tv')" title="Vista global para TV">📺 TV</button>
   <div class="mode-sep"></div>
@@ -710,7 +590,6 @@ footer{border-top:1px solid rgba(0,245,255,0.08);padding:7px 32px;display:flex;a
   <div class="walkin-fab-dot"></div>+ WALK-IN
 </button>
 
-<!-- MODAL WALK-IN -->
 <div class="action-modal" id="walkin-modal">
   <div class="action-box">
     <div class="action-title">➕ CLIENTE SIN CITA</div>
@@ -736,7 +615,6 @@ footer{border-top:1px solid rgba(0,245,255,0.08);padding:7px 32px;display:flex;a
   </div>
 </div>
 
-<!-- MODAL REAGENDAR -->
 <div class="action-modal" id="reag-modal">
   <div class="action-box purple-modal">
     <div class="action-title">↻ REAGENDAR TURNO</div>
@@ -766,7 +644,7 @@ footer{border-top:1px solid rgba(0,245,255,0.08);padding:7px 32px;display:flex;a
 
 <script>
 // ════════════════════════════════════════════════════
-//  BARBER RAIN — instrumentos cayendo
+//  BARBER RAIN
 // ════════════════════════════════════════════════════
 (function initBarberRain(){
   const ICONS=['✂'];
@@ -778,14 +656,13 @@ footer{border-top:1px solid rgba(0,245,255,0.08);padding:7px 32px;display:flex;a
     el.className='barber-icon';
     const icon=ICONS[Math.floor(Math.random()*ICONS.length)];
     const color=COLORS[Math.floor(Math.random()*COLORS.length)];
-    const size=Math.random()*2.2+1.1; // 1.1rem to 3.3rem
+    const size=Math.random()*2.2+1.1;
     const left=Math.random()*98;
-    const dur=Math.random()*14+10; // 10–24s
+    const dur=Math.random()*14+10;
     const delay=Math.random()*20;
     el.textContent=icon;
     el.style.cssText=`left:${left}%;top:-80px;font-size:${size}rem;color:${color};animation-duration:${dur}s;animation-delay:${delay}s;`;
     container.appendChild(el);
-    // respawn on end
     el.addEventListener('animationend',()=>{
       el.style.animationDelay='0s';
       el.style.left=Math.random()*98+'%';
@@ -798,7 +675,7 @@ footer{border-top:1px solid rgba(0,245,255,0.08);padding:7px 32px;display:flex;a
 })();
 
 // ════════════════════════════════════════════════════
-//  STAR FIELD GENERATOR
+//  STAR FIELD
 // ════════════════════════════════════════════════════
 (function initStars(){
   const canvas=document.getElementById('star-canvas');
@@ -809,25 +686,16 @@ footer{border-top:1px solid rgba(0,245,255,0.08);padding:7px 32px;display:flex;a
     stars=[];
     const count=Math.floor(W*H/5500);
     for(let i=0;i<count;i++){
-      stars.push({
-        x:Math.random()*W,y:Math.random()*H,
-        r:Math.random()*1.0+0.2,
-        a:Math.random()*0.5+0.1,
-        speed:0.2+Math.random()*1.0,
-        phase:Math.random()*Math.PI*2
-      });
+      stars.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.0+0.2,a:Math.random()*0.5+0.1,speed:0.2+Math.random()*1.0,phase:Math.random()*Math.PI*2});
     }
   }
   let t=0;
   function draw(){
-    ctx.clearRect(0,0,W,H);
-    t+=0.006;
+    ctx.clearRect(0,0,W,H);t+=0.006;
     stars.forEach(s=>{
       const alpha=s.a*(0.3+0.7*Math.abs(Math.sin(t*s.speed+s.phase)));
-      ctx.beginPath();
-      ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-      ctx.fillStyle='rgba(180,230,255,'+alpha+')';
-      ctx.fill();
+      ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle='rgba(180,230,255,'+alpha+')';ctx.fill();
     });
     requestAnimationFrame(draw);
   }
@@ -836,7 +704,7 @@ footer{border-top:1px solid rgba(0,245,255,0.08);padding:7px 32px;display:flex;a
 })();
 
 // ════════════════════════════════════════════════════
-//  BarberOS Display v8 — 3 modos en un archivo
+//  BarberOS Display v8
 // ════════════════════════════════════════════════════
 const SB_URL='https://mmokunpuslcfphalrwot.supabase.co';
 const SB_KEY='sb_publishable_aETz_9ECH5RcBMjmRhUnfw_g71zRdwT';
@@ -855,13 +723,7 @@ function resolveSlug(){
 const SLUG=resolveSlug();
 let DUR=45;
 
-const S={
-  shopId:null,shopName:'BARBEROS',
-  barberos:[],
-  citas:[],
-  queues:{},
-  lastUp:null,
-};
+const S={shopId:null,shopName:'BARBEROS',barberos:[],citas:[],queues:{},lastUp:null};
 let MODE='shop';
 let MY_BARBER=null;
 
@@ -887,7 +749,7 @@ function showDisplaySuspended(nombre){
   setDb('err','SUSPENDIDA');setRt('error','INACTIVA');
   const app=document.querySelector('.app');
   if(!app)return;
-  app.innerHTML=`<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px;position:relative;z-index:10;"><div style="font-size:4rem;margin-bottom:24px;opacity:0.4;">🔒</div><div style="font-family:'Orbitron',monospace;font-size:clamp(1.2rem,4vw,2.2rem);font-weight:900;letter-spacing:0.2em;color:rgba(255,0,110,0.8);text-transform:uppercase;margin-bottom:12px;text-shadow:0 0 40px rgba(255,0,110,0.3);">SERVICIO PAUSADO</div><div style="font-family:'Rajdhani',sans-serif;font-size:clamp(1rem,3vw,1.4rem);font-weight:600;color:rgba(255,255,255,0.5);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:36px;">${nombre}</div><div style="background:rgba(255,0,110,0.04);border:1px solid rgba(255,0,110,0.15);padding:24px 36px;max-width:560px;margin-bottom:36px;"><div style="font-family:'Share Tech Mono',monospace;font-size:clamp(0.55rem,1.5vw,0.72rem);color:rgba(255,255,255,0.35);line-height:2;letter-spacing:0.1em;">Esta barbería está temporalmente inactiva.<br>Para reactivar el servicio, contacta al administrador.</div></div><div style="font-family:'Share Tech Mono',monospace;font-size:clamp(0.6rem,2vw,0.85rem);color:rgba(0,245,255,0.5);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:8px;">SOPORTE · BARBEROS.APP</div><a href="https://wa.me/18498528825" style="font-family:'Share Tech Mono',monospace;font-size:clamp(0.55rem,1.5vw,0.7rem);color:rgba(37,211,102,0.5);letter-spacing:0.15em;text-decoration:none;">💬 WhatsApp: +1 (849) 852-8825</a></div>`;
+  app.innerHTML=`<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px;position:relative;z-index:10;"><div style="font-size:4rem;margin-bottom:24px;opacity:0.4;">🔒</div><div style="font-family:'Orbitron',monospace;font-size:clamp(1.2rem,4vw,2.2rem);font-weight:900;letter-spacing:0.2em;color:rgba(255,0,110,0.8);text-transform:uppercase;margin-bottom:12px;text-shadow:0 0 40px rgba(255,0,110,0.3);">SERVICIO PAUSADO</div><div style="font-family:'Rajdhani',sans-serif;font-size:clamp(1rem,3vw,1.4rem);font-weight:600;color:rgba(255,255,255,0.5);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:36px;">${nombre}</div></div>`;
 }
 
 async function loadBarberos(){
@@ -896,6 +758,7 @@ async function loadBarberos(){
   S.barberos=rows.map(b=>({...b,nombre:b.nombre.toUpperCase()}));
   renderBarberosBar();
 }
+
 async function loadCitas(){
   if(!S.shopId)return;
   const rdNow=new Date(new Date().toLocaleString('en-US',{timeZone:'America/Santo_Domingo'}));
@@ -909,6 +772,7 @@ async function loadCitas(){
   setDb('ok','DB · '+rows.length+' CITAS');
   setOffline(false);
 }
+
 function rebuildQueues(){
   const blist=S.barberos.length>0
     ?S.barberos.filter(b=>b.activo).map(b=>b.nombre)
@@ -920,7 +784,21 @@ function rebuildQueues(){
     nq[name]={currentTurn:prev?Math.min(prev.currentTurn,mine.length+1):1,citas:mine};
   });
   S.queues=nq;
+  // ── FIX: auto-select single barber for "Mi Turno" mode ──
+  autoSelectSingleBarber();
   renderBarberosBar();
+}
+
+// ════════════════════════════════════════════════════
+//  FIX 2: Auto-select barber when only one is active
+// ════════════════════════════════════════════════════
+function autoSelectSingleBarber(){
+  const activeBarbers=S.barberos.length>0
+    ? S.barberos.filter(b=>b.activo)
+    : Object.keys(S.queues).map(n=>({nombre:n}));
+  if(activeBarbers.length===1&&!MY_BARBER){
+    MY_BARBER=activeBarbers[0].nombre;
+  }
 }
 
 function scHtml(){return '<span class="sc sc-tl"></span><span class="sc sc-tr"></span><span class="sc sc-bl"></span><span class="sc sc-br"></span>';}
@@ -1068,6 +946,7 @@ function statusClasses(s){
   const m={active:{rc:'s-active',tc:'tag-active',tl:'EN SILLA'},next:{rc:'s-next',tc:'tag-next',tl:'PRÓXIMO'},alert:{rc:'s-alert',tc:'tag-alert',tl:'2 TURN.'},wait:{rc:'s-wait',tc:'tag-wait',tl:'ESPERA'}};
   return m[s]||m.wait;
 }
+
 function checkConflicts(acts,ct){
   const cc=[];const dur=DUR;
   const toMin=h=>{if(!h)return 0;const[hh,mm]=(h+':00').split(':').map(Number);return hh*60+mm;};
@@ -1081,13 +960,25 @@ function renderSolo(barber,layout){
   const{citas:allC,currentTurn}=q;
   const cur=allC[currentTurn-1];const nxt=allC[currentTurn];
   const bid=safeId(barber);
-  const withStatus=allC.map((c,i)=>{const pos=i-(currentTurn-1);let status='wait';if(pos<0)status='done';else if(pos===0)status='active';else if(pos===1)status='next';else if(pos===2)status='alert';return{...c,status,pos};});
+
+  // ── FIX 1: preserve original index in withStatus ──
+  // Use originalIdx to avoid allC.indexOf(newObj)===-1 bug
+  const withStatus=allC.map((c,originalIdx)=>{
+    const pos=originalIdx-(currentTurn-1);
+    let status='wait';
+    if(pos<0)status='done';
+    else if(pos===0)status='active';
+    else if(pos===1)status='next';
+    else if(pos===2)status='alert';
+    return{...c,status,pos,originalIdx};
+  });
+
   const remaining=Math.max(0,allC.length-currentTurn+1);
   const done=withStatus.filter(c=>c.status==='done');
   const active=withStatus.filter(c=>c.status!=='done');
   const zoneAItems=active.slice(0,5);
   const zoneBItems=active.slice(5);
-  const conflicts=checkConflicts(allC.filter(c=>c.status!=='done'),currentTurn);
+  const conflicts=checkConflicts(allC.filter((_,i)=>i>=currentTurn-1),currentTurn);
   const conflictIdx=new Set(conflicts.flatMap(c=>[c.i,c.j]));
 
   layout.innerHTML=`
@@ -1132,13 +1023,25 @@ function renderSolo(barber,layout){
         <div class="queue-body">
           <div class="done-strip">
             <div class="done-strip-label">✓ LISTOS</div>
-            <div class="done-pills">${done.length?done.slice(-3).map((c,i)=>`<div class="done-pill" style="animation-delay:${i*0.06}s"><div class="done-pill-num">${String(allC.indexOf(c)+1).padStart(2,'0')}</div><div class="done-pill-name">${c.name}</div><div class="done-pill-check">✓</div></div>`).join(''):'<span class="done-strip-empty">— ninguno aún —</span>'}</div>
+            <div class="done-pills">${done.length?done.slice(-3).map((c,i)=>`<div class="done-pill" style="animation-delay:${i*0.06}s"><div class="done-pill-num">${String(c.originalIdx+1).padStart(2,'0')}</div><div class="done-pill-name">${c.name}</div><div class="done-pill-check">✓</div></div>`).join(''):'<span class="done-strip-empty">— ninguno aún —</span>'}</div>
           </div>
           <div class="zone-a">
             <div class="q-col-header"><span>#</span><span>CLIENTE</span><span style="text-align:center">BARBERO</span><span style="text-align:center">HORA</span><span>ESTADO</span></div>
-            ${zoneAItems.map((c,idx)=>{const i=allC.indexOf(c),pos=i-(currentTurn-1),eta=calcETA(pos),num=i+1;const{rc,tc,tl}=statusClasses(c.status);return`<div class="q-item ${rc}" style="animation-delay:${idx*0.05}s"><div class="q-num">${String(num).padStart(2,'0')}</div><div><div class="q-name">${c.name}${eta?`<span class="wait-eta">⏱${eta}</span>`:''}</div><div class="q-svc">${c.servicio}</div></div><div class="q-barber">${barber}</div><div class="q-time">${c.time}</div><div><span class="status-tag ${tc}"><span class="tag-dot"></span>${tl}</span></div></div>`;}).join('')}
+            ${zoneAItems.map((c,idx)=>{
+              // FIX: use c.originalIdx instead of allC.indexOf(c)
+              const num=c.originalIdx+1;
+              const pos=c.pos;
+              const eta=calcETA(pos);
+              const{rc,tc,tl}=statusClasses(c.status);
+              return`<div class="q-item ${rc}" style="animation-delay:${idx*0.05}s"><div class="q-num">${String(num).padStart(2,'0')}</div><div><div class="q-name">${c.name}${eta?`<span class="wait-eta">⏱${eta}</span>`:''}</div><div class="q-svc">${c.servicio}</div></div><div class="q-barber">${barber}</div><div class="q-time">${c.time}</div><div><span class="status-tag ${tc}"><span class="tag-dot"></span>${tl}</span></div></div>`;
+            }).join('')}
           </div>
-          ${zoneBItems.length?`<div class="zone-b-header"><span>EN ESPERA</span><span class="zone-b-count">${zoneBItems.length}</span></div><div class="zone-b">${zoneBItems.map((c,idx)=>{const i=allC.indexOf(c),pos=i-(currentTurn-1),eta=calcETA(pos),num=i+1;return`<div class="q-mini ${c.status==='alert'?'ms-alert':'ms-wait'}" style="animation-delay:${idx*0.025}s">${conflictIdx.has(i)?'<div style="position:absolute;top:2px;right:3px;width:4px;height:4px;border-radius:50%;background:var(--magenta);box-shadow:0 0 4px var(--magenta);"></div>':''}<div class="q-mini-num">${String(num).padStart(2,'0')}</div><div class="q-mini-name">${c.name}</div><div class="q-mini-meta"><div class="q-mini-time">${eta||c.time}</div><div class="q-mini-barb">${barber}</div></div></div>`;}).join('')}</div>`:''}
+          ${zoneBItems.length?`<div class="zone-b-header"><span>EN ESPERA</span><span class="zone-b-count">${zoneBItems.length}</span></div><div class="zone-b">${zoneBItems.map((c,idx)=>{
+            const num=c.originalIdx+1;
+            const pos=c.pos;
+            const eta=calcETA(pos);
+            return`<div class="q-mini ${c.status==='alert'?'ms-alert':'ms-wait'}" style="animation-delay:${idx*0.025}s">${conflictIdx.has(c.originalIdx)?'<div style="position:absolute;top:2px;right:3px;width:4px;height:4px;border-radius:50%;background:var(--magenta);box-shadow:0 0 4px var(--magenta);"></div>':''}<div class="q-mini-num">${String(num).padStart(2,'0')}</div><div class="q-mini-name">${c.name}</div><div class="q-mini-meta"><div class="q-mini-time">${eta||c.time}</div><div class="q-mini-barb">${barber}</div></div></div>`;
+          }).join('')}</div>`:''}
         </div>
       </div>
     </div>
@@ -1180,6 +1083,9 @@ function renderMultiCol(barber){
     +'<button class="btn-siguiente" id="btn-'+bid+'" onclick="siguienteTurno(\''+barber.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\',\'btn-'+bid+'\')">'+scHtml()+'▶ &nbsp; SIGUIENTE TURNO</button>';
 }
 
+// ════════════════════════════════════════════════════
+//  FIX 2: renderMyTurn — matches Barbería solo layout
+// ════════════════════════════════════════════════════
 function renderMyTurn(c){
   if(!MY_BARBER){
     c.innerHTML='<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;"><div style="font-family:\'Orbitron\',monospace;font-size:0.9rem;color:rgba(0,245,255,0.5);letter-spacing:0.22em;">SELECCIONA TU BARBERO</div><div style="font-family:\'Share Tech Mono\',monospace;font-size:0.5rem;color:rgba(0,245,255,0.3);letter-spacing:0.2em;">Presiona ✂ MI TURNO en el menú inferior</div></div>';
@@ -1198,7 +1104,7 @@ function renderMyTurn(c){
   const{citas:allC,currentTurn}=q;
   const cur=allC[currentTurn-1];const nxt=allC[currentTurn];
   const remaining=Math.max(0,allC.length-currentTurn+1);
-  const done=allC.slice(0,currentTurn-1);
+  const doneCitas=allC.slice(0,currentTurn-1);
 
   const toggleHtml=bObj?`<button onclick="toggleBarberoActivo('${bObj.id}','${barber}',${isActive})" style="padding:6px 14px;border:1px solid ${isActive?'rgba(255,0,110,0.35)':'rgba(0,255,120,0.35)'};background:${isActive?'rgba(255,0,110,0.06)':'rgba(0,255,120,0.06)'};color:${isActive?'rgba(255,0,110,0.7)':'rgba(0,255,120,0.7)'};font-family:'Share Tech Mono',monospace;font-size:0.46rem;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;">${isActive?'⏸ DESACTIVARME':'▶ ACTIVARME'}</button>`:'';
 
@@ -1216,7 +1122,7 @@ function renderMyTurn(c){
         <div class="my-stats">
           <div class="my-stat"><div class="my-stat-val">${allC.length}</div><div class="my-stat-lbl">Hoy</div></div>
           <div class="my-stat"><div class="my-stat-val gold">${remaining}</div><div class="my-stat-lbl">Quedan</div></div>
-          <div class="my-stat"><div class="my-stat-val green">${done.length}</div><div class="my-stat-lbl">Listos</div></div>
+          <div class="my-stat"><div class="my-stat-val green">${doneCitas.length}</div><div class="my-stat-lbl">Listos</div></div>
         </div>
         ${toggleHtml}
       </div>
@@ -1226,7 +1132,10 @@ function renderMyTurn(c){
         ${isActive&&cur?`
         <div class="my-silla-zone">
           <div class="now-label">◆ EN SILLA AHORA ◆</div>
-          <div class="my-hero-num" id="my-hn">${String(currentTurn).padStart(2,'0')}</div>
+          <div class="hero-num-wrap">
+            <div class="hero-ghost">${String(currentTurn).padStart(2,'0')}</div>
+            <div class="my-hero-num" id="my-hn">${String(currentTurn).padStart(2,'0')}</div>
+          </div>
           <div class="my-client-name typing" id="my-cn">${cur.name}</div>
           <div class="my-service">${cur.servicio}</div>
           <div class="silla-timer" id="timer-my"><div class="timer-dot"></div><span id="timer-txt-my">0m</span></div>
@@ -1258,24 +1167,39 @@ function renderMyTurn(c){
         </div>
       </div>
       <div class="my-right">
-        <div class="my-queue-title">⬡ MIS TURNOS HOY</div>
-        <div class="my-queue-list">
-          ${allC.length===0?'<div style="padding:20px;text-align:center;font-family:\'Share Tech Mono\',monospace;font-size:0.44rem;color:rgba(0,245,255,0.2);letter-spacing:0.2em;">SIN CITAS ASIGNADAS</div>':''}
-          ${allC.map((c,i)=>{
-            const isDone=i<currentTurn-1;const isAct=i===currentTurn-1;const isNxt=i===currentTurn;
-            const cls=isDone?'mqi-done':isAct?'mqi-active':isNxt?'mqi-next':'mqi-wait';
-            const tag=isDone?`<span class="mqi-tag d">✓</span>`:isAct?`<span class="mqi-tag a">EN SILLA</span>`:isNxt?`<span class="mqi-tag n">PRÓXIMO</span>`:`<span class="mqi-tag w">ESPERA</span>`;
-            const eta=calcETA(i-(currentTurn-1));
-            return`<div class="my-q-item ${cls}" style="animation-delay:${i*0.04}s">
-              <div class="mqi-num">${String(i+1).padStart(2,'0')}</div>
-              <div><div class="mqi-name">${c.name}</div><div class="mqi-svc">${c.servicio}</div></div>
-              <div class="mqi-right">
-                <div class="mqi-time">${c.time}</div>${tag}
-                ${eta&&!isDone?`<span style="font-family:'Share Tech Mono',monospace;font-size:0.36rem;color:rgba(255,214,0,0.35);">⏱${eta}</span>`:''}
-                ${!isDone&&c.id?`<button onclick="openReagendar('${c.id}','${c.name.replace(/'/g,"\\'")}','${c.time}','${barber.replace(/'/g,"\\'")}')" style="margin-top:3px;padding:2px 7px;border:1px solid rgba(255,214,0,0.2);background:rgba(255,214,0,0.04);color:rgba(255,214,0,0.5);font-family:'Share Tech Mono',monospace;font-size:0.36rem;letter-spacing:0.1em;cursor:pointer;text-transform:uppercase;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(255,214,0,0.5)';this.style.color='rgba(255,214,0,0.9)';" onmouseout="this.style.borderColor='rgba(255,214,0,0.2)';this.style.color='rgba(255,214,0,0.5)';">↻ mover</button>`:''}
-              </div>
-            </div>`;
-          }).join('')}
+        <div class="my-queue-section">
+          <div class="my-queue-title">
+            ⬡ MIS TURNOS HOY
+            <span class="my-queue-meta">${allC.length} REGISTRADOS · ${remaining} EN ESPERA</span>
+          </div>
+          <div class="my-stats-bar">
+            <div class="stat-card"><div class="stat-val">${allC.length}</div><div class="stat-lbl">Clientes hoy</div><div class="stat-bar-line"><div class="stat-bar-fill" style="width:100%"></div></div></div>
+            <div class="stat-card"><div class="stat-val gold">${remaining}</div><div class="stat-lbl">Restantes</div><div class="stat-bar-line" style="background:rgba(255,214,0,0.08)"><div class="stat-bar-fill" style="width:${allC.length?Math.round(remaining/allC.length*100):0}%;background:var(--gold);box-shadow:0 0 6px var(--gold)"></div></div></div>
+            <div class="stat-card"><div class="stat-val green">${remaining>0?calcETA(remaining)||remaining*DUR+'m':'0m'}</div><div class="stat-lbl">Tiempo espera</div></div>
+            <div class="stat-card"><div class="stat-val purple">${S.lastUp?calcAgo(S.lastUp):'—'}</div><div class="stat-lbl">Últ. actualiz.</div></div>
+          </div>
+          <div class="done-strip" style="flex-shrink:0;">
+            <div class="done-strip-label">✓ LISTOS</div>
+            <div class="done-pills">${doneCitas.length?doneCitas.slice(-3).map((c,i)=>`<div class="done-pill" style="animation-delay:${i*0.06}s"><div class="done-pill-num">${String(allC.indexOf(c)+1).padStart(2,'0')}</div><div class="done-pill-name">${c.name}</div><div class="done-pill-check">✓</div></div>`).join(''):'<span class="done-strip-empty">— ninguno aún —</span>'}</div>
+          </div>
+          <div class="my-queue-list">
+            ${allC.length===0?'<div style="padding:20px;text-align:center;font-family:\'Share Tech Mono\',monospace;font-size:0.44rem;color:rgba(0,245,255,0.2);letter-spacing:0.2em;">SIN CITAS ASIGNADAS</div>':''}
+            ${allC.map((c,i)=>{
+              const isDone=i<currentTurn-1;const isAct=i===currentTurn-1;const isNxt=i===currentTurn;
+              const cls=isDone?'mqi-done':isAct?'mqi-active':isNxt?'mqi-next':'mqi-wait';
+              const tag=isDone?`<span class="mqi-tag d">✓</span>`:isAct?`<span class="mqi-tag a">EN SILLA</span>`:isNxt?`<span class="mqi-tag n">PRÓXIMO</span>`:`<span class="mqi-tag w">ESPERA</span>`;
+              const eta=calcETA(i-(currentTurn-1));
+              return`<div class="my-q-item ${cls}" style="animation-delay:${i*0.04}s">
+                <div class="mqi-num">${String(i+1).padStart(2,'0')}</div>
+                <div><div class="mqi-name">${c.name}</div><div class="mqi-svc">${c.servicio}</div></div>
+                <div class="mqi-right">
+                  <div class="mqi-time">${c.time}</div>${tag}
+                  ${eta&&!isDone?`<span style="font-family:'Share Tech Mono',monospace;font-size:0.36rem;color:rgba(255,214,0,0.35);">⏱${eta}</span>`:''}
+                  ${!isDone&&c.id?`<button onclick="openReagendar('${c.id}','${c.name.replace(/'/g,"\\'")}','${c.time}','${barber.replace(/'/g,"\\'")}')" style="margin-top:3px;padding:2px 7px;border:1px solid rgba(255,214,0,0.2);background:rgba(255,214,0,0.04);color:rgba(255,214,0,0.5);font-family:'Share Tech Mono',monospace;font-size:0.36rem;letter-spacing:0.1em;cursor:pointer;text-transform:uppercase;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(255,214,0,0.5)';this.style.color='rgba(255,214,0,0.9)';" onmouseout="this.style.borderColor='rgba(255,214,0,0.2)';this.style.color='rgba(255,214,0,0.5)';">↻ mover</button>`:''}
+                </div>
+              </div>`;
+            }).join('')}
+          </div>
         </div>
       </div>
     </div>
@@ -1361,9 +1285,7 @@ function subscribeRT(){
         try{
           const m=JSON.parse(ev.data);
           if(['INSERT','UPDATE','DELETE'].includes(m.event)){
-            if(m.topic&&m.topic.includes('shops')&&m.payload?.record?.activo===false){
-              showDisplaySuspended(S.shopName);return;
-            }
+            if(m.topic&&m.topic.includes('shops')&&m.payload?.record?.activo===false){showDisplaySuspended(S.shopName);return;}
             await loadCitas().catch(()=>{});render();
             showToast(m.event==='INSERT'?'✓ Nueva cita':'↻ Actualizado','info');
           }
@@ -1399,9 +1321,7 @@ function updateTimers(){
 }
 setInterval(updateTimers,30000);
 
-function onTurnChanged(barber){
-  SILLA_TIMES[barber]=Date.now();
-}
+function onTurnChanged(barber){SILLA_TIMES[barber]=Date.now();}
 
 let WI_SVC='CORTE';
 let WI_BARBER=null;
@@ -1434,23 +1354,16 @@ async function confirmWalkIn(){
   if(!nombre){document.getElementById('wi-nombre').focus();showToast('⚠ Escribe el nombre','warn');return;}
   if(!WI_BARBER){showToast('⚠ Selecciona barbero','warn');return;}
   if(!S.shopId){showToast('⚠ Sin conexión a DB','error');return;}
-
   const rdNow2=new Date(new Date().toLocaleString('en-US',{timeZone:'America/Santo_Domingo'}));
   const hoy=rdNow2.getFullYear()+'-'+String(rdNow2.getMonth()+1).padStart(2,'0')+'-'+String(rdNow2.getDate()).padStart(2,'0');
   const hora=String(rdNow2.getHours()).padStart(2,'0')+':'+String(rdNow2.getMinutes()).padStart(2,'0');
-
   const btn=document.querySelector('#walkin-modal .abtn-confirm');
   btn.textContent='⏳ GUARDANDO...';btn.style.pointerEvents='none';
-
   try{
     const r=await fetch(SB_URL+'/rest/v1/citas',{
       method:'POST',
       headers:{...H_,'Prefer':'return=representation'},
-      body:JSON.stringify({
-        shop_id:S.shopId,nombre,telefono:'walk-in',
-        chat_id:'walkin:'+Date.now(),fecha:hoy,hora,
-        servicio:WI_SVC,barbero:WI_BARBER,estado:'Confirmada'
-      })
+      body:JSON.stringify({shop_id:S.shopId,nombre,telefono:'walk-in',chat_id:'walkin:'+Date.now(),fecha:hoy,hora,servicio:WI_SVC,barbero:WI_BARBER,estado:'Confirmada'})
     });
     if(!r.ok)throw new Error('POST '+r.status);
     closeModal('walkin-modal');
@@ -1471,18 +1384,10 @@ function openReagendar(citaId,nombre,horaActual,barber){
   document.getElementById('reag-sub').textContent='Mover cita de '+nombre+' (actual: '+horaActual+')';
   const slots=[];
   const inicio=9,fin=18;
-  for(let h=inicio;h<fin;h++){
-    for(let m=0;m<60;m+=DUR){
-      const hstr=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
-      slots.push(hstr);
-    }
-  }
-  const takenByBarber=S.citas
-    .filter(c=>c.barbero===barber&&c.id!=citaId&&c.estado!=='Completada')
-    .map(c=>c.time);
+  for(let h=inicio;h<fin;h++){for(let m=0;m<60;m+=DUR){const hstr=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');slots.push(hstr);}}
+  const takenByBarber=S.citas.filter(c=>c.barbero===barber&&c.id!=citaId&&c.estado!=='Completada').map(c=>c.time);
   const slotsHtml=slots.map(t=>{
-    const isCurrent=t===horaActual;
-    const isTaken=takenByBarber.includes(t);
+    const isCurrent=t===horaActual;const isTaken=takenByBarber.includes(t);
     return`<div class="time-slot${isCurrent?' sel':isTaken?' taken':''}" onclick="${isCurrent||isTaken?'':('selectTimeSlot(this,\''+t+'\')')}">${t}</div>`;
   }).join('');
   document.getElementById('reag-slots').innerHTML=slotsHtml;
@@ -1523,7 +1428,7 @@ async function init(){
   const ok=await loadShop().catch(()=>false);
   if(ok){await loadBarberos().catch(()=>{});await loadCitas().catch(()=>{});subscribeRT();}
   else loadDemo();
-  Object.keys(S.queues).forEach(b=>{ if(!SILLA_TIMES[b])SILLA_TIMES[b]=Date.now(); });
+  Object.keys(S.queues).forEach(b=>{if(!SILLA_TIMES[b])SILLA_TIMES[b]=Date.now();});
   render();
   updateTimers();
   setInterval(updateTimers,30000);
