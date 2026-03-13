@@ -443,10 +443,10 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .my-q-item.mqi-next .mqi-name{font-size:0.95rem;}
 .mqi-svc{font-family:'Share Tech Mono',monospace;font-size:0.42rem;color:rgba(255,255,255,0.2);margin-top:1px;}
 .my-q-item.mqi-active .mqi-svc{font-size:0.5rem;color:rgba(255,255,255,0.3);}
-.mqi-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;}
-.mqi-time{font-family:'Orbitron',monospace;font-size:0.9rem;font-weight:700;color:var(--gold);text-shadow:0 0 10px rgba(255,214,0,0.4);}
-.my-q-item:not(.mqi-active) .mqi-time{font-size:0.75rem;opacity:0.8;}
-.mqi-tag{font-family:'Share Tech Mono',monospace;font-size:0.44rem;padding:3px 8px;border:1px solid;letter-spacing:0.1em;text-transform:uppercase;}
+.mqi-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;min-width:80px;}
+.mqi-time{font-family:'Orbitron',monospace;font-size:0.92rem;font-weight:700;color:var(--gold);text-shadow:0 0 10px rgba(255,214,0,0.4);text-align:center;}
+.my-q-item.mqi-active .mqi-time{font-size:0.9rem;}
+.mqi-tag{font-family:'Share Tech Mono',monospace;font-size:0.44rem;padding:3px 8px;border:1px solid;letter-spacing:0.1em;text-transform:uppercase;text-align:center;}
 .mqi-tag.a{color:var(--cyan);border-color:rgba(0,245,255,0.3);}
 .mqi-tag.n{color:var(--gold);border-color:rgba(255,214,0,0.25);}
 .mqi-tag.w{color:rgba(255,255,255,0.2);border-color:rgba(255,255,255,0.06);}
@@ -1191,13 +1191,17 @@ function renderMyTurn(c){
               const tag=isDone?`<span class="mqi-tag d">✓</span>`:isAct?`<span class="mqi-tag a">EN SILLA</span>`:isNxt?`<span class="mqi-tag n">PRÓXIMO</span>`:`<span class="mqi-tag w">ESPERA</span>`;
               const pos=i-(currentTurn-1);
               const eta=!isDone?calcETA(pos):null;
-              return`<div class="my-q-item ${cls}" style="animation-delay:${rowIdx*0.04}s">
+              return`<div class="my-q-item ${cls}" style="animation-delay:${rowIdx*0.04}s;grid-template-columns:44px 1fr ${!isDone&&c.id?'auto ':''} auto;">
                 <div class="mqi-num">${String(i+1).padStart(2,'0')}</div>
-                <div><div class="mqi-name">${c.name}</div><div class="mqi-svc">${c.servicio}</div></div>
+                <div>
+                  <div class="mqi-name">${c.name}</div>
+                  <div class="mqi-svc">${c.servicio}</div>
+                  ${eta&&!isDone?`<div style="display:inline-flex;align-items:center;gap:4px;margin-top:3px;padding:2px 7px;border:1px solid rgba(255,214,0,0.35);background:rgba(255,214,0,0.05);font-family:'Share Tech Mono',monospace;font-size:0.44rem;color:rgba(255,214,0,0.8);letter-spacing:0.08em;">⏱ ${eta}</div>`:''}
+                </div>
+                ${!isDone&&c.id?`<button onclick="openReagendar('${c.id}','${c.name.replace(/'/g,"\\'")}','${c.time}','${barber.replace(/'/g,"\\'")}')" style="padding:3px 9px;border:1px solid rgba(0,245,255,0.15);background:transparent;color:rgba(0,245,255,0.25);font-family:'Share Tech Mono',monospace;font-size:0.38rem;letter-spacing:0.1em;cursor:pointer;text-transform:uppercase;transition:all 0.2s;text-align:center;align-self:center;font-weight:600;" onmouseover="this.style.background='rgba(0,245,255,0.1)';this.style.borderColor='rgba(0,245,255,0.5)';this.style.color='rgba(0,245,255,0.8)';" onmouseout="this.style.background='transparent';this.style.borderColor='rgba(0,245,255,0.15)';this.style.color='rgba(0,245,255,0.25)';">↻ MOVER</button>`:''}
                 <div class="mqi-right">
-                  <div class="mqi-time">${c.time}</div>${tag}
-                  ${eta?`<span style="font-family:'Share Tech Mono',monospace;font-size:0.36rem;color:rgba(255,214,0,0.35);">⏱${eta}</span>`:''}
-                  ${!isDone&&c.id?`<button onclick="openReagendar('${c.id}','${c.name.replace(/'/g,"\\'")}','${c.time}','${barber.replace(/'/g,"\\'")}')" style="margin-top:3px;padding:2px 7px;border:1px solid rgba(255,214,0,0.2);background:rgba(255,214,0,0.04);color:rgba(255,214,0,0.5);font-family:'Share Tech Mono',monospace;font-size:0.36rem;letter-spacing:0.1em;cursor:pointer;text-transform:uppercase;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(255,214,0,0.5)';this.style.color='rgba(255,214,0,0.9)';" onmouseout="this.style.borderColor='rgba(255,214,0,0.2)';this.style.color='rgba(255,214,0,0.5)';">↻ mover</button>`:''}
+                  <div class="mqi-time">${c.time}</div>
+                  ${tag}
                 </div>
               </div>`;
             }).join('')}
