@@ -430,6 +430,20 @@ select.form-input option{background:#111318;}
         <input class="form-input" id="simPhone" placeholder="+18091234567" value="+18099999999">
       </div>
 
+      <div class="form-group">
+        <label class="form-label" style="display:flex;align-items:center;justify-content:space-between;">
+          <span>⏰ Hora de prueba</span>
+          <span id="testHoraLabel" style="color:var(--yellow);font-size:0.55rem;">Real</span>
+        </label>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <input type="range" id="testHoraSlider" min="0" max="23" value="99" step="1"
+            style="flex:1;accent-color:var(--yellow);cursor:pointer;"
+            oninput="updateTestHora(this.value)">
+          <button onclick="resetTestHora()" style="background:none;border:1px solid var(--border);color:var(--muted);padding:2px 7px;font-size:0.5rem;cursor:pointer;font-family:'DM Mono',monospace;">REAL</button>
+        </div>
+        <div style="font-size:0.5rem;color:var(--muted);margin-top:3px;">Simula una hora diferente para probar fuera de horario</div>
+      </div>
+
       <div class="status-row" id="configStatus">
         <span class="status-dot" id="statusDot"></span>
         <span id="statusTxt">Selecciona una barbería</span>
@@ -589,7 +603,23 @@ function onShopChange(){
 }
 
 // ── SEND ─────────────────────────────────────────────────
-async function sendMessage(){
+function getTestHora(){
+  const v=parseInt(document.getElementById('testHoraSlider').value);
+  if(v>23) return null; // modo real
+  return String(v).padStart(2,'0')+':00';
+}
+function updateTestHora(v){
+  v=parseInt(v);
+  const lbl=document.getElementById('testHoraLabel');
+  if(v>23){lbl.textContent='Real';lbl.style.color='var(--muted)';}
+  else{lbl.textContent=String(v).padStart(2,'0')+':00 hs ⚠';lbl.style.color='var(--yellow)';}
+}
+function resetTestHora(){
+  document.getElementById('testHoraSlider').value=99;
+  updateTestHora(99);
+}
+
+
   if(sending)return;
   const input=document.getElementById('chatInput');
   const text=input.value.trim();
@@ -618,7 +648,9 @@ async function sendMessage(){
       body: JSON.stringify({
         mensaje: text,
         telefono: phone,
+        chat_id: 'whatsapp:'+phone,
         shop_id: currentShop.id,
+        test_hora: getTestHora(),
       }),
     });
 
