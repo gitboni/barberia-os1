@@ -395,12 +395,7 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .my-avatar{width:38px;height:38px;border-radius:50%;border:2px solid rgba(0,245,255,0.4);background:rgba(0,245,255,0.08);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;color:var(--cyan);}
 .my-barber-name{font-family:'Orbitron',monospace;font-size:0.9rem;font-weight:700;letter-spacing:0.18em;color:var(--cyan);text-shadow:0 0 12px rgba(0,245,255,0.5);}
 .my-sub{font-family:'Share Tech Mono',monospace;font-size:0.42rem;color:rgba(0,245,255,0.4);letter-spacing:0.2em;text-transform:uppercase;margin-top:2px;}
-.my-stats{display:flex;gap:16px;align-items:center;}
-.my-stat{text-align:center;padding:4px 12px;border:1px solid rgba(0,245,255,0.1);background:rgba(0,245,255,0.04);}
-.my-stat-val{font-family:'Orbitron',monospace;font-size:2rem;font-weight:900;line-height:1;color:var(--cyan);text-shadow:0 0 20px rgba(0,245,255,0.5);}
-.my-stat-val.gold{color:var(--gold);text-shadow:0 0 20px rgba(255,214,0,0.4);}
-.my-stat-val.green{color:var(--green);text-shadow:0 0 20px var(--glow-g);}
-.my-stat-lbl{font-family:'Share Tech Mono',monospace;font-size:0.4rem;color:rgba(0,245,255,0.35);letter-spacing:0.18em;text-transform:uppercase;margin-top:3px;}
+/* REMOVED: .my-stats block — hidden via inline JS */
 .my-layout{flex:1;display:grid;grid-template-columns:360px 1fr;overflow:hidden;}
 .my-left{display:flex;flex-direction:column;border-right:1px solid rgba(0,245,255,0.08);background:rgba(0,245,255,0.012);overflow:hidden;}
 .my-right{display:flex;flex-direction:column;padding:14px 20px 10px;overflow:hidden;gap:8px;}
@@ -408,9 +403,11 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .my-silla-zone::before,.my-silla-zone::after{content:'';position:absolute;width:36px;height:36px;border-style:solid;border-color:rgba(0,245,255,0.3);}
 .my-silla-zone::before{top:14px;left:14px;border-width:2px 0 0 2px;}
 .my-silla-zone::after{bottom:14px;right:14px;border-width:0 2px 2px 0;}
+/* ── Mi Turno hero num: same size as solo barbería ── */
 .my-hero-num{font-family:'Orbitron',monospace;font-size:7rem;font-weight:900;color:var(--cyan);text-shadow:0 0 30px rgba(0,245,255,0.5),0 0 80px rgba(0,245,255,0.25);line-height:1;letter-spacing:0.06em;animation:hero-pulse 3s ease-in-out infinite;}
 .my-hero-num.flip{animation:flip-in 0.45s cubic-bezier(0.34,1.56,0.64,1);}
 .my-client-name{font-family:'Rajdhani',sans-serif;font-size:1.5rem;font-weight:700;color:#fff;letter-spacing:0.12em;text-transform:uppercase;text-align:center;margin-top:2px;}
+/* ── Service badge: same style as barbería (cyan, not gold) ── */
 .my-service{margin-top:6px;padding:4px 16px;border:1px solid rgba(0,245,255,0.25);background:rgba(0,245,255,0.04);font-family:'Share Tech Mono',monospace;font-size:0.62rem;letter-spacing:0.2em;color:var(--cyan);text-transform:uppercase;}
 .my-bottom{padding:12px 18px 14px;display:flex;flex-direction:column;gap:8px;flex-shrink:0;}
 .btn-my-sig{width:100%;padding:11px 0;background:linear-gradient(135deg,rgba(0,245,255,0.1),rgba(0,245,255,0.04));border:1px solid rgba(0,245,255,0.5);color:var(--cyan);font-family:'Orbitron',monospace;font-size:0.72rem;font-weight:700;letter-spacing:0.26em;text-transform:uppercase;cursor:pointer;position:relative;overflow:hidden;transition:all 0.2s;text-shadow:0 0 12px rgba(0,245,255,0.5);box-shadow:0 0 16px rgba(0,245,255,0.12);flex-shrink:0;-webkit-tap-highlight-color:transparent;}
@@ -424,25 +421,32 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .my-queue-title{font-family:'Orbitron',monospace;font-size:0.74rem;font-weight:600;letter-spacing:0.2em;color:var(--cyan);text-transform:uppercase;padding-bottom:8px;border-bottom:1px solid rgba(0,245,255,0.1);flex-shrink:0;position:relative;}
 .my-queue-title::after{content:'';position:absolute;bottom:-1px;left:0;width:70px;height:1px;background:var(--cyan);box-shadow:0 0 12px var(--cyan);}
 .my-queue-meta{font-family:'Share Tech Mono',monospace;font-size:0.56rem;color:rgba(0,245,255,0.3);float:right;margin-top:2px;}
-.my-stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;flex-shrink:0;}
+/* my-stats-bar removed from Mi Turno — kept class for barberia compatibility */
 .my-queue-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:4px;min-height:0;}
 .my-queue-list::-webkit-scrollbar{width:2px;}
 .my-queue-list::-webkit-scrollbar-thumb{background:rgba(0,245,255,0.1);}
-.my-q-item{display:grid;grid-template-columns:52px 1fr auto;align-items:center;gap:10px;padding:11px 14px;border:1px solid rgba(0,245,255,0.07);background:rgba(0,245,255,0.012);position:relative;overflow:hidden;animation:item-in 0.4s forwards;opacity:0;}
-.my-q-item.mqi-active{border-left:3px solid var(--cyan);background:rgba(0,245,255,0.045);}
+/* ── Mi Turno queue items — active same size, rest smaller ── */
+.my-q-item{display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:8px;padding:8px 12px;border:1px solid rgba(0,245,255,0.07);background:rgba(0,245,255,0.012);position:relative;overflow:hidden;animation:item-in 0.4s forwards;opacity:0;}
+.my-q-item.mqi-active{border-left:3px solid var(--cyan);background:rgba(0,245,255,0.045);padding:11px 14px;}
 .my-q-item.mqi-next{border-left:3px solid var(--gold);background:rgba(255,214,0,0.02);}
 .my-q-item.mqi-wait{border-left:3px solid rgba(0,245,255,0.1);}
 .my-q-item.mqi-done{opacity:0.35;border-left:3px solid rgba(0,255,120,0.25);}
 .my-q-item.mqi-active::after{content:'';position:absolute;top:0;left:-80%;width:55%;height:100%;background:linear-gradient(90deg,transparent,rgba(0,245,255,0.07),transparent);animation:scan 3s linear infinite;}
-.mqi-num{font-family:'Orbitron',monospace;font-size:1.5rem;font-weight:700;color:rgba(0,245,255,0.28);}
-.my-q-item.mqi-active .mqi-num{color:var(--cyan);text-shadow:0 0 10px rgba(0,245,255,0.5);}
-.my-q-item.mqi-next .mqi-num{color:var(--gold);}
+/* active turn number: big */
+.mqi-num{font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;color:rgba(0,245,255,0.28);}
+.my-q-item.mqi-active .mqi-num{font-size:1.5rem;color:var(--cyan);text-shadow:0 0 10px rgba(0,245,255,0.5);}
+.my-q-item.mqi-next .mqi-num{color:var(--gold);font-size:1.1rem;}
 .my-q-item.mqi-done .mqi-num{color:rgba(0,255,120,0.4);}
-.mqi-name{font-family:'Rajdhani',sans-serif;font-size:1.1rem;font-weight:600;color:#fff;letter-spacing:0.08em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.mqi-svc{font-family:'Share Tech Mono',monospace;font-size:0.5rem;color:rgba(255,255,255,0.2);margin-top:1px;}
-.mqi-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
-.mqi-time{font-family:'Orbitron',monospace;font-size:1.15rem;font-weight:700;color:var(--gold);text-shadow:0 0 10px rgba(255,214,0,0.4);}
-.mqi-tag{font-family:'Share Tech Mono',monospace;font-size:0.46rem;padding:3px 8px;border:1px solid;letter-spacing:0.1em;text-transform:uppercase;}
+/* active name: big; others smaller */
+.mqi-name{font-family:'Rajdhani',sans-serif;font-size:0.88rem;font-weight:600;color:rgba(255,255,255,0.8);letter-spacing:0.08em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.my-q-item.mqi-active .mqi-name{font-size:1.1rem;color:#fff;}
+.my-q-item.mqi-next .mqi-name{font-size:0.95rem;}
+.mqi-svc{font-family:'Share Tech Mono',monospace;font-size:0.42rem;color:rgba(255,255,255,0.2);margin-top:1px;}
+.my-q-item.mqi-active .mqi-svc{font-size:0.5rem;color:rgba(255,255,255,0.3);}
+.mqi-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;}
+.mqi-time{font-family:'Orbitron',monospace;font-size:0.9rem;font-weight:700;color:var(--gold);text-shadow:0 0 10px rgba(255,214,0,0.4);}
+.my-q-item:not(.mqi-active) .mqi-time{font-size:0.75rem;opacity:0.8;}
+.mqi-tag{font-family:'Share Tech Mono',monospace;font-size:0.44rem;padding:3px 8px;border:1px solid;letter-spacing:0.1em;text-transform:uppercase;}
 .mqi-tag.a{color:var(--cyan);border-color:rgba(0,245,255,0.3);}
 .mqi-tag.n{color:var(--gold);border-color:rgba(255,214,0,0.25);}
 .mqi-tag.w{color:rgba(255,255,255,0.2);border-color:rgba(255,255,255,0.06);}
@@ -784,14 +788,10 @@ function rebuildQueues(){
     nq[name]={currentTurn:prev?Math.min(prev.currentTurn,mine.length+1):1,citas:mine};
   });
   S.queues=nq;
-  // ── FIX: auto-select single barber for "Mi Turno" mode ──
   autoSelectSingleBarber();
   renderBarberosBar();
 }
 
-// ════════════════════════════════════════════════════
-//  FIX 2: Auto-select barber when only one is active
-// ════════════════════════════════════════════════════
 function autoSelectSingleBarber(){
   const activeBarbers=S.barberos.length>0
     ? S.barberos.filter(b=>b.activo)
@@ -961,8 +961,6 @@ function renderSolo(barber,layout){
   const cur=allC[currentTurn-1];const nxt=allC[currentTurn];
   const bid=safeId(barber);
 
-  // ── FIX 1: preserve original index in withStatus ──
-  // Use originalIdx to avoid allC.indexOf(newObj)===-1 bug
   const withStatus=allC.map((c,originalIdx)=>{
     const pos=originalIdx-(currentTurn-1);
     let status='wait';
@@ -1028,7 +1026,6 @@ function renderSolo(barber,layout){
           <div class="zone-a">
             <div class="q-col-header"><span>#</span><span>CLIENTE</span><span style="text-align:center">BARBERO</span><span style="text-align:center">HORA</span><span>ESTADO</span></div>
             ${zoneAItems.map((c,idx)=>{
-              // FIX: use c.originalIdx instead of allC.indexOf(c)
               const num=c.originalIdx+1;
               const pos=c.pos;
               const eta=calcETA(pos);
@@ -1084,7 +1081,7 @@ function renderMultiCol(barber){
 }
 
 // ════════════════════════════════════════════════════
-//  FIX 2: renderMyTurn — matches Barbería solo layout
+//  renderMyTurn — cleaned up, no stats bar, compact list
 // ════════════════════════════════════════════════════
 function renderMyTurn(c){
   if(!MY_BARBER){
@@ -1104,9 +1101,24 @@ function renderMyTurn(c){
   const{citas:allC,currentTurn}=q;
   const cur=allC[currentTurn-1];const nxt=allC[currentTurn];
   const remaining=Math.max(0,allC.length-currentTurn+1);
-  const doneCitas=allC.slice(0,currentTurn-1);
+  // Only last 3 done
+  const doneCitas=allC.slice(0,currentTurn-1).slice(-3);
 
   const toggleHtml=bObj?`<button onclick="toggleBarberoActivo('${bObj.id}','${barber}',${isActive})" style="padding:6px 14px;border:1px solid ${isActive?'rgba(255,0,110,0.35)':'rgba(0,255,120,0.35)'};background:${isActive?'rgba(255,0,110,0.06)':'rgba(0,255,120,0.06)'};color:${isActive?'rgba(255,0,110,0.7)':'rgba(0,255,120,0.7)'};font-family:'Share Tech Mono',monospace;font-size:0.46rem;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;">${isActive?'⏸ DESACTIVARME':'▶ ACTIVARME'}</button>`:'';
+
+  // Build queue list: skip done except last 3, show active + pending
+  const queueItems = [];
+  // Last 3 done
+  const allDone = allC.slice(0, currentTurn - 1);
+  allDone.slice(-3).forEach((c, i) => {
+    queueItems.push({ c, i: allC.indexOf(c), status: 'done' });
+  });
+  // Active + pending
+  allC.slice(currentTurn - 1).forEach((c, i) => {
+    const idx = currentTurn - 1 + i;
+    const status = i === 0 ? 'active' : i === 1 ? 'next' : 'wait';
+    queueItems.push({ c, i: idx, status });
+  });
 
   c.innerHTML=`
   <div class="my-wrap">
@@ -1119,11 +1131,6 @@ function renderMyTurn(c){
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:16px;">
-        <div class="my-stats">
-          <div class="my-stat"><div class="my-stat-val">${allC.length}</div><div class="my-stat-lbl">Hoy</div></div>
-          <div class="my-stat"><div class="my-stat-val gold">${remaining}</div><div class="my-stat-lbl">Quedan</div></div>
-          <div class="my-stat"><div class="my-stat-val green">${doneCitas.length}</div><div class="my-stat-lbl">Listos</div></div>
-        </div>
         ${toggleHtml}
       </div>
     </div>
@@ -1172,29 +1179,24 @@ function renderMyTurn(c){
             ⬡ MIS TURNOS HOY
             <span class="my-queue-meta">${allC.length} REGISTRADOS · ${remaining} EN ESPERA</span>
           </div>
-          <div class="my-stats-bar">
-            <div class="stat-card"><div class="stat-val">${allC.length}</div><div class="stat-lbl">Clientes hoy</div><div class="stat-bar-line"><div class="stat-bar-fill" style="width:100%"></div></div></div>
-            <div class="stat-card"><div class="stat-val gold">${remaining}</div><div class="stat-lbl">Restantes</div><div class="stat-bar-line" style="background:rgba(255,214,0,0.08)"><div class="stat-bar-fill" style="width:${allC.length?Math.round(remaining/allC.length*100):0}%;background:var(--gold);box-shadow:0 0 6px var(--gold)"></div></div></div>
-            <div class="stat-card"><div class="stat-val green">${remaining>0?calcETA(remaining)||remaining*DUR+'m':'0m'}</div><div class="stat-lbl">Tiempo espera</div></div>
-            <div class="stat-card"><div class="stat-val purple">${S.lastUp?calcAgo(S.lastUp):'—'}</div><div class="stat-lbl">Últ. actualiz.</div></div>
-          </div>
           <div class="done-strip" style="flex-shrink:0;">
             <div class="done-strip-label">✓ LISTOS</div>
-            <div class="done-pills">${doneCitas.length?doneCitas.slice(-3).map((c,i)=>`<div class="done-pill" style="animation-delay:${i*0.06}s"><div class="done-pill-num">${String(allC.indexOf(c)+1).padStart(2,'0')}</div><div class="done-pill-name">${c.name}</div><div class="done-pill-check">✓</div></div>`).join(''):'<span class="done-strip-empty">— ninguno aún —</span>'}</div>
+            <div class="done-pills">${doneCitas.length?doneCitas.map((c,i)=>`<div class="done-pill" style="animation-delay:${i*0.06}s"><div class="done-pill-num">${String(allC.indexOf(c)+1).padStart(2,'0')}</div><div class="done-pill-name">${c.name}</div><div class="done-pill-check">✓</div></div>`).join(''):'<span class="done-strip-empty">— ninguno aún —</span>'}</div>
           </div>
           <div class="my-queue-list">
-            ${allC.length===0?'<div style="padding:20px;text-align:center;font-family:\'Share Tech Mono\',monospace;font-size:0.44rem;color:rgba(0,245,255,0.2);letter-spacing:0.2em;">SIN CITAS ASIGNADAS</div>':''}
-            ${allC.map((c,i)=>{
-              const isDone=i<currentTurn-1;const isAct=i===currentTurn-1;const isNxt=i===currentTurn;
+            ${queueItems.length===0?'<div style="padding:20px;text-align:center;font-family:\'Share Tech Mono\',monospace;font-size:0.44rem;color:rgba(0,245,255,0.2);letter-spacing:0.2em;">SIN CITAS ASIGNADAS</div>':''}
+            ${queueItems.map(({c,i,status},rowIdx)=>{
+              const isDone=status==='done';const isAct=status==='active';const isNxt=status==='next';
               const cls=isDone?'mqi-done':isAct?'mqi-active':isNxt?'mqi-next':'mqi-wait';
               const tag=isDone?`<span class="mqi-tag d">✓</span>`:isAct?`<span class="mqi-tag a">EN SILLA</span>`:isNxt?`<span class="mqi-tag n">PRÓXIMO</span>`:`<span class="mqi-tag w">ESPERA</span>`;
-              const eta=calcETA(i-(currentTurn-1));
-              return`<div class="my-q-item ${cls}" style="animation-delay:${i*0.04}s">
+              const pos=i-(currentTurn-1);
+              const eta=!isDone?calcETA(pos):null;
+              return`<div class="my-q-item ${cls}" style="animation-delay:${rowIdx*0.04}s">
                 <div class="mqi-num">${String(i+1).padStart(2,'0')}</div>
                 <div><div class="mqi-name">${c.name}</div><div class="mqi-svc">${c.servicio}</div></div>
                 <div class="mqi-right">
                   <div class="mqi-time">${c.time}</div>${tag}
-                  ${eta&&!isDone?`<span style="font-family:'Share Tech Mono',monospace;font-size:0.36rem;color:rgba(255,214,0,0.35);">⏱${eta}</span>`:''}
+                  ${eta?`<span style="font-family:'Share Tech Mono',monospace;font-size:0.36rem;color:rgba(255,214,0,0.35);">⏱${eta}</span>`:''}
                   ${!isDone&&c.id?`<button onclick="openReagendar('${c.id}','${c.name.replace(/'/g,"\\'")}','${c.time}','${barber.replace(/'/g,"\\'")}')" style="margin-top:3px;padding:2px 7px;border:1px solid rgba(255,214,0,0.2);background:rgba(255,214,0,0.04);color:rgba(255,214,0,0.5);font-family:'Share Tech Mono',monospace;font-size:0.36rem;letter-spacing:0.1em;cursor:pointer;text-transform:uppercase;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(255,214,0,0.5)';this.style.color='rgba(255,214,0,0.9)';" onmouseout="this.style.borderColor='rgba(255,214,0,0.2)';this.style.color='rgba(255,214,0,0.5)';">↻ mover</button>`:''}
                 </div>
               </div>`;
