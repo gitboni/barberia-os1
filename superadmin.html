@@ -2333,6 +2333,28 @@ function renderReportesPage(cont) {
           <div style="font-family:'DM Mono',monospace;font-size:0.44rem;color:var(--muted);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:5px;">WhatsApp destino (opcional)</div>
           <input id="prog-wa" type="text" placeholder="Dejar vacío para usar el del dueño" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:8px 12px;font-family:'DM Mono',monospace;font-size:0.62rem;">
         </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--border);">
+          <div>
+            <div style="font-size:0.72rem;font-weight:600;">📤 Reporte por barbero</div>
+            <div style="font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--muted);margin-top:2px;">Cada barbero recibe su propio reporte</div>
+          </div>
+          <label style="cursor:pointer;display:flex;align-items:center;gap:8px;">
+            <input type="checkbox" id="prog-barbero" style="width:16px;height:16px;accent-color:var(--gold);">
+          </label>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--border);">
+          <div>
+            <div style="font-size:0.72rem;font-weight:600;">🚨 Alerta automática de caída</div>
+            <div style="font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--muted);margin-top:2px;">Notificar si las citas bajan más de X%</div>
+          </div>
+          <label style="cursor:pointer;display:flex;align-items:center;gap:8px;">
+            <input type="checkbox" id="prog-alerta" style="width:16px;height:16px;accent-color:var(--gold);">
+          </label>
+        </div>
+        <div id="prog-alerta-pct-row" style="display:none;">
+          <div style="font-family:'DM Mono',monospace;font-size:0.44rem;color:var(--muted);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:5px;">Umbral de caída (%)</div>
+          <input id="prog-alerta-pct" type="number" value="20" min="5" max="80" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:8px 12px;font-family:'DM Mono',monospace;font-size:0.62rem;">
+        </div>
         <div style="display:flex;gap:8px;margin-top:8px;">
           <button onclick="document.getElementById('modal-rpt-prog').style.display='none'" style="flex:1;padding:10px;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'DM Mono',monospace;font-size:0.56rem;cursor:pointer;letter-spacing:0.1em;">CANCELAR</button>
           <button onclick="guardarReporteProg()" style="flex:1;padding:10px;background:rgba(201,168,76,0.1);border:1px solid var(--gold);color:var(--gold);font-family:'DM Mono',monospace;font-size:0.56rem;cursor:pointer;letter-spacing:0.1em;font-weight:700;">✓ GUARDAR</button>
@@ -2541,18 +2563,29 @@ async function enviarReporteProg(repId, frecuencia) {
 function openNuevoReporteProg() {
   if (!_shopSeleccionada) { showNotification('Selecciona una barbería primero', 'error'); return; }
   const modal = document.getElementById('modal-rpt-prog');
-  if (modal) { modal.style.display = 'flex'; }
+  if (modal) {
+    modal.style.display = 'flex';
+    // Toggle alerta pct row
+    const chk = document.getElementById('prog-alerta');
+    const row = document.getElementById('prog-alerta-pct-row');
+    if(chk && row) {
+      chk.onchange = () => { row.style.display = chk.checked ? 'block' : 'none'; };
+    }
+  }
 }
 
 async function guardarReporteProg() {
   if (!_shopSeleccionada) return;
   const freq = document.getElementById('prog-freq').value;
   const wa = document.getElementById('prog-wa').value.trim() || null;
+  const porBarbero = document.getElementById('prog-barbero')?.checked || false;
+  const alertaActiva = document.getElementById('prog-alerta')?.checked || false;
+  const alertaPct = parseInt(document.getElementById('prog-alerta-pct')?.value) || 20;
   try {
     await fetch(`https://mmokunpuslcfphalrwot.supabase.co/rest/v1/reportes_programados`, {
       method: 'POST',
       headers: { 'apikey': SB_KEY_R, 'Authorization': `Bearer ${SB_KEY_R}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ shop_id: _shopSeleccionada.id, frecuencia: freq, whatsapp_destino: wa, activo: true })
+      body: JSON.stringify({ shop_id: _shopSeleccionada.id, frecuencia: freq, whatsapp_destino: wa, activo: true, reporte_por_barbero: porBarbero, alerta_activa: alertaActiva, alerta_caida_pct: alertaPct })
     });
     document.getElementById('modal-rpt-prog').style.display = 'none';
     showNotification('✓ Reporte programado guardado', 'success');
