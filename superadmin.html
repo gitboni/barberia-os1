@@ -436,6 +436,7 @@ tr:hover td{background:rgba(255,255,255,0.016);}
   <div class="nav-item" data-page="whatsapp"><span class="icon">💬</span><span class="sidebar-text">WhatsApp / n8n</span></div>
   <div class="nav-item" data-page="leads"><span class="icon">📋</span><span class="sidebar-text">Leads</span></div>
   <div class="nav-item" data-page="landing"><span class="icon">🌐</span><span class="sidebar-text">Landing Page</span></div>
+  <div class="nav-item" data-page="reportes"><span class="icon">📊</span><span class="sidebar-text">Reportes</span></div>
   <div class="nav-item" data-page="seguridad"><span class="icon">🔒</span><span class="sidebar-text">Seguridad</span></div>
   <div class="nav-item" data-page="logs"><span class="icon">▸</span><span class="sidebar-text">Logs</span></div>
   <div class="nav-item" data-page="config"><span class="icon">⊙</span><span class="sidebar-text">Configuración</span></div>
@@ -758,6 +759,13 @@ tr:hover td{background:rgba(255,255,255,0.016);}
     </div>
 
     <!-- SEGURIDAD -->
+    <!-- ══ REPORTES ══════════════════════════════════════════════════════ -->
+    <div class="page" id="page-reportes">
+      <div id="reportes-container">
+        <div style="padding:40px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;">Cargando reportes...</div>
+      </div>
+    </div>
+
     <div class="page" id="page-seguridad">
       <!-- Mejora #6: Logs de acceso persistidos -->
       <div style="margin-bottom:20px;">
@@ -1275,7 +1283,7 @@ const PAGE_TITLES = {
   landing:'Landing Page Editor', dashboard:'Dashboard Global', solicitudes:'Solicitudes de Registro', shops:'Gestión de Barberías',
   usuarios:'Usuarios & Accesos', barberos:'Gestión de Barberos', pagos:'Pagos & Suscripciones',
   facturacion:'Facturación', citas:'Citas Global', simulador:'Simulador de Chat WhatsApp', whatsapp:'WhatsApp & n8n',
-  leads:'Leads del Landing', seguridad:'Centro de Seguridad', logs:'Logs del Sistema', config:'Configuración Global'
+  leads:'Leads del Landing', reportes:'Reportes por Barbería', seguridad:'Centro de Seguridad', logs:'Logs del Sistema', config:'Configuración Global'
 };
 document.querySelectorAll('.nav-item[data-page]').forEach(el => {
   el.addEventListener('click', () => showPage(el.dataset.page, el));
@@ -1284,6 +1292,7 @@ function showPage(id, el) {
   // Cargar datos específicos por página
   if(id === 'seguridad') setTimeout(loadAccessLogs, 100);
   if(id === 'landing') setTimeout(loadLanding, 100);
+  if(id === 'reportes') setTimeout(loadReportesPage, 100);
   if(!checkSessionExpiry()) return;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -2188,6 +2197,387 @@ function showLandingSection(seccion) {
   const idx = secciones.indexOf(seccion);
   if(tabs[idx]) tabs[idx].classList.add('active');
   renderLandingEditor();
+}
+
+// ════════════════════════════════════════════════════════════════════════
+//  REPORTES — Vista y envío de reportes por barbería
+// ════════════════════════════════════════════════════════════════════════
+const SB_FUNC_URL = 'https://mmokunpuslcfphalrwot.supabase.co/functions/v1';
+const SB_KEY_R = 'sb_publishable_aETz_9ECH5RcBMjmRhUnfw_g71zRdwT';
+
+let _reportesShops = [];
+let _reportesProgramados = {};
+let _reportesHistorial = {};
+let _shopSeleccionada = null;
+let _previewData = null;
+
+async function loadReportesPage() {
+  const cont = document.getElementById('reportes-container');
+  if (!cont) return;
+  cont.innerHTML = `<div style="padding:40px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;font-size:0.62rem;">Cargando barberías...</div>`;
+  try {
+    const shops = await sbFetch('shops', 'activo=eq.true&order=nombre.asc&select=id,nombre,slug,whatsapp_dueño,twilio_number');
+    _reportesShops = shops || [];
+    const prog = await sbFetch('reportes_programados', 'order=created_at.desc');
+    _reportesProgramados = {};
+    (prog || []).forEach(r => { if (!_reportesProgramados[r.shop_id]) _reportesProgramados[r.shop_id] = []; _reportesProgramados[r.shop_id].push(r); });
+    const hist = await sbFetch('reportes_historial', 'order=enviado_at.desc&limit=100');
+    _reportesHistorial = {};
+    (hist || []).forEach(r => { if (!_reportesHistorial[r.shop_id]) _reportesHistorial[r.shop_id] = []; _reportesHistorial[r.shop_id].push(r); });
+    renderReportesPage(cont);
+  } catch(e) { cont.innerHTML = `<div style="padding:40px;color:var(--red);font-family:'DM Mono',monospace;">Error: ${e.message}</div>`; }
+}
+
+async function sbFetch(table, query='') {
+  const r = await fetch(`https://mmokunpuslcfphalrwot.supabase.co/rest/v1/${table}?${query}`, {
+    headers: { 'apikey': SB_KEY_R, 'Authorization': `Bearer ${SB_KEY_R}` }
+  });
+  if (!r.ok) throw new Error(`${table} ${r.status}`);
+  return r.json();
+}
+
+function renderReportesPage(cont) {
+  const shopOpts = _reportesShops.map(s => `<option value="${s.id}">${s.nombre}</option>`).join('');
+  cont.innerHTML = `
+  <div style="display:flex;flex-direction:column;gap:20px;">
+
+    <!-- Header con selector de barbería -->
+    <div style="display:grid;grid-template-columns:1fr auto;align-items:center;gap:16px;">
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:6px;">Barbería</div>
+        <select id="rpt-shop-sel" onchange="onReportesShopChange()" style="background:var(--surface);border:1px solid var(--border);color:var(--text);padding:8px 12px;font-family:'DM Mono',monospace;font-size:0.72rem;width:100%;max-width:360px;">
+          <option value="">— Selecciona una barbería —</option>
+          ${shopOpts}
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;align-items:flex-end;">
+        <button onclick="loadReportesPage()" style="padding:8px 14px;background:var(--surface);border:1px solid var(--border);color:var(--muted);font-family:'DM Mono',monospace;font-size:0.52rem;cursor:pointer;letter-spacing:0.1em;">↻ REFRESCAR</button>
+      </div>
+    </div>
+
+    <!-- Panel de reporte manual / preview -->
+    <div class="card" id="rpt-panel" style="display:none;">
+      <div class="card-header">
+        <div class="card-title">📊 Generar Reporte</div>
+        <span class="card-meta" id="rpt-shop-nombre">—</span>
+      </div>
+      <div style="padding:18px;display:flex;flex-direction:column;gap:16px;">
+
+        <!-- Período -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+          ${[['semanal','📅 Semanal'],['mensual','📆 Mensual'],['trimestral','📈 Trimestral'],['anual','🏆 Anual']].map(([v,l])=>`
+          <button class="rpt-freq-btn" data-freq="${v}" onclick="selectFreq('${v}')" style="padding:10px 6px;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-family:'DM Mono',monospace;font-size:0.52rem;cursor:pointer;letter-spacing:0.06em;text-align:center;transition:all 0.2s;">
+            ${l}
+          </button>`).join('')}
+        </div>
+
+        <!-- WhatsApp destino -->
+        <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:flex-end;">
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:0.46rem;color:var(--muted);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:5px;">Enviar a (WhatsApp)</div>
+            <input id="rpt-wa-dest" type="text" placeholder="+18091234567 (dejar vacío para usar el del dueño)" style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:8px 12px;font-family:'DM Mono',monospace;font-size:0.62rem;">
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button onclick="previewReporte()" style="padding:9px 16px;background:rgba(201,168,76,0.08);border:1px solid var(--gold);color:var(--gold);font-family:'DM Mono',monospace;font-size:0.54rem;cursor:pointer;letter-spacing:0.1em;white-space:nowrap;">👁 PREVIEW</button>
+            <button onclick="enviarReporte(false)" style="padding:9px 16px;background:rgba(0,200,100,0.08);border:1px solid var(--green);color:var(--green);font-family:'DM Mono',monospace;font-size:0.54rem;cursor:pointer;letter-spacing:0.1em;white-space:nowrap;">📤 ENVIAR</button>
+          </div>
+        </div>
+
+        <!-- Preview resultado -->
+        <div id="rpt-preview" style="display:none;background:rgba(0,0,0,0.2);border:1px solid var(--border);padding:14px;font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text);white-space:pre-wrap;line-height:1.6;max-height:300px;overflow-y:auto;"></div>
+      </div>
+    </div>
+
+    <!-- Configuración de envíos automáticos -->
+    <div class="card" id="rpt-auto-panel" style="display:none;">
+      <div class="card-header">
+        <div class="card-title">⏰ Envíos Automáticos Programados</div>
+        <button onclick="openNuevoReporteProg()" style="padding:5px 12px;background:rgba(201,168,76,0.08);border:1px solid var(--gold);color:var(--gold);font-family:'DM Mono',monospace;font-size:0.5rem;cursor:pointer;letter-spacing:0.1em;">+ PROGRAMAR</button>
+      </div>
+      <div id="rpt-prog-list" style="padding:16px;">
+        <div style="color:var(--muted);font-family:'DM Mono',monospace;font-size:0.58rem;text-align:center;padding:12px;">Selecciona una barbería para ver envíos programados</div>
+      </div>
+    </div>
+
+    <!-- Historial de reportes enviados -->
+    <div class="card" id="rpt-hist-panel" style="display:none;">
+      <div class="card-header"><div class="card-title">📋 Historial de Reportes Enviados</div></div>
+      <div id="rpt-hist-list" style="overflow-x:auto;"></div>
+    </div>
+
+    <!-- Resumen global de todas las barberías -->
+    <div class="card">
+      <div class="card-header"><div class="card-title">🌐 Resumen Global — Todas las Barberías</div></div>
+      <div id="rpt-global" style="padding:16px;">
+        <div style="color:var(--muted);font-family:'DM Mono',monospace;font-size:0.58rem;text-align:center;padding:12px;">Cargando datos globales...</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Modal nuevo reporte programado -->
+  <div id="modal-rpt-prog" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.8);display:none;align-items:center;justify-content:center;">
+    <div style="background:var(--surface);border:1px solid var(--border);padding:28px;min-width:360px;max-width:480px;width:92%;position:relative;">
+      <div style="font-family:'DM Mono',monospace;font-size:0.78rem;font-weight:700;color:var(--gold);letter-spacing:0.14em;margin-bottom:20px;">⏰ PROGRAMAR ENVÍO AUTOMÁTICO</div>
+      <div style="display:flex;flex-direction:column;gap:13px;">
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.44rem;color:var(--muted);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:5px;">Frecuencia</div>
+          <select id="prog-freq" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:8px 12px;font-family:'DM Mono',monospace;font-size:0.64rem;">
+            <option value="semanal">📅 Semanal (cada lunes)</option>
+            <option value="mensual">📆 Mensual (día 1 de cada mes)</option>
+            <option value="trimestral">📈 Trimestral (cada 3 meses)</option>
+            <option value="anual">🏆 Anual (1 de enero)</option>
+          </select>
+        </div>
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.44rem;color:var(--muted);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:5px;">WhatsApp destino (opcional)</div>
+          <input id="prog-wa" type="text" placeholder="Dejar vacío para usar el del dueño" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:8px 12px;font-family:'DM Mono',monospace;font-size:0.62rem;">
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button onclick="document.getElementById('modal-rpt-prog').style.display='none'" style="flex:1;padding:10px;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'DM Mono',monospace;font-size:0.56rem;cursor:pointer;letter-spacing:0.1em;">CANCELAR</button>
+          <button onclick="guardarReporteProg()" style="flex:1;padding:10px;background:rgba(201,168,76,0.1);border:1px solid var(--gold);color:var(--gold);font-family:'DM Mono',monospace;font-size:0.56rem;cursor:pointer;letter-spacing:0.1em;font-weight:700;">✓ GUARDAR</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  // Cargar resumen global
+  loadResumenGlobal();
+}
+
+let _selectedFreq = 'mensual';
+
+function selectFreq(f) {
+  _selectedFreq = f;
+  document.querySelectorAll('.rpt-freq-btn').forEach(b => {
+    const active = b.dataset.freq === f;
+    b.style.borderColor = active ? 'var(--gold)' : 'var(--border)';
+    b.style.color = active ? 'var(--gold)' : 'var(--muted)';
+    b.style.background = active ? 'rgba(201,168,76,0.08)' : 'var(--surface)';
+  });
+}
+
+function onReportesShopChange() {
+  const sel = document.getElementById('rpt-shop-sel');
+  const shopId = sel.value;
+  if (!shopId) { ['rpt-panel','rpt-auto-panel','rpt-hist-panel'].forEach(id => { const el = document.getElementById(id); if(el) el.style.display='none'; }); return; }
+  _shopSeleccionada = _reportesShops.find(s => s.id === shopId);
+  document.getElementById('rpt-shop-nombre').textContent = _shopSeleccionada?.nombre || '';
+  document.getElementById('rpt-panel').style.display = 'block';
+  document.getElementById('rpt-auto-panel').style.display = 'block';
+  document.getElementById('rpt-hist-panel').style.display = 'block';
+  // Pre-fill WhatsApp del dueño
+  document.getElementById('rpt-wa-dest').placeholder = _shopSeleccionada?.['whatsapp_dueño'] ? `Dueño: ${_shopSeleccionada['whatsapp_dueño']}` : '+18091234567';
+  selectFreq('mensual');
+  renderProgList(shopId);
+  renderHistorialList(shopId);
+}
+
+function renderProgList(shopId) {
+  const el = document.getElementById('rpt-prog-list');
+  const lista = _reportesProgramados[shopId] || [];
+  if (!lista.length) { el.innerHTML = `<div style="color:var(--muted);font-family:'DM Mono',monospace;font-size:0.58rem;text-align:center;padding:12px;">Sin envíos programados. Haz clic en + PROGRAMAR para agregar uno.</div>`; return; }
+  const freq_label = { semanal:'📅 Semanal', mensual:'📆 Mensual', trimestral:'📈 Trimestral', anual:'🏆 Anual' };
+  el.innerHTML = `<table style="width:100%;border-collapse:collapse;">
+    <thead><tr style="border-bottom:1px solid var(--border);">
+      ${['Frecuencia','Destino WhatsApp','Último envío','Próximo envío','Estado','Acción'].map(h=>`<th style="text-align:left;padding:7px 10px;font-family:'DM Mono',monospace;font-size:0.44rem;color:var(--muted);font-weight:400;text-transform:uppercase;">${h}</th>`).join('')}
+    </tr></thead>
+    <tbody>
+      ${lista.map(r => `<tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.62rem;">${freq_label[r.frecuencia]||r.frecuencia}</td>
+        <td style="padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);">${r.whatsapp_destino||'Dueño de la shop'}</td>
+        <td style="padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.56rem;color:var(--muted);">${r.ultimo_envio?new Date(r.ultimo_envio).toLocaleDateString('es-DO'):'Nunca'}</td>
+        <td style="padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.56rem;color:var(--gold);">${r.proximo_envio?new Date(r.proximo_envio).toLocaleDateString('es-DO'):'Pendiente'}</td>
+        <td style="padding:8px 10px;"><span style="font-family:'DM Mono',monospace;font-size:0.46rem;padding:2px 7px;border:1px solid ${r.activo?'var(--green)':'var(--border)'};color:${r.activo?'var(--green)':'var(--muted)'};">${r.activo?'ACTIVO':'INACTIVO'}</span></td>
+        <td style="padding:8px 10px;display:flex;gap:5px;">
+          <button onclick="enviarReporteProg('${r.id}','${r.frecuencia}')" style="padding:3px 9px;background:transparent;border:1px solid var(--gold);color:var(--gold);font-family:'DM Mono',monospace;font-size:0.42rem;cursor:pointer;">▶ ENVIAR</button>
+          <button onclick="toggleReporteProg('${r.id}',${r.activo})" style="padding:3px 9px;background:transparent;border:1px solid var(--border);color:var(--muted);font-family:'DM Mono',monospace;font-size:0.42rem;cursor:pointer;">${r.activo?'PAUSAR':'ACTIVAR'}</button>
+          <button onclick="eliminarReporteProg('${r.id}')" style="padding:3px 9px;background:transparent;border:1px solid var(--red);color:var(--red);font-family:'DM Mono',monospace;font-size:0.42rem;cursor:pointer;">✕</button>
+        </td>
+      </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+
+function renderHistorialList(shopId) {
+  const el = document.getElementById('rpt-hist-list');
+  const lista = (_reportesHistorial[shopId] || []).slice(0, 15);
+  if (!lista.length) { el.innerHTML = `<div style="padding:24px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;font-size:0.58rem;">Sin reportes enviados todavía.</div>`; return; }
+  const freq_label = { semanal:'Semanal', mensual:'Mensual', trimestral:'Trimestral', anual:'Anual' };
+  el.innerHTML = `<table style="width:100%;border-collapse:collapse;">
+    <thead><tr style="border-bottom:1px solid var(--border);">
+      ${['Período','Frecuencia','Citas','Completadas','Ingresos','Clientes nuevos','Enviado a','Fecha'].map(h=>`<th style="text-align:left;padding:7px 10px;font-family:'DM Mono',monospace;font-size:0.42rem;color:var(--muted);font-weight:400;text-transform:uppercase;">${h}</th>`).join('')}
+    </tr></thead>
+    <tbody>
+      ${lista.map(r => `<tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:7px 10px;font-family:'DM Mono',monospace;font-size:0.56rem;">${r.periodo_inicio} – ${r.periodo_fin}</td>
+        <td style="padding:7px 10px;font-family:'DM Mono',monospace;font-size:0.54rem;color:var(--muted);">${freq_label[r.frecuencia]||r.frecuencia}</td>
+        <td style="padding:7px 10px;font-family:'DM Mono',monospace;font-size:0.6rem;">${r.total_citas}</td>
+        <td style="padding:7px 10px;font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--green);">${r.citas_completadas}</td>
+        <td style="padding:7px 10px;font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--gold);">$${(r.ingresos_estimados||0).toLocaleString()}</td>
+        <td style="padding:7px 10px;font-family:'DM Mono',monospace;font-size:0.6rem;">${r.clientes_nuevos}</td>
+        <td style="padding:7px 10px;font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);">${r.enviado_a||'—'}</td>
+        <td style="padding:7px 10px;font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);">${new Date(r.enviado_at).toLocaleDateString('es-DO')}</td>
+      </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+
+async function loadResumenGlobal() {
+  const el = document.getElementById('rpt-global');
+  if (!el) return;
+  try {
+    // Métricas globales de todas las shops
+    const hoje = new Date().toLocaleDateString('en-CA', {timeZone:'America/Santo_Domingo'});
+    const hace30 = new Date(); hace30.setDate(hace30.getDate()-30);
+    const f30 = hace30.toLocaleDateString('en-CA', {timeZone:'America/Santo_Domingo'});
+    const citas30 = await sbFetch('citas', `fecha=gte.${f30}&fecha=lte.${hoje}&select=shop_id,estado,servicio`);
+    const completadas30 = citas30.filter(c => c.estado === 'Completada').length;
+    const totalClientes = await sbFetch('clientes', 'select=shop_id');
+    // Agrupar por shop
+    const shopCitas = {};
+    citas30.forEach(c => { shopCitas[c.shop_id] = (shopCitas[c.shop_id]||0)+1; });
+    const topShops = Object.entries(shopCitas).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    const shopNombres = {};
+    _reportesShops.forEach(s => { shopNombres[s.id] = s.nombre; });
+
+    el.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;">
+      <div style="padding:14px 16px;border:1px solid var(--border);background:var(--surface2);">
+        <div style="font-family:'DM Mono',monospace;font-size:1.4rem;font-weight:700;color:var(--gold);">${_reportesShops.length}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.44rem;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:0.14em;">Barberías activas</div>
+      </div>
+      <div style="padding:14px 16px;border:1px solid var(--border);background:var(--surface2);">
+        <div style="font-family:'DM Mono',monospace;font-size:1.4rem;font-weight:700;color:var(--text);">${citas30.length}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.44rem;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:0.14em;">Citas últimos 30 días</div>
+      </div>
+      <div style="padding:14px 16px;border:1px solid var(--border);background:var(--surface2);">
+        <div style="font-family:'DM Mono',monospace;font-size:1.4rem;font-weight:700;color:var(--green);">${completadas30}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.44rem;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:0.14em;">Servicios completados</div>
+      </div>
+      <div style="padding:14px 16px;border:1px solid var(--border);background:var(--surface2);">
+        <div style="font-family:'DM Mono',monospace;font-size:1.4rem;font-weight:700;color:var(--blue);">${totalClientes.length}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.44rem;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:0.14em;">Clientes totales</div>
+      </div>
+    </div>
+    <div style="font-family:'DM Mono',monospace;font-size:0.46rem;color:var(--muted);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:10px;">Top barberías por actividad (30 días)</div>
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      ${topShops.length ? topShops.map(([sid, n], i) => {
+        const maxN = topShops[0][1];
+        const pct = Math.round(n/maxN*100);
+        return `<div style="display:flex;align-items:center;gap:10px;">
+          <div style="font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);width:16px;">${i+1}.</div>
+          <div style="font-size:0.78rem;min-width:160px;">${shopNombres[sid]||sid.substring(0,8)}</div>
+          <div style="flex:1;height:6px;background:rgba(255,255,255,0.05);border-radius:3px;">
+            <div style="height:100%;background:var(--gold);width:${pct}%;border-radius:3px;"></div>
+          </div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.56rem;color:var(--gold);min-width:50px;text-align:right;">${n} citas</div>
+        </div>`;
+      }).join('') : '<div style="color:var(--muted);font-family:\'DM Mono\',monospace;font-size:0.58rem;">Sin datos de citas en los últimos 30 días.</div>'}
+    </div>`;
+  } catch(e) { el.innerHTML = `<div style="color:var(--red);font-family:'DM Mono',monospace;font-size:0.58rem;">Error cargando resumen: ${e.message}</div>`; }
+}
+
+async function previewReporte() {
+  if (!_shopSeleccionada) { showNotification('Selecciona una barbería', 'error'); return; }
+  const btn = event.target;
+  btn.textContent = '⏳ Generando...'; btn.disabled = true;
+  try {
+    const r = await fetch(`${SB_FUNC_URL}/send-report`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY_R },
+      body: JSON.stringify({ shop_id: _shopSeleccionada.id, frecuencia: _selectedFreq, preview: true })
+    });
+    const data = await r.json();
+    if (data.error) throw new Error(data.error);
+    _previewData = data;
+    const el = document.getElementById('rpt-preview');
+    el.style.display = 'block';
+    el.textContent = data.mensaje;
+  } catch(e) { showNotification('Error: ' + e.message, 'error'); }
+  finally { btn.textContent = '👁 PREVIEW'; btn.disabled = false; }
+}
+
+async function enviarReporte(esAutomatico = false, repId = null, freq = null) {
+  if (!_shopSeleccionada && !esAutomatico) { showNotification('Selecciona una barbería', 'error'); return; }
+  const frecuencia = freq || _selectedFreq;
+  const shopId = _shopSeleccionada?.id;
+  const wa = document.getElementById('rpt-wa-dest')?.value?.trim() || '';
+  if (!confirm(`¿Enviar reporte ${frecuencia} de ${_shopSeleccionada?.nombre} por WhatsApp?`)) return;
+  const btn = event?.target;
+  if (btn) { btn.textContent = '⏳ Enviando...'; btn.disabled = true; }
+  try {
+    const r = await fetch(`${SB_FUNC_URL}/send-report`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY_R },
+      body: JSON.stringify({ shop_id: shopId, frecuencia, whatsapp_destino: wa || null, reporte_id: repId || null })
+    });
+    const data = await r.json();
+    if (data.error) throw new Error(data.error);
+    showNotification(`✓ Reporte enviado a ${data.destino}`, 'success');
+    loadReportesPage();
+  } catch(e) { showNotification('Error: ' + e.message, 'error'); }
+  finally { if (btn) { btn.textContent = '📤 ENVIAR'; btn.disabled = false; } }
+}
+
+async function enviarReporteProg(repId, frecuencia) {
+  const prog = Object.values(_reportesProgramados).flat().find(r => r.id === repId);
+  if (!prog) return;
+  const shop = _reportesShops.find(s => s.id === prog.shop_id);
+  if (!confirm(`¿Enviar reporte ${frecuencia} de ${shop?.nombre}?`)) return;
+  try {
+    const r = await fetch(`${SB_FUNC_URL}/send-report`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY_R },
+      body: JSON.stringify({ shop_id: prog.shop_id, frecuencia, whatsapp_destino: prog.whatsapp_destino || null, reporte_id: repId })
+    });
+    const data = await r.json();
+    if (data.error) throw new Error(data.error);
+    showNotification(`✓ Reporte enviado a ${data.destino}`, 'success');
+    loadReportesPage();
+  } catch(e) { showNotification('Error: ' + e.message, 'error'); }
+}
+
+function openNuevoReporteProg() {
+  if (!_shopSeleccionada) { showNotification('Selecciona una barbería primero', 'error'); return; }
+  const modal = document.getElementById('modal-rpt-prog');
+  if (modal) { modal.style.display = 'flex'; }
+}
+
+async function guardarReporteProg() {
+  if (!_shopSeleccionada) return;
+  const freq = document.getElementById('prog-freq').value;
+  const wa = document.getElementById('prog-wa').value.trim() || null;
+  try {
+    await fetch(`https://mmokunpuslcfphalrwot.supabase.co/rest/v1/reportes_programados`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY_R, 'Authorization': `Bearer ${SB_KEY_R}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ shop_id: _shopSeleccionada.id, frecuencia: freq, whatsapp_destino: wa, activo: true })
+    });
+    document.getElementById('modal-rpt-prog').style.display = 'none';
+    showNotification('✓ Reporte programado guardado', 'success');
+    loadReportesPage();
+  } catch(e) { showNotification('Error: ' + e.message, 'error'); }
+}
+
+async function toggleReporteProg(repId, activo) {
+  await fetch(`https://mmokunpuslcfphalrwot.supabase.co/rest/v1/reportes_programados?id=eq.${repId}`, {
+    method: 'PATCH',
+    headers: { 'apikey': SB_KEY_R, 'Authorization': `Bearer ${SB_KEY_R}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+    body: JSON.stringify({ activo: !activo })
+  });
+  showNotification(activo ? 'Reporte pausado' : '✓ Reporte activado', 'success');
+  loadReportesPage();
+}
+
+async function eliminarReporteProg(repId) {
+  if (!confirm('¿Eliminar este reporte programado?')) return;
+  await fetch(`https://mmokunpuslcfphalrwot.supabase.co/rest/v1/reportes_programados?id=eq.${repId}`, {
+    method: 'DELETE',
+    headers: { 'apikey': SB_KEY_R, 'Authorization': `Bearer ${SB_KEY_R}` }
+  });
+  showNotification('Reporte eliminado', 'success');
+  loadReportesPage();
 }
 
 function renderLandingEditor() {
