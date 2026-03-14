@@ -407,7 +407,7 @@ tr:hover td{background:rgba(255,255,255,0.016);}
     </div>
     <div class="login-error" id="loginError"></div>
     <div class="login-loading" id="loginLoading">⏳ Verificando credenciales...</div>
-    <button class="btn btn-primary" style="width:100%;margin-top:16px;padding:12px;" id="loginBtn">INGRESAR AL PANEL</button>
+    <button class="btn btn-primary" style="width:100%;margin-top:16px;padding:12px;" id="loginBtn" onclick="doLogin()">INGRESAR AL PANEL</button>
   </div>
 </div>
 
@@ -2884,6 +2884,96 @@ function downloadCSV(content,filename){
   a.href=URL.createObjectURL(blob); a.download=filename; a.click();
   URL.revokeObjectURL(a.href);
 }
+
+// ════════════════════════════════════════════════════════════════════════
+//  FEATURES CONTROL
+// ════════════════════════════════════════════════════════════════════════
+const FEATURES_DEF = [
+  { key:'feature_reportes',     label:'📊 Reportes',                desc:'Estadísticas, gráficas y exportar PDF' },
+  { key:'feature_config',       label:'⚙ Configuración',            desc:'Editar nombre, horario, duración, timezone' },
+  { key:'feature_servicios',    label:'✂ Servicios & Tiempos',       desc:'Gestionar servicios, precios y duraciones' },
+  { key:'feature_bot_whatsapp', label:'💬 Bot WhatsApp',             desc:'Recordatorios automáticos y comandos barberos' },
+  { key:'feature_barberos',     label:'💈 Barberos',                 desc:'Agregar, editar y activar/desactivar barberos' },
+  { key:'feature_clientes',     label:'👥 Clientes',                 desc:'Ver historial y datos de clientes registrados' },
+  { key:'feature_walkin',       label:'🚶 Walk-in',                  desc:'Cliente sin cita en el display' },
+];
+
+var _featShopId = null;
+var _featShopData = null;
+
+async function openFeaturesModal(shopId, shopNombre) {
+  _featShopId = shopId;
+  document.getElementById('features-shop-name').textContent = shopNombre;
+  try {
+    var rows = await sbGet('shops','id=eq.'+shopId+'&select=id,nombre,'+FEATURES_DEF.map(function(f){return f.key;}).join(','));
+    _featShopData = rows[0] || {};
+  } catch(e) { _featShopData = {}; }
+
+  var list = document.getElementById('features-list');
+  list.innerHTML = FEATURES_DEF.map(function(f) {
+    var enabled = _featShopData[f.key] !== false;
+    var trackBg = enabled ? '#3ecf8e' : 'rgba(255,255,255,0.1)';
+    var thumbLeft = enabled ? '21px' : '3px';
+    var lblColor = enabled ? '#3ecf8e' : 'rgba(255,255,255,0.3)';
+    var lblText = enabled ? 'ACTIVO' : 'INACTIVO';
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--border);">'
+      +'<div><div style="font-size:0.82rem;font-weight:600;color:var(--text);">'+f.label+'</div>'
+      +'<div style="font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--muted);margin-top:2px;">'+f.desc+'</div></div>'
+      +'<label style="cursor:pointer;display:flex;align-items:center;gap:10px;flex-shrink:0;" onclick="featToggle(''+f.key+'')">'
+      +'<span style="font-family:'DM Mono',monospace;font-size:0.46rem;color:'+lblColor+';" id="feat-lbl-'+f.key+'">'+lblText+'</span>'
+      +'<div style="position:relative;width:40px;height:22px;cursor:pointer;">'
+      +'<div style="position:absolute;inset:0;background:'+trackBg+';border-radius:11px;transition:background 0.2s;" id="feat-track-'+f.key+'"></div>'
+      +'<div style="position:absolute;top:3px;left:'+thumbLeft+';width:16px;height:16px;background:#fff;border-radius:50%;transition:left 0.2s;" id="feat-thumb-'+f.key+'"></div>'
+      +'</div>'
+      +'<input type="hidden" id="feat-val-'+f.key+'" value="'+(enabled?'true':'false')+'">'
+      +'</label>'
+      +'</div>';
+  }).join('');
+
+  openModal('modalFeatures');
+}
+
+function featToggle(key) {
+  var valEl = document.getElementById('feat-val-'+key);
+  var trackEl = document.getElementById('feat-track-'+key);
+  var thumbEl = document.getElementById('feat-thumb-'+key);
+  var lblEl = document.getElementById('feat-lbl-'+key);
+  if (!valEl) return;
+  var enabled = valEl.value !== 'true';
+  valEl.value = enabled ? 'true' : 'false';
+  if (trackEl) trackEl.style.background = enabled ? '#3ecf8e' : 'rgba(255,255,255,0.1)';
+  if (thumbEl) thumbEl.style.left = enabled ? '21px' : '3px';
+  if (lblEl) { lblEl.textContent = enabled ? 'ACTIVO' : 'INACTIVO'; lblEl.style.color = enabled ? '#3ecf8e' : 'rgba(255,255,255,0.3)'; }
+}
+
+async function saveFeatures() {
+  if (!_featShopId) return;
+  var btn = document.getElementById('saveFeatsBtn');
+  btn.textContent = '⏳ Guardando...'; btn.disabled = true;
+  try {
+    var patch = {};
+    FEATURES_DEF.forEach(function(f) {
+      var el = document.getElementById('feat-val-'+f.key);
+      if (el) patch[f.key] = el.value === 'true';
+    });
+    var r = await fetch('https://mmokunpuslcfphalrwot.supabase.co/rest/v1/shops?id=eq.'+_featShopId, {
+      method: 'PATCH',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer '+(_accessToken||SUPABASE_KEY), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify(patch)
+    });
+    if (!r.ok) throw new Error('Error '+r.status);
+    var shop = allShops.find(function(s){ return s.id === _featShopId; });
+    if (shop) Object.assign(shop, patch);
+    closeModal('modalFeatures');
+    showNotification('✓ Funcionalidades actualizadas', 'success');
+    addLog('OK', 'Features actualizadas para shop '+_featShopId);
+  } catch(e) {
+    showNotification('Error: '+e.message, 'error');
+  } finally {
+    btn.textContent = '✓ GUARDAR CAMBIOS'; btn.disabled = false;
+  }
+}
+
 </script>
 
 <!-- ══ MODAL FEATURES ══════════════════════════════════════════════════ -->
@@ -2891,13 +2981,10 @@ function downloadCSV(content,filename){
   <div class="modal-box" style="max-width:520px;">
     <div class="modal-header">
       <div class="modal-title">⚡ Control de Funcionalidades</div>
-      <div id="features-shop-name" style="font-size:0.65rem;color:var(--muted);margin-top:2px;letter-spacing:0.1em;"></div>
+      <div id="features-shop-name" style="font-size:0.65rem;color:var(--muted);margin-top:2px;letter-spacing:0.1em;font-family:'DM Mono',monospace;"></div>
     </div>
-    <div style="padding:20px;display:flex;flex-direction:column;gap:0;">
-
-      <!-- Features list -->
+    <div style="padding:20px;">
       <div id="features-list"></div>
-
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('modalFeatures')">CANCELAR</button>
