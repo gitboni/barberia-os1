@@ -425,7 +425,7 @@ function renderPage(){
   else if(currentPage==='citas')el.innerHTML=renderCitas();
   else if(currentPage==='clientes')el.innerHTML=renderClientes();
   else if(currentPage==='barberos')el.innerHTML=renderBarberos();
-  else if(currentPage==='reportes')el.innerHTML=renderReportes();
+  else if(currentPage==='reportes'){el.innerHTML=renderReportes();setTimeout(initReportesCharts,150);}
   else if(currentPage==='bot')el.innerHTML=renderBot();
   else if(currentPage==='config')el.innerHTML=renderConfigPage();
   renderSidebar();updateBarberoSelect();
@@ -748,8 +748,9 @@ async function deleteBarbero(id,nombre){
 }
 
 // ── REPORTES ──
+function fmt12rpt(h){ if(!h)return'—'; const[hh,mm]=(h+':00').split(':').map(Number),ap=hh>=12?'PM':'AM',h12=hh===0?12:hh>12?hh-12:hh; return h12+':'+(mm<10?'0':'')+mm+' '+ap; }
+
 function renderReportes(){
-  // ── Métricas reales desde S.citas (historial completo cargado en loadData) ──
   const todasCitas = S._todasCitas || S.citas;
   const completadas = todasCitas.filter(c=>c.estado==='Completada').length;
   const confirmadas = todasCitas.filter(c=>c.estado==='Confirmada').length;
@@ -843,11 +844,321 @@ function renderReportes(){
         <td style="padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--gold);text-align:center;">${c.visitas||0}</td>
       </tr>`).join('') : `<tr><td colspan="6" style="padding:24px;text-align:center;font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);">Sin clientes registrados aún — llegarán cuando agenden por WhatsApp</td></tr>`}
     </tbody>
+  // ── Comparativa con período anterior (últimos 30 vs anteriores 30) ──
+  const hoy30 = new Date(); hoy30.setDate(hoy30.getDate()-1);
+  const ini30 = new Date(); ini30.setDate(ini30.getDate()-30);
+  const ini60 = new Date(); ini60.setDate(ini60.getDate()-60);
+  const f30fin = hoy30.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
+  const f30ini = ini30.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
+  const f60ini = ini60.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
+  const citasPeriodo = todasCitas.filter(c=>c.fecha>=f30ini&&c.fecha<=f30fin).length;
+  const citasPrev   = todasCitas.filter(c=>c.fecha>=f60ini&&c.fecha<f30ini).length;
+  const compPct = citasPrev>0 ? Math.round(((citasPeriodo-citasPrev)/citasPrev)*100) : 0;
+  const tendencia = compPct>0?`↑ +${compPct}%`:compPct<0?`↓ ${compPct}%`:'= Sin cambio';
+  const tendColor = compPct>0?'var(--green)':compPct<0?'var(--red)':'var(--muted)';
+
+  // ── Hora pico ──
+  const horaMapAll = {};
+  todasCitas.forEach(c=>{ const h=(c.hora||'00').substring(0,2); horaMapAll[h]=(horaMapAll[h]||0)+1; });
+  const horaPicoEntry = Object.entries(horaMapAll).sort((a,b)=>b[1]-a[1])[0];
+  const horaPico = horaPicoEntry ? `${fmt12rpt(horaPicoEntry[0]+':00')} (${horaPicoEntry[1]} citas)` : '—';
+
+  // ── Proyección de ingresos (citas confirmadas futuras) ──
+  const hoyStr = new Date().toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
+  const citasFuturas = (S._todasCitas||[]).filter(c=>c.fecha>=hoyStr&&c.estado==='Confirmada');
+  const svcMap = {};
+  (S.servicios||[]).forEach(s=>{ svcMap[s.nombre.toUpperCase()] = parseFloat(s.precio)||0; });
+  const proyeccion = citasFuturas.reduce((acc,c)=>acc+(svcMap[(c.servicio||'').toUpperCase()]||0),0);
+  const ingresos = todasCitas.filter(c=>c.estado==='Completada').reduce((acc,c)=>acc+(svcMap[(c.servicio||'').toUpperCase()]||0),0);
+
+  // ── Citas por barbero ──
+  const cpbMap = {};
+  todasCitas.forEach(c=>{ cpbMap[c.barbero]=(cpbMap[c.barbero]||0)+1; });
+  const cpbArr = Object.entries(cpbMap).sort((a,b)=>b[1]-a[1]);
+  const maxCpb = Math.max(...cpbArr.map(x=>x[1]), 1);
+
+  // ── Servicios más solicitados ──
+  const svcCount = {};
+  todasCitas.forEach(c=>{ const k=(c.servicio||'—').toUpperCase(); svcCount[k]=(svcCount[k]||0)+1; });
+  const svcArr = Object.entries(svcCount).sort((a,b)=>b[1]-a[1]);
+
+  // ── Clientes ──
+  const recurrentes = (S.clientes||[]).filter(c=>(c.visitas||0)>1).length;
+  const nuevos = (S.clientes||[]).filter(c=>(c.visitas||0)<=1).length;
+  const completadas = todasCitas.filter(c=>c.estado==='Completada').length;
+  const confirmadas = todasCitas.filter(c=>c.estado==='Confirmada').length;
+  const canceladas  = todasCitas.filter(c=>c.estado==='Cancelada').length;
+  const totalCitas  = todasCitas.length;
+  const asistenciaPct = totalCitas > 0 ? Math.round((completadas / Math.max(completadas+canceladas,1)) * 100) : 0;
+
+  // ── Citas por hora (todas, para gráfica) ──
+  const horaArr = Object.entries(horaMapAll).sort((a,b)=>a[0].localeCompare(b[0]));
+  const maxHora = Math.max(...horaArr.map(x=>x[1]), 1);
+
+  // ── Citas últimas 8 semanas (gráfica tendencia) ──
+  const semanas = [];
+  for(let i=7;i>=0;i--){
+    const fin=new Date(); fin.setDate(fin.getDate()-i*7);
+    const ini=new Date(fin); ini.setDate(ini.getDate()-6);
+    const f=fin.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
+    const f2=ini.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
+    const n=todasCitas.filter(c=>c.fecha>=f2&&c.fecha<=f).length;
+    const lbl=ini.toLocaleDateString('es-DO',{month:'short',day:'numeric',timeZone:'America/Santo_Domingo'});
+    semanas.push({lbl,n});
+  }
+  const maxSem = Math.max(...semanas.map(x=>x.n), 1);
+
+  return `
+  <!-- Botón PDF -->
+  <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+    <button onclick="exportarPDF()" style="display:flex;align-items:center;gap:7px;padding:8px 18px;background:rgba(201,168,76,0.08);border:1px solid var(--gold);color:var(--gold);font-family:'DM Mono',monospace;font-size:0.54rem;cursor:pointer;letter-spacing:0.1em;">
+      📄 EXPORTAR PDF
+    </button>
+  </div>
+
+  <div id="reporte-pdf-content">
+
+  <!-- KPIs -->
+  <div class="stats-row">
+    <div class="stat-card c-gold"><div class="stat-val gold">${ingresos>0?'$'+ingresos.toLocaleString():'—'}</div><div class="stat-lbl">Ingresos realizados</div><div class="stat-delta" style="font-size:0.5rem;color:var(--muted);">${completadas} servicios</div></div>
+    <div class="stat-card" style="border-color:rgba(0,200,255,0.15);"><div class="stat-val" style="color:#00c8ff;">${proyeccion>0?'$'+proyeccion.toLocaleString():'—'}</div><div class="stat-lbl">Proyección futura</div><div class="stat-delta" style="font-size:0.5rem;color:var(--muted);">${citasFuturas.length} citas confirmadas</div></div>
+    <div class="stat-card c-green"><div class="stat-val green">${asistenciaPct}%</div><div class="stat-lbl">Asistencia</div><div class="stat-delta" style="font-size:0.5rem;color:var(--muted);">${totalCitas} total · ${canceladas} canceladas</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:${tendColor};">${tendencia}</div><div class="stat-lbl">vs 30 días anteriores</div><div class="stat-delta" style="font-size:0.5rem;color:var(--muted);">${citasPeriodo} vs ${citasPrev} citas</div></div>
+  </div>
+
+  <!-- Hora pico + Clientes -->
+  <div class="two-col">
+    <div class="stat-card" style="display:flex;flex-direction:column;gap:6px;">
+      <div style="font-family:'DM Mono',monospace;font-size:0.44rem;color:var(--muted);letter-spacing:0.18em;text-transform:uppercase;">⏰ Hora pico del día</div>
+      <div style="font-family:'DM Mono',monospace;font-size:1.3rem;font-weight:700;color:var(--gold);">${horaPico}</div>
+      <div style="font-family:'DM Mono',monospace;font-size:0.46rem;color:var(--muted);">Mayor concentración de clientes</div>
+    </div>
+    <div class="stat-card" style="display:flex;flex-direction:column;gap:6px;">
+      <div style="font-family:'DM Mono',monospace;font-size:0.44rem;color:var(--muted);letter-spacing:0.18em;text-transform:uppercase;">👥 Clientes</div>
+      <div style="font-family:'DM Mono',monospace;font-size:1.3rem;font-weight:700;color:var(--text);">${S.clientes.length}</div>
+      <div style="font-family:'DM Mono',monospace;font-size:0.46rem;color:var(--muted);">${recurrentes} recurrentes · ${nuevos} nuevos</div>
+    </div>
+  </div>
+
+  <!-- Gráfica tendencia semanal -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📈 Tendencia — Últimas 8 semanas</div>
+      <span class="card-meta">${totalCitas} citas registradas</span>
+    </div>
+    <div style="padding:20px 18px;">
+      <canvas id="chart-tendencia" height="120"></canvas>
+    </div>
+  </div>
+
+  <!-- Gráfica hora pico -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">⏰ Distribución por hora del día</div>
+      <span class="card-meta">Hora pico: ${horaPico}</span>
+    </div>
+    <div style="padding:20px 18px;">
+      <canvas id="chart-horas" height="100"></canvas>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <!-- Servicios -->
+    <div class="card"><div class="card-header"><div class="card-title">✂ Servicios más solicitados</div><span class="card-meta">${totalCitas} total</span></div>
+    <div style="padding:16px 18px;">
+      <canvas id="chart-servicios" height="160"></canvas>
+    </div></div>
+
+    <!-- Barberos -->
+    <div class="card"><div class="card-header"><div class="card-title">💈 Citas por barbero</div></div>
+    <div style="padding:16px 18px;">
+      <canvas id="chart-barberos" height="160"></canvas>
+    </div></div>
+  </div>
+
+  <!-- Comparativa período -->
+  <div class="card">
+    <div class="card-header"><div class="card-title">🔄 Comparativa — Período actual vs anterior</div></div>
+    <div style="padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.44rem;color:var(--muted);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:12px;">ÚLTIMOS 30 DÍAS</div>
+        ${[['Citas',citasPeriodo,'var(--text)'],['Ingresos','$'+ingresos.toLocaleString(),'var(--gold)'],['Asistencia',asistenciaPct+'%','var(--green)']].map(([l,v,c])=>`
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
+          <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);">${l}</span>
+          <span style="font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:700;color:${c};">${v}</span>
+        </div>`).join('')}
+      </div>
+      <div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.44rem;color:var(--muted);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:12px;">30 DÍAS ANTERIORES</div>
+        ${[['Citas',citasPrev,'var(--muted)'],['Diferencia',(compPct>=0?'+':'')+compPct+'%',tendColor],['Tendencia',tendencia,tendColor]].map(([l,v,c])=>`
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
+          <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);">${l}</span>
+          <span style="font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:700;color:${c};">${v}</span>
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>
+
+  <!-- Clientes recientes -->
+  <div class="card"><div class="card-header"><div class="card-title">👥 Clientes recientes</div><span class="card-meta">${S.clientes.length} registrados</span></div>
+  <div style="overflow-x:auto;">
+  <table style="width:100%;border-collapse:collapse;">
+    <thead><tr style="border-bottom:1px solid var(--border);">
+      ${['Nombre','Teléfono','Últ. visita','Servicio favorito','Barbero favorito','Visitas'].map(h=>`<th style="text-align:left;padding:7px 10px;font-family:'DM Mono',monospace;font-size:0.46rem;color:var(--muted);font-weight:400;letter-spacing:0.1em;text-transform:uppercase;">${h}</th>`).join('')}
+    </tr></thead>
+    <tbody>
+      ${S.clientes.length ? S.clientes.slice(0,10).map(c=>`
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:8px 10px;font-size:0.78rem;font-weight:600;">${c.nombre||'—'}</td>
+        <td style="padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);">${c.telefono||'—'}</td>
+        <td style="padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);">${c.ultima_visita?(c.ultima_visita+'').substring(0,10):'—'}</td>
+        <td style="padding:8px 10px;font-size:0.72rem;">${c.servicio_favorito||'—'}</td>
+        <td style="padding:8px 10px;font-size:0.72rem;">${c.barbero_favorito||'—'}</td>
+        <td style="padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--gold);text-align:center;">${c.visitas||0}</td>
+      </tr>`).join('') : `<tr><td colspan="6" style="padding:24px;text-align:center;font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);">Sin clientes aún</td></tr>`}
+    </tbody>
   </table>
-  </div></div>`;
+  </div></div>
+
+  </div><!-- fin reporte-pdf-content -->
+  `;
 }
 
-// ── BOT ──
+// ── Renderizar gráficas después de insertar el HTML ──
+function renderCharts(){
+  if(typeof Chart === 'undefined') return;
+  const todasCitas = S._todasCitas || S.citas;
+  const svcMap = {};
+  (S.servicios||[]).forEach(s=>{ svcMap[s.nombre.toUpperCase()] = parseFloat(s.precio)||0; });
+  const chartDefaults = { responsive:true, plugins:{legend:{display:false}}, scales:{x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'rgba(255,255,255,0.3)',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'rgba(255,255,255,0.3)',font:{size:10}}}} };
+
+  // Tendencia semanal
+  const c1 = document.getElementById('chart-tendencia');
+  if(c1){
+    const semanas=[];
+    for(let i=7;i>=0;i--){
+      const fin=new Date(); fin.setDate(fin.getDate()-i*7);
+      const ini=new Date(fin); ini.setDate(ini.getDate()-6);
+      const f=fin.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
+      const f2=ini.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
+      semanas.push({lbl:ini.toLocaleDateString('es-DO',{month:'short',day:'numeric'}),n:todasCitas.filter(c=>c.fecha>=f2&&c.fecha<=f).length});
+    }
+    new Chart(c1,{type:'line',data:{labels:semanas.map(s=>s.lbl),datasets:[{data:semanas.map(s=>s.n),borderColor:'#C9A84C',backgroundColor:'rgba(201,168,76,0.08)',tension:0.4,pointBackgroundColor:'#C9A84C',borderWidth:2,fill:true}]},options:{...chartDefaults}});
+  }
+
+  // Horas
+  const c2 = document.getElementById('chart-horas');
+  if(c2){
+    const horaMap={};
+    todasCitas.forEach(c=>{ const h=(c.hora||'00').substring(0,2); horaMap[h]=(horaMap[h]||0)+1; });
+    const hArr=Object.entries(horaMap).sort((a,b)=>a[0].localeCompare(b[0]));
+    const maxH=Math.max(...hArr.map(x=>x[1]),1);
+    new Chart(c2,{type:'bar',data:{labels:hArr.map(([h])=>fmt12rpt(h+':00')),datasets:[{data:hArr.map(([,n])=>n),backgroundColor:hArr.map(([,n])=>`rgba(201,168,76,${0.3+0.7*(n/maxH)})`),borderRadius:3}]},options:{...chartDefaults}});
+  }
+
+  // Servicios
+  const c3 = document.getElementById('chart-servicios');
+  if(c3){
+    const svcCount={};
+    todasCitas.forEach(c=>{ const k=(c.servicio||'—').toUpperCase(); svcCount[k]=(svcCount[k]||0)+1; });
+    const svcArr=Object.entries(svcCount).sort((a,b)=>b[1]-a[1]).slice(0,6);
+    new Chart(c3,{type:'bar',data:{labels:svcArr.map(([s])=>s),datasets:[{data:svcArr.map(([,n])=>n),backgroundColor:'rgba(0,200,255,0.5)',borderColor:'rgba(0,200,255,0.8)',borderWidth:1,borderRadius:3}]},options:{...chartDefaults,indexAxis:'y'}});
+  }
+
+  // Barberos
+  const c4 = document.getElementById('chart-barberos');
+  if(c4){
+    const cpbMap={};
+    todasCitas.forEach(c=>{ cpbMap[c.barbero]=(cpbMap[c.barbero]||0)+1; });
+    const cpbArr=Object.entries(cpbMap).sort((a,b)=>b[1]-a[1]);
+    const colors=['#C9A84C','#00F5FF','#B06EFF','#00FF78','#FF006E'];
+    new Chart(c4,{type:'doughnut',data:{labels:cpbArr.map(([b])=>b),datasets:[{data:cpbArr.map(([,n])=>n),backgroundColor:colors,borderWidth:2,borderColor:'#0e0e14'}]},options:{responsive:true,plugins:{legend:{display:true,position:'right',labels:{color:'rgba(255,255,255,0.5)',font:{size:11}}}}}});
+  }
+}
+
+// ── PDF Export ──
+async function exportarPDF(){
+  const el = document.getElementById('reporte-pdf-content');
+  if(!el){ toast('Sin datos para exportar','error'); return; }
+
+  // Usar print dialog con estilos optimizados
+  const shopNombre = S.shopData?.nombre || 'Barbería';
+  const fecha = new Date().toLocaleDateString('es-DO',{day:'2-digit',month:'long',year:'numeric'});
+  const printWin = window.open('','_blank','width=900,height=700');
+  printWin.document.write(`<!DOCTYPE html><html><head><title>Reporte ${shopNombre} — ${fecha}</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Segoe UI',sans-serif;background:#fff;color:#111;padding:32px;}
+    h1{font-size:1.4rem;font-weight:700;color:#1a1a2e;margin-bottom:4px;}
+    .subtitle{font-size:0.75rem;color:#888;margin-bottom:24px;}
+    .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+    .kpi{padding:14px;border:1px solid #e0e0e0;border-radius:6px;}
+    .kpi-val{font-size:1.5rem;font-weight:700;color:#1a1a2e;}
+    .kpi-lbl{font-size:0.62rem;color:#888;text-transform:uppercase;letter-spacing:0.1em;margin-top:3px;}
+    .kpi-sub{font-size:0.55rem;color:#aaa;margin-top:2px;}
+    .card{border:1px solid #e0e0e0;border-radius:6px;margin-bottom:16px;overflow:hidden;}
+    .card-title{padding:12px 16px;background:#f8f8f8;font-size:0.8rem;font-weight:600;color:#333;border-bottom:1px solid #e0e0e0;}
+    table{width:100%;border-collapse:collapse;font-size:0.72rem;}
+    th{padding:8px 10px;text-align:left;background:#f8f8f8;color:#888;font-weight:500;text-transform:uppercase;font-size:0.6rem;border-bottom:1px solid #e0e0e0;}
+    td{padding:8px 10px;border-bottom:1px solid #f0f0f0;color:#333;}
+    .bar-row{display:flex;align-items:center;gap:10px;padding:6px 16px;border-bottom:1px solid #f5f5f5;}
+    .bar-label{min-width:150px;font-size:0.72rem;color:#444;}
+    .bar-track{flex:1;height:8px;background:#f0f0f0;border-radius:4px;}
+    .bar-fill{height:100%;background:#C9A84C;border-radius:4px;}
+    .bar-val{font-size:0.65rem;color:#888;min-width:60px;text-align:right;}
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+    .comp-row{display:flex;justify-content:space-between;padding:8px 16px;border-bottom:1px solid #f0f0f0;}
+    .comp-key{font-size:0.65rem;color:#888;text-transform:uppercase;}
+    .comp-val{font-size:0.78rem;font-weight:600;color:#1a1a2e;}
+    .footer{text-align:center;font-size:0.6rem;color:#bbb;margin-top:24px;padding-top:12px;border-top:1px solid #eee;}
+    @media print{body{padding:20px;} @page{margin:20mm;}}
+  </style></head><body>
+  <h1>📊 Reporte — ${shopNombre}</h1>
+  <div class="subtitle">Generado el ${fecha} · BarberOS</div>
+
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-val">$${(S._todasCitas||S.citas).filter(c=>c.estado==='Completada').reduce((a,c)=>a+(svcMap[(c.servicio||'').toUpperCase()]||0),0).toLocaleString()}</div><div class="kpi-lbl">Ingresos realizados</div></div>
+    <div class="kpi"><div class="kpi-val">${(S._todasCitas||S.citas).filter(c=>c.estado==='Completada').length}</div><div class="kpi-lbl">Servicios completados</div></div>
+    <div class="kpi"><div class="kpi-val">${(S._todasCitas||S.citas).length > 0 ? Math.round((S._todasCitas||S.citas).filter(c=>c.estado==='Completada').length/(S._todasCitas||S.citas).length*100) : 0}%</div><div class="kpi-lbl">Asistencia</div></div>
+    <div class="kpi"><div class="kpi-val">${S.clientes.length}</div><div class="kpi-lbl">Clientes registrados</div></div>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">✂ Servicios más solicitados</div>
+      ${Object.entries((()=>{const m={};(S._todasCitas||S.citas).forEach(c=>{const k=(c.servicio||'—').toUpperCase();m[k]=(m[k]||0)+1;});return m;})()).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([s,n])=>{const tot=(S._todasCitas||S.citas).length;const pct=Math.round(n/tot*100);return`<div class="bar-row"><div class="bar-label">${s}</div><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div><div class="bar-val">${n} (${pct}%)</div></div>`;}).join('')}
+    </div>
+    <div class="card">
+      <div class="card-title">💈 Citas por barbero</div>
+      ${Object.entries((()=>{const m={};(S._todasCitas||S.citas).forEach(c=>{m[c.barbero]=(m[c.barbero]||0)+1;});return m;})()).sort((a,b)=>b[1]-a[1]).map(([b,n])=>{const tot=(S._todasCitas||S.citas).length;const pct=Math.round(n/tot*100);return`<div class="bar-row"><div class="bar-label">${b}</div><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div><div class="bar-val">${n} (${pct}%)</div></div>`;}).join('')}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">👥 Clientes registrados</div>
+    <table><thead><tr><th>Nombre</th><th>Teléfono</th><th>Última visita</th><th>Servicio favorito</th><th>Barbero favorito</th><th>Visitas</th></tr></thead>
+    <tbody>${S.clientes.slice(0,15).map(c=>`<tr><td>${c.nombre||'—'}</td><td>${c.telefono||'—'}</td><td>${c.ultima_visita?(c.ultima_visita+'').substring(0,10):'—'}</td><td>${c.servicio_favorito||'—'}</td><td>${c.barbero_favorito||'—'}</td><td style="text-align:center;">${c.visitas||0}</td></tr>`).join('')}</tbody>
+    </table>
+  </div>
+
+  <div class="footer">BarberOS · Reporte generado automáticamente · ${fecha}</div>
+  <script>window.onload=()=>{window.print();}<\/script>
+  </body></html>`);
+  printWin.document.close();
+}
+
+// Inicializar gráficas al cargar la página de reportes
+function initReportesCharts(){
+  if(document.getElementById('chart-tendencia')){
+    if(typeof Chart==='undefined'){
+      const s=document.createElement('script');
+      s.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js';
+      s.onload=renderCharts;
+      document.head.appendChild(s);
+    } else { renderCharts(); }
+  }
+}
+
 function renderBot(){
   const s=S.shopData||{};
   const turnos=s.recordatorio_turnos??2;
