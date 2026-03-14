@@ -1720,6 +1720,7 @@ function _renderShopsTable(shops, barberos=[]) {
       <td style="color:var(--muted)">${s.created_at?new Date(s.created_at).toLocaleDateString('es'):'—'}</td>
       <td><div class="action-btns">
         <button class="action-btn" onclick="openEditPlan('${s.id}','${s.nombre}','${s.plan}')">Plan</button>
+        <button class="action-btn" onclick="openFeaturesModal('${s.id}','${s.nombre}')" style="background:rgba(176,110,255,0.1);border-color:rgba(176,110,255,0.3);color:var(--purple);">⚡ Features</button>
         <button class="action-btn ${s.activo?'danger':'success'}" onclick="confirmToggleShop('${s.id}',${s.activo},'${s.nombre}')">${s.activo?'Desactivar':'Activar'}</button>
       </div></td>
     </tr>`;
@@ -2884,5 +2885,25 @@ function downloadCSV(content,filename){
   URL.revokeObjectURL(a.href);
 }
 </script>
+
+<!-- ══ MODAL FEATURES ══════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modalFeatures">
+  <div class="modal-box" style="max-width:520px;">
+    <div class="modal-header">
+      <div class="modal-title">⚡ Control de Funcionalidades</div>
+      <div id="features-shop-name" style="font-size:0.65rem;color:var(--muted);margin-top:2px;letter-spacing:0.1em;"></div>
+    </div>
+    <div style="padding:20px;display:flex;flex-direction:column;gap:0;">
+
+      <!-- Features list -->
+      <div id="features-list"></div>
+
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modalFeatures')">CANCELAR</button>
+      <button class="btn btn-primary" id="saveFeatsBtn" onclick="saveFeatures()">✓ GUARDAR CAMBIOS</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
