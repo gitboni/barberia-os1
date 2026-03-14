@@ -1292,7 +1292,6 @@ function showPage(id, el) {
   // Cargar datos específicos por página
   if(id === 'seguridad') setTimeout(loadAccessLogs, 100);
   if(id === 'landing') setTimeout(loadLanding, 100);
-  if(id === 'reportes') setTimeout(loadReportesPage, 100);
   if(!checkSessionExpiry()) return;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -1306,7 +1305,7 @@ function showPage(id, el) {
     shops:loadShops, usuarios:loadUsers, barberos:loadBarberos,
     pagos:loadPayments, facturacion:loadFacturacion, whatsapp:loadWebhooks,
     logs:loadLogs, solicitudes:loadSolicitudes, seguridad:loadSeguridad,
-    leads:loadLeads,
+    leads:loadLeads, reportes:loadReportesPage,
     citas:() => { document.getElementById('citasFecha').value=new Date().toISOString().split('T')[0]; loadCitas(); }
   };
   if(loaders[id]) loaders[id]();
