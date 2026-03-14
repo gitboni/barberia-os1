@@ -2919,21 +2919,29 @@ async function openFeaturesModal(shopId, shopNombre) {
     _featShopData = rows[0] || {};
   } catch(e) { _featShopData = {}; }
 
-  document.getElementById('features-list').innerHTML = FEATURES_DEF.map(function(f) {
+  var items = FEATURES_DEF.map(function(f) {
     var on = _featShopData[f.key] !== false;
-    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--border);">'
-      +'<div><div style="font-size:0.82rem;font-weight:600;color:var(--text);">'+f.label+'</div>'
-      +'<div style="font-size:0.5rem;color:var(--muted);margin-top:2px;letter-spacing:.06em;">'+f.desc+'</div></div>'
-      +'<div style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="featToggle(''+f.key+'')">'
-      +'<span id="feat-lbl-'+f.key+'" style="font-size:0.46rem;letter-spacing:.08em;color:'+(on?'var(--green)':'var(--muted)')+';">'+(on?'ACTIVO':'INACTIVO')+'</span>'
-      +'<div style="position:relative;width:40px;height:22px;">'
-      +'<div id="feat-track-'+f.key+'" style="position:absolute;inset:0;border-radius:11px;transition:background .2s;background:'+(on?'var(--green)':'rgba(255,255,255,0.1)')+'"></div>'
-      +'<div id="feat-thumb-'+f.key+'" style="position:absolute;top:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:left .2s;left:'+(on?'21px':'3px')+'"></div>'
-      +'</div>'
-      +'<input type="hidden" id="feat-val-'+f.key+'" value="'+(on?'true':'false')+'">'
-      +'</div></div>';
-  }).join('');
+    var row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--border);';
+    row.innerHTML = '<div>'
+      + '<div style="font-size:0.82rem;font-weight:600;color:var(--text);">'+f.label+'</div>'
+      + '<div style="font-size:0.5rem;color:var(--muted);margin-top:2px;letter-spacing:.06em;">'+f.desc+'</div>'
+      + '</div>'
+      + '<div style="display:flex;align-items:center;gap:10px;cursor:pointer;" id="feat-toggle-'+f.key+'">'
+      + '<span id="feat-lbl-'+f.key+'" style="font-size:0.46rem;letter-spacing:.08em;color:'+(on?'var(--green)':'var(--muted)')+';">'+(on?'ACTIVO':'INACTIVO')+'</span>'
+      + '<div style="position:relative;width:40px;height:22px;">'
+      + '<div id="feat-track-'+f.key+'" style="position:absolute;inset:0;border-radius:11px;transition:background .2s;background:'+(on?'var(--green)':'rgba(255,255,255,0.1)')+'"></div>'
+      + '<div id="feat-thumb-'+f.key+'" style="position:absolute;top:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:left .2s;left:'+(on?'21px':'3px')+'"></div>'
+      + '</div>'
+      + '<input type="hidden" id="feat-val-'+f.key+'" value="'+(on?'true':'false')+'">'
+      + '</div>';
+    row.querySelector('#feat-toggle-'+f.key).addEventListener('click', function(){ featToggle(f.key); });
+    return row;
+  });
 
+  var list = document.getElementById('features-list');
+  list.innerHTML = '';
+  items.forEach(function(el){ list.appendChild(el); });
   openModal('modalFeatures');
 }
 
