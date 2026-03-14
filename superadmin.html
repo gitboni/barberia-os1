@@ -1687,7 +1687,9 @@ document.getElementById('planFilter').addEventListener('change',_applyShopFilter
 document.getElementById('statusFilter').addEventListener('change',_applyShopFilters);
 document.getElementById('exportShopsBtn').addEventListener('click',()=>{
   if(!allShops.length){showToast('Sin datos','warn');return;}
-  const csv='Nombre,Slug,WhatsApp,Plan,Estado,Creado\n'+allShops.map(s=>`"${s.nombre}","${s.slug}","${s.whatsapp_dueño||''}","${s.plan}","${s.activo?'Activa':'Pendiente'}","${s.created_at?new Date(s.created_at).toLocaleDateString('es'):''}"`).join('\n');
+  const csv='Nombre,Slug,WhatsApp,Plan,Estado,Creado\
+'+allShops.map(s=>`"${s.nombre}","${s.slug}","${s.whatsapp_dueño||''}","${s.plan}","${s.activo?'Activa':'Pendiente'}","${s.created_at?new Date(s.created_at).toLocaleDateString('es'):''}"`).join('\
+');
   downloadCSV(csv,'barberias_'+new Date().toISOString().split('T')[0]+'.csv');
   showToast('CSV exportado ✓','success');
 });
@@ -1949,7 +1951,9 @@ async function loadFacturacion() {
 document.getElementById('exportFacturasBtn').addEventListener('click',()=>{
   const shops=_shops.filter(s=>s.activo&&s.plan!=='free');
   if(!shops.length){showToast('Sin datos','warn');return;}
-  const csv='#,Barbería,Plan,Aprobada,Monto/mes,Proyección anual\n'+shops.map((s,i)=>`#${String(i+1).padStart(3,'0')},"${s.nombre}",${s.plan},${s.aprobado?'Sí':'No'},$${s.plan==='pro'?29:79}.00,$${(s.plan==='pro'?29:79)*12}.00`).join('\n');
+  const csv='#,Barbería,Plan,Aprobada,Monto/mes,Proyección anual\
+'+shops.map((s,i)=>`#${String(i+1).padStart(3,'0')},"${s.nombre}",${s.plan},${s.aprobado?'Sí':'No'},$${s.plan==='pro'?29:79}.00,$${(s.plan==='pro'?29:79)*12}.00`).join('\
+');
   downloadCSV(csv,'facturacion_'+new Date().toISOString().split('T')[0]+'.csv');
   showToast('CSV exportado ✓','success');
 });
@@ -1971,8 +1975,10 @@ async function exportCitasCSV() {
     
     if(!citas.length){ showToast('Sin citas en ese rango','warn'); return; }
     
-    const csv = 'Barbería,Cliente,Teléfono,Barbero,Servicio,Fecha,Hora,Estado\n' +
-      citas.map(c=>`"${shopMap[c.shop_id]||c.shop_id}","${c.nombre||''}","${c.telefono||''}","${c.barbero||''}","${c.servicio||''}","${c.fecha||''}","${c.hora||''}","${c.estado||''}"`).join('\n');
+    const csv = 'Barbería,Cliente,Teléfono,Barbero,Servicio,Fecha,Hora,Estado\
+' +
+      citas.map(c=>`"${shopMap[c.shop_id]||c.shop_id}","${c.nombre||''}","${c.telefono||''}","${c.barbero||''}","${c.servicio||''}","${c.fecha||''}","${c.hora||''}","${c.estado||''}"`).join('\
+');
     
     const filename = `citas_${fechaDesde||'inicio'}_a_${fechaHasta||'hoy'}.csv`;
     downloadCSV(csv, filename);
@@ -2038,7 +2044,9 @@ document.getElementById('exportCitasBtn').addEventListener('click',()=>{
   const shopMap=Object.fromEntries(_shops.map(s=>[s.id,s.nombre]));
   const barbMap=Object.fromEntries(_barberos.map(b=>[b.id,b.nombre]));
   // ✅ FIX: campo "nombre" para cliente
-  const csv='Barbería,Cliente,Barbero,Servicio,Hora,Fecha,Estado\n'+_allCitas.map(c=>`"${shopMap[c.shop_id]||''}","${c.nombre||''}","${barbMap[c.barbero_id]||c.barbero||''}","${c.servicio||''}","${c.hora||''}","${c.fecha||''}","${c.estado||''}"`).join('\n');
+  const csv='Barbería,Cliente,Barbero,Servicio,Hora,Fecha,Estado\
+'+_allCitas.map(c=>`"${shopMap[c.shop_id]||''}","${c.nombre||''}","${barbMap[c.barbero_id]||c.barbero||''}","${c.servicio||''}","${c.hora||''}","${c.fecha||''}","${c.estado||''}"`).join('\
+');
   downloadCSV(csv,`citas_${document.getElementById('citasFecha').value}.csv`);
   showToast('CSV exportado ✓','success');
 });
@@ -2117,7 +2125,9 @@ async function loadLeads() {
 document.getElementById('refreshLeadsBtn').addEventListener('click',loadLeads);
 document.getElementById('exportLeadsBtn').addEventListener('click',()=>{
   if(!_leads.length){showToast('Sin leads','warn');return;}
-  const csv='WhatsApp,Fuente,URL,Fecha\n'+_leads.map(l=>`"${l.whatsapp||''}","${l.source||''}","${l.url||''}","${l.created_at?new Date(l.created_at).toLocaleString('es'):''}"`).join('\n');
+  const csv='WhatsApp,Fuente,URL,Fecha\
+'+_leads.map(l=>`"${l.whatsapp||''}","${l.source||''}","${l.url||''}","${l.created_at?new Date(l.created_at).toLocaleString('es'):''}"`).join('\
+');
   downloadCSV(csv,'leads_'+new Date().toISOString().split('T')[0]+'.csv');
   showToast('Leads exportados ✓','success');
 });
@@ -2501,7 +2511,7 @@ async function loadResumenGlobal() {
 }
 
 async function previewReporte() {
-  if (!_shopSeleccionada) { showNotification('Selecciona una barbería', 'error'); return; }
+  if (!_shopSeleccionada) { showToast('Selecciona una barbería', 'error'); return; }
   const btn = event.target;
   btn.textContent = '⏳ Generando...'; btn.disabled = true;
   try {
@@ -2516,12 +2526,12 @@ async function previewReporte() {
     const el = document.getElementById('rpt-preview');
     el.style.display = 'block';
     el.textContent = data.mensaje;
-  } catch(e) { showNotification('Error: ' + e.message, 'error'); }
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
   finally { btn.textContent = '👁 PREVIEW'; btn.disabled = false; }
 }
 
 async function enviarReporte(esAutomatico = false, repId = null, freq = null) {
-  if (!_shopSeleccionada && !esAutomatico) { showNotification('Selecciona una barbería', 'error'); return; }
+  if (!_shopSeleccionada && !esAutomatico) { showToast('Selecciona una barbería', 'error'); return; }
   const frecuencia = freq || _selectedFreq;
   const shopId = _shopSeleccionada?.id;
   const wa = document.getElementById('rpt-wa-dest')?.value?.trim() || '';
@@ -2536,9 +2546,9 @@ async function enviarReporte(esAutomatico = false, repId = null, freq = null) {
     });
     const data = await r.json();
     if (data.error) throw new Error(data.error);
-    showNotification(`✓ Reporte enviado a ${data.destino}`, 'success');
+    showToast(`✓ Reporte enviado a ${data.destino}`, 'success');
     loadReportesPage();
-  } catch(e) { showNotification('Error: ' + e.message, 'error'); }
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
   finally { if (btn) { btn.textContent = '📤 ENVIAR'; btn.disabled = false; } }
 }
 
@@ -2555,13 +2565,13 @@ async function enviarReporteProg(repId, frecuencia) {
     });
     const data = await r.json();
     if (data.error) throw new Error(data.error);
-    showNotification(`✓ Reporte enviado a ${data.destino}`, 'success');
+    showToast(`✓ Reporte enviado a ${data.destino}`, 'success');
     loadReportesPage();
-  } catch(e) { showNotification('Error: ' + e.message, 'error'); }
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
 }
 
 function openNuevoReporteProg() {
-  if (!_shopSeleccionada) { showNotification('Selecciona una barbería primero', 'error'); return; }
+  if (!_shopSeleccionada) { showToast('Selecciona una barbería primero', 'error'); return; }
   const modal = document.getElementById('modal-rpt-prog');
   if (modal) {
     modal.style.display = 'flex';
@@ -2588,9 +2598,9 @@ async function guardarReporteProg() {
       body: JSON.stringify({ shop_id: _shopSeleccionada.id, frecuencia: freq, whatsapp_destino: wa, activo: true, reporte_por_barbero: porBarbero, alerta_activa: alertaActiva, alerta_caida_pct: alertaPct })
     });
     document.getElementById('modal-rpt-prog').style.display = 'none';
-    showNotification('✓ Reporte programado guardado', 'success');
+    showToast('✓ Reporte programado guardado', 'success');
     loadReportesPage();
-  } catch(e) { showNotification('Error: ' + e.message, 'error'); }
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
 }
 
 async function toggleReporteProg(repId, activo) {
@@ -2599,7 +2609,7 @@ async function toggleReporteProg(repId, activo) {
     headers: { 'apikey': SB_KEY_R, 'Authorization': `Bearer ${SB_KEY_R}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
     body: JSON.stringify({ activo: !activo })
   });
-  showNotification(activo ? 'Reporte pausado' : '✓ Reporte activado', 'success');
+  showToast(activo ? 'Reporte pausado' : '✓ Reporte activado', 'success');
   loadReportesPage();
 }
 
@@ -2609,7 +2619,7 @@ async function eliminarReporteProg(repId) {
     method: 'DELETE',
     headers: { 'apikey': SB_KEY_R, 'Authorization': `Bearer ${SB_KEY_R}` }
   });
-  showNotification('Reporte eliminado', 'success');
+  showToast('Reporte eliminado', 'success');
   loadReportesPage();
 }
 
@@ -2773,7 +2783,8 @@ async function loadLogs(){
 document.getElementById('logLevelFilter').addEventListener('change',renderLogs);
 document.getElementById('clearLogsBtn').addEventListener('click',()=>{ logs.length=0; renderLogs(); showToast('Logs limpiados','info'); });
 document.getElementById('exportLogsBtn').addEventListener('click',()=>{
-  const txt=logs.map(l=>`[${l.time}] [${l.level}] ${l.msg}`).join('\n');
+  const txt=logs.map(l=>`[${l.time}] [${l.level}] ${l.msg}`).join('\
+');
   downloadCSV(txt,'barberos_logs_'+new Date().toISOString().split('T')[0]+'.txt');
   showToast('Logs exportados ✓','info');
 });
@@ -2884,21 +2895,90 @@ function downloadCSV(content,filename){
   a.href=URL.createObjectURL(blob); a.download=filename; a.click();
   URL.revokeObjectURL(a.href);
 }
-</script>
 
+// ════════════════════════════════════════════════════════
+//  FEATURES CONTROL
+// ════════════════════════════════════════════════════════
+const FEATURES_DEF = [
+  { key:'feature_reportes',     label:'📊 Reportes',          desc:'Estadísticas, gráficas y exportar PDF' },
+  { key:'feature_config',       label:'⚙ Configuración',      desc:'Editar nombre, horario, duración, timezone' },
+  { key:'feature_servicios',    label:'✂ Servicios & Tiempos', desc:'Gestionar servicios, precios y duraciones' },
+  { key:'feature_bot_whatsapp', label:'💬 Bot WhatsApp',       desc:'Recordatorios automáticos y comandos barberos' },
+  { key:'feature_barberos',     label:'💈 Barberos',           desc:'Agregar, editar y activar/desactivar barberos' },
+  { key:'feature_clientes',     label:'👥 Clientes',           desc:'Ver historial y datos de clientes' },
+  { key:'feature_walkin',       label:'🚶 Walk-in',            desc:'Cliente sin cita en el display' },
+];
+var _featShopId = null;
+var _featShopData = {};
+
+async function openFeaturesModal(shopId, shopNombre) {
+  _featShopId = shopId;
+  document.getElementById('features-shop-name').textContent = shopNombre;
+  try {
+    var rows = await sbGet('shops','id=eq.'+shopId+'&select=id,feature_reportes,feature_config,feature_servicios,feature_bot_whatsapp,feature_barberos,feature_clientes,feature_walkin');
+    _featShopData = rows[0] || {};
+  } catch(e) { _featShopData = {}; }
+
+  document.getElementById('features-list').innerHTML = FEATURES_DEF.map(function(f) {
+    var on = _featShopData[f.key] !== false;
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--border);">'
+      +'<div><div style="font-size:0.82rem;font-weight:600;color:var(--text);">'+f.label+'</div>'
+      +'<div style="font-size:0.5rem;color:var(--muted);margin-top:2px;letter-spacing:.06em;">'+f.desc+'</div></div>'
+      +'<div style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="featToggle(''+f.key+'')">'
+      +'<span id="feat-lbl-'+f.key+'" style="font-size:0.46rem;letter-spacing:.08em;color:'+(on?'var(--green)':'var(--muted)')+';">'+(on?'ACTIVO':'INACTIVO')+'</span>'
+      +'<div style="position:relative;width:40px;height:22px;">'
+      +'<div id="feat-track-'+f.key+'" style="position:absolute;inset:0;border-radius:11px;transition:background .2s;background:'+(on?'var(--green)':'rgba(255,255,255,0.1)')+'"></div>'
+      +'<div id="feat-thumb-'+f.key+'" style="position:absolute;top:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:left .2s;left:'+(on?'21px':'3px')+'"></div>'
+      +'</div>'
+      +'<input type="hidden" id="feat-val-'+f.key+'" value="'+(on?'true':'false')+'">'
+      +'</div></div>';
+  }).join('');
+
+  openModal('modalFeatures');
+}
+
+function featToggle(key) {
+  var v = document.getElementById('feat-val-'+key);
+  var track = document.getElementById('feat-track-'+key);
+  var thumb = document.getElementById('feat-thumb-'+key);
+  var lbl = document.getElementById('feat-lbl-'+key);
+  if(!v) return;
+  var on = v.value !== 'true';
+  v.value = on ? 'true' : 'false';
+  if(track) track.style.background = on ? 'var(--green)' : 'rgba(255,255,255,0.1)';
+  if(thumb) thumb.style.left = on ? '21px' : '3px';
+  if(lbl) { lbl.textContent = on ? 'ACTIVO' : 'INACTIVO'; lbl.style.color = on ? 'var(--green)' : 'var(--muted)'; }
+}
+
+async function saveFeatures() {
+  if(!_featShopId) return;
+  var btn = document.getElementById('saveFeatsBtn');
+  btn.textContent = '⏳ Guardando...'; btn.disabled = true;
+  try {
+    var patch = {};
+    FEATURES_DEF.forEach(function(f){ var el=document.getElementById('feat-val-'+f.key); if(el) patch[f.key]=el.value==='true'; });
+    var r = await fetch(SUPABASE_URL+'/rest/v1/shops?id=eq.'+_featShopId, {
+      method:'PATCH',
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+(_accessToken||SUPABASE_KEY),'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify(patch)
+    });
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    var shop = allShops.find(function(s){return s.id===_featShopId;});
+    if(shop) Object.assign(shop, patch);
+    closeModal('modalFeatures');
+    showToast('✓ Funcionalidades actualizadas','success');
+    addLog('OK','Features actualizadas: '+(_featShopData.nombre||_featShopId));
+  } catch(e) { showToast('Error: '+e.message,'error'); }
+  finally { btn.textContent='✓ GUARDAR CAMBIOS'; btn.disabled=false; }
+}
+
+</script>
 <!-- ══ MODAL FEATURES ══════════════════════════════════════════════════ -->
 <div class="modal-overlay" id="modalFeatures">
-  <div class="modal-box" style="max-width:520px;">
-    <div class="modal-header">
-      <div class="modal-title">⚡ Control de Funcionalidades</div>
-      <div id="features-shop-name" style="font-size:0.65rem;color:var(--muted);margin-top:2px;letter-spacing:0.1em;"></div>
-    </div>
-    <div style="padding:20px;display:flex;flex-direction:column;gap:0;">
-
-      <!-- Features list -->
-      <div id="features-list"></div>
-
-    </div>
+  <div class="modal">
+    <div class="modal-title">⚡ Control de Funcionalidades</div>
+    <div id="features-shop-name" style="font-size:0.65rem;color:var(--muted);margin-bottom:18px;letter-spacing:.08em;"></div>
+    <div id="features-list" style="margin-bottom:4px;"></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('modalFeatures')">CANCELAR</button>
       <button class="btn btn-primary" id="saveFeatsBtn" onclick="saveFeatures()">✓ GUARDAR CAMBIOS</button>
