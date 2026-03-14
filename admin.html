@@ -176,13 +176,13 @@ input:checked+.toggle-slider:before{transform:translateX(18px);background:var(--
     <div class="nav-section">Principal</div>
     <button class="nav-item active" onclick="setPage('dashboard',this)"><span class="nav-icon">⬡</span>Dashboard<span class="nav-badge" id="nb-citas">0</span></button>
     <button class="nav-item" onclick="setPage('citas',this)"><span class="nav-icon">📅</span>Citas del día</button>
-    <button class="nav-item" onclick="setPage('clientes',this)"><span class="nav-icon">👥</span>Clientes</button>
+    <button class="nav-item" id="nav-btn-clientes" onclick="setPage('clientes',this)"><span class="nav-icon">👥</span>Clientes</button>
     <div class="nav-section">Gestión</div>
-    <button class="nav-item" onclick="setPage('barberos',this)"><span class="nav-icon">✂</span>Barberos</button>
-    <button class="nav-item" onclick="setPage('reportes',this)"><span class="nav-icon">📊</span>Reportes</button>
-    <button class="nav-item" onclick="setPage('bot',this)"><span class="nav-icon">💬</span>Bot WhatsApp<span class="nav-badge" style="background:rgba(62,207,142,0.12);color:var(--green)">ON</span></button>
+    <button class="nav-item" id="nav-btn-barberos" onclick="setPage('barberos',this)"><span class="nav-icon">✂</span>Barberos</button>
+    <button class="nav-item" id="nav-btn-reportes" onclick="setPage('reportes',this)"><span class="nav-icon">📊</span>Reportes</button>
+    <button class="nav-item" id="nav-btn-bot" onclick="setPage('bot',this)"><span class="nav-icon">💬</span>Bot WhatsApp<span class="nav-badge" style="background:rgba(62,207,142,0.12);color:var(--green)">ON</span></button>
     <div class="nav-section">Sistema</div>
-    <button class="nav-item" onclick="setPage('config',this)"><span class="nav-icon">⚙</span>Configuración</button>
+    <button class="nav-item" id="nav-btn-config" onclick="setPage('config',this)"><span class="nav-icon">⚙</span>Configuración</button>
     <button class="nav-item" onclick="location.href='display.html?shop='+SHOP_SLUG"><span class="nav-icon">📟</span>Ver Sala →</button>
     <div class="aside-bottom"><div id="barbers-sidebar"></div></div>
   </aside>
@@ -412,6 +412,9 @@ function calcAgo(d){const m=Math.round((Date.now()-d)/60000);if(m<1)return 'ahor
 
 let currentPage='dashboard';
 function setPage(page,btn){
+  const f=getFeatures();
+  const blocked={'reportes':!f.reportes,'config':!f.config,'bot':!f.bot,'clientes':!f.clientes,'barberos':!f.barberos};
+  if(blocked[page]){toast('Esta sección está desactivada para tu plan','warn');return;}
   currentPage=page;
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   if(btn)btn.classList.add('active');
@@ -430,8 +433,24 @@ function renderPage(){
   else if(currentPage==='config')el.innerHTML=renderConfigPage();
   renderSidebar();updateBarberoSelect();
 }
+function getFeatures(){
+  const s=S.shopData||{};
+  return {
+    reportes:   s.feature_reportes    !==false,
+    config:     s.feature_config      !==false,
+    servicios:  s.feature_servicios   !==false,
+    bot:        s.feature_bot_whatsapp!==false,
+    barberos:   s.feature_barberos    !==false,
+    clientes:   s.feature_clientes    !==false,
+    walkin:     s.feature_walkin      !==false,
+  };
+}
 function renderSidebar(){
-  document.getElementById('barbers-sidebar').innerHTML=S.barberos.map(b=>`<div class="barber-mini-item"><div class="barber-mini-dot" style="background:${b.activo?'var(--green)':'var(--muted)'}"></div><div class="barber-mini-name">${b.nombre}</div><div class="barber-mini-status" style="color:${b.activo?'var(--green)':'var(--muted)'};">${b.citas_hoy} citas</div></div>`).join('');
+  document.getElementById('barbers-sidebar').innerHTML=S.barberos.map(b=>'<div class="barber-mini-item"><div class="barber-mini-dot" style="background:'+(b.activo?'var(--green)':'var(--muted)')+'"></div><div class="barber-mini-name">'+b.nombre+'</div><div class="barber-mini-status" style="color:'+(b.activo?'var(--green)':'var(--muted)')+';">'+b.citas_hoy+' citas</div></div>').join('');
+  const f=getFeatures();
+  const navMap={'nav-btn-reportes':'reportes','nav-btn-config':'config','nav-btn-bot':'bot','nav-btn-clientes':'clientes','nav-btn-barberos':'barberos'};
+  Object.entries(navMap).forEach(function(kv){var el=document.getElementById(kv[0]);if(el)el.style.display=f[kv[1]]?'':'none';});
+  var wf=document.getElementById('walkin-fab-btn');if(wf)wf.style.display=f.walkin?'':'none';
 }
 function bc(e){return e==='Confirmada'?'badge-green':e==='Completada'?'badge-blue':e==='Cancelada'||e==='No-Show'?'badge-red':'badge-gold';}
 function nowStr(){return new Date().toISOString().split('T')[0];}
