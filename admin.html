@@ -752,99 +752,25 @@ function fmt12rpt(h){ if(!h)return'—'; const[hh,mm]=(h+':00').split(':').map(N
 
 function renderReportes(){
   const todasCitas = S._todasCitas || S.citas;
+
+  // ── Cálculos ANTES del return ──
+  const svcMap = {};
+  (S.servicios||[]).forEach(s=>{ svcMap[s.nombre.toUpperCase()] = parseFloat(s.precio)||0; });
+
   const completadas = todasCitas.filter(c=>c.estado==='Completada').length;
   const confirmadas = todasCitas.filter(c=>c.estado==='Confirmada').length;
   const canceladas  = todasCitas.filter(c=>c.estado==='Cancelada').length;
   const totalCitas  = todasCitas.length;
-  const asistenciaPct = totalCitas > 0 ? Math.round((completadas / (completadas + canceladas || 1)) * 100) : 0;
+  const asistenciaPct = totalCitas > 0 ? Math.round((completadas / Math.max(completadas+canceladas,1)) * 100) : 0;
 
-  // ── Ingresos reales desde servicios (precio * citas completadas por servicio) ──
-  const svcMap = {};
-  (S.servicios||[]).forEach(s=>{ svcMap[s.nombre.toUpperCase()] = parseFloat(s.precio)||0; });
-  const ingresos = todasCitas.filter(c=>c.estado==='Completada').reduce((acc,c)=>{
-    return acc + (svcMap[(c.servicio||'').toUpperCase()] || 0);
-  }, 0);
+  const ingresos = todasCitas.filter(c=>c.estado==='Completada').reduce((acc,c)=>acc+(svcMap[(c.servicio||'').toUpperCase()]||0),0);
 
-  // ── Citas por barbero ──
-  const cpbMap = {};
-  todasCitas.forEach(c=>{ cpbMap[c.barbero]=(cpbMap[c.barbero]||0)+1; });
-  const cpbArr = Object.entries(cpbMap).sort((a,b)=>b[1]-a[1]);
-  const maxCpb = Math.max(...cpbArr.map(x=>x[1]), 1);
+  // Proyección futura
+  const hoyStr = new Date().toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
+  const citasFuturas = todasCitas.filter(c=>c.fecha>=hoyStr&&c.estado==='Confirmada');
+  const proyeccion = citasFuturas.reduce((acc,c)=>acc+(svcMap[(c.servicio||'').toUpperCase()]||0),0);
 
-  // ── Servicios más solicitados ──
-  const svcCount = {};
-  todasCitas.forEach(c=>{ const k=(c.servicio||'—').toUpperCase(); svcCount[k]=(svcCount[k]||0)+1; });
-  const svcArr = Object.entries(svcCount).sort((a,b)=>b[1]-a[1]);
-  const maxSvc = Math.max(...svcArr.map(x=>x[1]), 1);
-
-  // ── Clientes recurrentes ──
-  const recurrentes = (S.clientes||[]).filter(c=>(c.visitas||0)>1).length;
-  const nuevos = (S.clientes||[]).filter(c=>(c.visitas||0)<=1).length;
-
-  // ── Citas de hoy por hora ──
-  const hoy = new Date().toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
-  const citasHoy = todasCitas.filter(c=>c.fecha===hoy || c.fecha===hoy.replace(/-/g,'-'));
-  const horaMap = {};
-  citasHoy.forEach(c=>{ const h=(c.hora||'00').substring(0,2); horaMap[h]=(horaMap[h]||0)+1; });
-  const horaArr = Object.entries(horaMap).sort((a,b)=>a[0].localeCompare(b[0]));
-  const maxHora = Math.max(...horaArr.map(x=>x[1]), 1);
-
-  return `<div class="stats-row">
-    <div class="stat-card c-gold"><div class="stat-val gold">${ingresos>0?'$'+ingresos.toLocaleString():'—'}</div><div class="stat-lbl">Ingresos estimados</div><div class="stat-delta" style="color:var(--muted);font-size:0.5rem;">${completadas} servicios completados</div></div>
-    <div class="stat-card c-green"><div class="stat-val green">${completadas}</div><div class="stat-lbl">Completadas</div><div class="stat-delta" style="color:var(--muted);font-size:0.5rem;">${confirmadas} confirmadas · ${canceladas} canceladas</div></div>
-    <div class="stat-card c-blue"><div class="stat-val blue">${asistenciaPct}%</div><div class="stat-lbl">Asistencia</div><div class="stat-delta" style="color:var(--muted);font-size:0.5rem;">${totalCitas} citas en total</div></div>
-    <div class="stat-card"><div class="stat-val" style="color:var(--text);">${S.clientes.length}</div><div class="stat-lbl">Clientes registrados</div><div class="stat-delta" style="color:var(--muted);font-size:0.5rem;">${recurrentes} recurrentes · ${nuevos} nuevos</div></div>
-  </div>
-
-  <!-- Citas de hoy por hora -->
-  <div class="card"><div class="card-header"><div class="card-title">📅 Citas de hoy por hora</div><span class="card-meta">${citasHoy.length} citas hoy</span></div>
-  <div style="padding:20px 18px;display:flex;gap:6px;align-items:flex-end;height:140px;">
-    ${horaArr.length ? horaArr.map(([h,v])=>{
-      const h12 = parseInt(h)>=12?(parseInt(h)===12?'12pm':(parseInt(h)-12)+'pm'):(parseInt(h)===0?'12am':parseInt(h)+'am');
-      return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;height:100%;"><div style="font-family:'DM Mono',monospace;font-size:0.46rem;color:var(--muted);">${v}</div><div style="width:100%;background:rgba(255,255,255,0.04);flex:1;display:flex;align-items:flex-end;"><div style="width:100%;background:var(--gold);opacity:0.75;height:${Math.round(v/maxHora*100)}%;transition:height 0.5s;"></div></div><div style="font-family:'DM Mono',monospace;font-size:0.42rem;color:var(--muted);">${h12}</div></div>`;
-    }).join('') : `<div style="flex:1;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);">Sin citas hoy</div>`}
-  </div></div>
-
-  <div class="two-col">
-    <!-- Servicios más solicitados -->
-    <div class="card"><div class="card-header"><div class="card-title">✂ Servicios más solicitados</div><span class="card-meta">${totalCitas} total</span></div>
-    <div style="padding:16px 18px;display:flex;flex-direction:column;gap:10px;">
-      ${svcArr.length ? svcArr.slice(0,6).map(([s,n])=>{
-        const pct = Math.round(n/totalCitas*100);
-        return `<div><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:0.78rem;">${s}</span><span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);">${n} (${pct}%)</span></div><div style="height:3px;background:rgba(255,255,255,0.05);"><div style="height:100%;background:var(--gold);width:${pct}%;"></div></div></div>`;
-      }).join('') : `<div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);padding:12px 0;">Sin datos de servicios aún</div>`}
-    </div></div>
-
-    <!-- Citas por barbero -->
-    <div class="card"><div class="card-header"><div class="card-title">💈 Citas por barbero</div><span class="card-meta">${totalCitas} total</span></div>
-    <div style="padding:16px 18px;display:flex;flex-direction:column;gap:10px;">
-      ${cpbArr.length ? cpbArr.map(([b,n])=>{
-        const pct = Math.round(n/maxCpb*100);
-        const pctTotal = totalCitas>0?Math.round(n/totalCitas*100):0;
-        return `<div><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:0.78rem;">${b}</span><span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);">${n} citas (${pctTotal}%)</span></div><div style="height:3px;background:rgba(255,255,255,0.05);"><div style="height:100%;background:var(--blue);width:${pct}%;"></div></div></div>`;
-      }).join('') : `<div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);padding:12px 0;">Sin datos de barberos aún</div>`}
-    </div></div>
-  </div>
-
-  <!-- Clientes recientes -->
-  <div class="card"><div class="card-header"><div class="card-title">👥 Clientes recientes</div><span class="card-meta">${S.clientes.length} registrados</span></div>
-  <div style="overflow-x:auto;">
-  <table style="width:100%;border-collapse:collapse;">
-    <thead><tr style="border-bottom:1px solid var(--border);">
-      ${['Nombre','Teléfono','Últ. visita','Servicio favorito','Barbero favorito','Visitas'].map(h=>`<th style="text-align:left;padding:7px 10px;font-family:'DM Mono',monospace;font-size:0.46rem;color:var(--muted);font-weight:400;letter-spacing:0.1em;text-transform:uppercase;">${h}</th>`).join('')}
-    </tr></thead>
-    <tbody>
-      ${S.clientes.length ? S.clientes.slice(0,10).map(c=>`
-      <tr style="border-bottom:1px solid var(--border);">
-        <td style="padding:8px 10px;font-size:0.78rem;font-weight:600;">${c.nombre||'—'}</td>
-        <td style="padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);">${c.telefono||'—'}</td>
-        <td style="padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);">${c.ultima_visita?(c.ultima_visita+'').substring(0,10):'—'}</td>
-        <td style="padding:8px 10px;font-size:0.72rem;">${c.servicio_favorito||'—'}</td>
-        <td style="padding:8px 10px;font-size:0.72rem;">${c.barbero_favorito||'—'}</td>
-        <td style="padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--gold);text-align:center;">${c.visitas||0}</td>
-      </tr>`).join('') : `<tr><td colspan="6" style="padding:24px;text-align:center;font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);">Sin clientes registrados aún — llegarán cuando agenden por WhatsApp</td></tr>`}
-    </tbody>
-  // ── Comparativa con período anterior (últimos 30 vs anteriores 30) ──
+  // Comparativa 30 días
   const hoy30 = new Date(); hoy30.setDate(hoy30.getDate()-1);
   const ini30 = new Date(); ini30.setDate(ini30.getDate()-30);
   const ini60 = new Date(); ini60.setDate(ini60.getDate()-60);
@@ -852,176 +778,87 @@ function renderReportes(){
   const f30ini = ini30.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
   const f60ini = ini60.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
   const citasPeriodo = todasCitas.filter(c=>c.fecha>=f30ini&&c.fecha<=f30fin).length;
-  const citasPrev   = todasCitas.filter(c=>c.fecha>=f60ini&&c.fecha<f30ini).length;
+  const citasPrev    = todasCitas.filter(c=>c.fecha>=f60ini&&c.fecha<f30ini).length;
   const compPct = citasPrev>0 ? Math.round(((citasPeriodo-citasPrev)/citasPrev)*100) : 0;
-  const tendencia = compPct>0?`↑ +${compPct}%`:compPct<0?`↓ ${compPct}%`:'= Sin cambio';
+  const tendencia = compPct>0?'up +'+compPct+'%':compPct<0?'down '+compPct+'%':'= Sin cambio';
   const tendColor = compPct>0?'var(--green)':compPct<0?'var(--red)':'var(--muted)';
+  const tendIcon  = compPct>0?'↑':compPct<0?'↓':'=';
 
-  // ── Hora pico ──
+  // Hora pico
   const horaMapAll = {};
   todasCitas.forEach(c=>{ const h=(c.hora||'00').substring(0,2); horaMapAll[h]=(horaMapAll[h]||0)+1; });
   const horaPicoEntry = Object.entries(horaMapAll).sort((a,b)=>b[1]-a[1])[0];
-  const horaPico = horaPicoEntry ? `${fmt12rpt(horaPicoEntry[0]+':00')} (${horaPicoEntry[1]} citas)` : '—';
+  const horaPico = horaPicoEntry ? fmt12rpt(horaPicoEntry[0]+':00')+' ('+horaPicoEntry[1]+' citas)' : '—';
 
-  // ── Proyección de ingresos (citas confirmadas futuras) ──
-  const hoyStr = new Date().toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
-  const citasFuturas = (S._todasCitas||[]).filter(c=>c.fecha>=hoyStr&&c.estado==='Confirmada');
-  const svcMap = {};
-  (S.servicios||[]).forEach(s=>{ svcMap[s.nombre.toUpperCase()] = parseFloat(s.precio)||0; });
-  const proyeccion = citasFuturas.reduce((acc,c)=>acc+(svcMap[(c.servicio||'').toUpperCase()]||0),0);
-  const ingresos = todasCitas.filter(c=>c.estado==='Completada').reduce((acc,c)=>acc+(svcMap[(c.servicio||'').toUpperCase()]||0),0);
-
-  // ── Citas por barbero ──
+  // Por barbero
   const cpbMap = {};
   todasCitas.forEach(c=>{ cpbMap[c.barbero]=(cpbMap[c.barbero]||0)+1; });
   const cpbArr = Object.entries(cpbMap).sort((a,b)=>b[1]-a[1]);
   const maxCpb = Math.max(...cpbArr.map(x=>x[1]), 1);
 
-  // ── Servicios más solicitados ──
+  // Servicios
   const svcCount = {};
   todasCitas.forEach(c=>{ const k=(c.servicio||'—').toUpperCase(); svcCount[k]=(svcCount[k]||0)+1; });
   const svcArr = Object.entries(svcCount).sort((a,b)=>b[1]-a[1]);
 
-  // ── Clientes ──
+  // Clientes
   const recurrentes = (S.clientes||[]).filter(c=>(c.visitas||0)>1).length;
   const nuevos = (S.clientes||[]).filter(c=>(c.visitas||0)<=1).length;
-  const completadas = todasCitas.filter(c=>c.estado==='Completada').length;
-  const confirmadas = todasCitas.filter(c=>c.estado==='Confirmada').length;
-  const canceladas  = todasCitas.filter(c=>c.estado==='Cancelada').length;
-  const totalCitas  = todasCitas.length;
-  const asistenciaPct = totalCitas > 0 ? Math.round((completadas / Math.max(completadas+canceladas,1)) * 100) : 0;
 
-  // ── Citas por hora (todas, para gráfica) ──
+  // Horas para gráfica
   const horaArr = Object.entries(horaMapAll).sort((a,b)=>a[0].localeCompare(b[0]));
   const maxHora = Math.max(...horaArr.map(x=>x[1]), 1);
 
-  // ── Citas últimas 8 semanas (gráfica tendencia) ──
-  const semanas = [];
-  for(let i=7;i>=0;i--){
-    const fin=new Date(); fin.setDate(fin.getDate()-i*7);
-    const ini=new Date(fin); ini.setDate(ini.getDate()-6);
-    const f=fin.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
-    const f2=ini.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
-    const n=todasCitas.filter(c=>c.fecha>=f2&&c.fecha<=f).length;
-    const lbl=ini.toLocaleDateString('es-DO',{month:'short',day:'numeric',timeZone:'America/Santo_Domingo'});
-    semanas.push({lbl,n});
-  }
-  const maxSem = Math.max(...semanas.map(x=>x.n), 1);
-
-  return `
-  <!-- Botón PDF -->
-  <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
-    <button onclick="exportarPDF()" style="display:flex;align-items:center;gap:7px;padding:8px 18px;background:rgba(201,168,76,0.08);border:1px solid var(--gold);color:var(--gold);font-family:'DM Mono',monospace;font-size:0.54rem;cursor:pointer;letter-spacing:0.1em;">
-      📄 EXPORTAR PDF
-    </button>
-  </div>
-
-  <div id="reporte-pdf-content">
-
-  <!-- KPIs -->
-  <div class="stats-row">
-    <div class="stat-card c-gold"><div class="stat-val gold">${ingresos>0?'$'+ingresos.toLocaleString():'—'}</div><div class="stat-lbl">Ingresos realizados</div><div class="stat-delta" style="font-size:0.5rem;color:var(--muted);">${completadas} servicios</div></div>
-    <div class="stat-card" style="border-color:rgba(0,200,255,0.15);"><div class="stat-val" style="color:#00c8ff;">${proyeccion>0?'$'+proyeccion.toLocaleString():'—'}</div><div class="stat-lbl">Proyección futura</div><div class="stat-delta" style="font-size:0.5rem;color:var(--muted);">${citasFuturas.length} citas confirmadas</div></div>
-    <div class="stat-card c-green"><div class="stat-val green">${asistenciaPct}%</div><div class="stat-lbl">Asistencia</div><div class="stat-delta" style="font-size:0.5rem;color:var(--muted);">${totalCitas} total · ${canceladas} canceladas</div></div>
-    <div class="stat-card"><div class="stat-val" style="color:${tendColor};">${tendencia}</div><div class="stat-lbl">vs 30 días anteriores</div><div class="stat-delta" style="font-size:0.5rem;color:var(--muted);">${citasPeriodo} vs ${citasPrev} citas</div></div>
-  </div>
-
-  <!-- Hora pico + Clientes -->
-  <div class="two-col">
-    <div class="stat-card" style="display:flex;flex-direction:column;gap:6px;">
-      <div style="font-family:'DM Mono',monospace;font-size:0.44rem;color:var(--muted);letter-spacing:0.18em;text-transform:uppercase;">⏰ Hora pico del día</div>
-      <div style="font-family:'DM Mono',monospace;font-size:1.3rem;font-weight:700;color:var(--gold);">${horaPico}</div>
-      <div style="font-family:'DM Mono',monospace;font-size:0.46rem;color:var(--muted);">Mayor concentración de clientes</div>
-    </div>
-    <div class="stat-card" style="display:flex;flex-direction:column;gap:6px;">
-      <div style="font-family:'DM Mono',monospace;font-size:0.44rem;color:var(--muted);letter-spacing:0.18em;text-transform:uppercase;">👥 Clientes</div>
-      <div style="font-family:'DM Mono',monospace;font-size:1.3rem;font-weight:700;color:var(--text);">${S.clientes.length}</div>
-      <div style="font-family:'DM Mono',monospace;font-size:0.46rem;color:var(--muted);">${recurrentes} recurrentes · ${nuevos} nuevos</div>
-    </div>
-  </div>
-
-  <!-- Gráfica tendencia semanal -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-title">📈 Tendencia — Últimas 8 semanas</div>
-      <span class="card-meta">${totalCitas} citas registradas</span>
-    </div>
-    <div style="padding:20px 18px;">
-      <canvas id="chart-tendencia" height="120"></canvas>
-    </div>
-  </div>
-
-  <!-- Gráfica hora pico -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-title">⏰ Distribución por hora del día</div>
-      <span class="card-meta">Hora pico: ${horaPico}</span>
-    </div>
-    <div style="padding:20px 18px;">
-      <canvas id="chart-horas" height="100"></canvas>
-    </div>
-  </div>
-
-  <div class="two-col">
-    <!-- Servicios -->
-    <div class="card"><div class="card-header"><div class="card-title">✂ Servicios más solicitados</div><span class="card-meta">${totalCitas} total</span></div>
-    <div style="padding:16px 18px;">
-      <canvas id="chart-servicios" height="160"></canvas>
-    </div></div>
-
-    <!-- Barberos -->
-    <div class="card"><div class="card-header"><div class="card-title">💈 Citas por barbero</div></div>
-    <div style="padding:16px 18px;">
-      <canvas id="chart-barberos" height="160"></canvas>
-    </div></div>
-  </div>
-
-  <!-- Comparativa período -->
-  <div class="card">
-    <div class="card-header"><div class="card-title">🔄 Comparativa — Período actual vs anterior</div></div>
-    <div style="padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-      <div>
-        <div style="font-family:'DM Mono',monospace;font-size:0.44rem;color:var(--muted);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:12px;">ÚLTIMOS 30 DÍAS</div>
-        ${[['Citas',citasPeriodo,'var(--text)'],['Ingresos','$'+ingresos.toLocaleString(),'var(--gold)'],['Asistencia',asistenciaPct+'%','var(--green)']].map(([l,v,c])=>`
-        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
-          <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);">${l}</span>
-          <span style="font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:700;color:${c};">${v}</span>
-        </div>`).join('')}
-      </div>
-      <div>
-        <div style="font-family:'DM Mono',monospace;font-size:0.44rem;color:var(--muted);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:12px;">30 DÍAS ANTERIORES</div>
-        ${[['Citas',citasPrev,'var(--muted)'],['Diferencia',(compPct>=0?'+':'')+compPct+'%',tendColor],['Tendencia',tendencia,tendColor]].map(([l,v,c])=>`
-        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
-          <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);">${l}</span>
-          <span style="font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:700;color:${c};">${v}</span>
-        </div>`).join('')}
-      </div>
-    </div>
-  </div>
-
-  <!-- Clientes recientes -->
-  <div class="card"><div class="card-header"><div class="card-title">👥 Clientes recientes</div><span class="card-meta">${S.clientes.length} registrados</span></div>
-  <div style="overflow-x:auto;">
-  <table style="width:100%;border-collapse:collapse;">
-    <thead><tr style="border-bottom:1px solid var(--border);">
-      ${['Nombre','Teléfono','Últ. visita','Servicio favorito','Barbero favorito','Visitas'].map(h=>`<th style="text-align:left;padding:7px 10px;font-family:'DM Mono',monospace;font-size:0.46rem;color:var(--muted);font-weight:400;letter-spacing:0.1em;text-transform:uppercase;">${h}</th>`).join('')}
-    </tr></thead>
-    <tbody>
-      ${S.clientes.length ? S.clientes.slice(0,10).map(c=>`
-      <tr style="border-bottom:1px solid var(--border);">
-        <td style="padding:8px 10px;font-size:0.78rem;font-weight:600;">${c.nombre||'—'}</td>
-        <td style="padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);">${c.telefono||'—'}</td>
-        <td style="padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);">${c.ultima_visita?(c.ultima_visita+'').substring(0,10):'—'}</td>
-        <td style="padding:8px 10px;font-size:0.72rem;">${c.servicio_favorito||'—'}</td>
-        <td style="padding:8px 10px;font-size:0.72rem;">${c.barbero_favorito||'—'}</td>
-        <td style="padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--gold);text-align:center;">${c.visitas||0}</td>
-      </tr>`).join('') : `<tr><td colspan="6" style="padding:24px;text-align:center;font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);">Sin clientes aún</td></tr>`}
-    </tbody>
-  </table>
-  </div></div>
-
-  </div><!-- fin reporte-pdf-content -->
-  `;
+  return '<div style="display:flex;justify-content:flex-end;margin-bottom:12px;">'
+    +'<button onclick="exportarPDF()" style="display:flex;align-items:center;gap:7px;padding:8px 18px;background:rgba(201,168,76,0.08);border:1px solid var(--gold);color:var(--gold);font-family:\'DM Mono\',monospace;font-size:0.54rem;cursor:pointer;letter-spacing:0.1em;">📄 EXPORTAR PDF</button>'
+    +'</div>'
+    +'<div id="reporte-pdf-content">'
+    // KPIs
+    +'<div class="stats-row">'
+    +'<div class="stat-card c-gold"><div class="stat-val gold">'+(ingresos>0?'$'+ingresos.toLocaleString():'—')+'</div><div class="stat-lbl">Ingresos realizados</div><div class="stat-delta" style="font-size:0.5rem;color:var(--muted);">'+completadas+' servicios</div></div>'
+    +'<div class="stat-card" style="border-color:rgba(0,200,255,0.15);"><div class="stat-val" style="color:#00c8ff;">'+(proyeccion>0?'$'+proyeccion.toLocaleString():'—')+'</div><div class="stat-lbl">Proyección futura</div><div class="stat-delta" style="font-size:0.5rem;color:var(--muted);">'+citasFuturas.length+' citas confirmadas</div></div>'
+    +'<div class="stat-card c-green"><div class="stat-val green">'+asistenciaPct+'%</div><div class="stat-lbl">Asistencia</div><div class="stat-delta" style="font-size:0.5rem;color:var(--muted);">'+totalCitas+' total · '+canceladas+' canceladas</div></div>'
+    +'<div class="stat-card"><div class="stat-val" style="color:'+tendColor+';">'+tendIcon+' '+(compPct>=0?'+':'')+compPct+'%</div><div class="stat-lbl">vs 30 días anteriores</div><div class="stat-delta" style="font-size:0.5rem;color:var(--muted);">'+citasPeriodo+' vs '+citasPrev+' citas</div></div>'
+    +'</div>'
+    // Hora pico + Clientes
+    +'<div class="two-col">'
+    +'<div class="stat-card" style="display:flex;flex-direction:column;gap:6px;"><div style="font-family:\'DM Mono\',monospace;font-size:0.44rem;color:var(--muted);letter-spacing:0.18em;text-transform:uppercase;">⏰ Hora pico del día</div>'
+    +'<div style="font-family:\'DM Mono\',monospace;font-size:1.2rem;font-weight:700;color:var(--gold);">'+horaPico+'</div>'
+    +'<div style="font-family:\'DM Mono\',monospace;font-size:0.46rem;color:var(--muted);">Mayor concentración de clientes</div></div>'
+    +'<div class="stat-card" style="display:flex;flex-direction:column;gap:6px;"><div style="font-family:\'DM Mono\',monospace;font-size:0.44rem;color:var(--muted);letter-spacing:0.18em;text-transform:uppercase;">👥 Clientes</div>'
+    +'<div style="font-family:\'DM Mono\',monospace;font-size:1.2rem;font-weight:700;color:var(--text);">'+S.clientes.length+'</div>'
+    +'<div style="font-family:\'DM Mono\',monospace;font-size:0.46rem;color:var(--muted);">'+recurrentes+' recurrentes · '+nuevos+' nuevos</div></div>'
+    +'</div>'
+    // Gráficas
+    +'<div class="card"><div class="card-header"><div class="card-title">📈 Tendencia — Últimas 8 semanas</div><span class="card-meta">'+totalCitas+' citas registradas</span></div>'
+    +'<div style="padding:20px 18px;"><canvas id="chart-tendencia" height="120"></canvas></div></div>'
+    +'<div class="card"><div class="card-header"><div class="card-title">⏰ Distribución por hora del día</div><span class="card-meta">Hora pico: '+horaPico+'</span></div>'
+    +'<div style="padding:20px 18px;"><canvas id="chart-horas" height="100"></canvas></div></div>'
+    +'<div class="two-col">'
+    +'<div class="card"><div class="card-header"><div class="card-title">✂ Servicios más solicitados</div><span class="card-meta">'+totalCitas+' total</span></div>'
+    +'<div style="padding:16px 18px;"><canvas id="chart-servicios" height="160"></canvas></div></div>'
+    +'<div class="card"><div class="card-header"><div class="card-title">💈 Citas por barbero</div></div>'
+    +'<div style="padding:16px 18px;"><canvas id="chart-barberos" height="160"></canvas></div></div>'
+    +'</div>'
+    // Comparativa
+    +'<div class="card"><div class="card-header"><div class="card-title">🔄 Comparativa — últimos 30 días vs anteriores</div></div>'
+    +'<div style="padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:20px;">'
+    +'<div><div style="font-family:\'DM Mono\',monospace;font-size:0.44rem;color:var(--muted);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:12px;">ÚLTIMOS 30 DÍAS</div>'
+    +[['Citas',citasPeriodo,'var(--text)'],['Ingresos','$'+ingresos.toLocaleString(),'var(--gold)'],['Asistencia',asistenciaPct+'%','var(--green)']].map(function(x){var l=x[0],v=x[1],c=x[2];return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span style="font-family:\'DM Mono\',monospace;font-size:0.6rem;color:var(--muted);">'+l+'</span><span style="font-family:\'DM Mono\',monospace;font-size:0.72rem;font-weight:700;color:'+c+';">'+v+'</span></div>';}).join('')
+    +'</div>'
+    +'<div><div style="font-family:\'DM Mono\',monospace;font-size:0.44rem;color:var(--muted);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:12px;">30 DÍAS ANTERIORES</div>'
+    +[['Citas',citasPrev,'var(--muted)'],['Diferencia',(compPct>=0?'+':'')+compPct+'%',tendColor],['Tendencia',tendencia,tendColor]].map(function(x){var l=x[0],v=x[1],c=x[2];return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span style="font-family:\'DM Mono\',monospace;font-size:0.6rem;color:var(--muted);">'+l+'</span><span style="font-family:\'DM Mono\',monospace;font-size:0.72rem;font-weight:700;color:'+c+';">'+v+'</span></div>';}).join('')
+    +'</div></div></div>'
+    // Clientes
+    +'<div class="card"><div class="card-header"><div class="card-title">👥 Clientes recientes</div><span class="card-meta">'+S.clientes.length+' registrados</span></div>'
+    +'<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;">'
+    +'<thead><tr style="border-bottom:1px solid var(--border);">'
+    +['Nombre','Teléfono','Últ. visita','Servicio favorito','Barbero favorito','Visitas'].map(function(h){return '<th style="text-align:left;padding:7px 10px;font-family:\'DM Mono\',monospace;font-size:0.46rem;color:var(--muted);font-weight:400;letter-spacing:0.1em;text-transform:uppercase;">'+h+'</th>';}).join('')
+    +'</tr></thead><tbody>'
+    +(S.clientes.length ? S.clientes.slice(0,10).map(function(c){return '<tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 10px;font-size:0.78rem;font-weight:600;">'+(c.nombre||'—')+'</td><td style="padding:8px 10px;font-family:\'DM Mono\',monospace;font-size:0.6rem;color:var(--muted);">'+(c.telefono||'—')+'</td><td style="padding:8px 10px;font-family:\'DM Mono\',monospace;font-size:0.6rem;color:var(--muted);">'+(c.ultima_visita?(c.ultima_visita+'').substring(0,10):'—')+'</td><td style="padding:8px 10px;font-size:0.72rem;">'+(c.servicio_favorito||'—')+'</td><td style="padding:8px 10px;font-size:0.72rem;">'+(c.barbero_favorito||'—')+'</td><td style="padding:8px 10px;font-family:\'DM Mono\',monospace;font-size:0.7rem;color:var(--gold);text-align:center;">'+(c.visitas||0)+'</td></tr>';}).join('')
+     : '<tr><td colspan="6" style="padding:24px;text-align:center;font-family:\'DM Mono\',monospace;font-size:0.58rem;color:var(--muted);">Sin clientes aún</td></tr>')
+    +'</tbody></table></div></div>'
+    +'</div>';
 }
 
 // ── Renderizar gráficas después de insertar el HTML ──
@@ -1078,6 +915,8 @@ function renderCharts(){
 
 // ── PDF Export ──
 async function exportarPDF(){
+  const svcMap = {};
+  (S.servicios||[]).forEach(s=>{ svcMap[s.nombre.toUpperCase()] = parseFloat(s.precio)||0; });
   const el = document.getElementById('reporte-pdf-content');
   if(!el){ toast('Sin datos para exportar','error'); return; }
 
