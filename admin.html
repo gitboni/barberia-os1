@@ -338,7 +338,13 @@ async function loadAll(){
         }
         S.shopId=shop.id;S.shopData=shop;
         document.getElementById('shop-name-sidebar').textContent=shop.nombre;
-        document.getElementById('shop-plan-sidebar').textContent='Plan '+(shop.plan||'free').toUpperCase()+' · Activo';
+        const planColors={free:'var(--muted)',pro:'var(--gold)',elite:'var(--green)'};
+        const planEl=document.getElementById('shop-plan-sidebar');
+        const planDot=document.querySelector('.plan-dot');
+        const p=shop.plan||'free';
+        planEl.textContent='Plan '+p.toUpperCase();
+        planEl.style.color=planColors[p]||'var(--muted)';
+        if(planDot){planDot.style.background=planColors[p]||'var(--muted)';planDot.style.boxShadow='0 0 6px '+(planColors[p]||'var(--muted)');}
       }
     }
     // Guardia: no hacer queries sin shopId (evita 401s globales)
@@ -433,16 +439,25 @@ function renderPage(){
   else if(currentPage==='config')el.innerHTML=renderConfigPage();
   renderSidebar();updateBarberoSelect();
 }
+// ── Features por plan + overrides manuales del superadmin ──
+const PLAN_FEATURES = {
+  free:  {reportes:false, config:false, servicios:false, bot:false, barberos:true,  clientes:false, walkin:true},
+  pro:   {reportes:true,  config:false, servicios:true,  bot:false, barberos:true,  clientes:true,  walkin:true},
+  elite: {reportes:true,  config:true,  servicios:true,  bot:true,  barberos:true,  clientes:true,  walkin:true},
+};
 function getFeatures(){
   const s=S.shopData||{};
+  const plan=s.plan||'free';
+  const base=PLAN_FEATURES[plan]||PLAN_FEATURES.free;
+  // Overrides manuales del superadmin (null = sin override, usa el plan)
   return {
-    reportes:   s.feature_reportes    !==false,
-    config:     s.feature_config      !==false,
-    servicios:  s.feature_servicios   !==false,
-    bot:        s.feature_bot_whatsapp!==false,
-    barberos:   s.feature_barberos    !==false,
-    clientes:   s.feature_clientes    !==false,
-    walkin:     s.feature_walkin      !==false,
+    reportes:   s.feature_reportes    !==null&&s.feature_reportes    !==undefined ? s.feature_reportes    : base.reportes,
+    config:     s.feature_config      !==null&&s.feature_config      !==undefined ? s.feature_config      : base.config,
+    servicios:  s.feature_servicios   !==null&&s.feature_servicios   !==undefined ? s.feature_servicios   : base.servicios,
+    bot:        s.feature_bot_whatsapp!==null&&s.feature_bot_whatsapp!==undefined ? s.feature_bot_whatsapp: base.bot,
+    barberos:   s.feature_barberos    !==null&&s.feature_barberos    !==undefined ? s.feature_barberos    : base.barberos,
+    clientes:   s.feature_clientes    !==null&&s.feature_clientes    !==undefined ? s.feature_clientes    : base.clientes,
+    walkin:     s.feature_walkin      !==null&&s.feature_walkin      !==undefined ? s.feature_walkin      : base.walkin,
   };
 }
 function renderSidebar(){
