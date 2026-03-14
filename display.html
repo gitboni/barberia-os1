@@ -899,7 +899,7 @@ async function loadCitas(){
         timeStr=raw.substring(0,5);
       }
     }
-    return{id:c.id,name:(c.nombre||'CLIENTE').toUpperCase(),time:to12h(timeStr),servicio:(c.servicio||'CORTE').toUpperCase(),barbero:(c.barbero||'CUALQUIERA').toUpperCase(),estado:c.estado||'Confirmada'};
+    return{id:c.id,name:(c.nombre||'CLIENTE').toUpperCase(),time:timeStr,servicio:(c.servicio||'CORTE').toUpperCase(),barbero:(c.barbero||'CUALQUIERA').toUpperCase(),estado:c.estado||'Confirmada'};
   });
   if(rows.length>prev&&prev>0)showToast('✓ '+(rows.length-prev)+' nueva(s) cita(s)','info');
   rebuildQueues();
@@ -955,16 +955,7 @@ function autoSelectSingleBarber(){
   }
 }
 
-function to12h(t){
-  // t = "HH:MM" in 24h format
-  if(!t||!t.includes(':'))return t;
-  let[h,m]=t.split(':').map(Number);
-  const ampm=h>=12?'PM':'AM';
-  h=h%12||12;
-  return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+' '+ampm;
-}
-
-return '<span class="sc sc-tl"></span><span class="sc sc-tr"></span><span class="sc sc-bl"></span><span class="sc sc-br"></span>';}
+function scHtml(){return '<span class="sc sc-tl"></span><span class="sc sc-tr"></span><span class="sc sc-bl"></span><span class="sc sc-br"></span>';}
 function safeId(s){return s.replace(/[^a-zA-Z0-9]/g,'_');}
 function calcETA(pos){if(pos<=0)return null;const m=pos*DUR;if(m<60)return '~'+m+'m';const h=Math.floor(m/60),mm=m%60;return mm?'~'+h+'h'+mm+'m':'~'+h+'h';}
 function calcAgo(d){const m=Math.round((Date.now()-d)/60000);return m===0?'AHORA':m+'m';}
@@ -1533,7 +1524,6 @@ async function confirmWalkIn(){
   const rdNow2=new Date(new Date().toLocaleString('en-US',{timeZone:'America/Santo_Domingo'}));
   const hoy=rdNow2.getFullYear()+'-'+String(rdNow2.getMonth()+1).padStart(2,'0')+'-'+String(rdNow2.getDate()).padStart(2,'0');
   const hora=String(rdNow2.getHours()).padStart(2,'0')+':'+String(rdNow2.getMinutes()).padStart(2,'0');
-  // store raw 24h for DB, convert for display after loadCitas
   const btn=document.querySelector('#walkin-modal .abtn-confirm');
   btn.textContent='⏳ GUARDANDO...';btn.style.pointerEvents='none';
   try{
@@ -1725,14 +1715,14 @@ function loadDemo(){
     {id:'b3',nombre:'GONZALO',activo:true,orden:3},
   ];
   S.citas=[
-    {id:1,name:'CARLOS M.',time:to12h('09:00'),servicio:'CORTE CLÁSICO',barbero:'MATÍAS',estado:'Confirmada'},
-    {id:2,name:'PEDRO D.',time:to12h('09:00'),servicio:'CORTE + BARBA',barbero:'LUCAS',estado:'Confirmada'},
-    {id:3,name:'RAFAEL P.',time:to12h('09:00'),servicio:'FADE',barbero:'GONZALO',estado:'Confirmada'},
-    {id:4,name:'LUIS R.',time:to12h('09:45'),servicio:'CORTE',barbero:'MATÍAS',estado:'Confirmada'},
-    {id:5,name:'MIGUEL T.',time:to12h('09:45'),servicio:'BARBA',barbero:'LUCAS',estado:'Confirmada'},
-    {id:6,name:'ANDRÉS V.',time:to12h('10:30'),servicio:'FADE',barbero:'MATÍAS',estado:'Confirmada'},
-    {id:7,name:'DIEGO F.',time:to12h('10:30'),servicio:'CORTE',barbero:'LUCAS',estado:'Confirmada'},
-    {id:8,name:'ROBERTO S.',time:to12h('11:15'),servicio:'CORTE',barbero:'GONZALO',estado:'Confirmada'},
+    {id:1,name:'CARLOS M.',time:'09:00',servicio:'CORTE CLÁSICO',barbero:'MATÍAS',estado:'Confirmada'},
+    {id:2,name:'PEDRO D.',time:'09:00',servicio:'CORTE + BARBA',barbero:'LUCAS',estado:'Confirmada'},
+    {id:3,name:'RAFAEL P.',time:'09:00',servicio:'FADE',barbero:'GONZALO',estado:'Confirmada'},
+    {id:4,name:'LUIS R.',time:'09:45',servicio:'CORTE',barbero:'MATÍAS',estado:'Confirmada'},
+    {id:5,name:'MIGUEL T.',time:'09:45',servicio:'BARBA',barbero:'LUCAS',estado:'Confirmada'},
+    {id:6,name:'ANDRÉS V.',time:'10:30',servicio:'FADE',barbero:'MATÍAS',estado:'Confirmada'},
+    {id:7,name:'DIEGO F.',time:'10:30',servicio:'CORTE',barbero:'LUCAS',estado:'Confirmada'},
+    {id:8,name:'ROBERTO S.',time:'11:15',servicio:'CORTE',barbero:'GONZALO',estado:'Confirmada'},
   ];
   setDb('err','MODO DEMO');setRt('error','SIN RT');
   rebuildQueues();
@@ -1759,13 +1749,7 @@ document.getElementById('cfg-cancel').addEventListener('click',()=>document.getE
 document.getElementById('cfg-save').addEventListener('click',()=>{const shop=document.getElementById('cfg-shop').value.trim();const dur=parseInt(document.getElementById('cfg-dur').value)||DUR;DUR=dur;document.getElementById('cfg-modal').classList.remove('open');if(shop&&shop!==SLUG)location.href='?shop='+shop;else{showToast('✓ Guardado');render();}});
 document.getElementById('cfg-modal').addEventListener('click',e=>{if(e.target===document.getElementById('cfg-modal'))document.getElementById('cfg-modal').classList.remove('open');});
 document.addEventListener('click',e=>{const bp=document.getElementById('barber-picker'),mb=document.getElementById('mode-bar');if(!bp.contains(e.target)&&!mb.contains(e.target))bp.classList.remove('open');});
-function tick(){
-  const n=new Date(),p=v=>String(v).padStart(2,'0');
-  let h=n.getHours();const ampm=h>=12?'PM':'AM';h=h%12||12;
-  document.getElementById('clock').textContent=p(h)+':'+p(n.getMinutes())+':'+p(n.getSeconds())+' '+ampm;
-  const days=['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'],months=['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
-  document.getElementById('clock-date').textContent=days[n.getDay()]+' '+n.getDate()+' '+months[n.getMonth()]+' '+n.getFullYear();
-}
+function tick(){const n=new Date(),p=v=>String(v).padStart(2,'0');document.getElementById('clock').textContent=p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds());const days=['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'],months=['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];document.getElementById('clock-date').textContent=days[n.getDay()]+' '+n.getDate()+' '+months[n.getMonth()]+' '+n.getFullYear();}
 setInterval(tick,1000);tick();
 document.addEventListener('keydown',e=>{
   if(e.key==='f'||e.key==='F')toggleFS();
