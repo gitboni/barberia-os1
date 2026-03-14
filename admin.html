@@ -441,10 +441,11 @@ function renderPage(){
 }
 // ── Features por plan + overrides manuales del superadmin ──
 const PLAN_FEATURES = {
-  free:  {reportes:false, config:false, servicios:false, bot:false, barberos:true,  clientes:false, walkin:true},
-  pro:   {reportes:true,  config:false, servicios:true,  bot:false, barberos:true,  clientes:true,  walkin:true},
-  elite: {reportes:true,  config:true,  servicios:true,  bot:true,  barberos:true,  clientes:true,  walkin:true},
+  free:  {reportes:true, config:true, servicios:true, bot:true, barberos:true, clientes:true, walkin:true},
+  pro:   {reportes:true, config:true, servicios:true, bot:true, barberos:true, clientes:true, walkin:true},
+  elite: {reportes:true, config:true, servicios:true, bot:true, barberos:true, clientes:true, walkin:true},
 };
+
 function getFeatures(){
   const s=S.shopData||{};
   const plan=s.plan||'free';
