@@ -383,9 +383,9 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .my-avatar{width:38px;height:38px;border-radius:50%;border:2px solid rgba(0,245,255,0.4);background:rgba(0,245,255,0.08);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;color:var(--cyan);}
 .my-barber-name{font-family:'Orbitron',monospace;font-size:0.9rem;font-weight:700;letter-spacing:0.18em;color:var(--cyan);text-shadow:0 0 12px rgba(0,245,255,0.5);}
 .my-sub{font-family:'Share Tech Mono',monospace;font-size:0.42rem;color:rgba(0,245,255,0.4);letter-spacing:0.2em;text-transform:uppercase;margin-top:2px;}
-.my-layout{flex:1;display:grid;grid-template-columns:360px 1fr;overflow:hidden;min-height:0;height:0;}
-.my-left{display:flex;flex-direction:column;border-right:1px solid rgba(0,245,255,0.08);background:rgba(0,245,255,0.012);overflow:hidden;min-height:0;}
-.my-right{display:flex;flex-direction:column;padding:14px 20px 10px;overflow:hidden;gap:8px;min-height:0;}
+.my-layout{flex:1;display:flex;flex-direction:row;overflow:hidden;min-height:0;}
+.my-left{flex:0 0 360px;display:flex;flex-direction:column;border-right:1px solid rgba(0,245,255,0.08);background:rgba(0,245,255,0.012);overflow:hidden;min-height:0;}
+.my-right{flex:1;display:flex;flex-direction:column;padding:14px 20px 10px;overflow:hidden;gap:8px;min-height:0;}
 .my-silla-zone{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:20px 24px 14px;position:relative;border-bottom:1px solid rgba(0,245,255,0.08);flex:1;}
 .my-silla-zone::before,.my-silla-zone::after{content:'';position:absolute;width:36px;height:36px;border-style:solid;border-color:rgba(0,245,255,0.3);}
 .my-silla-zone::before{top:14px;left:14px;border-width:2px 0 0 2px;}.my-silla-zone::after{bottom:14px;right:14px;border-width:0 2px 2px 0;}
@@ -485,7 +485,7 @@ html.fs-sm{font-size:90%;}html.fs-md{font-size:112%;}html.fs-lg{font-size:130%;}
 .mbtn-save:hover{background:rgba(0,245,255,0.2);}
 .mbtn-cancel{background:transparent;border-color:rgba(255,255,255,0.08);color:rgba(255,255,255,0.2);}
 
-@media(max-width:1024px){.layout-solo .barber-col{grid-template-columns:300px 1fr;}.my-layout{grid-template-columns:300px 1fr;}}
+@media(max-width:1024px){.layout-solo .barber-col{grid-template-columns:300px 1fr;}.my-layout .my-left{flex:0 0 300px;}}
 @media(max-width:860px){header{grid-template-columns:1fr 1fr;padding:8px 16px;}.clock-block{display:none;}.tv-cards.n3,.tv-cards.n4,.tv-cards.n5{grid-template-columns:repeat(2,1fr);}}
 @media(max-width:600px){.tv-cards.n2,.tv-cards.n3,.tv-cards.n4,.tv-cards.n5{grid-template-columns:1fr;}.my-layout{grid-template-columns:1fr;}.my-right{display:none;}}
 @media(min-width:1400px){.layout-solo .hero-num{font-size:11rem;}.layout-solo .silla-name{font-size:2rem;}.layout-multi .hero-num.n2{font-size:8rem;}.layout-multi .hero-num.n3{font-size:5.5rem;}.tv-cards.n1 .tv-num,.tv-cards.n2 .tv-num{font-size:13rem;}.tv-cards.n3 .tv-num{font-size:9rem;}.tv-cards.n4 .tv-num{font-size:7rem;}.my-hero-num{font-size:11rem;}}
@@ -1104,7 +1104,7 @@ function renderMyTurn(c){
   const doneCitas=allC.slice(0,currentTurn-1).slice(-3);
   const toggleHtml=bObj?`<button onclick="toggleBarberoActivo('${bObj.id}','${barber}',${isActive})" style="padding:6px 14px;border:1px solid ${isActive?'rgba(255,0,110,0.35)':'rgba(0,255,120,0.35)'};background:${isActive?'rgba(255,0,110,0.06)':'rgba(0,255,120,0.06)'};color:${isActive?'rgba(255,0,110,0.7)':'rgba(0,255,120,0.7)'};font-family:'Share Tech Mono',monospace;font-size:0.46rem;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;">${isActive?'⏸ DESACTIVARME':'▶ ACTIVARME'}</button>`:'';
   const queueItems=[];
-  allC.slice(0,currentTurn-1).slice(-3).forEach(c=>{queueItems.push({c,i:allC.indexOf(c),status:'done'});});
+  // Solo activo + pendientes — los completados ya están arriba en "LISTOS"
   allC.slice(currentTurn-1).forEach((c,i)=>{queueItems.push({c,i:currentTurn-1+i,status:i===0?'active':i===1?'next':'wait'});});
 
   c.innerHTML=`<div class="my-wrap">
@@ -1126,8 +1126,8 @@ function renderMyTurn(c){
         <div class="my-bottom">
           ${nxt?`<div class="next-strip" style="border-color:rgba(0,245,255,0.15);">
             <div class="next-n" style="color:rgba(0,245,255,0.4);">${String(currentTurn+1).padStart(2,'0')}</div>
-            <div class="next-info"><div class="next-nom">${nxt.name}</div><div class="next-barber">⏱ ${nxt.time}</div></div>
-            <div class="next-time-badge">${calcLiveETA(1,barber)||nxt.time}</div>
+            <div class="next-info"><div class="next-nom">${nxt.name}</div><div class="next-barber">⏱ ${fmt12(nxt.time)}</div></div>
+            <div class="next-time-badge">${calcLiveETA(1,barber)||fmt12(nxt.time)}</div>
           </div>`:''}
           <button class="btn-my-sig${!isActive?' loading':''}" id="btn-my" onclick="siguienteTurno('${barber.replace(/'/g,"\\'")}','btn-my')" ${!isActive?'disabled':''}>
             ${scHtml()}${isActive?'▶ &nbsp; SIGUIENTE TURNO':'⏸ &nbsp; DESACTIVADO'}
@@ -1148,23 +1148,48 @@ function renderMyTurn(c){
             <div class="done-pills">${doneCitas.length?doneCitas.map((c,i)=>`<div class="done-pill" style="animation-delay:${i*0.06}s"><div class="done-pill-num">${String(allC.indexOf(c)+1).padStart(2,'0')}</div><div class="done-pill-name">${c.name}</div><div class="done-pill-check">✓</div></div>`).join(''):'<span class="done-strip-empty">— ninguno aún —</span>'}</div>
           </div>
           <div class="my-queue-list">
-            ${queueItems.length===0?'<div style="padding:20px;text-align:center;font-family:\'Share Tech Mono\',monospace;font-size:0.44rem;color:rgba(0,245,255,0.2);letter-spacing:0.2em;">SIN CITAS ASIGNADAS</div>':''}
-            ${queueItems.map(({c,i,status},rowIdx)=>{
-              const isDone=status==='done';const isAct=status==='active';const isNxt=status==='next';
-              const cls=isDone?'mqi-done':isAct?'mqi-active':isNxt?'mqi-next':'mqi-wait';
-              const tag=isDone?`<span class="mqi-tag d">✓</span>`:isAct?`<span class="mqi-tag a">EN SILLA</span>`:isNxt?`<span class="mqi-tag n">PRÓXIMO</span>`:`<span class="mqi-tag w">ESPERA</span>`;
-              const pos=i-(currentTurn-1);const eta=!isDone&&pos>0?calcLiveETA(pos,barber):null;const urgent=eta&&parseInt(eta)<=5;
-              // FEATURE: botones MOVER y TRANSFERIR
-              const acciones=!isDone&&c.id?`
-                <button onclick="openReagendar('${c.id}','${c.name.replace(/'/g,"\\'")}','${c.time}','${barber.replace(/'/g,"\\'")}')" style="padding:3px 9px;border:1px solid rgba(0,245,255,0.15);background:transparent;color:rgba(0,245,255,0.25);font-family:'Share Tech Mono',monospace;font-size:0.38rem;letter-spacing:0.1em;cursor:pointer;text-transform:uppercase;transition:all 0.2s;align-self:center;" onmouseover="this.style.background='rgba(0,245,255,0.1)';this.style.color='rgba(0,245,255,0.8)';" onmouseout="this.style.background='transparent';this.style.color='rgba(0,245,255,0.25)';">↻</button>
-                <button onclick="openTransferirCita('${c.id}','${c.name.replace(/'/g,"\\'")}','${c.time}','${barber.replace(/'/g,"\\'")}',${ i+1})" style="padding:3px 9px;border:1px solid rgba(0,245,255,0.15);background:transparent;color:rgba(0,245,255,0.25);font-family:'Share Tech Mono',monospace;font-size:0.38rem;letter-spacing:0.1em;cursor:pointer;text-transform:uppercase;transition:all 0.2s;align-self:center;" onmouseover="this.style.background='rgba(0,245,255,0.1)';this.style.color='rgba(0,245,255,0.8)';" onmouseout="this.style.background='transparent';this.style.color='rgba(0,245,255,0.25)';">↔</button>`:'';
-              return`<div class="my-q-item ${cls}" style="animation-delay:${rowIdx*0.04}s;grid-template-columns:44px 1fr ${!isDone&&c.id?'auto auto ':''} auto;">
-                <div class="mqi-num">${String(i+1).padStart(2,'0')}</div>
-                <div><div class="mqi-name">${c.name}</div><div class="mqi-svc">${c.servicio}</div>${eta?`<div class="eta-live${urgent?' urgent':''}">⏱ ${eta}</div>`:''}</div>
-                ${acciones}
-                <div class="mqi-right"><div class="mqi-time">${c.time}</div>${tag}</div>
-              </div>`;
-            }).join('')}
+            ${(()=>{
+              if(queueItems.length===0) return '<div style="padding:20px;text-align:center;font-family:\'Share Tech Mono\',monospace;font-size:0.44rem;color:rgba(0,245,255,0.2);letter-spacing:0.2em;">SIN CITAS ASIGNADAS</div>';
+              // Primeros 5: filas grandes. El resto: mini grid
+              const filas=queueItems.slice(0,5);
+              const mini=queueItems.slice(5);
+              // Filas grandes
+              const filasHtml=filas.map(({c,i,status},rowIdx)=>{
+                const isAct=status==='active';const isNxt=status==='next';
+                const cls=isAct?'mqi-active':isNxt?'mqi-next':'mqi-wait';
+                const tag=isAct?'<span class="mqi-tag a">EN SILLA</span>':isNxt?'<span class="mqi-tag n">PRÓXIMO</span>':'<span class="mqi-tag w">ESPERA</span>';
+                const pos=i-(currentTurn-1);const eta=pos>0?calcLiveETA(pos,barber):null;const urgent=eta&&parseInt(eta)<=5;
+                const rBtn=c.id?`<button onclick="openReagendar('${c.id}','${c.name.replace(/'/g,"\\'")}','${c.time}','${barber.replace(/'/g,"\\'")}')" style="padding:3px 8px;border:1px solid rgba(0,245,255,0.15);background:transparent;color:rgba(0,245,255,0.25);font-family:'Share Tech Mono',monospace;font-size:0.38rem;cursor:pointer;" onmouseover="this.style.background='rgba(0,245,255,0.1)';this.style.color='rgba(0,245,255,0.8)';" onmouseout="this.style.background='transparent';this.style.color='rgba(0,245,255,0.25)';">↻</button>`:'';
+                const tBtn=c.id?`<button onclick="openTransferirCita('${c.id}','${c.name.replace(/'/g,"\\'")}','${c.time}','${barber.replace(/'/g,"\\'")}',${i+1})" style="padding:3px 8px;border:1px solid rgba(0,245,255,0.15);background:transparent;color:rgba(0,245,255,0.25);font-family:'Share Tech Mono',monospace;font-size:0.38rem;cursor:pointer;" onmouseover="this.style.background='rgba(0,245,255,0.1)';this.style.color='rgba(0,245,255,0.8)';" onmouseout="this.style.background='transparent';this.style.color='rgba(0,245,255,0.25)';">↔</button>`:'';
+                return`<div class="my-q-item ${cls}" style="animation-delay:${rowIdx*0.04}s;grid-template-columns:44px 1fr ${c.id?'auto auto ':''} auto;">
+                  <div class="mqi-num">${String(i+1).padStart(2,'00')}</div>
+                  <div><div class="mqi-name">${c.name}</div><div class="mqi-svc">${c.servicio}</div>${eta?`<div class="eta-live${urgent?' urgent':''}">⏱ ${eta}</div>`:''}</div>
+                  ${rBtn}${tBtn}
+                  <div class="mqi-right"><div class="mqi-time">${fmt12(c.time)}</div>${tag}</div>
+                </div>`;
+              }).join('');
+              // Mini grid: todos los que pasan del 5to
+              const miniHtml=mini.length?`
+                <div style="display:flex;align-items:center;gap:7px;padding:6px 0 3px;font-family:'Share Tech Mono',monospace;font-size:0.4rem;letter-spacing:0.28em;color:rgba(0,245,255,0.2);text-transform:uppercase;flex-shrink:0;">
+                  EN ESPERA
+                  <span style="background:rgba(0,245,255,0.05);border:1px solid rgba(0,245,255,0.12);padding:1px 6px;font-family:'Orbitron',monospace;font-size:0.44rem;color:rgba(0,245,255,0.35);">${mini.length}</span>
+                  <span style="flex:1;height:1px;background:rgba(0,245,255,0.06);display:block;"></span>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:3px;flex-shrink:0;">
+                  ${mini.map(({c,i},idx2)=>{
+                    const pos=i-(currentTurn-1);const eta=calcLiveETA(pos,barber);
+                    return`<div class="q-mini ms-wait" style="animation-delay:${idx2*0.025}s;">
+                      <div class="q-mini-num">${String(i+1).padStart(2,'00')}</div>
+                      <div class="q-mini-name">${c.name}</div>
+                      <div class="q-mini-meta">
+                        <div class="q-mini-time">${eta||fmt12(c.time)}</div>
+                        <button onclick="openTransferirCita('${c.id}','${c.name.replace(/'/g,"\\'")}','${c.time}','${barber.replace(/'/g,"\\'")}',${i+1})" style="padding:1px 5px;border:1px solid rgba(0,245,255,0.12);background:transparent;color:rgba(0,245,255,0.3);font-family:'Share Tech Mono',monospace;font-size:0.34rem;cursor:pointer;">↔</button>
+                      </div>
+                    </div>`;
+                  }).join('')}
+                </div>`:'';
+              return filasHtml+miniHtml;
+            })()}
           </div>
         </div>
       </div>
@@ -1513,6 +1538,15 @@ function dayProgressHtml(){
 }
 
 // ── LIVE ETA ──
+function fmt12(h){
+  if(!h)return h;
+  const parts=h.split(':');
+  let hh=parseInt(parts[0]),mm=parts[1]||'00';
+  const ampm=hh>=12?'PM':'AM';
+  if(hh===0)hh=12;else if(hh>12)hh-=12;
+  return hh+':'+mm+' '+ampm;
+}
+
 function calcLiveETA(pos,barber){
   if(pos<=0)return null;
   const avg=getAvgTime(barber||Object.keys(S.queues)[0]||'');
