@@ -3,448 +3,703 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BarberOS — Registro</title>
+<title>Registra tu Barbería — BarberOS</title>
+<meta name="description" content="Crea tu cuenta de BarberOS en 2 minutos. 14 días gratis, sin tarjeta de crédito.">
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✂</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#030407;--surface:#080A10;--border:rgba(255,255,255,0.07);--text:#E8E6E0;--muted:#4A4845;--gold:#C9A84C;--gold2:#E8C96A;--green:#00E676;--red:#FF3355;}
+:root{
+  --bg:#070708;--surface:#0F0F12;--surface2:#141418;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --text:#E8E6E0;--muted:#5A5855;--muted2:#8A8885;
+  --gold:#C9A84C;--gold2:#E8C96A;--gold-dim:rgba(201,168,76,0.12);
+  --green:#2ECC71;--red:#E74C3C;--blue:#3498DB;
+}
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
-body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(201,168,76,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,0.02) 1px,transparent 1px);background-size:56px 56px;pointer-events:none;}
-.container{position:relative;z-index:1;width:100%;max-width:560px;}
-.back-link{font-size:0.52rem;color:var(--muted);letter-spacing:0.16em;text-decoration:none;display:inline-flex;align-items:center;gap:6px;margin-bottom:20px;transition:color 0.2s;cursor:pointer;}
-.back-link:hover{color:var(--gold);}
-.brand{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:0.14em;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:3px;}
-.brand-sub{font-size:0.48rem;color:var(--muted);letter-spacing:0.25em;text-transform:uppercase;margin-bottom:22px;}
+html{font-size:16px;}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-height:100vh;display:flex;flex-direction:column;opacity:0;transition:opacity 0.3s;}
+body.loaded{opacity:1;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.45;}
 
-/* Steps indicator */
-.steps{display:flex;gap:0;margin-bottom:22px;}
-.step{flex:1;height:3px;background:var(--border);transition:background 0.3s;}
-.step.done{background:var(--gold);}
-.step.active{background:linear-gradient(90deg,var(--gold),var(--gold2));}
-.step-labels{display:flex;justify-content:space-between;margin-top:6px;margin-bottom:16px;}
-.step-lbl{font-size:0.42rem;color:var(--muted);letter-spacing:0.14em;text-transform:uppercase;transition:color 0.3s;}
-.step-lbl.active{color:var(--gold);}
+/* NAV */
+nav{display:flex;align-items:center;justify-content:space-between;padding:18px 52px;border-bottom:1px solid var(--border);background:rgba(7,7,8,0.9);backdrop-filter:blur(14px);position:sticky;top:0;z-index:100;}
+.nav-logo{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:0.15em;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none;}
+.nav-back{color:var(--muted);text-decoration:none;font-size:0.6rem;letter-spacing:0.14em;transition:color 0.2s;display:flex;align-items:center;gap:6px;}
+.nav-back:hover{color:var(--text);}
 
-/* Card */
-.card{background:var(--surface);border:1px solid var(--border);padding:28px;position:relative;}
-.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--gold2));}
-.card-title{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:0.1em;margin-bottom:4px;}
-.card-sub{font-size:0.58rem;color:var(--muted);margin-bottom:20px;line-height:1.7;}
+/* LAYOUT */
+.page{flex:1;display:grid;grid-template-columns:1fr 480px;min-height:calc(100vh - 57px);}
 
-/* Form */
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.form-group{margin-bottom:13px;}
-.form-label{font-size:0.46rem;color:var(--muted);letter-spacing:0.2em;text-transform:uppercase;display:block;margin-bottom:5px;}
-.form-input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 12px;font-family:'DM Mono',monospace;font-size:0.7rem;outline:none;transition:border-color 0.2s;}
-.form-input:focus{border-color:var(--gold);}
-.form-hint{font-size:0.46rem;color:var(--muted);margin-top:4px;}
+/* LEFT PANEL */
+.left-panel{padding:60px 52px;border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:center;background:linear-gradient(180deg,rgba(201,168,76,0.03) 0%,transparent 50%);}
+.left-badge{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(201,168,76,0.2);padding:6px 14px;font-size:0.52rem;letter-spacing:0.24em;text-transform:uppercase;color:var(--gold);margin-bottom:28px;}
+.left-badge::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);}
+.left-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.8rem,5vw,4.5rem);letter-spacing:0.04em;line-height:0.93;margin-bottom:20px;}
+.left-title .accent{display:block;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.left-sub{font-size:0.72rem;color:var(--muted2);line-height:1.8;max-width:400px;margin-bottom:40px;}
+.benefits{display:flex;flex-direction:column;gap:12px;margin-bottom:40px;}
+.benefit{display:flex;align-items:center;gap:12px;font-size:0.64rem;color:var(--muted2);}
+.benefit::before{content:'✓';color:var(--green);font-size:0.7rem;flex-shrink:0;font-weight:700;}
+.trial-badge{display:flex;align-items:center;gap:14px;padding:16px 20px;border:1px solid rgba(201,168,76,0.2);background:rgba(201,168,76,0.04);}
+.trial-num{font-family:'Bebas Neue',sans-serif;font-size:3rem;color:var(--gold);line-height:1;}
+.trial-text{font-size:0.62rem;color:var(--muted2);line-height:1.6;}
+.trial-text strong{color:var(--text);}
 
-/* Plan cards */
-.plan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0;}
-.plan-opt{padding:16px 12px;border:1px solid var(--border);cursor:pointer;text-align:center;transition:all 0.2s;}
-.plan-opt:hover{border-color:var(--gold);}
-.plan-opt.selected{border-color:var(--gold);background:rgba(201,168,76,0.06);}
-.plan-name{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--gold);}
-.plan-price{font-size:0.52rem;color:var(--muted);margin-top:3px;}
-.plan-feats{text-align:left;margin-top:10px;}
-.plan-feat{font-size:0.5rem;color:var(--muted);padding:2px 0;display:flex;gap:5px;}
-.plan-feat::before{content:'›';color:var(--gold);}
+/* FORM PANEL */
+.form-panel{padding:44px 48px;overflow-y:auto;background:var(--surface);}
+.form-title{font-size:0.52rem;color:var(--gold);letter-spacing:0.28em;text-transform:uppercase;margin-bottom:6px;}
+.form-sub{font-size:0.82rem;color:var(--text);margin-bottom:32px;line-height:1.5;}
 
-/* Barbero row */
-.barbero-row{display:flex;gap:8px;align-items:center;margin-bottom:8px;}
-.barbero-input{flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.66rem;outline:none;}
-.barbero-input:focus{border-color:var(--gold);}
-.btn-remove{background:transparent;border:1px solid rgba(255,51,85,0.3);color:var(--red);padding:7px 10px;cursor:pointer;font-size:0.7rem;transition:all 0.2s;}
-.btn-remove:hover{background:var(--red);color:#fff;}
-.btn-add{background:transparent;border:1px solid var(--border);color:var(--muted);padding:8px 14px;font-family:'DM Mono',monospace;font-size:0.56rem;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;margin-top:4px;}
-.btn-add:hover{border-color:var(--gold);color:var(--gold);}
+/* STEPS */
+.steps{display:flex;gap:0;margin-bottom:32px;border:1px solid var(--border);}
+.step{flex:1;padding:10px 12px;text-align:center;font-size:0.46rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);transition:all 0.3s;position:relative;cursor:default;}
+.step.active{background:rgba(201,168,76,0.08);color:var(--gold);}
+.step.done{color:var(--green);}
+.step-num{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;display:block;margin-bottom:2px;}
+.step::after{content:'';position:absolute;right:0;top:20%;height:60%;width:1px;background:var(--border);}
+.step:last-child::after{display:none;}
 
-/* Actions */
-.actions{display:flex;gap:10px;justify-content:space-between;margin-top:20px;}
-.btn{padding:10px 20px;font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;border:none;transition:all 0.2s;}
-.btn-next{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;flex:1;}
-.btn-next:hover{box-shadow:0 0 20px rgba(201,168,76,0.3);}
-.btn-back{background:transparent;border:1px solid var(--border);color:var(--muted);}
-.btn-back:hover{border-color:var(--gold);color:var(--gold);}
-.btn-next:disabled{opacity:0.4;cursor:not-allowed;}
+/* FORM FIELDS */
+.field{margin-bottom:18px;}
+.field label{display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:6px;}
+.field input,.field select,.field textarea{width:100%;background:rgba(255,255,255,0.03);border:1px solid var(--border2);color:var(--text);padding:11px 14px;font-family:'DM Mono',monospace;font-size:0.72rem;outline:none;transition:border-color 0.2s,box-shadow 0.2s;appearance:none;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,0.08);}
+.field input.error,.field select.error{border-color:var(--red);}
+.field input.ok{border-color:var(--green);}
+.field .help{font-size:0.5rem;color:var(--muted);margin-top:5px;line-height:1.5;}
+.field .err-msg{font-size:0.52rem;color:var(--red);margin-top:4px;display:none;}
+.field .err-msg.show{display:block;}
+.field select option{background:#1a1a1e;color:var(--text);}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 
-/* Payment */
-.payment-opts{display:flex;gap:10px;margin:10px 0;}
-.pay-opt{flex:1;padding:12px;border:1px solid var(--border);cursor:pointer;text-align:center;transition:all 0.2s;font-size:0.62rem;}
-.pay-opt:hover,.pay-opt.selected{border-color:var(--gold);background:rgba(201,168,76,0.06);}
+/* PROVIDER SELECTOR */
+.provider-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;}
+.provider-card{border:1px solid var(--border2);padding:14px;cursor:pointer;transition:all 0.2s;position:relative;}
+.provider-card:hover{border-color:rgba(201,168,76,0.3);background:rgba(201,168,76,0.03);}
+.provider-card.selected{border-color:var(--gold);background:rgba(201,168,76,0.06);}
+.provider-card.selected::before{content:'✓';position:absolute;top:8px;right:10px;color:var(--gold);font-size:0.65rem;}
+.provider-icon{font-size:1.4rem;margin-bottom:6px;}
+.provider-name{font-size:0.64rem;color:var(--text);margin-bottom:3px;}
+.provider-desc{font-size:0.5rem;color:var(--muted);line-height:1.5;}
+.provider-badge{display:inline-block;font-size:0.42rem;padding:2px 7px;margin-top:5px;letter-spacing:0.1em;}
+.badge-recommended{background:rgba(201,168,76,0.12);color:var(--gold);border:1px solid rgba(201,168,76,0.25);}
+.badge-basic{background:rgba(255,255,255,0.04);color:var(--muted);border:1px solid var(--border);}
 
-/* Success */
-.success-screen{text-align:center;padding:20px 0;}
-.success-icon{font-size:3rem;margin-bottom:14px;}
-.success-title{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;letter-spacing:0.1em;color:var(--green);margin-bottom:8px;}
-.success-msg{font-size:0.66rem;color:var(--muted);line-height:1.9;margin-bottom:20px;}
-.success-links{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
-.success-link{padding:10px 18px;font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;text-decoration:none;transition:all 0.2s;}
-.success-link.primary{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#000;}
-.success-link.ghost{border:1px solid var(--border);color:var(--muted);}
-.success-link.ghost:hover{border-color:var(--gold);color:var(--gold);}
-.creds-box{background:var(--bg);border:1px solid rgba(201,168,76,0.25);padding:16px;margin:16px 0;text-align:left;}
-.cred-row{display:flex;justify-content:space-between;padding:4px 0;font-size:0.6rem;}
-.cred-key{color:var(--muted);}
-.cred-val{color:var(--gold);}
+/* PROVIDER FIELDS */
+.provider-fields{display:none;margin-top:4px;}
+.provider-fields.show{display:block;}
+.provider-info{padding:10px 14px;background:rgba(52,152,219,0.06);border:1px solid rgba(52,152,219,0.15);margin-bottom:14px;}
+.provider-info p{font-size:0.56rem;color:rgba(52,152,219,0.8);line-height:1.7;}
+.provider-info a{color:var(--gold);text-decoration:none;}
+.provider-info a:hover{text-decoration:underline;}
 
-/* Error */
-.field-error{font-size:0.48rem;color:var(--red);margin-top:4px;display:none;}
-.toast{position:fixed;bottom:20px;right:20px;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--red);padding:12px 16px;font-size:0.62rem;z-index:9001;transform:translateX(120%);transition:transform 0.3s;}
-.toast.show{transform:translateX(0);}
+/* DIVIDER */
+.form-divider{border:none;border-top:1px solid var(--border);margin:22px 0;}
 
-/* Confetti */
-.confetti{position:fixed;pointer-events:none;z-index:9999;}
+/* BTN */
+.btn-submit{width:100%;padding:14px;background:var(--gold);color:#000;font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.18em;text-transform:uppercase;border:none;cursor:pointer;transition:all 0.2s;font-weight:500;}
+.btn-submit:hover{background:var(--gold2);}
+.btn-submit:disabled{opacity:0.6;cursor:not-allowed;}
+.btn-submit.loading{background:rgba(201,168,76,0.5);}
+.btn-ghost{width:100%;padding:11px;background:transparent;color:var(--muted);font-family:'DM Mono',monospace;font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;border:1px solid var(--border2);cursor:pointer;transition:all 0.2s;margin-top:10px;}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold);}
+
+/* SUCCESS STATE */
+.success-screen{display:none;text-align:center;padding:40px 20px;}
+.success-screen.show{display:block;}
+.success-icon{font-size:3.5rem;margin-bottom:20px;}
+.success-title{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;letter-spacing:0.06em;color:var(--green);margin-bottom:10px;}
+.success-sub{font-size:0.7rem;color:var(--muted2);line-height:1.8;margin-bottom:28px;}
+.success-links{display:flex;flex-direction:column;gap:10px;}
+.success-link{display:block;padding:12px;border:1px solid var(--border2);color:var(--text);text-decoration:none;font-size:0.64rem;letter-spacing:0.12em;transition:all 0.2s;}
+.success-link:hover{border-color:var(--gold);color:var(--gold);}
+.success-link.primary{background:var(--gold);color:#000;border-color:var(--gold);}
+.success-link.primary:hover{background:var(--gold2);}
+
+/* STEP SECTIONS */
+.step-section{display:none;}
+.step-section.active{display:block;}
+
+/* SLUG PREVIEW */
+.slug-preview{font-size:0.52rem;color:var(--muted);margin-top:5px;}
+.slug-preview span{color:var(--gold);}
+
+/* PASSWORD STRENGTH */
+.pwd-strength{height:3px;background:var(--border);margin-top:6px;overflow:hidden;}
+.pwd-strength-fill{height:100%;width:0%;transition:width 0.3s,background 0.3s;}
+
+/* TERMS */
+.terms-check{display:flex;align-items:flex-start;gap:10px;margin-top:16px;}
+.terms-check input[type=checkbox]{width:14px;height:14px;accent-color:var(--gold);flex-shrink:0;margin-top:2px;}
+.terms-check label{font-size:0.56rem;color:var(--muted);line-height:1.6;cursor:pointer;}
+.terms-check label a{color:var(--gold);text-decoration:none;}
+
+/* ERROR GENERAL */
+.form-error{padding:10px 14px;background:rgba(231,76,60,0.08);border:1px solid rgba(231,76,60,0.25);font-size:0.6rem;color:var(--red);margin-bottom:14px;display:none;}
+.form-error.show{display:block;}
+
+@media(max-width:900px){
+  nav{padding:14px 20px;}
+  .page{grid-template-columns:1fr;}
+  .left-panel{display:none;}
+  .form-panel{padding:32px 24px;}
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp 0.4s cubic-bezier(0.16,1,0.3,1) both;}
 </style>
 </head>
 <body>
 
-<div class="container">
-  <a class="back-link" href="/">← Volver al inicio</a>
-  <div class="brand">BarberOS</div>
-  <div class="brand-sub">Registro — Sistema de Reservas</div>
+<nav>
+  <a href="/" class="nav-logo">BarberOS</a>
+  <a href="/" class="nav-back">← Volver al inicio</a>
+</nav>
 
-  <!-- STEPS BAR -->
-  <div class="steps">
-    <div class="step active" id="step1"></div>
-    <div class="step" id="step2"></div>
-    <div class="step" id="step3"></div>
-    <div class="step" id="step4"></div>
-    <div class="step" id="step5"></div>
+<div class="page">
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <div class="left-badge">Registro de Barbería</div>
+    <h1 class="left-title">Empieza hoy.<br><span class="accent">Sin costo.</span></h1>
+    <p class="left-sub">Configura tu sistema de reservas por WhatsApp en menos de 2 minutos. Sin contratos, sin tarjeta de crédito.</p>
+    <div class="benefits">
+      <div class="benefit">Bot de WhatsApp que responde 24/7 automáticamente</div>
+      <div class="benefit">Panel de control con todas las citas en tiempo real</div>
+      <div class="benefit">Pantalla de sala de espera para TV o tablet</div>
+      <div class="benefit">Recordatorios automáticos — reduce No-Shows hasta 80%</div>
+      <div class="benefit">Soporte por WhatsApp directo al equipo</div>
+    </div>
+    <div class="trial-badge">
+      <div class="trial-num">14</div>
+      <div class="trial-text"><strong>Días de prueba gratuita</strong><br>Sin tarjeta de crédito requerida.<br>Cancela cuando quieras.</div>
+    </div>
   </div>
-  <div class="step-labels">
-    <span class="step-lbl active" id="lbl1">Barbería</span>
-    <span class="step-lbl" id="lbl2">Horario</span>
-    <span class="step-lbl" id="lbl3">Barberos</span>
-    <span class="step-lbl" id="lbl4">Plan</span>
-    <span class="step-lbl" id="lbl5">Pago</span>
-  </div>
 
-  <div class="card">
-
-    <!-- STEP 1: Datos barbería -->
-    <div id="page1">
-      <div class="card-title">Datos de tu barbería</div>
-      <div class="card-sub">Completá la información básica para comenzar.</div>
-      <div class="form-group"><label class="form-label">Nombre de la barbería *</label><input class="form-input" id="f-nombre" placeholder="ej: King Cuts"></div>
-      <div class="form-group"><label class="form-label">Tu URL personalizada *</label>
-        <div style="display:flex;align-items:center;gap:0;">
-          <span style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-right:none;padding:10px 10px;font-size:0.6rem;color:var(--muted);white-space:nowrap;">barberos.app/sala/</span>
-          <input class="form-input" id="f-slug" placeholder="king-cuts" style="border-radius:0;">
-        </div>
-        <div class="form-hint">Solo letras, números y guiones</div>
-        <div class="field-error" id="err-slug">Slug no disponible o inválido</div>
-      </div>
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">WhatsApp del dueño *</label><input class="form-input" id="f-wa" placeholder="+18091234567"></div>
-        <div class="form-group"><label class="form-label">Número Twilio</label><input class="form-input" id="f-twilio" placeholder="+14155238886"></div>
-      </div>
-      <div class="actions">
-        <button class="btn btn-next" id="next1">Continuar →</button>
-      </div>
+  <!-- FORM PANEL -->
+  <div class="form-panel">
+    <!-- STEPS INDICATOR -->
+    <div class="steps" id="stepsBar">
+      <div class="step active" id="step-ind-1"><span class="step-num">1</span>Barbería</div>
+      <div class="step" id="step-ind-2"><span class="step-num">2</span>WhatsApp</div>
+      <div class="step" id="step-ind-3"><span class="step-num">3</span>Cuenta</div>
     </div>
 
-    <!-- STEP 2: Horario -->
-    <div id="page2" style="display:none;">
-      <div class="card-title">Configuración de Horario</div>
-      <div class="card-sub">¿Cuándo trabaja tu barbería?</div>
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">Abre a las</label>
-          <select class="form-input" id="f-inicio">
-            <option value="7">7:00</option><option value="8">8:00</option>
-            <option value="9" selected>9:00</option><option value="10">10:00</option><option value="11">11:00</option>
+    <div class="form-error" id="formError"></div>
+
+    <!-- STEP 1: DATOS BARBERÍA -->
+    <div class="step-section active fade-up" id="step-1">
+      <div class="form-title">Paso 1 de 3</div>
+      <div class="form-sub">Información de tu barbería</div>
+
+      <div class="field">
+        <label>Nombre de la barbería *</label>
+        <input type="text" id="f-nombre" placeholder="Ej: Elite Cuts" autocomplete="organization">
+        <div class="err-msg" id="e-nombre">Por favor ingresa el nombre de tu barbería</div>
+      </div>
+
+      <div class="field">
+        <label>URL de tu barbería (slug) *</label>
+        <input type="text" id="f-slug" placeholder="elite-cuts" autocomplete="off">
+        <div class="slug-preview">Tu URL: barberia-os1.vercel.app/admin/<span id="slug-preview-val">tu-barberia</span></div>
+        <div class="err-msg" id="e-slug">Solo letras, números y guiones. Mínimo 3 caracteres.</div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Horario apertura</label>
+          <select id="f-hora-ini">
+            <option value="6">6:00 AM</option>
+            <option value="7">7:00 AM</option>
+            <option value="8">8:00 AM</option>
+            <option value="9" selected>9:00 AM</option>
+            <option value="10">10:00 AM</option>
           </select>
         </div>
-        <div class="form-group"><label class="form-label">Cierra a las</label>
-          <select class="form-input" id="f-fin">
-            <option value="17">17:00</option><option value="18" selected>18:00</option>
-            <option value="19">19:00</option><option value="20">20:00</option><option value="21">21:00</option>
+        <div class="field">
+          <label>Horario cierre</label>
+          <select id="f-hora-fin">
+            <option value="17">5:00 PM</option>
+            <option value="18">6:00 PM</option>
+            <option value="19">7:00 PM</option>
+            <option value="20">8:00 PM</option>
+            <option value="21">9:00 PM</option>
+            <option value="22" selected>10:00 PM</option>
           </select>
         </div>
       </div>
-      <div class="form-group"><label class="form-label">Duración de cada turno</label>
-        <select class="form-input" id="f-duracion">
-          <option value="30">30 minutos</option><option value="45" selected>45 minutos</option>
-          <option value="60">60 minutos</option><option value="90">90 minutos</option>
+
+      <div class="field">
+        <label>Duración por turno (minutos)</label>
+        <select id="f-duracion">
+          <option value="15">15 min</option>
+          <option value="20">20 min</option>
+          <option value="30" selected>30 min</option>
+          <option value="45">45 min</option>
+          <option value="60">60 min</option>
         </select>
       </div>
-      <div class="form-group"><label class="form-label">Zona horaria</label>
-        <select class="form-input" id="f-tz">
-          <option value="America/Santo_Domingo" selected>Santo Domingo (RD)</option>
-          <option value="America/New_York">Nueva York (US-ET)</option>
-          <option value="America/Chicago">Chicago (US-CT)</option>
-          <option value="America/Los_Angeles">Los Ángeles (US-PT)</option>
-          <option value="America/Bogota">Bogotá (COL)</option>
-          <option value="America/Mexico_City">Ciudad de México</option>
-          <option value="America/Argentina/Buenos_Aires">Buenos Aires</option>
-          <option value="Europe/Madrid">Madrid (ESP)</option>
+
+      <div class="field">
+        <label>País / Zona horaria</label>
+        <select id="f-timezone">
+          <option value="America/Santo_Domingo" selected>🇩🇴 República Dominicana</option>
+          <option value="America/New_York">🇺🇸 Estados Unidos (Este)</option>
+          <option value="America/Chicago">🇺🇸 Estados Unidos (Centro)</option>
+          <option value="America/Los_Angeles">🇺🇸 Estados Unidos (Pacífico)</option>
+          <option value="America/Bogota">🇨🇴 Colombia</option>
+          <option value="America/Mexico_City">🇲🇽 México</option>
+          <option value="America/Caracas">🇻🇪 Venezuela</option>
+          <option value="America/Lima">🇵🇪 Perú</option>
+          <option value="America/Santiago">🇨🇱 Chile</option>
+          <option value="America/Argentina/Buenos_Aires">🇦🇷 Argentina</option>
+          <option value="America/Sao_Paulo">🇧🇷 Brasil</option>
+          <option value="Europe/Madrid">🇪🇸 España</option>
         </select>
       </div>
-      <div class="actions">
-        <button class="btn btn-back" onclick="goTo(1)">← Atrás</button>
-        <button class="btn btn-next" id="next2">Continuar →</button>
-      </div>
+
+      <button class="btn-submit" onclick="goStep2()">Continuar →</button>
     </div>
 
-    <!-- STEP 3: Barberos -->
-    <div id="page3" style="display:none;">
-      <div class="card-title">Tus Barberos</div>
-      <div class="card-sub">Agregá los barberos de tu barbería.</div>
-      <div id="barberosList">
-        <div class="barbero-row"><input class="barbero-input" value="Barbero 1" placeholder="Nombre del barbero"><button class="btn-remove" onclick="removeBarbero(this)">✕</button></div>
-      </div>
-      <button class="btn-add" id="addBarberoBtn">+ Agregar barbero</button>
-      <div class="actions" style="margin-top:16px;">
-        <button class="btn btn-back" onclick="goTo(2)">← Atrás</button>
-        <button class="btn btn-next" id="next3">Continuar →</button>
-      </div>
-    </div>
+    <!-- STEP 2: WHATSAPP -->
+    <div class="step-section fade-up" id="step-2">
+      <div class="form-title">Paso 2 de 3</div>
+      <div class="form-sub">Conecta tu WhatsApp Business</div>
 
-    <!-- STEP 4: Plan -->
-    <div id="page4" style="display:none;">
-      <div class="card-title">Elegí tu Plan</div>
-      <div class="card-sub">Podés cambiar de plan en cualquier momento.</div>
-      <div class="plan-grid">
-        <div class="plan-opt" data-plan="free">
-          <div class="plan-name">FREE</div><div class="plan-price">$0/mes</div>
-          <div class="plan-feats"><div class="plan-feat">1 barbero</div><div class="plan-feat">30 citas/mes</div><div class="plan-feat">Bot básico</div></div>
+      <div class="field">
+        <label>¿Cómo quieres conectar WhatsApp? *</label>
+        <div class="provider-grid">
+          <div class="provider-card" id="pc-meta" onclick="selectProvider('meta')">
+            <div class="provider-icon">📱</div>
+            <div class="provider-name">Meta WhatsApp Business API</div>
+            <div class="provider-desc">Tu propio número de WhatsApp. Usa la cuenta que acabas de crear.</div>
+            <span class="provider-badge badge-recommended">RECOMENDADO</span>
+          </div>
+          <div class="provider-card" id="pc-twilio" onclick="selectProvider('twilio')">
+            <div class="provider-icon">🔧</div>
+            <div class="provider-name">Twilio Sandbox</div>
+            <div class="provider-desc">Número de prueba compartido. Ideal para testing inicial.</div>
+            <span class="provider-badge badge-basic">BÁSICO</span>
+          </div>
         </div>
-        <div class="plan-opt selected" data-plan="pro">
-          <div class="plan-name" style="color:var(--gold)">PRO</div><div class="plan-price">$29/mes</div>
-          <div class="plan-feats"><div class="plan-feat">Ilimitados</div><div class="plan-feat">Recordatorios</div><div class="plan-feat">Panel completo</div></div>
+        <div class="err-msg show" id="e-provider" style="display:none">Selecciona un proveedor</div>
+      </div>
+
+      <!-- META FIELDS -->
+      <div class="provider-fields" id="fields-meta">
+        <div class="provider-info">
+          <p>Necesitas los datos de tu app en <a href="https://developers.facebook.com" target="_blank">developers.facebook.com</a>.<br>
+          Ve a tu app → WhatsApp → Configuración de la API.</p>
         </div>
-        <div class="plan-opt" data-plan="elite">
-          <div class="plan-name">ELITE</div><div class="plan-price">$79/mes</div>
-          <div class="plan-feats"><div class="plan-feat">Todo Pro</div><div class="plan-feat">Multi-sucursal</div><div class="plan-feat">Soporte VIP</div></div>
+        <div class="field">
+          <label>Phone Number ID *</label>
+          <input type="text" id="f-meta-phone-id" placeholder="1083622031493111">
+          <div class="help">Ej: 1083622031493111 — lo encuentras en "Configuración de la API"</div>
+          <div class="err-msg" id="e-meta-phone-id">Ingresa el Phone Number ID</div>
+        </div>
+        <div class="field">
+          <label>Access Token *</label>
+          <input type="password" id="f-meta-token" placeholder="EAA...">
+          <div class="help">Genera el token en "Generar identificador de acceso". Se guarda encriptado.</div>
+          <div class="err-msg" id="e-meta-token">Ingresa el Access Token de Meta</div>
+        </div>
+        <div class="field">
+          <label>WhatsApp Business Account ID</label>
+          <input type="text" id="f-meta-waba-id" placeholder="1338201291689364">
+          <div class="help">Opcional — el ID de tu cuenta de WhatsApp Business</div>
+        </div>
+        <div class="field">
+          <label>Número de teléfono (para recibir notificaciones)</label>
+          <input type="tel" id="f-meta-tel" placeholder="+1 829 000 0000">
+          <div class="help">Tu número personal para recibir alertas de nuevas citas</div>
         </div>
       </div>
-      <div class="actions" style="margin-top:10px;">
-        <button class="btn btn-back" onclick="goTo(3)">← Atrás</button>
-        <button class="btn btn-next" id="next4">Continuar →</button>
+
+      <!-- TWILIO FIELDS -->
+      <div class="provider-fields" id="fields-twilio">
+        <div class="provider-info">
+          <p>Usando el sandbox de Twilio (<strong>+1 415 523 8886</strong>).<br>
+          Los clientes deben escribir primero al sandbox. Recomendamos Meta para producción.</p>
+        </div>
+        <div class="field">
+          <label>Tu número de WhatsApp personal *</label>
+          <input type="tel" id="f-twilio-tel" placeholder="+1 809 000 0000">
+          <div class="help">Para recibir notificaciones de nuevas citas</div>
+          <div class="err-msg" id="e-twilio-tel">Ingresa tu número de WhatsApp</div>
+        </div>
+      </div>
+
+      <div class="form-divider"></div>
+      <button class="btn-submit" onclick="goStep3()">Continuar →</button>
+      <button class="btn-ghost" onclick="goStep(1)">← Atrás</button>
+    </div>
+
+    <!-- STEP 3: CUENTA -->
+    <div class="step-section fade-up" id="step-3">
+      <div class="form-title">Paso 3 de 3</div>
+      <div class="form-sub">Crea tu cuenta de acceso</div>
+
+      <div class="field">
+        <label>Tu nombre *</label>
+        <input type="text" id="f-owner-name" placeholder="Rafael Bonifacio" autocomplete="name">
+        <div class="err-msg" id="e-owner-name">Ingresa tu nombre</div>
+      </div>
+
+      <div class="field">
+        <label>Email *</label>
+        <input type="email" id="f-email" placeholder="tu@email.com" autocomplete="email">
+        <div class="err-msg" id="e-email">Ingresa un email válido</div>
+      </div>
+
+      <div class="field">
+        <label>Contraseña *</label>
+        <input type="password" id="f-password" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
+        <div class="pwd-strength"><div class="pwd-strength-fill" id="pwd-fill"></div></div>
+        <div class="help" id="pwd-hint">Mínimo 8 caracteres</div>
+        <div class="err-msg" id="e-password">Mínimo 8 caracteres</div>
+      </div>
+
+      <div class="field">
+        <label>Confirmar contraseña *</label>
+        <input type="password" id="f-password2" placeholder="Repite tu contraseña">
+        <div class="err-msg" id="e-password2">Las contraseñas no coinciden</div>
+      </div>
+
+      <div class="terms-check">
+        <input type="checkbox" id="f-terms">
+        <label for="f-terms">Acepto los <a href="/terminos" target="_blank">Términos de uso</a> y la <a href="/privacidad" target="_blank">Política de privacidad</a> de BarberOS. Entiendo que tengo 14 días de prueba gratuita.</label>
+      </div>
+
+      <div class="form-divider"></div>
+      <button class="btn-submit" id="submitBtn" onclick="submitForm()">✓ Crear mi barbería gratis</button>
+      <button class="btn-ghost" onclick="goStep(2)">← Atrás</button>
+
+      <div style="margin-top:20px;font-size:0.52rem;color:var(--muted);text-align:center;line-height:1.7;">
+        ✓ Sin tarjeta de crédito &nbsp;·&nbsp; ✓ 14 días gratis &nbsp;·&nbsp; ✓ Cancela cuando quieras
       </div>
     </div>
 
-    <!-- STEP 5: Pago -->
-    <div id="page5" style="display:none;">
-      <div class="card-title">Método de Pago</div>
-      <div class="card-sub" id="paySubtitle">Seleccioná cómo pagar. Podés empezar gratis.</div>
-      <div class="payment-opts" id="paymentOpts">
-        <div class="pay-opt selected" data-pay="free">✓ Plan Gratis</div>
-        <div class="pay-opt" data-pay="stripe">💳 Tarjeta</div>
-        <div class="pay-opt" data-pay="paypal">🅿 PayPal</div>
+    <!-- SUCCESS SCREEN -->
+    <div class="success-screen" id="successScreen">
+      <div class="success-icon">✂️</div>
+      <div class="success-title">¡Barbería Creada!</div>
+      <div class="success-sub" id="successMsg">
+        Tu barbería está lista. Tienes 14 días de prueba gratuita.<br>
+        Accede a tu panel de administración para configurar barberos y servicios.
       </div>
-      <div id="payFreeMsg" style="font-size:0.6rem;color:var(--muted);padding:12px 0;line-height:1.8;">
-        Empezás con el plan Free. Podés actualizar a Pro en cualquier momento desde tu panel de control.
-      </div>
-      <div id="payProMsg" style="display:none;font-size:0.6rem;color:var(--muted);padding:12px 0;line-height:1.8;">
-        <strong style="color:var(--gold)">Plan Pro — $29/mes</strong><br>
-        7 días gratis, sin compromiso. Cancelá cuando quieras.
-      </div>
-      <div class="actions">
-        <button class="btn btn-back" onclick="goTo(4)">← Atrás</button>
-        <button class="btn btn-next" id="next5" onclick="createShop()">🚀 CREAR MI BARBERÍA</button>
-      </div>
-      <div style="font-size:0.48rem;color:var(--muted);text-align:center;margin-top:12px;">🔒 Procesado de forma segura</div>
-    </div>
-
-    <!-- SUCCESS -->
-    <div id="pageSuccess" style="display:none;">
-      <div class="success-screen">
-        <div class="success-icon">🎉</div>
-        <div class="success-title">¡Todo listo!</div>
-        <div class="success-msg">Tu barbería está activa. Guardá estos enlaces.</div>
-        <div class="creds-box" id="successCreds"></div>
-        <div class="success-links" id="successLinks"></div>
+      <div class="success-links" id="successLinks">
+        <a href="#" class="success-link primary" id="link-admin">Ir a mi panel de administración →</a>
+        <a href="#" class="success-link" id="link-display">Ver pantalla de sala de espera ↗</a>
+        <a href="https://wa.me/18098498528" target="_blank" class="success-link">💬 Contactar soporte por WhatsApp</a>
       </div>
     </div>
 
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
-<canvas class="confetti" id="confetti"></canvas>
-
 <script>
 'use strict';
+
 const SB_URL = 'https://mmokunpuslcfphalrwot.supabase.co';
 const SB_KEY = 'sb_publishable_aETz_9ECH5RcBMjmRhUnfw_g71zRdwT';
 
-let _currentStep = 1;
-let _selectedPlan = 'pro';
-let _selectedPay = 'free';
+document.fonts.ready.then(() => document.body.classList.add('loaded'));
+setTimeout(() => document.body.classList.add('loaded'), 800);
 
-// ── NAVIGATION ────────────────────────────────
-function goTo(step) {
-  document.getElementById('page'+_currentStep).style.display='none';
-  document.getElementById('page'+step).style.display='block';
-  for(let i=1;i<=5;i++){
-    document.getElementById('step'+i).className='step'+(i<step?' done':i===step?' active':'');
-    document.getElementById('lbl'+i).className='step-lbl'+(i===step?' active':'');
+// Pre-fill WhatsApp from landing redirect
+const params = new URLSearchParams(location.search);
+const waParam = params.get('wa');
+if (waParam) {
+  const el = document.getElementById('f-twilio-tel') || document.getElementById('f-meta-tel');
+  if (el) el.value = decodeURIComponent(waParam);
+}
+
+// ── SLUG auto-gen ──
+document.getElementById('f-nombre').addEventListener('input', function() {
+  const slug = this.value.toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-')
+    .substring(0, 30);
+  const slugEl = document.getElementById('f-slug');
+  if (!slugEl._touched) {
+    slugEl.value = slug;
+    document.getElementById('slug-preview-val').textContent = slug || 'tu-barberia';
   }
-  _currentStep = step;
-  window.scrollTo({top:0,behavior:'smooth'});
+});
+
+document.getElementById('f-slug').addEventListener('input', function() {
+  this._touched = true;
+  this.value = this.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+  document.getElementById('slug-preview-val').textContent = this.value || 'tu-barberia';
+});
+
+// ── PASSWORD STRENGTH ──
+document.getElementById('f-password').addEventListener('input', function() {
+  const v = this.value;
+  const fill = document.getElementById('pwd-fill');
+  const hint = document.getElementById('pwd-hint');
+  let strength = 0;
+  if (v.length >= 8) strength++;
+  if (v.length >= 12) strength++;
+  if (/[A-Z]/.test(v)) strength++;
+  if (/[0-9]/.test(v)) strength++;
+  if (/[^A-Za-z0-9]/.test(v)) strength++;
+  const pct = (strength / 5) * 100;
+  const colors = ['','#e74c3c','#e67e22','#f1c40f','#2ecc71','#2ecc71'];
+  const labels = ['','Muy débil','Débil','Regular','Buena','Excelente'];
+  fill.style.width = pct + '%';
+  fill.style.background = colors[strength] || 'transparent';
+  hint.textContent = strength ? labels[strength] : 'Mínimo 8 caracteres';
+});
+
+// ── PROVIDER SELECTION ──
+let PROVIDER = null;
+
+function selectProvider(p) {
+  PROVIDER = p;
+  document.getElementById('pc-meta').classList.toggle('selected', p === 'meta');
+  document.getElementById('pc-twilio').classList.toggle('selected', p === 'twilio');
+  document.getElementById('fields-meta').classList.toggle('show', p === 'meta');
+  document.getElementById('fields-twilio').classList.toggle('show', p === 'twilio');
+  document.getElementById('e-provider').style.display = 'none';
 }
 
-// Auto-slug from name
-document.getElementById('f-nombre').addEventListener('input', e => {
-  document.getElementById('f-slug').value = e.target.value.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
-});
+// ── STEP NAVIGATION ──
+let currentStep = 1;
 
-// Plan selection
-document.querySelectorAll('.plan-opt').forEach(o => {
-  o.addEventListener('click', () => {
-    o.closest('.plan-grid').querySelectorAll('.plan-opt').forEach(x=>x.classList.remove('selected'));
-    o.classList.add('selected');
-    _selectedPlan = o.dataset.plan;
-    const payFreeMsg = document.getElementById('payFreeMsg');
-    const payProMsg = document.getElementById('payProMsg');
-    if (payFreeMsg && payProMsg) {
-      payFreeMsg.style.display = _selectedPlan==='free'?'block':'none';
-      payProMsg.style.display  = _selectedPlan!=='free'?'block':'none';
-    }
-  });
-});
-
-// Payment selection
-document.querySelectorAll('.pay-opt').forEach(o => {
-  o.addEventListener('click', () => {
-    document.querySelectorAll('.pay-opt').forEach(x=>x.classList.remove('selected'));
-    o.classList.add('selected');
-    _selectedPay = o.dataset.pay;
-  });
-});
-
-// Barberos
-document.getElementById('addBarberoBtn').addEventListener('click', () => {
-  const list = document.getElementById('barberosList');
-  const count = list.querySelectorAll('.barbero-row').length + 1;
-  const row = document.createElement('div');
-  row.className = 'barbero-row';
-  row.innerHTML = `<input class="barbero-input" value="Barbero ${count}" placeholder="Nombre"><button class="btn-remove" onclick="removeBarbero(this)">✕</button>`;
-  list.appendChild(row);
-});
-function removeBarbero(btn) {
-  const rows = document.getElementById('barberosList').querySelectorAll('.barbero-row');
-  if (rows.length > 1) btn.closest('.barbero-row').remove();
+function goStep(n) {
+  document.getElementById('step-' + currentStep).classList.remove('active');
+  document.getElementById('step-ind-' + currentStep).classList.remove('active');
+  if (currentStep < n) document.getElementById('step-ind-' + currentStep).classList.add('done');
+  currentStep = n;
+  const sec = document.getElementById('step-' + n);
+  sec.classList.add('active');
+  sec.classList.remove('fade-up');
+  void sec.offsetWidth;
+  sec.classList.add('fade-up');
+  document.getElementById('step-ind-' + n).classList.add('active');
+  document.getElementById('step-ind-' + n).classList.remove('done');
+  window.scrollTo(0, 0);
 }
 
-// Step buttons
-document.getElementById('next1').addEventListener('click', () => {
+function showErr(id, show) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('show', show);
+}
+function setFieldErr(inputId, errId, hasErr) {
+  const inp = document.getElementById(inputId);
+  const err = document.getElementById(errId);
+  if (inp) { inp.classList.toggle('error', hasErr); inp.classList.toggle('ok', !hasErr && inp.value.trim()); }
+  if (err) err.classList.toggle('show', hasErr);
+}
+
+function goStep2() {
+  let ok = true;
   const nombre = document.getElementById('f-nombre').value.trim();
-  const slug   = document.getElementById('f-slug').value.trim();
-  const wa     = document.getElementById('f-wa').value.trim();
-  if(!nombre||!slug||!wa){ showToast('Completá todos los campos requeridos'); return; }
-  if(!/^[a-z0-9-]+$/.test(slug)){ showToast('Slug inválido (solo letras, números, guiones)'); return; }
-  goTo(2);
-});
-document.getElementById('next2').addEventListener('click', () => goTo(3));
-document.getElementById('next3').addEventListener('click', () => goTo(4));
-document.getElementById('next4').addEventListener('click', () => goTo(5));
+  const slug = document.getElementById('f-slug').value.trim();
+  if (!nombre) { setFieldErr('f-nombre','e-nombre',true); ok = false; } else setFieldErr('f-nombre','e-nombre',false);
+  if (!slug || slug.length < 3 || !/^[a-z0-9-]+$/.test(slug)) { setFieldErr('f-slug','e-slug',true); ok = false; } else setFieldErr('f-slug','e-slug',false);
+  if (ok) goStep(2);
+}
 
-// ── CREATE SHOP ───────────────────────────────
-async function createShop() {
-  const btn = document.getElementById('next5');
-  btn.disabled = true; btn.textContent = '⏳ Creando...';
-  const nombre   = document.getElementById('f-nombre').value.trim();
-  const slug     = document.getElementById('f-slug').value.trim();
-  const wa_dueño = document.getElementById('f-wa').value.trim();
-  const twilio   = document.getElementById('f-twilio').value.trim() || null;
-  const hora_inicio = parseInt(document.getElementById('f-inicio').value);
-  const hora_fin    = parseInt(document.getElementById('f-fin').value);
-  const duracion    = parseInt(document.getElementById('f-duracion').value);
-  const tz          = document.getElementById('f-tz').value;
-  const barberos    = Array.from(document.getElementById('barberosList').querySelectorAll('.barbero-input')).map(i=>i.value.trim()).filter(Boolean);
+function goStep3() {
+  let ok = true;
+  if (!PROVIDER) { document.getElementById('e-provider').style.display = 'block'; ok = false; }
+  else document.getElementById('e-provider').style.display = 'none';
+
+  if (PROVIDER === 'meta') {
+    const phoneId = document.getElementById('f-meta-phone-id').value.trim();
+    const token = document.getElementById('f-meta-token').value.trim();
+    if (!phoneId) { setFieldErr('f-meta-phone-id','e-meta-phone-id',true); ok = false; } else setFieldErr('f-meta-phone-id','e-meta-phone-id',false);
+    if (!token || token.length < 20) { setFieldErr('f-meta-token','e-meta-token',true); ok = false; } else setFieldErr('f-meta-token','e-meta-token',false);
+  }
+  if (PROVIDER === 'twilio') {
+    const tel = document.getElementById('f-twilio-tel').value.trim();
+    if (!tel || tel.replace(/\D/g,'').length < 7) { setFieldErr('f-twilio-tel','e-twilio-tel',true); ok = false; } else setFieldErr('f-twilio-tel','e-twilio-tel',false);
+  }
+  if (ok) goStep(3);
+}
+
+// ── CHECK SLUG AVAILABILITY ──
+async function checkSlug(slug) {
+  const r = await fetch(`${SB_URL}/rest/v1/shops?slug=eq.${slug}&select=id`, {
+    headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+  });
+  const rows = await r.json();
+  return rows.length === 0; // true = disponible
+}
+
+// ── SUBMIT ──
+async function submitForm() {
+  let ok = true;
+  const ownerName = document.getElementById('f-owner-name').value.trim();
+  const email = document.getElementById('f-email').value.trim();
+  const pwd = document.getElementById('f-password').value;
+  const pwd2 = document.getElementById('f-password2').value;
+  const terms = document.getElementById('f-terms').checked;
+
+  if (!ownerName) { setFieldErr('f-owner-name','e-owner-name',true); ok=false; } else setFieldErr('f-owner-name','e-owner-name',false);
+  if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) { setFieldErr('f-email','e-email',true); ok=false; } else setFieldErr('f-email','e-email',false);
+  if (!pwd || pwd.length < 8) { setFieldErr('f-password','e-password',true); ok=false; } else setFieldErr('f-password','e-password',false);
+  if (pwd !== pwd2) { setFieldErr('f-password2','e-password2',true); ok=false; } else setFieldErr('f-password2','e-password2',false);
+  if (!terms) { showFormError('Debes aceptar los términos de uso para continuar.'); ok=false; }
+  if (!ok) return;
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Creando tu barbería...';
+  btn.classList.add('loading');
+  hideFormError();
 
   try {
-    // Create shop
-    const r = await fetch(`${SB_URL}/rest/v1/shops`, {
-      method:'POST',
-      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
-      body:JSON.stringify({ nombre, slug, whatsapp_dueño:wa_dueño, twilio_number:twilio, plan:_selectedPlan, hora_inicio, hora_fin, duracion_turno:duracion, timezone:tz, activo:false })  // pendiente de aprobación por SuperAdmin
-    });
-    if(!r.ok){ const e=await r.json(); throw new Error(e.message||e.details||JSON.stringify(e)); }
-    const shops = await r.json();
-    const shop_id = shops[0].id;
-
-    // Create barberos
-    for(let i=0;i<barberos.length;i++){
-      await fetch(`${SB_URL}/rest/v1/barberos`,{
-        method:'POST',
-        headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'},
-        body:JSON.stringify({shop_id,nombre:barberos[i],orden:i+1,activo:true})
-      });
+    // 1. Verificar slug disponible
+    const slug = document.getElementById('f-slug').value.trim();
+    const slugAvail = await checkSlug(slug);
+    if (!slugAvail) {
+      showFormError('Ese nombre de URL ya está en uso. Por favor elige otro en el paso 1.');
+      goStep(1);
+      btn.disabled = false; btn.textContent = '✓ Crear mi barbería gratis'; btn.classList.remove('loading');
+      return;
     }
 
-    // Show success
-    showSuccess(slug, wa_dueño, nombre);
-  } catch(e) {
-    btn.disabled = false; btn.textContent = '🚀 CREAR MI BARBERÍA';
-    if (e.message.includes('unique') || e.message.includes('duplicate')) showToast('Ese slug ya existe, elegí otro');
-    else showToast('Error: '+e.message);
-  }
-}
-
-function showSuccess(slug, wa, nombre) {
-  for(let i=1;i<=5;i++) document.getElementById('page'+i).style.display='none';
-  document.getElementById('pageSuccess').style.display='block';
-  document.querySelectorAll('.step').forEach(s=>s.className='step done');
-  // Show pending approval message
-  const pendingDiv = document.getElementById('pending-notice');
-  if(pendingDiv) pendingDiv.style.display='block';
-  document.getElementById('successCreds').innerHTML = `
-    <div style="background:rgba(255,165,0,0.1);border:1px solid rgba(255,165,0,0.3);border-radius:8px;padding:14px;margin-bottom:16px;text-align:center;">
-      <div style="font-size:1.4rem;margin-bottom:6px;">⏳</div>
-      <div style="font-weight:700;color:#ffa500;margin-bottom:4px;">Solicitud enviada — Pendiente de aprobación</div>
-      <div style="font-size:0.72rem;color:var(--muted,#888);">Recibirás una confirmación por WhatsApp cuando tu barbería sea activada.</div>
-    </div>
-    <div class="cred-row"><span class="cred-key">🏪 Barbería:</span><span class="cred-val">${nombre}</span></div>
-    <div class="cred-row"><span class="cred-key">🔗 Display:</span><span class="cred-val">barberos.app/sala/${slug}</span></div>
-    <div class="cred-row"><span class="cred-key">⚙ Admin:</span><span class="cred-val">barberos.app/admin/${slug}</span></div>
-    <div class="cred-row"><span class="cred-key">📱 WhatsApp:</span><span class="cred-val">${wa}</span></div>
-  `;
-  document.getElementById('successLinks').innerHTML = `
-    <a href="/sala/${slug}" target="_blank" class="success-link primary">Ver Display ↗</a>
-    <a href="/admin/${slug}" class="success-link ghost">Panel Admin</a>
-    <a href="/" class="success-link ghost">← Inicio</a>
-  `;
-  fireConfetti();
-}
-
-// ── TOAST ─────────────────────────────────────
-let _tt;
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  clearTimeout(_tt); _tt = setTimeout(()=>t.classList.remove('show'), 3200);
-}
-
-// ── CONFETTI ──────────────────────────────────
-function fireConfetti() {
-  const canvas = document.getElementById('confetti');
-  const ctx = canvas.getContext('2d');
-  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-  canvas.style.top='0'; canvas.style.left='0'; canvas.style.width='100vw'; canvas.style.height='100vh';
-  const particles = Array.from({length:100},()=>({
-    x:Math.random()*canvas.width, y:-10,
-    vx:(Math.random()-0.5)*4, vy:Math.random()*4+2,
-    size:Math.random()*8+3,
-    color:['#C9A84C','#E8C96A','#00E676','#fff','#3498DB'][Math.floor(Math.random()*5)],
-    rot:Math.random()*360, rotV:(Math.random()-0.5)*6
-  }));
-  let frame=0;
-  function draw(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    particles.forEach(p=>{
-      p.x+=p.vx; p.y+=p.vy; p.rot+=p.rotV;
-      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot*Math.PI/180);
-      ctx.fillStyle=p.color; ctx.fillRect(-p.size/2,-p.size/4,p.size,p.size/2);
-      ctx.restore();
+    // 2. Crear usuario en Supabase Auth
+    const authRes = await fetch(`${SB_URL}/auth/v1/signup`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pwd })
     });
-    if(++frame<200) requestAnimationFrame(draw);
-    else { ctx.clearRect(0,0,canvas.width,canvas.height); }
+    const authData = await authRes.json();
+    if (!authRes.ok) throw new Error(authData.msg || authData.error_description || 'Error al crear cuenta');
+
+    // 3. Construir datos de la shop
+    const shopData = {
+      nombre: document.getElementById('f-nombre').value.trim(),
+      slug,
+      plan: 'free',
+      activo: true,
+      aprobado: true,
+      hora_inicio: parseInt(document.getElementById('f-hora-ini').value),
+      hora_fin: parseInt(document.getElementById('f-hora-fin').value),
+      duracion_turno: parseInt(document.getElementById('f-duracion').value),
+      timezone: document.getElementById('f-timezone').value,
+      whatsapp_provider: PROVIDER,
+      trial_activo: true,
+      trial_started_at: new Date().toISOString(),
+      trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+      // Features por defecto en trial
+      feature_reportes: true,
+      feature_config: true,
+      feature_servicios: true,
+      feature_bot_whatsapp: true,
+      feature_barberos: true,
+      feature_clientes: true,
+      feature_walkin: true,
+    };
+
+    if (PROVIDER === 'meta') {
+      shopData.meta_phone_number_id = document.getElementById('f-meta-phone-id').value.trim();
+      shopData.meta_access_token = document.getElementById('f-meta-token').value.trim();
+      shopData.meta_waba_id = document.getElementById('f-meta-waba-id').value.trim() || null;
+      shopData.whatsapp_dueño = document.getElementById('f-meta-tel').value.trim() || null;
+      shopData.twilio_number = null;
+    } else {
+      shopData.twilio_number = '+14155238886'; // sandbox compartido
+      shopData.whatsapp_dueño = document.getElementById('f-twilio-tel').value.trim();
+    }
+
+    // 4. Insertar shop en BD
+    const shopRes = await fetch(`${SB_URL}/rest/v1/shops`, {
+      method: 'POST',
+      headers: {
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer ' + SB_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify(shopData)
+    });
+    if (!shopRes.ok) throw new Error('Error al crear la barbería en la base de datos');
+    const shops = await shopRes.json();
+    const shop = shops[0];
+
+    // 5. Agregar barbero inicial (el dueño)
+    await fetch(`${SB_URL}/rest/v1/barberos`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ shop_id: shop.id, nombre: ownerName.split(' ')[0].toUpperCase(), activo: true, orden: 1 })
+    });
+
+    // 6. Agregar servicios por defecto
+    const serviciosDefault = [
+      { nombre: 'Solo Corte', duracion_min: 30, precio: 300, orden: 1 },
+      { nombre: 'Corte + Barba', duracion_min: 45, precio: 450, orden: 2 },
+      { nombre: 'Barba', duracion_min: 20, precio: 200, orden: 3 },
+    ];
+    await fetch(`${SB_URL}/rest/v1/servicios`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify(serviciosDefault.map(s => ({ ...s, shop_id: shop.id, activo: true })))
+    });
+
+    // 7. Guardar lead si vino de landing
+    if (waParam) {
+      await fetch(`${SB_URL}/rest/v1/leads`, {
+        method: 'POST',
+        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ whatsapp: waParam, source: 'registro_completado', url: window.location.href })
+      }).catch(() => {});
+    }
+
+    // ── ÉXITO ──
+    showSuccess(slug, ownerName);
+
+  } catch(err) {
+    showFormError('Error: ' + (err.message || 'Algo salió mal. Intenta de nuevo.'));
+    btn.disabled = false;
+    btn.textContent = '✓ Crear mi barbería gratis';
+    btn.classList.remove('loading');
   }
-  draw();
 }
+
+function showSuccess(slug, name) {
+  // Ocultar steps y form
+  document.getElementById('stepsBar').style.display = 'none';
+  document.getElementById('step-3').classList.remove('active');
+  const sc = document.getElementById('successScreen');
+  sc.classList.add('show');
+  document.getElementById('successMsg').innerHTML =
+    `<strong>${name.split(' ')[0]}</strong>, tu barbería está lista con 14 días de prueba gratuita.<br>
+    Accede a tu panel para agregar barberos, personalizar servicios y configurar tu bot de WhatsApp.`;
+  document.getElementById('link-admin').href = '/admin/' + slug;
+  document.getElementById('link-display').href = '/sala/' + slug;
+}
+
+function showFormError(msg) {
+  const el = document.getElementById('formError');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+function hideFormError() {
+  document.getElementById('formError').classList.remove('show');
+}
+
+// Verificar slug en tiempo real (con debounce)
+let slugTimer;
+document.getElementById('f-slug').addEventListener('input', function() {
+  clearTimeout(slugTimer);
+  const v = this.value.trim();
+  if (v.length < 3) return;
+  slugTimer = setTimeout(async () => {
+    const avail = await checkSlug(v).catch(() => true);
+    this.classList.toggle('ok', avail);
+    this.classList.toggle('error', !avail);
+    const err = document.getElementById('e-slug');
+    if (!avail) { err.textContent = 'Ese slug ya está en uso, elige otro.'; err.classList.add('show'); }
+    else err.classList.remove('show');
+  }, 600);
+});
 </script>
 </body>
 </html>
