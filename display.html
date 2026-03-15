@@ -72,13 +72,13 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--cyan);font-fam
 .barber-sel-btn{padding:6px 14px;border:1px solid rgba(0,245,255,0.12);background:transparent;color:rgba(0,245,255,0.38);font-family:'Share Tech Mono',monospace;font-size:0.46rem;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;}
 .barber-sel-btn:hover{border-color:rgba(0,245,255,0.3);color:rgba(0,245,255,0.7);}
 .barber-sel-btn.sel{border-color:var(--cyan);background:rgba(0,245,255,0.1);color:var(--cyan);}
-.time-slots{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;max-height:140px;overflow-y:auto;margin-top:4px;}
+.time-slots{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;max-height:220px;overflow-y:auto;margin-top:4px;}
 .time-slots::-webkit-scrollbar{width:2px;}
 .time-slots::-webkit-scrollbar-thumb{background:rgba(0,245,255,0.1);}
 .time-slot{padding:6px 4px;border:1px solid rgba(0,245,255,0.08);background:rgba(0,245,255,0.01);color:rgba(0,245,255,0.32);font-family:'Share Tech Mono',monospace;font-size:0.44rem;text-align:center;cursor:pointer;transition:all 0.15s;letter-spacing:0.04em;}
 .time-slot:hover{border-color:rgba(0,245,255,0.28);color:rgba(0,245,255,0.7);}
 .time-slot.sel{border-color:var(--cyan);background:rgba(0,245,255,0.1);color:var(--cyan);}
-.time-slot.taken{opacity:0.22;pointer-events:none;text-decoration:line-through;}
+.time-slot.taken{opacity:0.7;pointer-events:none;background:rgba(255,0,110,0.08);border-color:rgba(255,0,110,0.4);color:rgba(255,0,110,0.7);text-decoration:line-through;}
 .action-acts{display:flex;gap:8px;margin-top:20px;}
 .abtn{flex:1;padding:11px;font-family:'Orbitron',monospace;font-size:0.6rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;border:1px solid;}
 .abtn-confirm{background:rgba(0,245,255,0.1);border-color:rgba(0,245,255,0.35);color:var(--cyan);}
@@ -588,6 +588,11 @@ html.fs-sm{font-size:90%;}html.fs-md{font-size:112%;}html.fs-lg{font-size:130%;}
     <div class="action-sub" id="reag-sub">Mover cita a otro horario</div>
     <div class="afield">
       <label>Nuevo horario</label>
+      <div style="display:flex;gap:10px;margin-bottom:6px;font-family:'Share Tech Mono',monospace;font-size:0.4rem;letter-spacing:0.12em;text-transform:uppercase;">
+        <span style="display:flex;align-items:center;gap:4px;color:rgba(0,245,255,0.5);"><span style="width:8px;height:8px;border:1px solid rgba(0,245,255,0.4);display:inline-block;"></span>LIBRE</span>
+        <span style="display:flex;align-items:center;gap:4px;color:rgba(255,0,110,0.7);"><span style="width:8px;height:8px;background:rgba(255,0,110,0.15);border:1px solid rgba(255,0,110,0.4);display:inline-block;"></span>OCUPADO</span>
+        <span style="display:flex;align-items:center;gap:4px;color:rgba(0,245,255,0.7);"><span style="width:8px;height:8px;background:rgba(0,245,255,0.1);border:1px solid var(--cyan);display:inline-block;"></span>SELECCIONADO</span>
+      </div>
       <div class="time-slots" id="reag-slots"></div>
     </div>
     <div class="action-acts">
@@ -1369,17 +1374,68 @@ let REAG_ID=null,REAG_HORA=null,REAG_BARBER=null;
 
 function openReagendar(citaId,nombre,horaActual,barber){
   REAG_ID=citaId;REAG_HORA=horaActual;REAG_BARBER=barber;
-  document.getElementById('reag-sub').textContent='Mover cita de '+nombre+' (actual: '+horaActual+')';
-  const slots=[];
-  // FIX BUG 6: usar hora_inicio y hora_fin de la shop real
+
   const inicio=S.horaInicio||7;const fin=S.horaFin||22;
-  for(let h=inicio;h<fin;h++){for(let m=0;m<60;m+=DUR){const hstr=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');slots.push(hstr);}}
-  const takenByBarber=S.citas.filter(c=>c.barbero===barber&&c.id!=citaId&&c.estado!=='Completada').map(c=>c.time);
-  const slotsHtml=slots.map(t=>{
-    const isCurrent=t===horaActual;const isTaken=takenByBarber.includes(t);
-    return`<div class="time-slot${isCurrent?' sel':isTaken?' taken':''}" onclick="${isCurrent||isTaken?'':('selectTimeSlot(this,\''+t+'\')')}">${t}</div>`;
+
+  // Generar todos los slots del día
+  function generarSlots(){const s=[];for(let h=inicio;h<fin;h++){for(let m=0;m<60;m+=DUR){s.push(String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'));}}return s;}
+
+  // Citas de este barbero hoy (excluyendo la cita actual)
+  const takenHoy=S.citas.filter(c=>c.barbero===barber&&c.id!=citaId&&c.estado!=='Completada').map(c=>c.time);
+  const slots=generarSlots();
+  const libresHoy=slots.filter(t=>t!==horaActual&&!takenHoy.includes(t));
+
+  // Si no hay libres hoy → usar mañana
+  const usaMañana=libresHoy.length===0;
+  let displaySlots=slots;
+  let takenDisplay=takenHoy;
+  let diaLabel='hoy';
+
+  if(usaMañana){
+    // Para mañana: buscar citas del barbero en fecha siguiente
+    // Como no tenemos las citas de mañana cargadas, mostramos todos los slots libres
+    displaySlots=slots;
+    takenDisplay=[];
+    diaLabel='mañana';
+    REAG_HORA=null; // Reset para que elija uno nuevo
+  }
+
+  // Hora actual para tachar slots pasados (solo si es hoy)
+  const ahora=new Date(new Date().toLocaleString('en-US',{timeZone:S.tz||'America/Santo_Domingo'}));
+  const minAhora=ahora.getHours()*60+ahora.getMinutes();
+
+  document.getElementById('reag-sub').textContent=
+    'Mover cita de '+nombre+' · Actual: '+fmt12(horaActual)+
+    (usaMañana?' — Sin disponibilidad hoy, mostrando mañana':'');
+
+  const slotsHtml=displaySlots.map(t=>{
+    const [hh,mm]=t.split(':').map(Number);
+    const minSlot=hh*60+mm;
+    const isCurrent=!usaMañana&&t===horaActual;
+    const isTaken=takenDisplay.includes(t);
+    const isPast=!usaMañana&&minSlot<=minAhora&&t!==horaActual;
+
+    let cls='time-slot';
+    let clickFn='';
+    if(isCurrent){cls+=' sel';}
+    else if(isTaken){cls+=' taken';}
+    else if(isPast){cls+=' taken'; /* slots pasados también en rojo */}
+    else{clickFn='selectTimeSlot(this,\''+t+'\')'; }
+
+    return`<div class="${cls}" onclick="${clickFn}" title="${isTaken?'Ocupado':isPast?'Pasado':''}">
+      ${fmt12(t)}
+    </div>`;
   }).join('');
-  document.getElementById('reag-slots').innerHTML=slotsHtml;
+
+  const container=document.getElementById('reag-slots');
+  container.innerHTML=slotsHtml;
+
+  // Scroll al slot actual o al primer libre
+  setTimeout(()=>{
+    const sel=container.querySelector('.sel,.time-slot:not(.taken)');
+    if(sel)sel.scrollIntoView({block:'nearest'});
+  },50);
+
   document.getElementById('reag-modal').classList.add('open');
 }
 
