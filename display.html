@@ -383,9 +383,9 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .my-avatar{width:38px;height:38px;border-radius:50%;border:2px solid rgba(0,245,255,0.4);background:rgba(0,245,255,0.08);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;color:var(--cyan);}
 .my-barber-name{font-family:'Orbitron',monospace;font-size:0.9rem;font-weight:700;letter-spacing:0.18em;color:var(--cyan);text-shadow:0 0 12px rgba(0,245,255,0.5);}
 .my-sub{font-family:'Share Tech Mono',monospace;font-size:0.42rem;color:rgba(0,245,255,0.4);letter-spacing:0.2em;text-transform:uppercase;margin-top:2px;}
-.my-layout{flex:1;display:grid;grid-template-columns:360px 1fr;overflow:hidden;}
-.my-left{display:flex;flex-direction:column;border-right:1px solid rgba(0,245,255,0.08);background:rgba(0,245,255,0.012);overflow:hidden;}
-.my-right{display:flex;flex-direction:column;padding:14px 20px 10px;overflow:hidden;gap:8px;}
+.my-layout{flex:1;display:grid;grid-template-columns:360px 1fr;overflow:hidden;min-height:0;height:0;}
+.my-left{display:flex;flex-direction:column;border-right:1px solid rgba(0,245,255,0.08);background:rgba(0,245,255,0.012);overflow:hidden;min-height:0;}
+.my-right{display:flex;flex-direction:column;padding:14px 20px 10px;overflow:hidden;gap:8px;min-height:0;}
 .my-silla-zone{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:20px 24px 14px;position:relative;border-bottom:1px solid rgba(0,245,255,0.08);flex:1;}
 .my-silla-zone::before,.my-silla-zone::after{content:'';position:absolute;width:36px;height:36px;border-style:solid;border-color:rgba(0,245,255,0.3);}
 .my-silla-zone::before{top:14px;left:14px;border-width:2px 0 0 2px;}.my-silla-zone::after{bottom:14px;right:14px;border-width:0 2px 2px 0;}
