@@ -777,21 +777,29 @@ async function loadBarberos(){
 }
 
 // FIX BUG 1: conversión de timezone robusta
+function fmt12h(h24){
+  if(!h24||h24==='—:—')return h24||'—:—';
+  const [hhStr,mmStr]=(h24+':00').split(':');
+  let hh=parseInt(hhStr);const mm=mmStr.substring(0,2);
+  const ap=hh>=12?'PM':'AM';
+  if(hh===0)hh=12;else if(hh>12)hh-=12;
+  return hh+':'+mm+' '+ap;
+}
 function parsearHora(raw){
-  if(!raw)return'00:00';
+  if(!raw)return'12:00 AM';
   try{
     // Si tiene offset UTC (+00, Z, +04, etc.)
     if(/[+\-]\d{2}|Z/.test(raw)){
       const today=new Date().toISOString().substring(0,10);
-      // Normalizar: quitar offset y tratar como UTC
       const horaBase=raw.replace(/[+\-]\d{2}:\d{2}$/,'').replace(/Z$/,'').substring(0,8);
       const dt=new Date(today+'T'+horaBase+'Z');
       if(!isNaN(dt.getTime())){
-        return dt.toLocaleTimeString('en-US',{timeZone:S.tz||'America/Santo_Domingo',hour:'2-digit',minute:'2-digit',hour12:false});
+        const h24=dt.toLocaleTimeString('en-US',{timeZone:S.tz||'America/Santo_Domingo',hour:'2-digit',minute:'2-digit',hour12:false});
+        return fmt12(h24);
       }
     }
-    // Sin offset — hora local, usar directamente
-    return raw.substring(0,5);
+    // Sin offset — hora local 24h → convertir a 12h
+    return fmt12(raw.substring(0,5));
   }catch(_){return raw.substring(0,5);}
 }
 
@@ -914,7 +922,7 @@ function renderTV(c){
   const allActive=S.citas.filter(c=>c.estado!=='Completada');
   let tickerHtml=allActive.map(c=>{
     const q=S.queues[c.barbero];const isActive=q&&q.citas[q.currentTurn-1]?.id===c.id;
-    return`<span class="tv-ticker-item${isActive?' active':''}"><span class="t-n">#${String(allActive.indexOf(c)+1).padStart(2,'0')}</span>${c.name}<span class="t-b">✂${c.barbero}</span>${c.time}</span>`;
+    return`<span class="tv-ticker-item${isActive?' active':''}"><span class="t-n">#${String(allActive.indexOf(c)+1).padStart(2,'0')}</span>${c.name}<span class="t-b">✂${c.barbero}</span>${fmt12(c.time)}</span>`;
   }).join('');
   if(!tickerHtml)tickerHtml='<span class="tv-ticker-item">— SIN CLIENTES HOY —</span>';
   const tickerDur=Math.max(20,allActive.length*3);
@@ -937,7 +945,7 @@ function renderTV(c){
         <div class="tv-card-footer">
           <div><div class="tv-next-label">PRÓXIMO</div><div class="tv-next-num">${nxt?String(currentTurn+1).padStart(2,'0'):'—'}</div></div>
           <div class="tv-next-name">${nxt?nxt.name:'Sin reserva'}</div>
-          <div class="tv-next-time">${nxt?nxt.time:'—:—'}</div>
+          <div class="tv-next-time">${nxt?fmt12(nxt.time):'—:—'}</div>
         </div>
         <button class="tv-btn" id="btn-${bid}" onclick="siguienteTurno('${name.replace(/'/g,"\\'")}','btn-${bid}')">▶ SIGUIENTE TURNO</button>
       </div>`;
@@ -1019,7 +1027,7 @@ function renderSolo(barber,layout){
         <div class="next-strip">
           <div class="next-n">${nxt?String(currentTurn+1).padStart(2,'0'):'—'}</div>
           <div class="next-info"><div class="next-nom">${nxt?nxt.name:'Sin reserva'}</div><div class="next-barber">✂ ${barber}</div></div>
-          <div class="next-time-badge">${nxt?nxt.time:'—:—'}</div>
+          <div class="next-time-badge">${nxt?fmt12(nxt.time):'—:—'}</div>
         </div>
         <div class="disp-strip${conflicts.length?' conflict':''}"><div class="disp-d"></div><span>${conflicts.length?'⚠ '+conflicts.length+' CONFLICTO(S)':'HORARIOS OK — SIN CONFLICTOS'}</span></div>
         <button class="btn-siguiente" id="btn-${bid}" onclick="siguienteTurno('${barber.replace(/'/g,"\\'")}','btn-${bid}')">
@@ -1051,12 +1059,12 @@ function renderSolo(barber,layout){
               const num=c.originalIdx+1;const eta=c.pos>0?calcLiveETA(c.pos,barber):null;const{rc,tc,tl}=statusClasses(c.status);
               // FEATURE: botón transferir en cada fila pendiente
               const tBtn=c.id&&c.status!=='done'?`<button class="btn-transfer" onclick="openTransferirCita('${c.id}','${c.name.replace(/'/g,"\\'")}','${c.time}','${barber.replace(/'/g,"\\'")}',${ num})">↔</button>`:'';
-              return`<div class="q-item ${rc}" style="animation-delay:${idx*0.05}s"><div class="q-num">${String(num).padStart(2,'0')}</div><div><div class="q-name">${c.name}${eta?`<span class="wait-eta">⏱${eta}</span>`:''}</div><div class="q-svc">${c.servicio}</div></div><div class="q-barber">${tBtn}</div><div class="q-time">${c.time}</div><div><span class="status-tag ${tc}"><span class="tag-dot"></span>${tl}</span></div></div>`;
+              return`<div class="q-item ${rc}" style="animation-delay:${idx*0.05}s"><div class="q-num">${String(num).padStart(2,'0')}</div><div><div class="q-name">${c.name}${eta?`<span class="wait-eta">⏱${eta}</span>`:''}</div><div class="q-svc">${c.servicio}</div></div><div class="q-barber">${tBtn}</div><div class="q-time">${fmt12(c.time)}</div><div><span class="status-tag ${tc}"><span class="tag-dot"></span>${tl}</span></div></div>`;
             }).join('')}
           </div>
           ${zoneB.length?`<div class="zone-b-header"><span>EN ESPERA</span><span class="zone-b-count">${zoneB.length}</span></div><div class="zone-b">${zoneB.map((c,idx)=>{
             const num=c.originalIdx+1;const eta=c.pos>0?calcLiveETA(c.pos,barber):null;
-            return`<div class="q-mini ${c.status==='alert'?'ms-alert':'ms-wait'}" style="animation-delay:${idx*0.025}s">${conflictIdx.has(c.originalIdx)?'<div style="position:absolute;top:2px;right:3px;width:4px;height:4px;border-radius:50%;background:var(--magenta);box-shadow:0 0 4px var(--magenta);"></div>':''}<div class="q-mini-num">${String(num).padStart(2,'0')}</div><div class="q-mini-name">${c.name}</div><div class="q-mini-meta"><div class="q-mini-time">${eta||c.time}</div><div class="q-mini-barb">${barber}</div></div></div>`;
+            return`<div class="q-mini ${c.status==='alert'?'ms-alert':'ms-wait'}" style="animation-delay:${idx*0.025}s">${conflictIdx.has(c.originalIdx)?'<div style="position:absolute;top:2px;right:3px;width:4px;height:4px;border-radius:50%;background:var(--magenta);box-shadow:0 0 4px var(--magenta);"></div>':''}<div class="q-mini-num">${String(num).padStart(2,'0')}</div><div class="q-mini-name">${c.name}</div><div class="q-mini-meta"><div class="q-mini-time">${eta||fmt12(c.time)}</div><div class="q-mini-barb">${barber}</div></div></div>`;
           }).join('')}</div>`:''}
         </div>
       </div>
@@ -1085,12 +1093,12 @@ function renderMultiCol(barber){
     +'<div class="swipe-flash" id="fl-'+bid+'"></div></div>'
     +'<div class="multi-next"><div class="mn-n">'+(nxt?String(currentTurn+1).padStart(2,'0'):'—')+'</div>'
     +'<div class="mn-wrap"><div class="mn-nom">'+(nxt?nxt.name:'Sin reserva')+'</div><div class="mn-svc">'+(nxt?nxt.servicio:'')+'</div></div>'
-    +'<div class="mn-time">'+(nxt?nxt.time:'—:—')+'</div></div>'
+    +'<div class="mn-time">'+(nxt?fmt12(nxt.time):'—:—')+'</div></div>'
     +'<div class="multi-queue">'
     +(pending.length?pending.map((c,i)=>{const pos=i+2;const eta=calcLiveETA(pos-1,barber);const cls=i===0?'mn':i===1?'ma':'mw';const num=currentTurn+i+1;
       return'<div class="mq-row '+cls+'" style="animation-delay:'+i*0.04+'s"><div class="mq-n">'+String(num).padStart(2,'0')+'</div>'
       +'<div class="mq-info"><div class="mq-name">'+c.name+'</div><div class="mq-svc">'+c.servicio+'</div></div>'
-      +'<div class="mq-r"><div class="mq-time">'+c.time+'</div>'+(eta?'<div class="mq-eta">⏱'+eta+'</div>':'')
+      +'<div class="mq-r"><div class="mq-time">'+fmt12(c.time)+'</div>'+(eta?'<div class="mq-eta">⏱'+eta+'</div>':'')
       // FEATURE: transferir en multi
       +'<button class="btn-transfer" style="font-size:0.36rem;padding:2px 6px;" onclick="openTransferirCita(\''+c.id+'\',\''+c.name.replace(/'/g,'\\\'')+'\'  ,\''+c.time+'\',\''+barber.replace(/'/g,'\\\'')+'\'  ,'+num+')">↔</button>'
       +'</div></div>';}).join('')
