@@ -10,7 +10,7 @@
 :root{--bg:#0C0C0C;--bg2:#141414;--border:rgba(255,255,255,0.06);--text:rgba(255,255,255,0.82);--muted:rgba(255,255,255,0.28);--gold:#C9A84C;--gold2:#E8C96B;--green:#3ECF8E;--red:#F87171;--blue:#60A5FA;}
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;overflow:hidden;}
 .app{display:grid;grid-template-columns:220px 1fr;height:100vh;}
-aside{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
+aside{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;height:100vh;}
 .aside-brand{padding:20px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
 .brand-mark{width:32px;height:32px;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:1rem;color:var(--bg);}
 .brand-txt{font-size:0.9rem;font-weight:800;letter-spacing:0.04em;}
@@ -30,7 +30,7 @@ aside{background:var(--bg2);border-right:1px solid var(--border);display:flex;fl
 .barber-mini-dot{width:6px;height:6px;border-radius:50%;}
 .barber-mini-name{font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;}
 .barber-mini-status{margin-left:auto;font-family:'DM Mono',monospace;font-size:0.42rem;}
-main{display:flex;flex-direction:column;overflow:hidden;}
+main{display:flex;flex-direction:column;overflow:hidden;height:100vh;}
 .topbar{padding:14px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg2);flex-shrink:0;}
 .page-title{font-size:1.05rem;font-weight:800;letter-spacing:0.02em;}
 .page-date{font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);}
@@ -45,7 +45,7 @@ main{display:flex;flex-direction:column;overflow:hidden;}
 .status-live{display:flex;align-items:center;gap:6px;padding:5px 12px;border:1px solid rgba(62,207,142,0.2);background:rgba(62,207,142,0.04);font-family:'DM Mono',monospace;font-size:0.54rem;color:rgba(62,207,142,0.65);letter-spacing:0.14em;text-transform:uppercase;}
 .live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 1.8s ease-in-out infinite;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
-.content{flex:1;overflow-y:auto;padding:24px 28px;display:flex;flex-direction:column;gap:18px;}
+.content{flex:1;overflow-y:auto;padding:24px 28px;display:flex;flex-direction:column;gap:18px;height:0;min-height:0;}
 .content::-webkit-scrollbar{width:3px;}
 .content::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);}
 .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
@@ -163,7 +163,41 @@ input:checked+.toggle-slider:before{transform:translateX(18px);background:var(--
 </style>
 </head>
 <body>
-<div class="app">
+
+<style>
+.pin-dot{width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.2);background:transparent;transition:all 0.15s;}
+.pin-dot.filled{background:#C9A84C;border-color:#C9A84C;}
+.pin-dot.error{background:#F87171;border-color:#F87171;animation:pdshake 0.4s;}
+.pin-btn{padding:16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:rgba(255,255,255,0.82);font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:600;cursor:pointer;transition:background 0.12s;}
+.pin-btn:hover{background:rgba(201,168,76,0.12);border-color:rgba(201,168,76,0.3);}
+.pin-btn:active{background:rgba(201,168,76,0.25);}
+@keyframes pdshake{0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-6px);}40%,80%{transform:translateX(6px);}}
+</style>
+<div id="login-screen" style="display:none;position:fixed;inset:0;background:#0C0C0C;z-index:9999;flex-direction:column;align-items:center;justify-content:center;">
+  <div style="text-align:center;margin-bottom:32px;">
+    <div style="width:52px;height:52px;background:#C9A84C;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:#0C0C0C;margin:0 auto 12px;">&#9986;</div>
+    <div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:rgba(255,255,255,0.9);">BarberOS</div>
+    <div id="login-shop-name" style="font-family:'DM Mono',monospace;font-size:0.55rem;color:#C9A84C;letter-spacing:0.15em;text-transform:uppercase;margin-top:4px;">Cargando...</div>
+  </div>
+  <div style="background:#141414;border:1px solid rgba(255,255,255,0.06);padding:32px 28px;width:320px;max-width:90vw;">
+    <div style="font-size:0.7rem;color:rgba(255,255,255,0.4);font-family:'DM Mono',monospace;text-align:center;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:20px;">Ingresa tu PIN</div>
+    <div style="display:flex;justify-content:center;gap:14px;margin-bottom:24px;">
+      <div class="pin-dot" id="pd0"></div><div class="pin-dot" id="pd1"></div><div class="pin-dot" id="pd2"></div><div class="pin-dot" id="pd3"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+      <button class="pin-btn" onclick="pinPress(1)">1</button><button class="pin-btn" onclick="pinPress(2)">2</button><button class="pin-btn" onclick="pinPress(3)">3</button>
+      <button class="pin-btn" onclick="pinPress(4)">4</button><button class="pin-btn" onclick="pinPress(5)">5</button><button class="pin-btn" onclick="pinPress(6)">6</button>
+      <button class="pin-btn" onclick="pinPress(7)">7</button><button class="pin-btn" onclick="pinPress(8)">8</button><button class="pin-btn" onclick="pinPress(9)">9</button>
+      <button class="pin-btn" onclick="pinClear()" style="color:rgba(255,255,255,0.3);font-size:0.65rem;">Borrar</button>
+      <button class="pin-btn" onclick="pinPress(0)">0</button>
+      <button class="pin-btn" onclick="pinDel()" style="font-size:1rem;">&#9003;</button>
+    </div>
+    <div id="login-error" style="display:none;margin-top:16px;padding:10px;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.2);font-family:'DM Mono',monospace;font-size:0.58rem;color:#F87171;text-align:center;"></div>
+    <div id="login-attempts" style="margin-top:12px;text-align:center;font-family:'DM Mono',monospace;font-size:0.5rem;color:rgba(255,255,255,0.2);"></div>
+  </div>
+</div>
+
+<div class="app" id="main-app" style="display:none;">
   <aside>
     <div class="aside-brand">
       <div class="brand-mark">✂</div>
@@ -269,8 +303,8 @@ input:checked+.toggle-slider:before{transform:translateX(18px);background:var(--
       <div class="fg"><label>WhatsApp del dueño</label><input type="text" id="cfg-whatsapp"></div>
     </div>
     <div class="fg-row">
-      <div class="fg"><label>Hora apertura (0-23)</label><input type="number" id="cfg-inicio" min="0" max="23"></div>
-      <div class="fg"><label>Hora cierre (0-23)</label><input type="number" id="cfg-fin" min="0" max="23"></div>
+      <div class="fg"><label>Hora apertura (ej: 9 = 9:00 AM)</label><input type="number" id="cfg-inicio" min="0" max="23"></div>
+      <div class="fg"><label>Hora cierre (ej: 22 = 10:00 PM)</label><input type="number" id="cfg-fin" min="0" max="23"></div>
     </div>
     <div class="fg"><label>Duración de turno (minutos)</label><input type="number" id="cfg-duracion" min="15" max="120"></div>
     <div class="fg"><label>Zona horaria</label>
@@ -296,6 +330,10 @@ input:checked+.toggle-slider:before{transform:translateX(18px);background:var(--
     <div class="modal-actions">
       <button class="btn-full btn-gold" onclick="saveConfig()">💾 Guardar cambios</button>
       <button class="btn-full btn-cancel" onclick="closeModal('config')">Cancelar</button>
+    </div>
+    <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);display:flex;gap:8px;">
+      <button class="btn-full" onclick="cambiarPin()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);font-size:0.65rem;padding:10px;">🔑 Cambiar PIN</button>
+      <button class="btn-full" onclick="sessionStorage.removeItem('barberos_auth_'+SHOP_SLUG);location.reload();" style="background:rgba(248,113,113,0.06);border:1px solid rgba(248,113,113,0.15);color:#F87171;font-size:0.65rem;padding:10px;">🚪 Cerrar sesión</button>
     </div>
   </div>
 </div>
@@ -1204,7 +1242,7 @@ function renderConfigPage(){
         <div class="card">
           <div class="card-header"><div class="card-title">Datos técnicos</div></div>
           <div style="padding:16px;display:flex;flex-direction:column;gap:6px;">
-            ${[['Shop ID',s.id?s.id.substring(0,8)+'...':'—'],['Slug',s.slug||'—'],['Twilio #',s.twilio_number||'—'],['Horario',(s.hora_inicio||9)+':00 — '+(s.hora_fin||18)+':00'],['Servicios',svcs.filter(x=>x.activo).length+' activos']].map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-family:'DM Mono',monospace;font-size:0.54rem;color:var(--muted);">${k}</span><span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text);">${v}</span></div>`).join('')}
+            ${[['Shop ID',s.id?s.id.substring(0,8)+'...':'—'],['Slug',s.slug||'—'],['Twilio #',s.twilio_number||'—'],['Horario',fmt12rpt((s.hora_inicio||9)+':00')+' — '+fmt12rpt((s.hora_fin||18)+':00')],['Servicios',svcs.filter(x=>x.activo).length+' activos']].map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span style="font-family:'DM Mono',monospace;font-size:0.54rem;color:var(--muted);">${k}</span><span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text);">${v}</span></div>`).join('')}
           </div>
         </div>
         <div class="card">
@@ -1372,12 +1410,12 @@ function openModal(type){
   if(type==='cita'){document.getElementById('modal-cita-title').textContent='Nueva Cita';document.getElementById('m-cita-id').value='';document.getElementById('m-nombre').value='';document.getElementById('m-tel').value='';document.getElementById('m-fecha').value=nowStr();document.getElementById('m-hora').value='09:00';document.getElementById('m-estado').value='Confirmada';}
   if(type==='barbero'){document.getElementById('modal-barbero-title').textContent='Nuevo Barbero';document.getElementById('mb-id').value='';document.getElementById('mb-nombre').value='';document.getElementById('mb-orden').value=S.barberos.length+1;document.getElementById('mb-activo').checked=true;}
   if(type==='cliente'){document.getElementById('modal-cliente-title').textContent='Nuevo Cliente';document.getElementById('mc-id').value='';document.getElementById('mc-nombre').value='';document.getElementById('mc-tel').value='';document.getElementById('mc-notas').value='';}
-  if(type==='config'){const s=S.shopData||{};document.getElementById('cfg-nombre').value=s.nombre||'';document.getElementById('cfg-whatsapp').value=s.whatsapp_dueño||'';document.getElementById('cfg-inicio').value=s.hora_inicio||9;document.getElementById('cfg-fin').value=s.hora_fin||18;document.getElementById('cfg-duracion').value=s.duracion_turno||45;document.getElementById('cfg-timezone').value=s.timezone||'America/Santo_Domingo';}
+  if(type==='config'){const s=S.shopData||{};document.getElementById('cfg-nombre').value=s.nombre||'';document.getElementById('cfg-whatsapp').value=s.whatsapp_dueño||'';document.getElementById('cfg-inicio').value=s.hora_inicio||9;document.getElementById('cfg-fin').value=s.hora_fin||18;document.getElementById('cfg-duracion').value=s.duracion_turno||45;document.getElementById('cfg-timezone').value=s.timezone||'America/Santo_Domingo';const dias=s.dias_atencion||[0,1,2,3,4,5];for(let i=0;i<7;i++){const cb=document.getElementById('dia-'+i);if(cb)cb.checked=dias.includes(i);}}
   document.getElementById('modal-'+type).classList.add('open');
 }
 function closeModal(type){document.getElementById('modal-'+type).classList.remove('open');}
 async function saveConfig(){
-  const p={nombre:document.getElementById('cfg-nombre').value.trim(),whatsapp_dueño:document.getElementById('cfg-whatsapp').value.trim(),hora_inicio:parseInt(document.getElementById('cfg-inicio').value)||9,hora_fin:parseInt(document.getElementById('cfg-fin').value)||18,duracion_turno:parseInt(document.getElementById('cfg-duracion').value)||45,timezone:document.getElementById('cfg-timezone').value};
+  const p={nombre:document.getElementById('cfg-nombre').value.trim(),whatsapp_dueño:document.getElementById('cfg-whatsapp').value.trim(),hora_inicio:parseInt(document.getElementById('cfg-inicio').value)||9,hora_fin:parseInt(document.getElementById('cfg-fin').value)||18,duracion_turno:parseInt(document.getElementById('cfg-duracion').value)||45,timezone:document.getElementById('cfg-timezone').value,dias_atencion:[0,1,2,3,4,5,6].filter(i=>{const cb=document.getElementById('dia-'+i);return cb&&cb.checked;})};
   try{await sbPatch('shops','id=eq.'+S.shopId,p);Object.assign(S.shopData,p);toast('Configuración guardada');closeModal('config');renderPage();}catch(e){toast('Error: '+e.message,'error');}
 }
 ['cita','barbero','cliente','config'].forEach(t=>{document.getElementById('modal-'+t).addEventListener('click',e=>{if(e.target.id==='modal-'+t)closeModal(t);});});
@@ -1391,7 +1429,7 @@ function updateDate(){document.getElementById('page-date').textContent=new Date(
 setInterval(updateDate,60000);updateDate();
 // FIX: polling 60s → 300s, Realtime maneja cambios en tiempo real
 setInterval(loadAll,300000);
-loadAll().then(()=>{
+Promise.resolve().then(()=>{
   // FIX: Realtime WebSocket para citas y conversaciones
   function initRealtime(){
     if(!S.shopId||window._rtChannel)return;
@@ -1411,5 +1449,69 @@ loadAll().then(()=>{
   initRealtime();
 });
 </script>
+
+<script>
+// ── LOGIN CON PIN ──
+const LOGIN_SESSION_KEY='barberos_auth_'+SHOP_SLUG;
+const LOGIN_EXPIRY_MS=8*3600000;
+let _pin='',_attempts=0,_locked=false,_pinHash=null;
+
+async function sha256(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');}
+
+function checkSession(){try{const r=sessionStorage.getItem(LOGIN_SESSION_KEY);if(!r)return false;return Date.now()<JSON.parse(r).expires;}catch{return false;}}
+function saveSession(){sessionStorage.setItem(LOGIN_SESSION_KEY,JSON.stringify({expires:Date.now()+LOGIN_EXPIRY_MS}));}
+
+function showApp(){document.getElementById('login-screen').style.display='none';document.getElementById('main-app').style.display='grid';}
+function showLogin(){document.getElementById('login-screen').style.display='flex';document.getElementById('main-app').style.display='none';}
+
+function updateDots(){for(let i=0;i<4;i++){const d=document.getElementById('pd'+i);d.className='pin-dot'+(i<_pin.length?' filled':'');}}
+function pinErrorAnim(){for(let i=0;i<4;i++)document.getElementById('pd'+i).className='pin-dot error';setTimeout(()=>{_pin='';updateDots();},600);}
+
+function pinPress(n){if(_locked||_pin.length>=4)return;_pin+=String(n);updateDots();if(_pin.length===4)setTimeout(verifyPin,150);}
+function pinDel(){if(_locked)return;_pin=_pin.slice(0,-1);updateDots();}
+function pinClear(){_pin='';updateDots();document.getElementById('login-error').style.display='none';}
+
+async function verifyPin(){
+  if(!_pinHash){pinErrorAnim();return;}
+  const h=await sha256(_pin);
+  if(h===_pinHash){saveSession();showApp();loadAll();}
+  else{
+    _attempts++;pinErrorAnim();
+    const err=document.getElementById('login-error');
+    const att=document.getElementById('login-attempts');
+    err.style.display='block';
+    if(_attempts>=5){_locked=true;err.textContent='Demasiados intentos. Espera 2 minutos.';att.textContent='';setTimeout(()=>{_locked=false;_attempts=0;err.style.display='none';},120000);}
+    else{err.textContent='PIN incorrecto.';att.textContent=(5-_attempts)+' intentos restantes';}
+  }
+}
+
+async function initLogin(){
+  try{
+    const r=await fetch(SUPABASE_URL+'/rest/v1/shops?slug=eq.'+SHOP_SLUG+'&select=nombre,admin_pin_hash',{headers:H});
+    const [shop]=await r.json();
+    if(shop){_pinHash=shop.admin_pin_hash;document.getElementById('login-shop-name').textContent=shop.nombre||SHOP_SLUG;}
+  }catch(_){}
+  if(checkSession()){showApp();loadAll();}else{showLogin();}
+}
+
+async function cambiarPin(){
+  const n=prompt('Nuevo PIN (4 dígitos):');
+  if(!n||!/^\d{4}$/.test(n)){toast('El PIN debe ser de 4 dígitos','error');return;}
+  if(n!==prompt('Confirma el PIN:')){toast('Los PINs no coinciden','error');return;}
+  const h=await sha256(n);
+  try{await sbPatch('shops','id=eq.'+S.shopId,{admin_pin_hash:h});_pinHash=h;toast('PIN actualizado');}
+  catch(e){toast('Error: '+e.message,'error');}
+}
+
+document.addEventListener('keydown',e=>{
+  if(document.getElementById('login-screen').style.display==='none')return;
+  if(e.key>='0'&&e.key<='9')pinPress(parseInt(e.key));
+  if(e.key==='Backspace')pinDel();
+  if(e.key==='Escape')pinClear();
+});
+
+initLogin();
+</script>
+
 </body>
 </html>
