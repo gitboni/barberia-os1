@@ -1596,6 +1596,7 @@ function calcAgo(d) {
   const m=Math.round((Date.now()-new Date(d))/60000);
   if(m<1)return 'ahora';if(m<60)return `hace ${m}m`;return `hace ${Math.round(m/60)}h`;
 }
+function fmt12rpt(h){ if(!h)return'—'; const[hh,mm]=(h+':00').split(':').map(Number),ap=hh>=12?'PM':'AM',h12=hh===0?12:hh>12?hh-12:hh; return h12+':'+(mm<10?'0':'')+mm+' '+ap; }
 
 function renderBarChart(citas) {
   const days=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
@@ -2164,7 +2165,7 @@ function renderCitasTable(citas, shopMap, barbMap) {
       <td style="color:var(--muted)">${c.nombre||'—'}</td>
       <td style="color:var(--muted)">${barbMap[c.barbero_id]||c.barbero||'—'}</td>
       <td style="color:var(--muted)">${c.servicio||'—'}</td>
-      <td style="color:var(--gold)">${c.hora||'—'}</td>
+      <td style="color:var(--gold)">${fmt12rpt(c.hora)||'—'}</td>
       <td class="${c.estado==='Completada'?'status-active':c.estado==='No-Show'?'status-inactive':'status-pending'}">${c.estado||'—'}</td>
     </tr>`).join('')||'<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:22px;">Sin citas</td></tr>';
 }
