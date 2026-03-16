@@ -1668,7 +1668,10 @@ document.getElementById('cfg-cancel').addEventListener('click',()=>document.getE
 document.getElementById('cfg-save').addEventListener('click',()=>{const shop=document.getElementById('cfg-shop').value.trim();const dur=parseInt(document.getElementById('cfg-dur').value)||DUR;DUR=dur;document.getElementById('cfg-modal').classList.remove('open');if(shop&&shop!==SLUG)location.href='?shop='+shop;else{showToast('✓ Guardado');render();}});
 document.getElementById('cfg-modal').addEventListener('click',e=>{if(e.target===document.getElementById('cfg-modal'))document.getElementById('cfg-modal').classList.remove('open');});
 document.addEventListener('click',e=>{const bp=document.getElementById('barber-picker'),mb=document.getElementById('mode-bar');if(!bp.contains(e.target)&&!mb.contains(e.target))bp.classList.remove('open');});
-function tick(){const n=new Date(),p=v=>String(v).padStart(2,'0');document.getElementById('clock').textContent=p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds());const days=['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'],months=['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];document.getElementById('clock-date').textContent=days[n.getDay()]+' '+n.getDate()+' '+months[n.getMonth()]+' '+n.getFullYear();}
+function tick(){const n=new Date(),p=v=>String(v).padStart(2,'0');document.getElementById('clock').textContent=p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds());const days=['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'],months=['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];document.getElementById('clock-date').textContent=days[n.getDay()]+' '+n.getDate()+' '+months[n.getMonth()]+' '+n.getFullYear();
+// Reload automático a medianoche para mostrar citas del nuevo día
+if(n.getHours()===0&&n.getMinutes()===0&&n.getSeconds()===0){setTimeout(()=>location.reload(),1500);}
+}
 setInterval(tick,1000);tick();
 document.addEventListener('keydown',e=>{
   if(e.key==='f'||e.key==='F')toggleFS();
