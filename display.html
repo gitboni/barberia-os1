@@ -1604,8 +1604,10 @@ function dayProgressHtml(){
 // ── LIVE ETA ──
 function fmt12(h){
   if(!h)return h;
+  // Si ya tiene AM/PM no procesar de nuevo
+  if(/AM|PM/i.test(h))return h.trim();
   const parts=h.split(':');
-  let hh=parseInt(parts[0]),mm=parts[1]||'00';
+  let hh=parseInt(parts[0]),mm=(parts[1]||'00').substring(0,2);
   const ampm=hh>=12?'PM':'AM';
   if(hh===0)hh=12;else if(hh>12)hh-=12;
   return hh+':'+mm+' '+ampm;
