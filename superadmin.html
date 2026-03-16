@@ -47,7 +47,7 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .login-loading{display:none;text-align:center;padding:10px;color:var(--muted);font-size:0.6rem;letter-spacing:0.1em;}
 
 /* SIDEBAR */
-.sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100vh;position:sticky;top:0;transition:width 0.28s cubic-bezier(0.4,0,0.2,1),min-width 0.28s cubic-bezier(0.4,0,0.2,1);overflow:hidden;z-index:50;}
+.sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100vh;position:sticky;top:0;transition:width 0.28s cubic-bezier(0.4,0,0.2,1),min-width 0.28s cubic-bezier(0.4,0,0.2,1);overflow-y:auto;overflow-x:hidden;z-index:50;}
 .sidebar.collapsed{width:56px;min-width:56px;}
 .sidebar.collapsed .sidebar-text,.sidebar.collapsed .nav-section,.sidebar.collapsed .sidebar-badge,.sidebar.collapsed .sidebar-logo .sub,.sidebar.collapsed .admin-info,.sidebar.collapsed .admin-name,.sidebar.collapsed .logout-btn,.sidebar.collapsed .badge{display:none!important;}
 .sidebar.collapsed .nav-item{padding:11px 0;justify-content:center;}
