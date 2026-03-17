@@ -3,457 +3,721 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BarberOS · Chat Simulator</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bebas+Neue&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<title>BarberOS — Simulador de Bot</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;}
+*{margin:0;padding:0;box-sizing:border-box;}
 :root{
-  --bg:#080A0E;--surface:#0D0F14;--surface2:#111318;--border:rgba(255,255,255,0.07);
-  --gold:#C9A84C;--green:#25D366;--green-dim:rgba(37,211,102,0.12);--blue:rgba(0,245,255,0.7);
-  --muted:#5A5855;--text:#E8E6E0;--wa-out:#005C4B;--wa-in:#1F2C34;--wa-bg:#0B141A;
+  --bg:#111b21;--bg2:#202c33;--bg3:#2a3942;--bg4:#1f2c34;
+  --green:#00a884;--green2:#005c4b;--cyan:#53bdeb;
+  --text:#e9edef;--text2:#8696a0;--text3:#aebac1;
+  --bubble-in:#005c4b;--bubble-out:#202c33;
+  --red:#ff4444;--gold:#ffd600;--purple:#b06eff;
 }
-body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
-.header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;gap:16px;flex-shrink:0;}
-.header-logo{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:0.15em;color:var(--gold);}
-.header-sep{color:var(--muted);font-size:0.7rem;}
-.header-title{font-size:0.65rem;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;}
-.badge-test{margin-left:auto;background:rgba(255,69,0,0.15);border:1px solid rgba(255,69,0,0.4);color:#FF6B35;font-size:0.5rem;letter-spacing:0.2em;padding:3px 10px;text-transform:uppercase;}
-.layout{display:flex;flex:1;overflow:hidden;}
-.sidebar{width:280px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;}
-.sidebar-section{padding:16px;border-bottom:1px solid var(--border);}
-.sidebar-label{font-size:0.5rem;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;margin-bottom:10px;}
-.form-group{margin-bottom:10px;}
-.form-label{font-size:0.55rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px;display:block;}
-.form-input{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'DM Mono',monospace;font-size:0.62rem;padding:7px 10px;outline:none;transition:border-color 0.2s;}
-.form-input:focus{border-color:rgba(201,168,76,0.4);}
-.form-input::placeholder{color:var(--muted);}
-select.form-input option{background:#111318;}
-.status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;background:var(--muted);}
-.status-dot.ok{background:var(--green);box-shadow:0 0 6px rgba(37,211,102,0.5);}
-.status-dot.error{background:#E74C3C;}
-.status-dot.loading{background:var(--gold);animation:pulse 1s ease-in-out infinite;}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
-.status-row{font-size:0.55rem;color:var(--muted);display:flex;align-items:center;gap:4px;margin-top:4px;}
-.btn{width:100%;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.3);color:var(--gold);font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.15em;padding:8px 0;cursor:pointer;text-transform:uppercase;transition:all 0.2s;margin-top:6px;}
-.btn:hover{background:rgba(201,168,76,0.2);border-color:rgba(201,168,76,0.5);}
-.btn.danger{background:rgba(231,76,60,0.1);border-color:rgba(231,76,60,0.3);color:#E74C3C;}
-.btn.danger:hover{background:rgba(231,76,60,0.2);}
-.btn.green{background:var(--green-dim);border-color:rgba(37,211,102,0.35);color:var(--green);}
-.btn.green:hover{background:rgba(37,211,102,0.2);}
-.quick-msgs{display:flex;flex-direction:column;gap:5px;}
-.qmsg{background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-family:'DM Mono',monospace;font-size:0.55rem;padding:6px 10px;cursor:pointer;text-align:left;transition:all 0.2s;}
-.qmsg:hover{color:var(--text);border-color:rgba(201,168,76,0.3);}
-.chat-area{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--wa-bg);position:relative;}
-.chat-bg{position:absolute;inset:0;opacity:0.03;background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5 L55 20 L55 40 L30 55 L5 40 L5 20Z' fill='none' stroke='white' stroke-width='0.5'/%3E%3C/svg%3E");pointer-events:none;}
-.chat-topbar{background:#1F2C34;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,0.05);z-index:2;}
-.wa-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#25D366,#128C7E);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
-.wa-name{font-size:0.72rem;font-weight:500;color:#E9EDEF;letter-spacing:0.03em;}
-.wa-status{font-size:0.55rem;color:#8696A0;margin-top:1px;}
-.wa-phone{margin-left:auto;font-size:0.5rem;color:var(--muted);font-family:'Share Tech Mono',monospace;letter-spacing:0.1em;}
-.messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:6px;scroll-behavior:smooth;}
-.messages::-webkit-scrollbar{width:4px;}
-.messages::-webkit-scrollbar-track{background:transparent;}
-.messages::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);}
-.msg-row{display:flex;flex-direction:column;max-width:72%;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;height:100vh;display:flex;overflow:hidden;}
+
+/* ── SIDEBAR IZQUIERDO ── */
+.sidebar{width:320px;background:var(--bg2);display:flex;flex-direction:column;border-right:1px solid rgba(255,255,255,0.06);flex-shrink:0;}
+.sidebar-header{padding:14px 16px;background:var(--bg3);display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.05);}
+.sidebar-title{font-size:1.1rem;font-weight:600;color:var(--text);}
+.sidebar-badge{background:var(--green);color:#fff;font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:10px;letter-spacing:0.05em;}
+
+.panel-section{padding:12px 16px 6px;font-size:0.62rem;font-weight:700;letter-spacing:0.2em;color:var(--text2);text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,0.04);}
+
+/* Shop selector */
+.shop-card{padding:10px 16px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.15s;display:flex;align-items:center;gap:10px;}
+.shop-card:hover{background:rgba(255,255,255,0.04);}
+.shop-card.active{background:rgba(0,168,132,0.1);border-left:3px solid var(--green);}
+.shop-avatar{width:38px;height:38px;border-radius:50%;background:var(--green2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;color:#fff;flex-shrink:0;}
+.shop-info{flex:1;min-width:0;}
+.shop-name{font-size:0.88rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.shop-meta{font-size:0.68rem;color:var(--text2);margin-top:1px;}
+
+/* Config panel */
+.config-section{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);}
+.config-label{font-size:0.62rem;color:var(--text2);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:5px;}
+.config-inp{width:100%;background:var(--bg3);border:1px solid rgba(255,255,255,0.08);color:var(--text);padding:7px 10px;font-size:0.82rem;border-radius:4px;outline:none;}
+.config-inp:focus{border-color:var(--green);}
+.config-row{display:flex;gap:6px;margin-bottom:8px;}
+.config-row .config-inp{flex:1;}
+
+/* Quick sends */
+.quick-section{padding:10px 16px;overflow-y:auto;flex:1;}
+.quick-group{margin-bottom:12px;}
+.quick-group-title{font-size:0.58rem;font-weight:700;letter-spacing:0.18em;color:var(--text2);text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+.quick-group-title::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.06);}
+.quick-chips{display:flex;flex-wrap:wrap;gap:4px;}
+.chip{padding:4px 10px;background:var(--bg3);border:1px solid rgba(255,255,255,0.08);border-radius:12px;font-size:0.7rem;color:var(--text3);cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+.chip:hover{background:rgba(0,168,132,0.15);border-color:var(--green);color:var(--text);}
+.chip.danger{border-color:rgba(255,68,68,0.3);color:rgba(255,68,68,0.8);}
+.chip.danger:hover{background:rgba(255,68,68,0.15);}
+.chip.gold{border-color:rgba(255,214,0,0.3);color:rgba(255,214,0,0.8);}
+.chip.gold:hover{background:rgba(255,214,0,0.1);}
+
+/* ── CHAT PRINCIPAL ── */
+.chat-wrap{flex:1;display:flex;flex-direction:column;min-width:0;}
+.chat-header{padding:10px 16px;background:var(--bg3);display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,0.05);flex-shrink:0;}
+.chat-avatar{width:40px;height:40px;border-radius:50%;background:var(--green2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.1rem;color:#fff;flex-shrink:0;}
+.chat-info{flex:1;}
+.chat-name{font-size:0.95rem;font-weight:600;color:var(--text);}
+.chat-status{font-size:0.72rem;color:var(--green);margin-top:1px;}
+.chat-actions{display:flex;gap:8px;}
+.hbtn{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);color:var(--text2);padding:5px 12px;border-radius:4px;font-size:0.7rem;cursor:pointer;transition:all 0.2s;letter-spacing:0.06em;}
+.hbtn:hover{background:rgba(255,255,255,0.12);color:var(--text);}
+.hbtn.danger{border-color:rgba(255,68,68,0.3);color:rgba(255,68,68,0.7);}
+.hbtn.danger:hover{background:rgba(255,68,68,0.1);}
+
+/* Mensajes */
+.chat-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:4px;background:var(--bg);}
+.chat-body::-webkit-scrollbar{width:4px;}.chat-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);}
+
+/* Fondo estilo WhatsApp */
+.chat-body{background-color:var(--bg);background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.015'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");}
+
+.msg-row{display:flex;flex-direction:column;max-width:72%;animation:msgIn 0.18s ease;}
 .msg-row.out{align-self:flex-end;align-items:flex-end;}
 .msg-row.in{align-self:flex-start;align-items:flex-start;}
-.msg-row.system{align-self:center;align-items:center;max-width:90%;}
-.bubble{padding:7px 12px 16px;position:relative;font-size:0.62rem;line-height:1.7;white-space:pre-wrap;word-break:break-word;}
-.msg-row.out .bubble{background:var(--wa-out);border-radius:8px 0 8px 8px;color:#E9EDEF;}
-.msg-row.in .bubble{background:var(--wa-in);border-radius:0 8px 8px 8px;color:#E9EDEF;}
-.msg-row.system .bubble{background:rgba(134,150,160,0.15);border-radius:8px;color:#8696A0;font-size:0.52rem;letter-spacing:0.1em;text-transform:uppercase;padding:5px 14px;}
-.msg-time{position:absolute;bottom:4px;right:8px;font-size:0.45rem;color:rgba(233,237,239,0.45);}
-.msg-check{margin-left:3px;color:#53BDEB;}
-.typing-indicator{align-self:flex-start;background:var(--wa-in);border-radius:0 8px 8px 8px;padding:10px 14px;display:none;gap:4px;align-items:center;}
-.typing-indicator.show{display:flex;}
-.typing-dot{width:6px;height:6px;border-radius:50%;background:#8696A0;animation:typing 1.2s ease-in-out infinite;}
+@keyframes msgIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+.bubble{padding:8px 12px;border-radius:8px;font-size:0.86rem;line-height:1.5;position:relative;word-break:break-word;}
+.bubble.out{background:#005c4b;border-bottom-right-radius:2px;}
+.bubble.in{background:#202c33;border-bottom-left-radius:2px;}
+.bubble strong{font-weight:700;}
+.bubble em{font-style:italic;color:rgba(255,255,255,0.6);}
+
+.bubble-meta{font-size:0.62rem;color:var(--text2);margin-top:2px;padding:0 2px;}
+.bubble-meta.out{text-align:right;}
+
+.typing-indicator{display:flex;align-items:center;gap:5px;padding:10px 14px;background:#202c33;border-radius:8px;border-bottom-left-radius:2px;align-self:flex-start;margin:2px 0;}
+.typing-dot{width:7px;height:7px;border-radius:50%;background:var(--text2);animation:tdot 1.2s infinite;}
 .typing-dot:nth-child(2){animation-delay:0.2s;}
 .typing-dot:nth-child(3){animation-delay:0.4s;}
-@keyframes typing{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-4px);}}
-.chat-input-bar{background:#1F2C34;border-top:1px solid rgba(255,255,255,0.05);padding:10px 12px;display:flex;gap:8px;align-items:center;flex-shrink:0;z-index:2;}
-.chat-input{flex:1;background:#2A3942;border:none;color:#E9EDEF;font-family:'DM Mono',monospace;font-size:0.65rem;padding:9px 14px;border-radius:20px;outline:none;resize:none;max-height:120px;line-height:1.5;}
-.chat-input::placeholder{color:#8696A0;}
-.send-btn{width:40px;height:40px;border-radius:50%;background:var(--green);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;font-size:1rem;}
-.send-btn:hover{background:#20c45a;transform:scale(1.05);}
-.send-btn:disabled{background:#2A3942;cursor:not-allowed;transform:none;}
-.logs-panel{width:280px;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
-.logs-header{padding:14px 16px 10px;border-bottom:1px solid var(--border);font-size:0.5rem;letter-spacing:0.2em;color:var(--muted);text-transform:uppercase;display:flex;align-items:center;gap:8px;}
-.logs-body{flex:1;overflow-y:auto;padding:10px;font-family:'Share Tech Mono',monospace;font-size:0.5rem;color:var(--muted);line-height:1.8;}
-.logs-body::-webkit-scrollbar{width:3px;}
-.logs-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);}
-.log-entry{margin-bottom:4px;padding:4px 8px;border-left:2px solid transparent;}
-.log-entry.info{border-color:rgba(0,245,255,0.3);color:rgba(0,245,255,0.5);}
-.log-entry.success{border-color:rgba(37,211,102,0.3);color:rgba(37,211,102,0.6);}
-.log-entry.error{border-color:rgba(231,76,60,0.4);color:rgba(231,76,60,0.6);}
-.log-entry.warn{border-color:rgba(201,168,76,0.3);color:rgba(201,168,76,0.5);}
-.log-ts{opacity:0.5;margin-right:6px;}
-.log-clear{margin-left:auto;background:none;border:none;color:var(--muted);font-size:0.5rem;cursor:pointer;font-family:'DM Mono',monospace;letter-spacing:0.1em;}
-.log-clear:hover{color:var(--text);}
-.state-panel{border-top:1px solid var(--border);padding:10px;}
-.state-label{font-size:0.48rem;letter-spacing:0.15em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;}
-.state-row{display:flex;justify-content:space-between;font-size:0.52rem;margin-bottom:4px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.03);}
-.state-key{color:var(--muted);}
-.state-val{color:var(--text);font-family:'Share Tech Mono',monospace;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);text-align:center;padding:20px;}
-.empty-state .icon{font-size:2.5rem;margin-bottom:12px;opacity:0.3;}
-.empty-state .txt{font-size:0.58rem;line-height:1.8;letter-spacing:0.08em;}
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1F2C34;border:1px solid rgba(37,211,102,0.3);color:var(--green);font-size:0.58rem;letter-spacing:0.1em;padding:8px 20px;z-index:999;opacity:0;transition:opacity 0.3s;pointer-events:none;}
-.toast.show{opacity:1;}
+@keyframes tdot{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-5px);}}
+
+.day-divider{align-self:center;background:var(--bg3);padding:3px 10px;border-radius:6px;font-size:0.68rem;color:var(--text2);margin:8px 0;letter-spacing:0.05em;}
+
+/* Input */
+.chat-input-wrap{padding:10px 14px;background:var(--bg2);display:flex;gap:10px;align-items:center;border-top:1px solid rgba(255,255,255,0.05);flex-shrink:0;}
+.msg-input{flex:1;background:var(--bg3);border:1px solid rgba(255,255,255,0.08);color:var(--text);padding:10px 14px;border-radius:20px;font-size:0.9rem;outline:none;transition:border-color 0.2s;}
+.msg-input:focus{border-color:rgba(0,168,132,0.5);}
+.send-btn{width:42px;height:42px;border-radius:50%;background:var(--green);border:none;color:#fff;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;}
+.send-btn:hover{background:#00cf9f;transform:scale(1.05);}
+.send-btn:disabled{background:var(--bg3);cursor:not-allowed;transform:none;}
+
+/* ── PANEL DERECHO (logs) ── */
+.right-panel{width:280px;background:var(--bg2);display:flex;flex-direction:column;border-left:1px solid rgba(255,255,255,0.06);flex-shrink:0;}
+.rp-header{padding:14px 16px;background:var(--bg3);font-size:0.78rem;font-weight:700;letter-spacing:0.12em;color:var(--text2);text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:space-between;}
+.rp-clear{font-size:0.6rem;background:none;border:1px solid rgba(255,255,255,0.08);color:var(--text2);padding:2px 8px;cursor:pointer;border-radius:3px;}
+.rp-clear:hover{color:var(--text);}
+
+/* Estado conversación */
+.state-box{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,0.05);}
+.state-title{font-size:0.58rem;font-weight:700;letter-spacing:0.2em;color:var(--text2);text-transform:uppercase;margin-bottom:8px;}
+.state-badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:0.68rem;font-weight:600;letter-spacing:0.06em;margin-bottom:4px;}
+.state-badge.s-inicio{background:rgba(255,255,255,0.06);color:var(--text2);}
+.state-badge.s-servicio{background:rgba(83,189,235,0.15);color:var(--cyan);}
+.state-badge.s-barbero{background:rgba(176,110,255,0.15);color:var(--purple);}
+.state-badge.s-slot{background:rgba(255,214,0,0.12);color:var(--gold);}
+.state-badge.s-horario{background:rgba(255,214,0,0.12);color:var(--gold);}
+.state-badge.s-nombre{background:rgba(0,168,132,0.15);color:var(--green);}
+.state-badge.s-confirmacion{background:rgba(0,168,132,0.2);color:#00e5b0;}
+.state-badge.s-completado{background:rgba(0,168,132,0.25);color:var(--green);}
+.state-badge.s-cancelacion{background:rgba(255,68,68,0.15);color:var(--red);}
+.state-badge.s-reinicio{background:rgba(255,214,0,0.1);color:var(--gold);}
+.state-badge.s-duplicado{background:rgba(255,68,68,0.1);color:rgba(255,120,50,0.9);}
+.state-field{display:flex;justify-content:space-between;align-items:flex-start;padding:3px 0;border-top:1px solid rgba(255,255,255,0.03);}
+.sf-key{font-size:0.62rem;color:var(--text2);flex-shrink:0;}
+.sf-val{font-size:0.65rem;color:var(--text);text-align:right;word-break:break-all;}
+
+/* Logs */
+.logs-box{flex:1;overflow-y:auto;padding:8px;}
+.logs-box::-webkit-scrollbar{width:3px;}.logs-box::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);}
+.log-entry{padding:5px 8px;border-radius:4px;margin-bottom:3px;font-family:'Courier New',monospace;font-size:0.65rem;border-left:2px solid;}
+.log-entry.info{border-color:var(--cyan);background:rgba(83,189,235,0.05);color:rgba(83,189,235,0.85);}
+.log-entry.ok{border-color:var(--green);background:rgba(0,168,132,0.05);color:rgba(0,200,150,0.85);}
+.log-entry.warn{border-color:var(--gold);background:rgba(255,214,0,0.05);color:rgba(255,214,0,0.8);}
+.log-entry.err{border-color:var(--red);background:rgba(255,68,68,0.06);color:rgba(255,100,100,0.9);}
+.log-time{opacity:0.5;margin-right:5px;}
+
+/* Stats */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.05);}
+.stat-mini{padding:6px;background:var(--bg3);border-radius:4px;text-align:center;}
+.stat-mini-val{font-size:1.1rem;font-weight:700;color:var(--green);}
+.stat-mini-lbl{font-size:0.52rem;color:var(--text2);letter-spacing:0.1em;text-transform:uppercase;margin-top:1px;}
+
+/* Tooltips y helpers */
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--text2);}
+.empty-icon{font-size:3rem;opacity:0.3;}
+.empty-txt{font-size:0.78rem;letter-spacing:0.1em;}
+
+/* Indicador de carga */
+.loading-overlay{display:none;position:absolute;inset:0;background:rgba(17,27,33,0.5);z-index:100;align-items:center;justify-content:center;}
+.loading-overlay.show{display:flex;}
+
+/* Número de teléfono display */
+.tel-display{font-size:0.65rem;color:var(--text2);padding:2px 6px;background:var(--bg3);border-radius:3px;font-family:monospace;}
+
+/* Reset btn */
+.reset-banner{padding:8px 16px;background:rgba(255,68,68,0.08);border-bottom:1px solid rgba(255,68,68,0.15);display:flex;align-items:center;justify-content:space-between;font-size:0.72rem;color:rgba(255,120,100,0.8);}
+.reset-banner.hidden{display:none;}
+.reset-link{color:var(--red);cursor:pointer;text-decoration:underline;}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="header-logo">BarberOS</div>
-  <div class="header-sep">·</div>
-  <div class="header-title">WhatsApp Chat Simulator</div>
-  <div class="badge-test">⚠ Solo Pruebas</div>
+<!-- SIDEBAR IZQUIERDO -->
+<div class="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-title">✂ Bot Simulator</div>
+    <div class="sidebar-badge">v37</div>
+  </div>
+
+  <!-- Selección de barbería -->
+  <div class="panel-section">Barbería</div>
+  <div id="shop-list">
+    <div class="shop-card active" data-id="108a1a3b-802c-4fc3-ad99-3b2a42f6c875" data-name="PRUEBALAB" onclick="selectShop(this)">
+      <div class="shop-avatar">P</div>
+      <div class="shop-info">
+        <div class="shop-name">PRUEBALAB</div>
+        <div class="shop-meta">9AM–11PM · 30min · Meta</div>
+      </div>
+    </div>
+    <div class="shop-card" data-id="61797d02-7674-48c7-9b65-1ad30da82f7a" data-name="Elite Cuts" onclick="selectShop(this)">
+      <div class="shop-avatar">E</div>
+      <div class="shop-info">
+        <div class="shop-name">Elite Cuts</div>
+        <div class="shop-meta">6AM–11PM · 30min · Meta</div>
+      </div>
+    </div>
+    <div class="shop-card" data-id="dd513d7d-8051-4586-b0cf-93587b5df32d" data-name="pruba4" onclick="selectShop(this)">
+      <div class="shop-avatar">T</div>
+      <div class="shop-info">
+        <div class="shop-name">pruba4</div>
+        <div class="shop-meta">9AM–6PM · 45min · Twilio</div>
+      </div>
+    </div>
+    <div class="shop-card" data-id="5a81d543-537c-4846-b0ad-abf5c3a42364" data-name="Richarbar" onclick="selectShop(this)">
+      <div class="shop-avatar">R</div>
+      <div class="shop-info">
+        <div class="shop-name">Richarbar</div>
+        <div class="shop-meta">7AM–9PM · 30min · Twilio</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Config -->
+  <div class="panel-section">Teléfono de prueba</div>
+  <div class="config-section">
+    <div class="config-label">Número (simula un cliente)</div>
+    <div class="config-row">
+      <input class="config-inp" id="tel-input" value="+18091234567" placeholder="+18091234567">
+      <button class="hbtn" onclick="randomTel()" title="Generar nuevo número">🎲</button>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
+      <button class="chip" onclick="setTel('+18091111111')">Cliente 1</button>
+      <button class="chip" onclick="setTel('+18092222222')">Cliente 2</button>
+      <button class="chip" onclick="setTel('+18093333333')">Cliente 3</button>
+      <button class="chip gold" onclick="setTel('+18099999999')">Nuevo</button>
+    </div>
+  </div>
+
+  <!-- Quick sends -->
+  <div class="panel-section">Mensajes rápidos</div>
+  <div class="quick-section">
+
+    <div class="quick-group">
+      <div class="quick-group-title">🟢 Inicio</div>
+      <div class="quick-chips">
+        <div class="chip" onclick="quickSend('hola')">hola</div>
+        <div class="chip" onclick="quickSend('buenos dias')">buenos dias</div>
+        <div class="chip" onclick="quickSend('quiero una cita')">quiero cita</div>
+        <div class="chip" onclick="quickSend('precio')">precio</div>
+        <div class="chip" onclick="quickSend('que horario tienen')">horario</div>
+        <div class="chip" onclick="quickSend('donde estan')">ubicación</div>
+      </div>
+    </div>
+
+    <div class="quick-group">
+      <div class="quick-group-title">✂ Servicios</div>
+      <div class="quick-chips">
+        <div class="chip" onclick="quickSend('1')">1 (primer svc)</div>
+        <div class="chip" onclick="quickSend('2')">2 (segundo svc)</div>
+        <div class="chip" onclick="quickSend('3')">3 (tercer svc)</div>
+        <div class="chip" onclick="quickSend('corte')">corte</div>
+        <div class="chip" onclick="quickSend('barba')">barba</div>
+        <div class="chip" onclick="quickSend('fade')">fade</div>
+      </div>
+    </div>
+
+    <div class="quick-group">
+      <div class="quick-group-title">👤 Barbero</div>
+      <div class="quick-chips">
+        <div class="chip" onclick="quickSend('1')">1 (primero)</div>
+        <div class="chip" onclick="quickSend('2')">2 (segundo)</div>
+        <div class="chip" onclick="quickSend('cualquiera')">cualquiera</div>
+      </div>
+    </div>
+
+    <div class="quick-group">
+      <div class="quick-group-title">🕐 Slots / Horario</div>
+      <div class="quick-chips">
+        <div class="chip" onclick="quickSend('1')">1 (confirmar slot)</div>
+        <div class="chip" onclick="quickSend('2')">2 (ver todos)</div>
+        <div class="chip" onclick="quickSend('otro horario')">otro horario</div>
+        <div class="chip" onclick="quickSend('3')">3 (slot)</div>
+        <div class="chip" onclick="quickSend('4')">4 (slot)</div>
+        <div class="chip" onclick="quickSend('5')">5 (slot)</div>
+      </div>
+    </div>
+
+    <div class="quick-group">
+      <div class="quick-group-title">📝 Nombre</div>
+      <div class="quick-chips">
+        <div class="chip" onclick="quickSend('Juan Pérez')">Juan Pérez</div>
+        <div class="chip" onclick="quickSend('Carlos Martínez')">Carlos M.</div>
+        <div class="chip" onclick="quickSend('Miguel Torres')">Miguel T.</div>
+        <div class="chip" onclick="quickSend('Ana Ramírez')">Ana R.</div>
+      </div>
+    </div>
+
+    <div class="quick-group">
+      <div class="quick-group-title">✅ Confirmación</div>
+      <div class="quick-chips">
+        <div class="chip" onclick="quickSend('sí')">sí</div>
+        <div class="chip" onclick="quickSend('si')">si</div>
+        <div class="chip" onclick="quickSend('no')">no</div>
+        <div class="chip" onclick="quickSend('1')">1</div>
+        <div class="chip" onclick="quickSend('2')">2</div>
+      </div>
+    </div>
+
+    <div class="quick-group">
+      <div class="quick-group-title">📋 Mi cita / Cancelar</div>
+      <div class="quick-chips">
+        <div class="chip" onclick="quickSend('mi cita')">mi cita</div>
+        <div class="chip" onclick="quickSend('mis citas')">mis citas</div>
+        <div class="chip danger" onclick="quickSend('cancelar')">cancelar</div>
+        <div class="chip danger" onclick="quickSend('sí')">sí (cancelar)</div>
+      </div>
+    </div>
+
+    <div class="quick-group">
+      <div class="quick-group-title">🔄 Reinicio / Flujo</div>
+      <div class="quick-chips">
+        <div class="chip gold" onclick="quickSend('1')">1 (reiniciar)</div>
+        <div class="chip gold" onclick="quickSend('2')">2 (continuar)</div>
+        <div class="chip" onclick="quickSend('menu')">menu</div>
+        <div class="chip" onclick="quickSend('nueva cita')">nueva cita</div>
+      </div>
+    </div>
+
+    <div class="quick-group">
+      <div class="quick-group-title">⚙ Barbero (modo barbero)</div>
+      <div class="quick-chips">
+        <div class="chip" onclick="quickSend('mis turnos')">mis turnos</div>
+        <div class="chip danger" onclick="quickSend('inactivo')">inactivo</div>
+        <div class="chip" onclick="quickSend('activo')">activo</div>
+        <div class="chip" onclick="quickSend('off')">off</div>
+      </div>
+    </div>
+
+    <div class="quick-group">
+      <div class="quick-group-title">🧪 Casos especiales</div>
+      <div class="quick-chips">
+        <div class="chip" onclick="quickSend('hola')">👋 Reiniciar flujo</div>
+        <div class="chip" onclick="quickSend('ok')">ok</div>
+        <div class="chip" onclick="quickSend('dale')">dale</div>
+        <div class="chip" onclick="quickSend('a')">letra inválida</div>
+        <div class="chip" onclick="quickSend('999')">número inválido</div>
+      </div>
+    </div>
+
+  </div>
 </div>
 
-<div class="layout">
-  <div class="sidebar">
-    <div class="sidebar-section">
-      <div class="sidebar-label">Configuración</div>
-      <div class="form-group">
-        <label class="form-label">Barbería</label>
-        <select class="form-input" id="shopSelect" onchange="onShopChange()">
-          <option value="">Cargando...</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Número simulado (From)</label>
-        <input class="form-input" id="simPhone" placeholder="+18091234567" value="+18099999999">
-      </div>
-      <div class="status-row" id="configStatus">
-        <span class="status-dot" id="statusDot"></span>
-        <span id="statusTxt">Selecciona una barbería</span>
-      </div>
+<!-- CHAT PRINCIPAL -->
+<div class="chat-wrap">
+  <div class="chat-header">
+    <div class="chat-avatar" id="hdr-avatar">P</div>
+    <div class="chat-info">
+      <div class="chat-name" id="hdr-name">PRUEBALAB</div>
+      <div class="chat-status">🟢 Bot activo · chat-simulator v37</div>
     </div>
-
-    <div class="sidebar-section">
-      <div class="sidebar-label">Mensajes Rápidos</div>
-      <div class="quick-msgs">
-        <button class="qmsg" onclick="sendQuick('Hola')">👋 Hola</button>
-        <button class="qmsg" onclick="sendQuick('Quiero una cita')">📅 Quiero una cita</button>
-        <button class="qmsg" onclick="sendQuick('1')">1️⃣ Respuesta: 1</button>
-        <button class="qmsg" onclick="sendQuick('2')">2️⃣ Respuesta: 2</button>
-        <button class="qmsg" onclick="sendQuick('3')">3️⃣ Respuesta: 3</button>
-        <button class="qmsg" onclick="sendQuick('Sí')">✅ Confirmar: Sí</button>
-        <button class="qmsg" onclick="sendQuick('No')">❌ Cancelar: No</button>
-        <button class="qmsg" onclick="sendQuick('citas')">📋 Ver citas</button>
-        <button class="qmsg" onclick="sendQuick('cancelar')">🚫 Cancelar cita</button>
-      </div>
-    </div>
-
-    <div class="sidebar-section">
-      <div class="sidebar-label">Acciones</div>
-      <button class="btn danger" onclick="resetConversation()">🗑 Borrar conversación</button>
-      <button class="btn" onclick="loadConversation()">🔄 Recargar estado</button>
-      <button class="btn green" onclick="openAdmin()">↗ Abrir Admin</button>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div class="tel-display" id="hdr-tel">+18091234567</div>
+      <button class="hbtn" onclick="clearChat()">🗑 Limpiar chat</button>
+      <button class="hbtn danger" onclick="resetConversacion()">♻ Reset conv.</button>
     </div>
   </div>
 
-  <div class="chat-area">
-    <div class="chat-bg"></div>
-    <div class="chat-topbar">
-      <div class="wa-avatar">💈</div>
-      <div>
-        <div class="wa-name" id="waName">—</div>
-        <div class="wa-status" id="waStatus">Selecciona una barbería</div>
-      </div>
-      <div class="wa-phone" id="waPhone"></div>
-    </div>
-    <div class="messages" id="messages">
-      <div class="empty-state" id="emptyState">
-        <div class="icon">💬</div>
-        <div class="txt">Configura la barbería<br>para comenzar a simular</div>
-      </div>
-      <div class="typing-indicator" id="typingIndicator">
-        <div class="typing-dot"></div>
-        <div class="typing-dot"></div>
-        <div class="typing-dot"></div>
-      </div>
-    </div>
-    <div class="chat-input-bar">
-      <textarea class="chat-input" id="chatInput" placeholder="Escribe un mensaje..." rows="1"
-        onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
-      <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
+  <!-- Banner de reset -->
+  <div class="reset-banner hidden" id="reset-banner">
+    ⚠ Conversación reseteada en BD. <span class="reset-link" onclick="hideResetBanner()">Cerrar</span>
+  </div>
+
+  <div class="chat-body" id="chat-body">
+    <div class="empty-state" id="empty-state">
+      <div class="empty-icon">💬</div>
+      <div class="empty-txt">Escribe un mensaje para iniciar la conversación</div>
+      <div style="font-size:0.65rem;color:var(--text2);margin-top:4px;">Usa los botones del panel izquierdo para enviar rápido</div>
     </div>
   </div>
 
-  <div class="logs-panel">
-    <div class="logs-header">
-      Logs
-      <button class="log-clear" onclick="clearLogs()">limpiar</button>
-    </div>
-    <div class="logs-body" id="logsBody"></div>
-    <div class="state-panel">
-      <div class="state-label">Estado Conversación (Supabase)</div>
-      <div id="stateRows">
-        <div class="state-row"><span class="state-key">—</span><span class="state-val"></span></div>
-      </div>
-    </div>
+  <div class="chat-input-wrap">
+    <input class="msg-input" id="msg-input" placeholder="Escribe un mensaje..." 
+           onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}">
+    <button class="send-btn" id="send-btn" onclick="sendMessage()">➤</button>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<!-- PANEL DERECHO -->
+<div class="right-panel">
+  <div class="rp-header">
+    <span>Estado & Logs</span>
+    <button class="rp-clear" onclick="clearLogs()">limpiar</button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-mini">
+      <div class="stat-mini-val" id="stat-msgs">0</div>
+      <div class="stat-mini-lbl">Mensajes</div>
+    </div>
+    <div class="stat-mini">
+      <div class="stat-mini-val" id="stat-time" style="color:var(--gold);">—</div>
+      <div class="stat-mini-lbl">Último ms</div>
+    </div>
+    <div class="stat-mini">
+      <div class="stat-mini-val" id="stat-errors" style="color:var(--red);">0</div>
+      <div class="stat-mini-lbl">Errores</div>
+    </div>
+  </div>
+
+  <!-- Estado conversación -->
+  <div class="state-box">
+    <div class="state-title">Estado conversación</div>
+    <div id="state-badge-wrap">
+      <span class="state-badge s-inicio">inicio</span>
+    </div>
+    <div id="state-fields" style="margin-top:6px;"></div>
+  </div>
+
+  <!-- Logs -->
+  <div class="logs-box" id="logs-box">
+    <div class="log-entry info"><span class="log-time">--:--</span>Simulador listo</div>
+  </div>
+</div>
 
 <script>
+// ════════════════════════════════════════
+// CONFIG
+// ════════════════════════════════════════
 const SB_URL = 'https://mmokunpuslcfphalrwot.supabase.co';
 const SB_KEY = 'sb_publishable_aETz_9ECH5RcBMjmRhUnfw_g71zRdwT';
-const H = {'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
+const BOT_URL = `${SB_URL}/functions/v1/chat-simulator`;
 
-async function sbGet(t,q=''){
-  const r=await fetch(`${SB_URL}/rest/v1/${t}?${q}`,{headers:H});
-  if(!r.ok)throw new Error('SB '+r.status+': '+await r.text());
-  return r.json();
+let currentShopId = '108a1a3b-802c-4fc3-ad99-3b2a42f6c875';
+let currentShopName = 'PRUEBALAB';
+let msgCount = 0;
+let errorCount = 0;
+let isLoading = false;
+
+// ════════════════════════════════════════
+// SHOP SELECTOR
+// ════════════════════════════════════════
+function selectShop(el) {
+  document.querySelectorAll('.shop-card').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  currentShopId = el.dataset.id;
+  currentShopName = el.dataset.name;
+  document.getElementById('hdr-name').textContent = currentShopName;
+  document.getElementById('hdr-avatar').textContent = currentShopName.charAt(0);
+  clearChat();
+  addLog(`Barbería cambiada a: ${currentShopName}`, 'info');
 }
-async function sbDelete(t,q){
-  const r=await fetch(`${SB_URL}/rest/v1/${t}?${q}`,{method:'DELETE',headers:H});
-  if(!r.ok)throw new Error('SB '+r.status);
+
+// ════════════════════════════════════════
+// TELÉFONO
+// ════════════════════════════════════════
+function getTel() { return document.getElementById('tel-input').value.trim() || '+18091234567'; }
+function setTel(t) { document.getElementById('tel-input').value = t; document.getElementById('hdr-tel').textContent = t; addLog(`Tel cambiado: ${t}`, 'info'); }
+function randomTel() {
+  const n = '+1809' + Math.floor(1000000 + Math.random() * 9000000);
+  setTel(n);
+}
+document.getElementById('tel-input').addEventListener('input', function() {
+  document.getElementById('hdr-tel').textContent = this.value;
+});
+
+// ════════════════════════════════════════
+// ENVIAR MENSAJE
+// ════════════════════════════════════════
+async function sendMessage() {
+  if (isLoading) return;
+  const input = document.getElementById('msg-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  await processMessage(msg);
 }
 
-let shops=[];
-let currentShop=null;
-let msgHistory=[];
-let sending=false;
-let pollTimer=null;
-let lastConvUpdate=null;
+function quickSend(msg) {
+  document.getElementById('msg-input').value = msg;
+  sendMessage();
+}
 
-async function init(){
-  log('info','Conectando a Supabase...');
-  try{
-    shops=await sbGet('shops','select=id,nombre,slug,twilio_number,activo&order=nombre.asc');
-    const sel=document.getElementById('shopSelect');
-    sel.innerHTML='<option value="">— Elige una barbería —</option>';
-    shops.forEach(s=>{
-      const opt=document.createElement('option');
-      opt.value=s.id;
-      opt.textContent=s.nombre+(s.activo===false?' (inactiva)':'');
-      sel.appendChild(opt);
+async function processMessage(msg) {
+  if (isLoading) return;
+  isLoading = true;
+  document.getElementById('send-btn').disabled = true;
+
+  // Ocultar estado vacío
+  document.getElementById('empty-state').style.display = 'none';
+
+  // Mostrar mensaje del usuario
+  addMessage(msg, 'out');
+  msgCount++;
+  document.getElementById('stat-msgs').textContent = msgCount;
+
+  // Typing indicator
+  const typingId = showTyping();
+  const t0 = Date.now();
+
+  try {
+    const tel = getTel();
+    const chatId = 'simulator:' + tel.replace(/\D/g,'') + ':' + currentShopId;
+
+    addLog(`→ "${msg}" [${tel}]`, 'info');
+
+    const resp = await fetch(BOT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` },
+      body: JSON.stringify({ shop_id: currentShopId, telefono: tel, mensaje: msg, chat_id: chatId })
     });
-    log('success',`${shops.length} barberías cargadas`);
-    setStatus('','Elige una barbería');
-  }catch(e){
-    log('error','Error Supabase: '+e.message);
-    setStatus('error','Sin conexión');
+
+    const elapsed = Date.now() - t0;
+    document.getElementById('stat-time').textContent = elapsed + 'ms';
+
+    removeTyping(typingId);
+
+    if (!resp.ok) {
+      const errText = await resp.text();
+      addMessage(`❌ Error HTTP ${resp.status}: ${errText}`, 'in', true);
+      addLog(`Error ${resp.status}: ${errText}`, 'err');
+      errorCount++;
+      document.getElementById('stat-errors').textContent = errorCount;
+    } else {
+      const data = await resp.json();
+      if (data.error) {
+        addMessage(`❌ ${data.error}`, 'in', true);
+        addLog(`Bot error: ${data.error}`, 'err');
+        errorCount++;
+        document.getElementById('stat-errors').textContent = errorCount;
+      } else {
+        addMessage(data.respuesta, 'in');
+        addLog(`✓ ${elapsed}ms · v${data.version}`, 'ok');
+        // Actualizar estado
+        setTimeout(() => updateConvState(), 400);
+      }
+    }
+  } catch (e) {
+    removeTyping(typingId);
+    addMessage(`❌ Error de red: ${e.message}`, 'in', true);
+    addLog(`Network error: ${e.message}`, 'err');
+    errorCount++;
+    document.getElementById('stat-errors').textContent = errorCount;
   }
+
+  isLoading = false;
+  document.getElementById('send-btn').disabled = false;
+  document.getElementById('msg-input').focus();
 }
 
-function onShopChange(){
-  const id=document.getElementById('shopSelect').value;
-  currentShop=shops.find(s=>s.id===id)||null;
-  if(!currentShop){
-    setStatus('','Elige una barbería');
-    document.getElementById('waName').textContent='—';
-    document.getElementById('waStatus').textContent='Selecciona una barbería';
-    document.getElementById('waPhone').textContent='';
-    return;
-  }
-  document.getElementById('waName').textContent=currentShop.nombre;
-  document.getElementById('waStatus').textContent='BarberOS Bot · '+currentShop.slug;
-  document.getElementById('waPhone').textContent=currentShop.twilio_number||'sin número';
-  setStatus('ok','Listo para simular');
-  log('success','Shop: '+currentShop.nombre+' ('+currentShop.slug+')');
-  clearMessages();
-  addSystemMsg('Conversación con '+currentShop.nombre);
-  loadConversation();
-  startPoll();
+// ════════════════════════════════════════
+// RENDER MENSAJES
+// ════════════════════════════════════════
+function addMessage(text, dir, isError = false) {
+  const body = document.getElementById('chat-body');
+  const row = document.createElement('div');
+  row.className = `msg-row ${dir}`;
+
+  const bubble = document.createElement('div');
+  bubble.className = `bubble ${dir}`;
+  if (isError) bubble.style.background = 'rgba(255,68,68,0.2)';
+
+  // Formatear markdown básico de WhatsApp
+  bubble.innerHTML = formatWhatsApp(text);
+
+  const meta = document.createElement('div');
+  meta.className = `bubble-meta ${dir}`;
+  const now = new Date();
+  meta.textContent = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}${dir==='out'?' ✓✓':''}`;
+
+  row.appendChild(bubble);
+  row.appendChild(meta);
+  body.appendChild(row);
+  body.scrollTop = body.scrollHeight;
 }
 
-async function sendMessage(){
-  if(sending)return;
-  const input=document.getElementById('chatInput');
-  const text=input.value.trim();
-  if(!text)return;
-  if(!currentShop){toast('⚠ Selecciona una barbería primero','warn');return;}
-  const phone=document.getElementById('simPhone').value.trim()||'+18099999999';
-  input.value='';
-  autoResize(input);
-  addMsg('out',text);
-  setSending(true);
-  showTyping(true);
-  log('info','→ Enviando: '+text.substring(0,40)+(text.length>40?'...':''));
-  try{
-    const EDGE_URL='https://mmokunpuslcfphalrwot.supabase.co/functions/v1/chat-simulator';
-    const res=await fetch(EDGE_URL,{
-      method:'POST',
-      headers:{'Content-Type':'application/json','apikey':SB_KEY},
-      body:JSON.stringify({
-        mensaje:text,
-        telefono:phone,
-        chat_id:'whatsapp:'+phone,
-        shop_id:currentShop.id,
-      }),
+function formatWhatsApp(text) {
+  return text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*([^*]+)\*/g, '<strong>$1</strong>')
+    .replace(/_([^_]+)_/g, '<em>$1</em>')
+    .replace(/\n/g, '<br>');
+}
+
+function showTyping() {
+  const body = document.getElementById('chat-body');
+  const el = document.createElement('div');
+  el.className = 'typing-indicator';
+  el.id = 'typing-' + Date.now();
+  el.innerHTML = `<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>`;
+  body.appendChild(el);
+  body.scrollTop = body.scrollHeight;
+  return el.id;
+}
+
+function removeTyping(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+// ════════════════════════════════════════
+// LOGS
+// ════════════════════════════════════════
+function addLog(msg, type = 'info') {
+  const box = document.getElementById('logs-box');
+  const el = document.createElement('div');
+  el.className = `log-entry ${type}`;
+  const now = new Date();
+  const t = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+  el.innerHTML = `<span class="log-time">${t}</span>${msg}`;
+  box.appendChild(el);
+  box.scrollTop = box.scrollHeight;
+  // Limitar a 100 entradas
+  while (box.children.length > 100) box.removeChild(box.firstChild);
+}
+
+function clearLogs() {
+  document.getElementById('logs-box').innerHTML = '<div class="log-entry info"><span class="log-time">--:--</span>Logs limpiados</div>';
+}
+
+// ════════════════════════════════════════
+// ESTADO DE CONVERSACIÓN
+// ════════════════════════════════════════
+const stateMap = {
+  'inicio': 's-inicio',
+  'esperando_servicio': 's-servicio',
+  'esperando_barbero': 's-barbero',
+  'esperando_confirmacion_slot': 's-slot',
+  'esperando_horario': 's-horario',
+  'esperando_nombre': 's-nombre',
+  'esperando_confirmacion': 's-confirmacion',
+  'completado': 's-completado',
+  'esperando_cancelacion': 's-cancelacion',
+  'preguntando_reinicio': 's-reinicio',
+  'esperando_confirmacion_duplicado': 's-duplicado',
+};
+
+async function updateConvState() {
+  try {
+    const tel = getTel().replace(/\D/g,'');
+    let telNorm = tel;
+    if (telNorm.length === 10 && (telNorm.startsWith('8')||telNorm.startsWith('9'))) telNorm = '1' + telNorm;
+    const chatId = 'simulator:' + tel + ':' + currentShopId;
+
+    const r = await fetch(`${SB_URL}/rest/v1/conversaciones?chat_id=eq.${encodeURIComponent(chatId)}&shop_id=eq.${currentShopId}&select=*`, {
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
     });
-    if(!res.ok){
-      const errText=await res.text().catch(()=>'');
-      throw new Error(`HTTP ${res.status}: ${errText.substring(0,200)}`);
+    const rows = await r.json();
+    if (!rows.length) {
+      document.getElementById('state-badge-wrap').innerHTML = '<span class="state-badge s-inicio">sin conversación</span>';
+      document.getElementById('state-fields').innerHTML = '';
+      return;
     }
-    const data=await res.json();
-    showTyping(false);
-    if(data.respuesta&&data.respuesta.trim()){
-      addMsg('in',data.respuesta.trim());
-      log('success','Bot: '+data.respuesta.substring(0,60));
+    const conv = rows[0];
+    const estado = conv.estado_conversacion || 'inicio';
+    const cls = stateMap[estado] || 's-inicio';
+    document.getElementById('state-badge-wrap').innerHTML = `<span class="state-badge ${cls}">${estado}</span>`;
+
+    const fields = [];
+    if (conv.servicio_parcial) fields.push(['Servicio', conv.servicio_parcial]);
+    if (conv.barbero_parcial) fields.push(['Barbero', conv.barbero_parcial]);
+    if (conv.hora_parcial) fields.push(['Hora', conv.hora_parcial]);
+    if (conv.fecha_parcial) fields.push(['Fecha', conv.fecha_parcial]);
+    if (conv.nombre_parcial) fields.push(['Nombre', conv.nombre_parcial]);
+    if (conv.ultima_actualizacion) {
+      const d = new Date(conv.ultima_actualizacion);
+      fields.push(['Última act.', `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`]);
     }
-    await loadConversation();
-  }catch(e){
-    showTyping(false);
-    log('error','Error: '+e.message);
-    addSystemMsg('Error al enviar: '+e.message);
-    toast('Error: '+e.message,'error');
-  }finally{
-    setSending(false);
+
+    document.getElementById('state-fields').innerHTML = fields.map(([k,v]) =>
+      `<div class="state-field"><span class="sf-key">${k}</span><span class="sf-val">${v}</span></div>`
+    ).join('');
+
+  } catch(e) {
+    addLog('Error al leer estado: ' + e.message, 'warn');
   }
 }
 
-async function loadConversation(){
-  if(!currentShop)return;
-  const phone=document.getElementById('simPhone').value.trim()||'+18099999999';
-  const chatId='whatsapp:'+phone;
-  try{
-    const convs=await sbGet('conversaciones',`shop_id=eq.${currentShop.id}&chat_id=eq.${encodeURIComponent(chatId)}&select=*`);
-    if(convs&&convs.length){
-      updateState(convs[0]);
-      lastConvUpdate=convs[0].ultima_actualizacion;
-      log('info','Conv: '+convs[0].estado_conversacion);
-    }else{
-      updateState(null);
+// ════════════════════════════════════════
+// RESET CONVERSACIÓN
+// ════════════════════════════════════════
+async function resetConversacion() {
+  try {
+    const tel = getTel().replace(/\D/g,'');
+    const chatId = 'simulator:' + tel + ':' + currentShopId;
+    const r = await fetch(`${SB_URL}/rest/v1/conversaciones?chat_id=eq.${encodeURIComponent(chatId)}&shop_id=eq.${currentShopId}`, {
+      method: 'DELETE',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+    });
+    if (r.ok) {
+      document.getElementById('state-badge-wrap').innerHTML = '<span class="state-badge s-inicio">reseteado</span>';
+      document.getElementById('state-fields').innerHTML = '';
+      document.getElementById('reset-banner').classList.remove('hidden');
+      addLog('✓ Conversación reseteada en BD', 'ok');
+      addMessage('🔄 *Conversación reseteada.* El bot te saludará como nuevo cliente.\n\nEscribe *hola* para comenzar.', 'in');
+    } else {
+      addLog('Error al resetear: ' + r.status, 'err');
     }
-  }catch(e){
-    log('warn','Error cargando conversación: '+e.message);
+  } catch(e) {
+    addLog('Error reset: ' + e.message, 'err');
   }
 }
 
-function startPoll(){
-  if(pollTimer)clearInterval(pollTimer);
-  pollTimer=setInterval(()=>{if(!currentShop||sending)return;loadConversation();},4000);
+function hideResetBanner() {
+  document.getElementById('reset-banner').classList.add('hidden');
 }
 
-async function resetConversation(){
-  if(!currentShop){toast('Selecciona una barbería primero','warn');return;}
-  const phone=document.getElementById('simPhone').value.trim()||'+18099999999';
-  const chatId='whatsapp:'+phone;
-  if(!confirm('¿Borrar la conversación de '+phone+'?'))return;
-  try{
-    await sbDelete('conversaciones',`shop_id=eq.${currentShop.id}&chat_id=eq.${encodeURIComponent(chatId)}`);
-    clearMessages();
-    addSystemMsg('Conversación reseteada ✓');
-    updateState(null);
-    lastConvUpdate=null;
-    log('success','Conversación borrada');
-    toast('Conversación reseteada ✓');
-  }catch(e){
-    log('error','Error: '+e.message);
-    toast('Error: '+e.message,'error');
-  }
+// ════════════════════════════════════════
+// LIMPIAR CHAT
+// ════════════════════════════════════════
+function clearChat() {
+  const body = document.getElementById('chat-body');
+  body.innerHTML = `<div class="empty-state" id="empty-state">
+    <div class="empty-icon">💬</div>
+    <div class="empty-txt">Escribe un mensaje para iniciar la conversación</div>
+    <div style="font-size:0.65rem;color:var(--text2);margin-top:4px;">Usa los botones del panel izquierdo para enviar rápido</div>
+  </div>`;
+  msgCount = 0;
+  errorCount = 0;
+  document.getElementById('stat-msgs').textContent = '0';
+  document.getElementById('stat-time').textContent = '—';
+  document.getElementById('stat-errors').textContent = '0';
+  document.getElementById('state-badge-wrap').innerHTML = '<span class="state-badge s-inicio">inicio</span>';
+  document.getElementById('state-fields').innerHTML = '';
 }
 
-function addMsg(role,text){
-  const msgs=document.getElementById('messages');
-  document.getElementById('emptyState').style.display='none';
-  const typing=document.getElementById('typingIndicator');
-  const row=document.createElement('div');
-  row.className='msg-row '+role;
-  const bubble=document.createElement('div');
-  bubble.className='bubble';
-  bubble.textContent=text;
-  const time=document.createElement('span');
-  time.className='msg-time';
-  const now=new Date();
-  time.textContent=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
-  if(role==='out')time.innerHTML+=` <span class="msg-check">✓✓</span>`;
-  bubble.appendChild(time);
-  row.appendChild(bubble);
-  msgs.insertBefore(row,typing);
-  msgs.scrollTop=msgs.scrollHeight;
-}
+// ════════════════════════════════════════
+// ATAJOS DE TECLADO
+// ════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.getElementById('msg-input').focus();
+});
 
-function addSystemMsg(text){
-  const msgs=document.getElementById('messages');
-  document.getElementById('emptyState').style.display='none';
-  const typing=document.getElementById('typingIndicator');
-  const row=document.createElement('div');
-  row.className='msg-row system';
-  const bubble=document.createElement('div');
-  bubble.className='bubble';
-  bubble.textContent=text;
-  row.appendChild(bubble);
-  msgs.insertBefore(row,typing);
-  msgs.scrollTop=msgs.scrollHeight;
-}
-
-function clearMessages(){
-  const msgs=document.getElementById('messages');
-  const typing=document.getElementById('typingIndicator');
-  const empty=document.getElementById('emptyState');
-  Array.from(msgs.children).forEach(c=>{if(c!==typing&&c!==empty)msgs.removeChild(c);});
-  empty.style.display='flex';
-  msgHistory=[];
-}
-
-function showTyping(show){
-  document.getElementById('typingIndicator').classList.toggle('show',show);
-  document.getElementById('messages').scrollTop=document.getElementById('messages').scrollHeight;
-}
-
-function setSending(v){
-  sending=v;
-  document.getElementById('sendBtn').disabled=v;
-  document.getElementById('chatInput').disabled=v;
-}
-
-function setStatus(type,txt){
-  const dot=document.getElementById('statusDot');
-  dot.className='status-dot'+(type?' '+type:'');
-  document.getElementById('statusTxt').textContent=txt;
-}
-
-function updateState(conv){
-  const container=document.getElementById('stateRows');
-  if(!conv){container.innerHTML='<div class="state-row"><span class="state-key">Sin conversación</span><span class="state-val"></span></div>';return;}
-  const fields=[
-    ['estado',conv.estado_conversacion],['nombre',conv.nombre_parcial],
-    ['fecha',conv.fecha_parcial],['hora',conv.hora_parcial],
-    ['servicio',conv.servicio_parcial],['barbero',conv.barbero_parcial],
-    ['esp.confirmación',conv.esperando_confirmacion?'sí':'no'],
-    ['esp.nombre',conv.esperando_nombre?'sí':'no'],
-    ['esp.barbero',conv.esperando_barbero?'sí':'no'],
-  ];
-  container.innerHTML=fields.map(([k,v])=>
-    v!=null&&v!==undefined&&v!==''?
-    `<div class="state-row"><span class="state-key">${k}</span><span class="state-val" title="${v}">${v}</span></div>`:''
-  ).join('');
-}
-
-function sendQuick(msg){document.getElementById('chatInput').value=msg;sendMessage();}
-function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}}
-function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';}
-function openAdmin(){if(currentShop)window.open('admin.html?shop='+currentShop.slug,'_blank');else toast('Selecciona una barbería primero','warn');}
-
-function log(type,msg){
-  const body=document.getElementById('logsBody');
-  const ts=new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  const div=document.createElement('div');
-  div.className='log-entry '+type;
-  div.innerHTML=`<span class="log-ts">${ts}</span>${msg}`;
-  body.appendChild(div);
-  body.scrollTop=body.scrollHeight;
-  while(body.children.length>100)body.removeChild(body.firstChild);
-}
-
-function clearLogs(){document.getElementById('logsBody').innerHTML='';}
-
-function toast(msg,type='success'){
-  const t=document.getElementById('toast');
-  t.textContent=msg;
-  t.style.borderColor=type==='error'?'rgba(231,76,60,0.4)':type==='warn'?'rgba(201,168,76,0.4)':'rgba(37,211,102,0.3)';
-  t.style.color=type==='error'?'#E74C3C':type==='warn'?'#C9A84C':'var(--green)';
-  t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2800);
-}
-
-init();
+// Focus inicial
+document.getElementById('msg-input').focus();
+addLog(`Simulador inicializado · Shop: ${currentShopName}`, 'ok');
 </script>
 </body>
 </html>
