@@ -54,28 +54,28 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--cyan);font-fam
 /* ── MODALES ── */
 .action-modal{display:none;position:fixed;inset:0;z-index:300;background:rgba(2,4,8,0.94);backdrop-filter:blur(18px);align-items:center;justify-content:center;}
 .action-modal.open{display:flex;}
-.action-box{background:var(--bg2);border:1px solid rgba(0,245,255,0.15);padding:28px 32px;min-width:360px;max-width:500px;width:92%;position:relative;}
+.action-box{background:var(--bg2);border:1px solid rgba(0,245,255,0.15);padding:28px 32px;min-width:360px;max-width:500px;width:92%;position:relative;}.action-box.reag-box{max-width:760px;padding:36px 40px;}
 .action-box::before{content:'';position:absolute;top:0;left:10%;right:10%;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);}
 .action-box.gold-modal::before{background:linear-gradient(90deg,transparent,var(--gold),transparent);}
 .action-box.purple-modal::before{background:linear-gradient(90deg,transparent,var(--purple),transparent);}
-.action-title{font-family:'Orbitron',monospace;font-size:0.85rem;font-weight:700;letter-spacing:0.2em;color:var(--cyan);text-transform:uppercase;margin-bottom:5px;}
+.action-title{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:700;letter-spacing:0.2em;color:var(--cyan);text-transform:uppercase;margin-bottom:5px;}
 .action-box.gold-modal .action-title{color:var(--gold);}
 .action-box.purple-modal .action-title{color:var(--purple);}
-.action-sub{font-family:'Share Tech Mono',monospace;font-size:0.44rem;color:rgba(0,245,255,0.28);letter-spacing:0.16em;text-transform:uppercase;margin-bottom:20px;}
+.action-sub{font-family:'Share Tech Mono',monospace;font-size:0.58rem;color:rgba(0,245,255,0.5);letter-spacing:0.16em;text-transform:uppercase;margin-bottom:20px;}
 .action-box.purple-modal .action-sub{color:rgba(176,110,255,0.28);}
 .action-box.gold-modal .action-sub{color:rgba(255,214,0,0.28);}
 .afield{margin-bottom:13px;}
-.afield label{font-family:'Share Tech Mono',monospace;font-size:0.42rem;color:rgba(0,245,255,0.3);letter-spacing:0.22em;text-transform:uppercase;display:block;margin-bottom:5px;}
+.afield label{font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:rgba(0,245,255,0.6);letter-spacing:0.22em;text-transform:uppercase;display:block;margin-bottom:5px;}
 .ainp{width:100%;background:rgba(0,245,255,0.03);border:1px solid rgba(0,245,255,0.12);color:var(--cyan);padding:9px 13px;font-family:'Rajdhani',sans-serif;font-size:0.92rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;outline:none;transition:border-color 0.2s;}
 .ainp:focus{border-color:rgba(0,245,255,0.4);}
 .barber-sel{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;}
 .barber-sel-btn{padding:6px 14px;border:1px solid rgba(0,245,255,0.12);background:transparent;color:rgba(0,245,255,0.38);font-family:'Share Tech Mono',monospace;font-size:0.46rem;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;}
 .barber-sel-btn:hover{border-color:rgba(0,245,255,0.3);color:rgba(0,245,255,0.7);}
 .barber-sel-btn.sel{border-color:var(--cyan);background:rgba(0,245,255,0.1);color:var(--cyan);}
-.time-slots{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;max-height:220px;overflow-y:auto;margin-top:4px;}
+.time-slots{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-height:320px;overflow-y:auto;margin-top:4px;}
 .time-slots::-webkit-scrollbar{width:2px;}
 .time-slots::-webkit-scrollbar-thumb{background:rgba(0,245,255,0.1);}
-.time-slot{padding:6px 4px;border:1px solid rgba(0,245,255,0.08);background:rgba(0,245,255,0.01);color:rgba(0,245,255,0.32);font-family:'Share Tech Mono',monospace;font-size:0.44rem;text-align:center;cursor:pointer;transition:all 0.15s;letter-spacing:0.04em;}
+.time-slot{padding:11px 6px;border:1px solid rgba(0,245,255,0.08);background:rgba(0,245,255,0.01);color:rgba(0,245,255,0.65);font-family:'Share Tech Mono',monospace;font-size:0.68rem;text-align:center;cursor:pointer;transition:all 0.15s;letter-spacing:0.06em;font-weight:600;}
 .time-slot:hover{border-color:rgba(0,245,255,0.28);color:rgba(0,245,255,0.7);}
 .time-slot.sel{border-color:var(--cyan);background:rgba(0,245,255,0.1);color:var(--cyan);}
 .time-slot.taken{opacity:0.7;pointer-events:none;background:rgba(255,0,110,0.08);border-color:rgba(255,0,110,0.4);color:rgba(255,0,110,0.7);text-decoration:line-through;}
@@ -115,8 +115,8 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--cyan);font-fam
 .transfer-num{font-family:'Orbitron',monospace;font-size:1.8rem;font-weight:700;color:var(--cyan);line-height:1;}
 .transfer-name{font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:600;color:#fff;text-transform:uppercase;letter-spacing:0.1em;}
 .transfer-meta{font-family:'Share Tech Mono',monospace;font-size:0.46rem;color:rgba(0,245,255,0.4);margin-top:3px;letter-spacing:0.12em;}
-.btn-transfer{padding:3px 9px;border:1px solid rgba(0,245,255,0.15);background:transparent;color:rgba(0,245,255,0.3);font-family:'Share Tech Mono',monospace;font-size:0.38rem;letter-spacing:0.1em;cursor:pointer;text-transform:uppercase;transition:all 0.2s;white-space:nowrap;}
-.btn-transfer:hover{background:rgba(0,245,255,0.08);border-color:rgba(0,245,255,0.5);color:rgba(0,245,255,0.8);}
+.btn-transfer{padding:7px 14px;border:1px solid rgba(0,245,255,0.25);background:rgba(0,245,255,0.04);color:rgba(0,245,255,0.65);font-family:'Share Tech Mono',monospace;font-size:0.58rem;letter-spacing:0.1em;cursor:pointer;text-transform:uppercase;transition:all 0.2s;white-space:nowrap;}
+.btn-transfer:hover{background:rgba(0,245,255,0.15);border-color:rgba(0,245,255,0.7);color:var(--cyan);box-shadow:0 0 10px rgba(0,245,255,0.15);}
 
 /* ── WALK-IN ── */
 .walkin-fab{position:fixed;right:18px;bottom:100px;z-index:60;display:flex;align-items:center;gap:7px;padding:8px 16px;background:rgba(0,255,120,0.07);border:1px solid rgba(0,255,120,0.3);color:rgba(0,255,120,0.6);font-family:'Share Tech Mono',monospace;font-size:0.48rem;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;opacity:0.35;-webkit-tap-highlight-color:transparent;}
@@ -251,7 +251,7 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .silla-zone::before,.silla-zone::after{content:'';position:absolute;width:36px;height:36px;border-style:solid;border-color:var(--bc,rgba(0,245,255,0.2));}
 .silla-zone::before{top:14px;left:14px;border-width:2px 0 0 2px;}
 .silla-zone::after{bottom:14px;right:14px;border-width:0 2px 2px 0;}
-.now-label{font-family:'Share Tech Mono',monospace;font-size:0.52rem;letter-spacing:0.5em;color:var(--magenta);text-transform:uppercase;margin-bottom:8px;text-shadow:0 0 12px var(--glow-m);animation:lbl-glow 2s ease-in-out infinite;}
+.now-label{font-family:'Share Tech Mono',monospace;font-size:0.8rem;letter-spacing:0.5em;color:var(--magenta);text-transform:uppercase;margin-bottom:12px;text-shadow:0 0 20px var(--glow-m),0 0 40px rgba(255,0,110,0.3);animation:lbl-glow 2s ease-in-out infinite;padding:6px 0;border:1px solid rgba(255,0,110,0.2);background:rgba(255,0,110,0.04);text-align:center;}
 .hero-num-wrap{position:relative;margin-bottom:2px;}
 .hero-ghost{font-family:'Orbitron',monospace;font-weight:900;color:transparent;-webkit-text-stroke:1px rgba(0,245,255,0.05);position:absolute;top:50%;left:50%;transform:translate(-50%,-52%);user-select:none;white-space:nowrap;}
 .hero-num{font-family:'Orbitron',monospace;font-weight:900;color:var(--bc,var(--cyan));text-shadow:0 0 30px var(--bc-glow,var(--glow-c)),0 0 80px var(--bc-glow,rgba(0,245,255,0.25));line-height:1;letter-spacing:0.06em;position:relative;z-index:1;transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);animation:hero-pulse 3s ease-in-out infinite;}
@@ -583,12 +583,12 @@ html.fs-sm{font-size:90%;}html.fs-md{font-size:112%;}html.fs-lg{font-size:130%;}
 
 <!-- REAGENDAR MODAL (FIX BUG 6: hora_inicio/hora_fin de BD) -->
 <div class="action-modal" id="reag-modal">
-  <div class="action-box purple-modal">
+  <div class="action-box purple-modal reag-box">
     <div class="action-title">↻ REAGENDAR TURNO</div>
     <div class="action-sub" id="reag-sub">Mover cita a otro horario</div>
     <div class="afield">
       <label>Nuevo horario</label>
-      <div style="display:flex;gap:10px;margin-bottom:6px;font-family:'Share Tech Mono',monospace;font-size:0.4rem;letter-spacing:0.12em;text-transform:uppercase;">
+      <div style="display:flex;gap:10px;margin-bottom:6px;font-family:'Share Tech Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;">
         <span style="display:flex;align-items:center;gap:4px;color:rgba(0,245,255,0.5);"><span style="width:8px;height:8px;border:1px solid rgba(0,245,255,0.4);display:inline-block;"></span>LIBRE</span>
         <span style="display:flex;align-items:center;gap:4px;color:rgba(255,0,110,0.7);"><span style="width:8px;height:8px;background:rgba(255,0,110,0.15);border:1px solid rgba(255,0,110,0.4);display:inline-block;"></span>OCUPADO</span>
         <span style="display:flex;align-items:center;gap:4px;color:rgba(0,245,255,0.7);"><span style="width:8px;height:8px;background:rgba(0,245,255,0.1);border:1px solid var(--cyan);display:inline-block;"></span>SELECCIONADO</span>
@@ -1172,8 +1172,8 @@ function renderMyTurn(c){
                 const cls=isAct?'mqi-active':isNxt?'mqi-next':'mqi-wait';
                 const tag=isAct?'<span class="mqi-tag a">EN SILLA</span>':isNxt?'<span class="mqi-tag n">PRÓXIMO</span>':'<span class="mqi-tag w">ESPERA</span>';
                 const pos=i-(currentTurn-1);const eta=pos>0?calcLiveETA(pos,barber):null;const urgent=eta&&parseInt(eta)<=5;
-                const rBtn=c.id?`<button onclick="openReagendar('${c.id}','${c.name.replace(/'/g,"\\'")}','${c.time}','${barber.replace(/'/g,"\\'")}')" style="padding:3px 8px;border:1px solid rgba(0,245,255,0.15);background:transparent;color:rgba(0,245,255,0.25);font-family:'Share Tech Mono',monospace;font-size:0.38rem;cursor:pointer;" onmouseover="this.style.background='rgba(0,245,255,0.1)';this.style.color='rgba(0,245,255,0.8)';" onmouseout="this.style.background='transparent';this.style.color='rgba(0,245,255,0.25)';">↻</button>`:'';
-                const tBtn=c.id?`<button onclick="openTransferirCita('${c.id}','${c.name.replace(/'/g,"\\'")}','${c.time}','${barber.replace(/'/g,"\\'")}',${i+1})" style="padding:3px 8px;border:1px solid rgba(0,245,255,0.15);background:transparent;color:rgba(0,245,255,0.25);font-family:'Share Tech Mono',monospace;font-size:0.38rem;cursor:pointer;" onmouseover="this.style.background='rgba(0,245,255,0.1)';this.style.color='rgba(0,245,255,0.8)';" onmouseout="this.style.background='transparent';this.style.color='rgba(0,245,255,0.25)';">↔</button>`:'';
+                const rBtn=c.id?`<button onclick="openReagendar('${c.id}','${c.name.replace(/'/g,"\\'")}','${c.time}','${barber.replace(/'/g,"\\'")}')" style="padding:7px 14px;border:1px solid rgba(176,110,255,0.3);background:rgba(176,110,255,0.05);color:rgba(176,110,255,0.7);font-family:'Share Tech Mono',monospace;font-size:0.58rem;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(176,110,255,0.15)';this.style.color='rgba(176,110,255,1)';" onmouseout="this.style.background='rgba(176,110,255,0.05)';this.style.color='rgba(176,110,255,0.7)';">↻</button>`:'';
+                const tBtn=c.id?`<button onclick="openTransferirCita('${c.id}','${c.name.replace(/'/g,"\\'")}','${c.time}','${barber.replace(/'/g,"\\'")}',${i+1})" style="padding:7px 14px;border:1px solid rgba(176,110,255,0.3);background:rgba(176,110,255,0.05);color:rgba(176,110,255,0.7);font-family:'Share Tech Mono',monospace;font-size:0.58rem;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(176,110,255,0.15)';this.style.color='rgba(176,110,255,1)';" onmouseout="this.style.background='rgba(176,110,255,0.05)';this.style.color='rgba(176,110,255,0.7)';">↔</button>`:'';
                 return`<div class="my-q-item ${cls}" style="animation-delay:${rowIdx*0.04}s;grid-template-columns:44px 1fr ${c.id?'auto auto ':''} auto;">
                   <div class="mqi-num">${String(i+1).padStart(2,'00')}</div>
                   <div><div class="mqi-name">${c.name}</div><div class="mqi-svc">${c.servicio}</div>${eta?`<div class="eta-live${urgent?' urgent':''}">⏱ ${eta}</div>`:''}</div>
