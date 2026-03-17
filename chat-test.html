@@ -6,718 +6,538 @@
 <title>BarberOS — Simulador de Bot</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-:root{
-  --bg:#111b21;--bg2:#202c33;--bg3:#2a3942;--bg4:#1f2c34;
-  --green:#00a884;--green2:#005c4b;--cyan:#53bdeb;
-  --text:#e9edef;--text2:#8696a0;--text3:#aebac1;
-  --bubble-in:#005c4b;--bubble-out:#202c33;
-  --red:#ff4444;--gold:#ffd600;--purple:#b06eff;
-}
+:root{--bg:#111b21;--bg2:#202c33;--bg3:#2a3942;--green:#00a884;--green2:#005c4b;--cyan:#53bdeb;--text:#e9edef;--text2:#8696a0;--text3:#aebac1;--red:#ff4444;--gold:#ffd600;--purple:#b06eff;--orange:#ff9500;}
 body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;height:100vh;display:flex;overflow:hidden;}
-
-/* ── SIDEBAR IZQUIERDO ── */
-.sidebar{width:320px;background:var(--bg2);display:flex;flex-direction:column;border-right:1px solid rgba(255,255,255,0.06);flex-shrink:0;}
-.sidebar-header{padding:14px 16px;background:var(--bg3);display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.05);}
-.sidebar-title{font-size:1.1rem;font-weight:600;color:var(--text);}
-.sidebar-badge{background:var(--green);color:#fff;font-size:0.65rem;font-weight:700;padding:2px 8px;border-radius:10px;letter-spacing:0.05em;}
-
-.panel-section{padding:12px 16px 6px;font-size:0.62rem;font-weight:700;letter-spacing:0.2em;color:var(--text2);text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,0.04);}
-
-/* Shop selector */
-.shop-card{padding:10px 16px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.15s;display:flex;align-items:center;gap:10px;}
+.sidebar{width:305px;background:var(--bg2);display:flex;flex-direction:column;border-right:1px solid rgba(255,255,255,0.06);flex-shrink:0;overflow:hidden;}
+.sidebar-header{padding:11px 14px;background:var(--bg3);display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.05);flex-shrink:0;}
+.sidebar-title{font-size:0.98rem;font-weight:700;}
+.sidebar-badge{background:var(--green);color:#fff;font-size:0.58rem;font-weight:700;padding:2px 7px;border-radius:10px;}
+.mode-tabs{display:flex;background:var(--bg);border-bottom:1px solid rgba(255,255,255,0.05);flex-shrink:0;}
+.mtab{flex:1;padding:9px 4px;text-align:center;font-size:0.68rem;font-weight:600;letter-spacing:0.06em;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;transition:all 0.2s;}
+.mtab:hover{color:var(--text);}
+.mtab.active{color:var(--green);border-bottom-color:var(--green);}
+.mtab.bt.active{color:var(--orange);border-bottom-color:var(--orange);}
+.tab-panel{display:none;flex-direction:column;overflow:hidden;flex:1;}
+.tab-panel.active{display:flex;}
+.ps{padding:7px 14px 3px;font-size:0.56rem;font-weight:700;letter-spacing:0.2em;color:var(--text2);text-transform:uppercase;flex-shrink:0;}
+.cs{padding:7px 14px;border-bottom:1px solid rgba(255,255,255,0.04);flex-shrink:0;}
+.cl{font-size:0.58rem;color:var(--text2);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px;}
+.ci{width:100%;background:var(--bg3);border:1px solid rgba(255,255,255,0.08);color:var(--text);padding:6px 10px;font-size:0.82rem;border-radius:4px;outline:none;}
+.ci:focus{border-color:var(--green);}
+.cr{display:flex;gap:5px;}.cr .ci{flex:1;}
+.shop-card{padding:8px 14px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.03);transition:background 0.15s;display:flex;align-items:center;gap:9px;}
 .shop-card:hover{background:rgba(255,255,255,0.04);}
 .shop-card.active{background:rgba(0,168,132,0.1);border-left:3px solid var(--green);}
-.shop-avatar{width:38px;height:38px;border-radius:50%;background:var(--green2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;color:#fff;flex-shrink:0;}
-.shop-info{flex:1;min-width:0;}
-.shop-name{font-size:0.88rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.shop-meta{font-size:0.68rem;color:var(--text2);margin-top:1px;}
-
-/* Config panel */
-.config-section{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);}
-.config-label{font-size:0.62rem;color:var(--text2);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:5px;}
-.config-inp{width:100%;background:var(--bg3);border:1px solid rgba(255,255,255,0.08);color:var(--text);padding:7px 10px;font-size:0.82rem;border-radius:4px;outline:none;}
-.config-inp:focus{border-color:var(--green);}
-.config-row{display:flex;gap:6px;margin-bottom:8px;}
-.config-row .config-inp{flex:1;}
-
-/* Quick sends */
-.quick-section{padding:10px 16px;overflow-y:auto;flex:1;}
-.quick-group{margin-bottom:12px;}
-.quick-group-title{font-size:0.58rem;font-weight:700;letter-spacing:0.18em;color:var(--text2);text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:6px;}
-.quick-group-title::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.06);}
-.quick-chips{display:flex;flex-wrap:wrap;gap:4px;}
-.chip{padding:4px 10px;background:var(--bg3);border:1px solid rgba(255,255,255,0.08);border-radius:12px;font-size:0.7rem;color:var(--text3);cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+.sa{width:34px;height:34px;border-radius:50%;background:var(--green2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.9rem;color:#fff;flex-shrink:0;}
+.si{flex:1;min-width:0;}
+.sn{font-size:0.83rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sm{font-size:0.6rem;color:var(--text2);margin-top:1px;}
+.sbb{font-size:0.48rem;padding:1px 5px;border-radius:8px;background:rgba(0,168,132,0.15);color:var(--green);flex-shrink:0;}
+.qs{overflow-y:auto;flex:1;padding:8px 14px;}
+.qs::-webkit-scrollbar{width:3px;}.qs::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);}
+.qg{margin-bottom:9px;}
+.qgt{font-size:0.54rem;font-weight:700;letter-spacing:0.15em;color:var(--text2);text-transform:uppercase;margin-bottom:4px;display:flex;align-items:center;gap:5px;}
+.qgt::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.05);}
+.qc{display:flex;flex-wrap:wrap;gap:3px;}
+.chip{padding:3px 9px;background:var(--bg3);border:1px solid rgba(255,255,255,0.07);border-radius:10px;font-size:0.67rem;color:var(--text3);cursor:pointer;transition:all 0.15s;white-space:nowrap;}
 .chip:hover{background:rgba(0,168,132,0.15);border-color:var(--green);color:var(--text);}
-.chip.danger{border-color:rgba(255,68,68,0.3);color:rgba(255,68,68,0.8);}
-.chip.danger:hover{background:rgba(255,68,68,0.15);}
-.chip.gold{border-color:rgba(255,214,0,0.3);color:rgba(255,214,0,0.8);}
-.chip.gold:hover{background:rgba(255,214,0,0.1);}
-
-/* ── CHAT PRINCIPAL ── */
+.chip.d{border-color:rgba(255,68,68,0.25);color:rgba(255,120,100,0.9);}.chip.d:hover{background:rgba(255,68,68,0.12);}
+.chip.g{border-color:rgba(255,214,0,0.25);color:rgba(255,214,0,0.85);}.chip.g:hover{background:rgba(255,214,0,0.08);}
+/* Barber panel */
+.bp{overflow-y:auto;flex:1;padding:10px 14px;}
+.bp::-webkit-scrollbar{width:3px;}.bp::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);}
+.bcard{padding:9px 11px;border:1px solid rgba(255,255,255,0.07);border-radius:6px;margin-bottom:7px;cursor:pointer;transition:all 0.2s;}
+.bcard:hover{border-color:rgba(255,149,0,0.4);background:rgba(255,149,0,0.04);}
+.bcard.sel{border-color:var(--orange);background:rgba(255,149,0,0.08);border-left:3px solid var(--orange);}
+.bcard.off{opacity:0.5;}
+.bc-row{display:flex;align-items:center;gap:7px;}
+.bc-av{width:32px;height:32px;border-radius:50%;background:rgba(255,149,0,0.2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;color:var(--orange);flex-shrink:0;}
+.bc-nm{font-size:0.85rem;font-weight:600;}
+.bc-sh{font-size:0.6rem;color:var(--text2);margin-top:1px;}
+.bc-tl{font-family:monospace;font-size:0.58rem;color:rgba(255,149,0,0.7);margin-top:2px;}
+.bc-st{margin-left:auto;font-size:0.53rem;padding:2px 6px;border-radius:8px;flex-shrink:0;}
+.bc-st.on{background:rgba(0,168,132,0.15);color:var(--green);}
+.bc-st.of{background:rgba(255,68,68,0.12);color:var(--red);}
+.bsi{padding:9px 11px;background:rgba(255,149,0,0.07);border:1px solid rgba(255,149,0,0.25);border-radius:6px;margin-bottom:9px;font-size:0.75rem;color:var(--orange);}
+.bsi-n{font-weight:700;font-size:0.88rem;margin-bottom:2px;}
+.bsi-t{font-family:monospace;font-size:0.63rem;opacity:0.8;}
+.bsi-h{font-size:0.6rem;color:var(--text2);margin-top:3px;line-height:1.4;}
+.bcmdt{font-size:0.56rem;font-weight:700;letter-spacing:0.15em;color:var(--orange);text-transform:uppercase;margin:8px 0 5px;}
+.bcmd{display:flex;align-items:center;gap:7px;padding:7px 9px;border:1px solid rgba(255,255,255,0.06);border-radius:5px;cursor:pointer;transition:all 0.18s;margin-bottom:3px;background:var(--bg3);}
+.bcmd:hover{border-color:rgba(255,149,0,0.35);background:rgba(255,149,0,0.06);}
+.bcmd.r{border-color:rgba(255,68,68,0.12);}.bcmd.r:hover{border-color:rgba(255,68,68,0.4);background:rgba(255,68,68,0.06);}
+.bcmd.g{border-color:rgba(0,168,132,0.12);}.bcmd.g:hover{border-color:rgba(0,168,132,0.4);background:rgba(0,168,132,0.06);}
+.bcmd-i{font-size:0.95rem;flex-shrink:0;}
+.bcmd-t{font-size:0.76rem;font-weight:600;}
+.bcmd-s{font-size:0.58rem;color:var(--text2);margin-top:1px;}
+.nb{padding:25px 12px;text-align:center;color:var(--text2);font-size:0.75rem;line-height:1.7;}
+.nb-i{font-size:2.2rem;opacity:0.25;margin-bottom:8px;}
+/* Chat */
 .chat-wrap{flex:1;display:flex;flex-direction:column;min-width:0;}
-.chat-header{padding:10px 16px;background:var(--bg3);display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,0.05);flex-shrink:0;}
-.chat-avatar{width:40px;height:40px;border-radius:50%;background:var(--green2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.1rem;color:#fff;flex-shrink:0;}
-.chat-info{flex:1;}
-.chat-name{font-size:0.95rem;font-weight:600;color:var(--text);}
-.chat-status{font-size:0.72rem;color:var(--green);margin-top:1px;}
-.chat-actions{display:flex;gap:8px;}
-.hbtn{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);color:var(--text2);padding:5px 12px;border-radius:4px;font-size:0.7rem;cursor:pointer;transition:all 0.2s;letter-spacing:0.06em;}
-.hbtn:hover{background:rgba(255,255,255,0.12);color:var(--text);}
-.hbtn.danger{border-color:rgba(255,68,68,0.3);color:rgba(255,68,68,0.7);}
-.hbtn.danger:hover{background:rgba(255,68,68,0.1);}
-
-/* Mensajes */
-.chat-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:4px;background:var(--bg);}
-.chat-body::-webkit-scrollbar{width:4px;}.chat-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);}
-
-/* Fondo estilo WhatsApp */
-.chat-body{background-color:var(--bg);background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.015'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");}
-
-.msg-row{display:flex;flex-direction:column;max-width:72%;animation:msgIn 0.18s ease;}
-.msg-row.out{align-self:flex-end;align-items:flex-end;}
-.msg-row.in{align-self:flex-start;align-items:flex-start;}
-@keyframes msgIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
-
-.bubble{padding:8px 12px;border-radius:8px;font-size:0.86rem;line-height:1.5;position:relative;word-break:break-word;}
-.bubble.out{background:#005c4b;border-bottom-right-radius:2px;}
-.bubble.in{background:#202c33;border-bottom-left-radius:2px;}
-.bubble strong{font-weight:700;}
-.bubble em{font-style:italic;color:rgba(255,255,255,0.6);}
-
-.bubble-meta{font-size:0.62rem;color:var(--text2);margin-top:2px;padding:0 2px;}
-.bubble-meta.out{text-align:right;}
-
-.typing-indicator{display:flex;align-items:center;gap:5px;padding:10px 14px;background:#202c33;border-radius:8px;border-bottom-left-radius:2px;align-self:flex-start;margin:2px 0;}
-.typing-dot{width:7px;height:7px;border-radius:50%;background:var(--text2);animation:tdot 1.2s infinite;}
-.typing-dot:nth-child(2){animation-delay:0.2s;}
-.typing-dot:nth-child(3){animation-delay:0.4s;}
-@keyframes tdot{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-5px);}}
-
-.day-divider{align-self:center;background:var(--bg3);padding:3px 10px;border-radius:6px;font-size:0.68rem;color:var(--text2);margin:8px 0;letter-spacing:0.05em;}
-
-/* Input */
-.chat-input-wrap{padding:10px 14px;background:var(--bg2);display:flex;gap:10px;align-items:center;border-top:1px solid rgba(255,255,255,0.05);flex-shrink:0;}
-.msg-input{flex:1;background:var(--bg3);border:1px solid rgba(255,255,255,0.08);color:var(--text);padding:10px 14px;border-radius:20px;font-size:0.9rem;outline:none;transition:border-color 0.2s;}
-.msg-input:focus{border-color:rgba(0,168,132,0.5);}
-.send-btn{width:42px;height:42px;border-radius:50%;background:var(--green);border:none;color:#fff;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;}
-.send-btn:hover{background:#00cf9f;transform:scale(1.05);}
-.send-btn:disabled{background:var(--bg3);cursor:not-allowed;transform:none;}
-
-/* ── PANEL DERECHO (logs) ── */
-.right-panel{width:280px;background:var(--bg2);display:flex;flex-direction:column;border-left:1px solid rgba(255,255,255,0.06);flex-shrink:0;}
-.rp-header{padding:14px 16px;background:var(--bg3);font-size:0.78rem;font-weight:700;letter-spacing:0.12em;color:var(--text2);text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:space-between;}
-.rp-clear{font-size:0.6rem;background:none;border:1px solid rgba(255,255,255,0.08);color:var(--text2);padding:2px 8px;cursor:pointer;border-radius:3px;}
-.rp-clear:hover{color:var(--text);}
-
-/* Estado conversación */
-.state-box{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,0.05);}
-.state-title{font-size:0.58rem;font-weight:700;letter-spacing:0.2em;color:var(--text2);text-transform:uppercase;margin-bottom:8px;}
-.state-badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:0.68rem;font-weight:600;letter-spacing:0.06em;margin-bottom:4px;}
-.state-badge.s-inicio{background:rgba(255,255,255,0.06);color:var(--text2);}
-.state-badge.s-servicio{background:rgba(83,189,235,0.15);color:var(--cyan);}
-.state-badge.s-barbero{background:rgba(176,110,255,0.15);color:var(--purple);}
-.state-badge.s-slot{background:rgba(255,214,0,0.12);color:var(--gold);}
-.state-badge.s-horario{background:rgba(255,214,0,0.12);color:var(--gold);}
-.state-badge.s-nombre{background:rgba(0,168,132,0.15);color:var(--green);}
-.state-badge.s-confirmacion{background:rgba(0,168,132,0.2);color:#00e5b0;}
-.state-badge.s-completado{background:rgba(0,168,132,0.25);color:var(--green);}
-.state-badge.s-cancelacion{background:rgba(255,68,68,0.15);color:var(--red);}
-.state-badge.s-reinicio{background:rgba(255,214,0,0.1);color:var(--gold);}
-.state-badge.s-duplicado{background:rgba(255,68,68,0.1);color:rgba(255,120,50,0.9);}
-.state-field{display:flex;justify-content:space-between;align-items:flex-start;padding:3px 0;border-top:1px solid rgba(255,255,255,0.03);}
-.sf-key{font-size:0.62rem;color:var(--text2);flex-shrink:0;}
-.sf-val{font-size:0.65rem;color:var(--text);text-align:right;word-break:break-all;}
-
-/* Logs */
-.logs-box{flex:1;overflow-y:auto;padding:8px;}
-.logs-box::-webkit-scrollbar{width:3px;}.logs-box::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);}
-.log-entry{padding:5px 8px;border-radius:4px;margin-bottom:3px;font-family:'Courier New',monospace;font-size:0.65rem;border-left:2px solid;}
-.log-entry.info{border-color:var(--cyan);background:rgba(83,189,235,0.05);color:rgba(83,189,235,0.85);}
-.log-entry.ok{border-color:var(--green);background:rgba(0,168,132,0.05);color:rgba(0,200,150,0.85);}
-.log-entry.warn{border-color:var(--gold);background:rgba(255,214,0,0.05);color:rgba(255,214,0,0.8);}
-.log-entry.err{border-color:var(--red);background:rgba(255,68,68,0.06);color:rgba(255,100,100,0.9);}
-.log-time{opacity:0.5;margin-right:5px;}
-
-/* Stats */
-.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.05);}
-.stat-mini{padding:6px;background:var(--bg3);border-radius:4px;text-align:center;}
-.stat-mini-val{font-size:1.1rem;font-weight:700;color:var(--green);}
-.stat-mini-lbl{font-size:0.52rem;color:var(--text2);letter-spacing:0.1em;text-transform:uppercase;margin-top:1px;}
-
-/* Tooltips y helpers */
-.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--text2);}
-.empty-icon{font-size:3rem;opacity:0.3;}
-.empty-txt{font-size:0.78rem;letter-spacing:0.1em;}
-
-/* Indicador de carga */
-.loading-overlay{display:none;position:absolute;inset:0;background:rgba(17,27,33,0.5);z-index:100;align-items:center;justify-content:center;}
-.loading-overlay.show{display:flex;}
-
-/* Número de teléfono display */
-.tel-display{font-size:0.65rem;color:var(--text2);padding:2px 6px;background:var(--bg3);border-radius:3px;font-family:monospace;}
-
-/* Reset btn */
-.reset-banner{padding:8px 16px;background:rgba(255,68,68,0.08);border-bottom:1px solid rgba(255,68,68,0.15);display:flex;align-items:center;justify-content:space-between;font-size:0.72rem;color:rgba(255,120,100,0.8);}
-.reset-banner.hidden{display:none;}
-.reset-link{color:var(--red);cursor:pointer;text-decoration:underline;}
+.chat-header{padding:8px 14px;background:var(--bg3);display:flex;align-items:center;gap:9px;border-bottom:1px solid rgba(255,255,255,0.05);flex-shrink:0;}
+.cav-wrap{position:relative;flex-shrink:0;}
+.cav{width:37px;height:37px;border-radius:50%;background:var(--green2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.95rem;color:#fff;}
+.cav.bm{background:rgba(255,149,0,0.2);color:var(--orange);}
+.cdot{position:absolute;bottom:0;right:0;width:10px;height:10px;border-radius:50%;border:2px solid var(--bg3);}
+.cdot.cl{background:var(--green);}.cdot.ba{background:var(--orange);}
+.ci2{flex:1;min-width:0;}
+.cn{font-size:0.9rem;font-weight:600;}
+.cs2{font-size:0.65rem;color:var(--text2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hbtn{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:var(--text2);padding:4px 9px;border-radius:4px;font-size:0.67rem;cursor:pointer;transition:all 0.18s;white-space:nowrap;}
+.hbtn:hover{background:rgba(255,255,255,0.1);color:var(--text);}
+.hbtn.dx{border-color:rgba(255,68,68,0.25);color:rgba(255,100,100,0.8);}.hbtn.dx:hover{background:rgba(255,68,68,0.1);}
+.tp{font-family:monospace;font-size:0.6rem;color:var(--text2);padding:2px 7px;background:var(--bg3);border-radius:10px;border:1px solid rgba(255,255,255,0.06);white-space:nowrap;}
+.tp.ba{color:var(--orange);border-color:rgba(255,149,0,0.25);}
+.chat-body{flex:1;overflow-y:auto;padding:13px;display:flex;flex-direction:column;gap:3px;background-color:var(--bg);background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.012'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");}
+.chat-body::-webkit-scrollbar{width:4px;}.chat-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);}
+.mr{display:flex;flex-direction:column;max-width:74%;animation:mi 0.16s ease;}
+.mr.out{align-self:flex-end;align-items:flex-end;}.mr.in{align-self:flex-start;align-items:flex-start;}
+@keyframes mi{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:none;}}
+.bub{padding:7px 11px;border-radius:8px;font-size:0.84rem;line-height:1.5;word-break:break-word;}
+.bub.out{background:#005c4b;border-bottom-right-radius:2px;}
+.bub.out.bx{background:rgba(255,149,0,0.18);border:1px solid rgba(255,149,0,0.28);}
+.bub.in{background:#202c33;border-bottom-left-radius:2px;}
+.bub.er{background:rgba(255,68,68,0.14);border:1px solid rgba(255,68,68,0.2);}
+.bub strong{font-weight:700;}.bub em{font-style:italic;color:rgba(255,255,255,0.6);}
+.bm2{font-size:0.59rem;color:var(--text2);margin-top:1px;padding:0 2px;}
+.bm2.out{text-align:right;}
+.ti{display:flex;align-items:center;gap:4px;padding:8px 12px;background:#202c33;border-radius:8px;border-bottom-left-radius:2px;align-self:flex-start;}
+.td{width:6px;height:6px;border-radius:50%;background:var(--text2);animation:ta 1.2s infinite;}
+.td:nth-child(2){animation-delay:.2s;}.td:nth-child(3){animation-delay:.4s;}
+@keyframes ta{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-4px);}}
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;color:var(--text2);}
+.ei{font-size:2.5rem;opacity:0.22;}.et{font-size:0.73rem;letter-spacing:0.07em;}.es{font-size:0.6rem;opacity:0.6;}
+.chat-input-wrap{padding:8px 12px;background:var(--bg2);display:flex;gap:7px;align-items:center;border-top:1px solid rgba(255,255,255,0.05);flex-shrink:0;}
+.mi2{flex:1;background:var(--bg3);border:1px solid rgba(255,255,255,0.07);color:var(--text);padding:8px 12px;border-radius:17px;font-size:0.87rem;outline:none;transition:border-color 0.2s;}
+.mi2:focus{border-color:rgba(0,168,132,0.45);}
+.mi2.bi:focus{border-color:rgba(255,149,0,0.45);}
+.sb{width:39px;height:39px;border-radius:50%;background:var(--green);border:none;color:#fff;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.18s;flex-shrink:0;}
+.sb:hover{transform:scale(1.06);}.sb:disabled{background:var(--bg3);cursor:not-allowed;transform:none;}
+.sb.bs{background:var(--orange);}
+/* right */
+.rp{width:255px;background:var(--bg2);display:flex;flex-direction:column;border-left:1px solid rgba(255,255,255,0.06);flex-shrink:0;}
+.rph{padding:11px 13px;background:var(--bg3);font-size:0.7rem;font-weight:700;letter-spacing:0.12em;color:var(--text2);text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.rpc{font-size:0.56rem;background:none;border:1px solid rgba(255,255,255,0.07);color:var(--text2);padding:2px 6px;cursor:pointer;border-radius:3px;}
+.rpc:hover{color:var(--text);}
+.sr{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;padding:7px 9px;border-bottom:1px solid rgba(255,255,255,0.05);flex-shrink:0;}
+.sm2{padding:5px;background:var(--bg3);border-radius:4px;text-align:center;}
+.sv{font-size:1.05rem;font-weight:700;color:var(--green);}
+.sl{font-size:0.48rem;color:var(--text2);letter-spacing:0.08em;text-transform:uppercase;margin-top:1px;}
+.stb{padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.04);flex-shrink:0;}
+.stt{font-size:0.54rem;font-weight:700;letter-spacing:0.17em;color:var(--text2);text-transform:uppercase;margin-bottom:5px;}
+.sbg{display:inline-block;padding:3px 9px;border-radius:10px;font-size:0.63rem;font-weight:600;letter-spacing:0.05em;margin-bottom:3px;}
+.s0{background:rgba(255,255,255,0.05);color:var(--text2);}
+.s1{background:rgba(83,189,235,0.13);color:var(--cyan);}
+.s2{background:rgba(176,110,255,0.13);color:var(--purple);}
+.s3,.s4{background:rgba(255,214,0,0.1);color:var(--gold);}
+.s5{background:rgba(0,168,132,0.13);color:var(--green);}
+.s6{background:rgba(0,168,132,0.18);color:#00e5b0;}
+.s7{background:rgba(0,168,132,0.22);color:var(--green);}
+.s8{background:rgba(255,68,68,0.13);color:var(--red);}
+.s9{background:rgba(255,214,0,0.08);color:var(--gold);}
+.s10{background:rgba(255,100,50,0.1);color:rgba(255,120,60,0.9);}
+.sf{display:flex;justify-content:space-between;align-items:flex-start;padding:2px 0;border-top:1px solid rgba(255,255,255,0.03);}
+.sfk{font-size:0.58rem;color:var(--text2);flex-shrink:0;}
+.sfv{font-size:0.62rem;color:var(--text);text-align:right;word-break:break-all;margin-left:4px;}
+.lb{flex:1;overflow-y:auto;padding:5px 7px;}
+.lb::-webkit-scrollbar{width:3px;}.lb::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);}
+.le{padding:3px 6px;border-radius:3px;margin-bottom:2px;font-family:'Courier New',monospace;font-size:0.61rem;border-left:2px solid;}
+.le.info{border-color:var(--cyan);background:rgba(83,189,235,0.04);color:rgba(83,189,235,0.8);}
+.le.ok{border-color:var(--green);background:rgba(0,168,132,0.04);color:rgba(0,200,150,0.8);}
+.le.warn{border-color:var(--gold);background:rgba(255,214,0,0.04);color:rgba(255,214,0,0.75);}
+.le.err{border-color:var(--red);background:rgba(255,68,68,0.05);color:rgba(255,100,100,0.85);}
+.le.bar{border-color:var(--orange);background:rgba(255,149,0,0.04);color:rgba(255,149,0,0.8);}
+.lt{opacity:0.4;margin-right:4px;}
 </style>
 </head>
 <body>
 
-<!-- SIDEBAR IZQUIERDO -->
+<!-- SIDEBAR -->
 <div class="sidebar">
   <div class="sidebar-header">
     <div class="sidebar-title">✂ Bot Simulator</div>
     <div class="sidebar-badge">v37</div>
   </div>
-
-  <!-- Selección de barbería -->
-  <div class="panel-section">Barbería</div>
-  <div id="shop-list">
-    <div class="shop-card active" data-id="108a1a3b-802c-4fc3-ad99-3b2a42f6c875" data-name="PRUEBALAB" onclick="selectShop(this)">
-      <div class="shop-avatar">P</div>
-      <div class="shop-info">
-        <div class="shop-name">PRUEBALAB</div>
-        <div class="shop-meta">9AM–11PM · 30min · Meta</div>
-      </div>
-    </div>
-    <div class="shop-card" data-id="61797d02-7674-48c7-9b65-1ad30da82f7a" data-name="Elite Cuts" onclick="selectShop(this)">
-      <div class="shop-avatar">E</div>
-      <div class="shop-info">
-        <div class="shop-name">Elite Cuts</div>
-        <div class="shop-meta">6AM–11PM · 30min · Meta</div>
-      </div>
-    </div>
-    <div class="shop-card" data-id="dd513d7d-8051-4586-b0cf-93587b5df32d" data-name="pruba4" onclick="selectShop(this)">
-      <div class="shop-avatar">T</div>
-      <div class="shop-info">
-        <div class="shop-name">pruba4</div>
-        <div class="shop-meta">9AM–6PM · 45min · Twilio</div>
-      </div>
-    </div>
-    <div class="shop-card" data-id="5a81d543-537c-4846-b0ad-abf5c3a42364" data-name="Richarbar" onclick="selectShop(this)">
-      <div class="shop-avatar">R</div>
-      <div class="shop-info">
-        <div class="shop-name">Richarbar</div>
-        <div class="shop-meta">7AM–9PM · 30min · Twilio</div>
-      </div>
-    </div>
+  <div class="mode-tabs">
+    <div class="mtab active" id="tc" onclick="switchTab('client')">👤 Cliente</div>
+    <div class="mtab bt" id="tb" onclick="switchTab('barber')">✂ Barbero</div>
   </div>
 
-  <!-- Config -->
-  <div class="panel-section">Teléfono de prueba</div>
-  <div class="config-section">
-    <div class="config-label">Número (simula un cliente)</div>
-    <div class="config-row">
-      <input class="config-inp" id="tel-input" value="+18091234567" placeholder="+18091234567">
-      <button class="hbtn" onclick="randomTel()" title="Generar nuevo número">🎲</button>
+  <!-- TAB CLIENTE -->
+  <div class="tab-panel active" id="pc">
+    <div class="ps" style="margin-top:4px;">Barbería</div>
+    <div id="shop-list">
+      <div class="shop-card active" data-id="108a1a3b-802c-4fc3-ad99-3b2a42f6c875" data-name="PRUEBALAB" onclick="selectShop(this)">
+        <div class="sa">P</div><div class="si"><div class="sn">PRUEBALAB</div><div class="sm">9AM–11PM · 30min · 2 barberos</div></div><div class="sbb">BOT ✓</div>
+      </div>
+      <div class="shop-card" data-id="61797d02-7674-48c7-9b65-1ad30da82f7a" data-name="Elite Cuts" onclick="selectShop(this)">
+        <div class="sa">E</div><div class="si"><div class="sn">Elite Cuts</div><div class="sm">6AM–11PM · 30min · 3 barberos</div></div><div class="sbb">BOT ✓</div>
+      </div>
+      <div class="shop-card" data-id="dd513d7d-8051-4586-b0cf-93587b5df32d" data-name="pruba4" onclick="selectShop(this)">
+        <div class="sa">T</div><div class="si"><div class="sn">pruba4</div><div class="sm">9AM–6PM · 45min</div></div>
+      </div>
+      <div class="shop-card" data-id="5a81d543-537c-4846-b0ad-abf5c3a42364" data-name="Richarbar" onclick="selectShop(this)">
+        <div class="sa">R</div><div class="si"><div class="sn">Richarbar</div><div class="sm">7AM–9PM · 30min</div></div>
+      </div>
     </div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
-      <button class="chip" onclick="setTel('+18091111111')">Cliente 1</button>
-      <button class="chip" onclick="setTel('+18092222222')">Cliente 2</button>
-      <button class="chip" onclick="setTel('+18093333333')">Cliente 3</button>
-      <button class="chip gold" onclick="setTel('+18099999999')">Nuevo</button>
+    <div class="cs">
+      <div class="cl">Teléfono del cliente</div>
+      <div class="cr"><input class="ci" id="tel-input" value="+18091234567"><button class="hbtn" onclick="randomTel()">🎲</button></div>
+      <div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:6px;">
+        <div class="chip" onclick="setTel('+18091111111')">Cliente 1</div>
+        <div class="chip" onclick="setTel('+18092222222')">Cliente 2</div>
+        <div class="chip" onclick="setTel('+18093333333')">Cliente 3</div>
+        <div class="chip g" onclick="randomTel()">🎲 Nuevo</div>
+      </div>
     </div>
-  </div>
-
-  <!-- Quick sends -->
-  <div class="panel-section">Mensajes rápidos</div>
-  <div class="quick-section">
-
-    <div class="quick-group">
-      <div class="quick-group-title">🟢 Inicio</div>
-      <div class="quick-chips">
+    <div class="qs">
+      <div class="qg"><div class="qgt">🟢 Inicio</div><div class="qc">
         <div class="chip" onclick="quickSend('hola')">hola</div>
         <div class="chip" onclick="quickSend('buenos dias')">buenos dias</div>
         <div class="chip" onclick="quickSend('quiero una cita')">quiero cita</div>
         <div class="chip" onclick="quickSend('precio')">precio</div>
         <div class="chip" onclick="quickSend('que horario tienen')">horario</div>
         <div class="chip" onclick="quickSend('donde estan')">ubicación</div>
-      </div>
-    </div>
-
-    <div class="quick-group">
-      <div class="quick-group-title">✂ Servicios</div>
-      <div class="quick-chips">
-        <div class="chip" onclick="quickSend('1')">1 (primer svc)</div>
-        <div class="chip" onclick="quickSend('2')">2 (segundo svc)</div>
-        <div class="chip" onclick="quickSend('3')">3 (tercer svc)</div>
-        <div class="chip" onclick="quickSend('corte')">corte</div>
-        <div class="chip" onclick="quickSend('barba')">barba</div>
-        <div class="chip" onclick="quickSend('fade')">fade</div>
-      </div>
-    </div>
-
-    <div class="quick-group">
-      <div class="quick-group-title">👤 Barbero</div>
-      <div class="quick-chips">
+      </div></div>
+      <div class="qg"><div class="qgt">✂ Servicio</div><div class="qc">
+        <div class="chip" onclick="quickSend('1')">1</div><div class="chip" onclick="quickSend('2')">2</div>
+        <div class="chip" onclick="quickSend('3')">3</div><div class="chip" onclick="quickSend('corte')">corte</div>
+        <div class="chip" onclick="quickSend('barba')">barba</div><div class="chip" onclick="quickSend('fade')">fade</div>
+      </div></div>
+      <div class="qg"><div class="qgt">👤 Barbero</div><div class="qc">
         <div class="chip" onclick="quickSend('1')">1 (primero)</div>
         <div class="chip" onclick="quickSend('2')">2 (segundo)</div>
-        <div class="chip" onclick="quickSend('cualquiera')">cualquiera</div>
-      </div>
-    </div>
-
-    <div class="quick-group">
-      <div class="quick-group-title">🕐 Slots / Horario</div>
-      <div class="quick-chips">
-        <div class="chip" onclick="quickSend('1')">1 (confirmar slot)</div>
-        <div class="chip" onclick="quickSend('2')">2 (ver todos)</div>
+        <div class="chip" onclick="quickSend('3')">3 (tercero)</div>
+      </div></div>
+      <div class="qg"><div class="qgt">🕐 Slots</div><div class="qc">
+        <div class="chip" onclick="quickSend('1')">1 confirmar</div>
+        <div class="chip" onclick="quickSend('2')">2 ver todos</div>
         <div class="chip" onclick="quickSend('otro horario')">otro horario</div>
-        <div class="chip" onclick="quickSend('3')">3 (slot)</div>
-        <div class="chip" onclick="quickSend('4')">4 (slot)</div>
-        <div class="chip" onclick="quickSend('5')">5 (slot)</div>
-      </div>
-    </div>
-
-    <div class="quick-group">
-      <div class="quick-group-title">📝 Nombre</div>
-      <div class="quick-chips">
+        <div class="chip" onclick="quickSend('3')">slot 3</div>
+        <div class="chip" onclick="quickSend('4')">slot 4</div>
+        <div class="chip" onclick="quickSend('5')">slot 5</div>
+      </div></div>
+      <div class="qg"><div class="qgt">📝 Nombre</div><div class="qc">
         <div class="chip" onclick="quickSend('Juan Pérez')">Juan Pérez</div>
         <div class="chip" onclick="quickSend('Carlos Martínez')">Carlos M.</div>
         <div class="chip" onclick="quickSend('Miguel Torres')">Miguel T.</div>
-        <div class="chip" onclick="quickSend('Ana Ramírez')">Ana R.</div>
-      </div>
-    </div>
-
-    <div class="quick-group">
-      <div class="quick-group-title">✅ Confirmación</div>
-      <div class="quick-chips">
+      </div></div>
+      <div class="qg"><div class="qgt">✅ Confirmar</div><div class="qc">
         <div class="chip" onclick="quickSend('sí')">sí</div>
         <div class="chip" onclick="quickSend('si')">si</div>
         <div class="chip" onclick="quickSend('no')">no</div>
         <div class="chip" onclick="quickSend('1')">1</div>
         <div class="chip" onclick="quickSend('2')">2</div>
-      </div>
-    </div>
-
-    <div class="quick-group">
-      <div class="quick-group-title">📋 Mi cita / Cancelar</div>
-      <div class="quick-chips">
+      </div></div>
+      <div class="qg"><div class="qgt">📋 Mi cita</div><div class="qc">
         <div class="chip" onclick="quickSend('mi cita')">mi cita</div>
-        <div class="chip" onclick="quickSend('mis citas')">mis citas</div>
-        <div class="chip danger" onclick="quickSend('cancelar')">cancelar</div>
-        <div class="chip danger" onclick="quickSend('sí')">sí (cancelar)</div>
-      </div>
-    </div>
-
-    <div class="quick-group">
-      <div class="quick-group-title">🔄 Reinicio / Flujo</div>
-      <div class="quick-chips">
-        <div class="chip gold" onclick="quickSend('1')">1 (reiniciar)</div>
-        <div class="chip gold" onclick="quickSend('2')">2 (continuar)</div>
-        <div class="chip" onclick="quickSend('menu')">menu</div>
+        <div class="chip d" onclick="quickSend('cancelar')">cancelar</div>
+        <div class="chip d" onclick="quickSend('sí')">sí (cancelar)</div>
+        <div class="chip" onclick="quickSend('no')">no (mantener)</div>
+      </div></div>
+      <div class="qg"><div class="qgt">🔄 Reinicio</div><div class="qc">
+        <div class="chip g" onclick="quickSend('1')">1 reiniciar</div>
+        <div class="chip g" onclick="quickSend('2')">2 continuar</div>
         <div class="chip" onclick="quickSend('nueva cita')">nueva cita</div>
-      </div>
-    </div>
-
-    <div class="quick-group">
-      <div class="quick-group-title">⚙ Barbero (modo barbero)</div>
-      <div class="quick-chips">
-        <div class="chip" onclick="quickSend('mis turnos')">mis turnos</div>
-        <div class="chip danger" onclick="quickSend('inactivo')">inactivo</div>
-        <div class="chip" onclick="quickSend('activo')">activo</div>
-        <div class="chip" onclick="quickSend('off')">off</div>
-      </div>
-    </div>
-
-    <div class="quick-group">
-      <div class="quick-group-title">🧪 Casos especiales</div>
-      <div class="quick-chips">
-        <div class="chip" onclick="quickSend('hola')">👋 Reiniciar flujo</div>
+        <div class="chip" onclick="quickSend('menu')">menu</div>
+      </div></div>
+      <div class="qg"><div class="qgt">🧪 Edge cases</div><div class="qc">
         <div class="chip" onclick="quickSend('ok')">ok</div>
         <div class="chip" onclick="quickSend('dale')">dale</div>
         <div class="chip" onclick="quickSend('a')">letra inválida</div>
-        <div class="chip" onclick="quickSend('999')">número inválido</div>
+        <div class="chip" onclick="quickSend('999')">nro inválido</div>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- TAB BARBERO -->
+  <div class="tab-panel" id="pb">
+    <div class="bp">
+      <div id="nb" class="nb">
+        <div class="nb-i">✂</div>
+        Selecciona un barbero para simular el modo barbero.<br><br>
+        <span style="font-size:0.62rem;color:rgba(255,149,0,0.6);">Teléfonos asignados en BD para pruebas.</span>
+      </div>
+      <div id="bsi" class="bsi" style="display:none;">
+        <div class="bsi-n" id="bsin">—</div>
+        <div class="bsi-t" id="bsit">—</div>
+        <div class="bsi-h">El bot reconocerá este teléfono como barbero y activará el modo especial.</div>
+      </div>
+      <div id="bcw" style="display:none;">
+        <div class="bcmdt">⚡ Comandos del barbero</div>
+        <div class="bcmd g" onclick="quickSend('mis turnos')"><div class="bcmd-i">📋</div><div><div class="bcmd-t">mis turnos</div><div class="bcmd-s">Ver mis citas de hoy</div></div></div>
+        <div class="bcmd r" onclick="quickSend('inactivo')"><div class="bcmd-i">⏸</div><div><div class="bcmd-t">inactivo</div><div class="bcmd-s">Desactivarse + reasignar citas</div></div></div>
+        <div class="bcmd r" onclick="quickSend('off')"><div class="bcmd-i">🔴</div><div><div class="bcmd-t">off</div><div class="bcmd-s">Igual que inactivo</div></div></div>
+        <div class="bcmd g" onclick="quickSend('activo')"><div class="bcmd-i">▶</div><div><div class="bcmd-t">activo</div><div class="bcmd-s">Reactivarse</div></div></div>
+        <div class="bcmd g" onclick="quickSend('on')"><div class="bcmd-i">🟢</div><div><div class="bcmd-t">on</div><div class="bcmd-s">Igual que activo</div></div></div>
+        <div class="bcmd" onclick="quickSend('hola')"><div class="bcmd-i">ℹ️</div><div><div class="bcmd-t">hola (menú)</div><div class="bcmd-s">Ver opciones disponibles</div></div></div>
+      </div>
+      <div style="font-size:0.56rem;font-weight:700;letter-spacing:0.14em;color:var(--text2);text-transform:uppercase;margin:10px 0 5px;display:flex;align-items:center;gap:5px;">Barberos con BOT activo<span style="flex:1;height:1px;background:rgba(255,255,255,0.05);display:block;"></span></div>
+      <div id="barber-list"></div>
+      <div style="font-size:0.55rem;color:var(--text2);margin-top:7px;padding:7px;background:var(--bg3);border-radius:4px;line-height:1.6;">
+        ⚠ Solo PRUEBALAB y Elite Cuts tienen <em>bot_barbero_activo = true</em>. pruba4 y Richarbar no lo soportan.
       </div>
     </div>
-
   </div>
 </div>
 
-<!-- CHAT PRINCIPAL -->
+<!-- CHAT -->
 <div class="chat-wrap">
   <div class="chat-header">
-    <div class="chat-avatar" id="hdr-avatar">P</div>
-    <div class="chat-info">
-      <div class="chat-name" id="hdr-name">PRUEBALAB</div>
-      <div class="chat-status">🟢 Bot activo · chat-simulator v37</div>
+    <div class="cav-wrap">
+      <div class="cav" id="cav">P</div>
+      <div class="cdot cl" id="cdot"></div>
     </div>
-    <div style="display:flex;align-items:center;gap:8px;">
-      <div class="tel-display" id="hdr-tel">+18091234567</div>
-      <button class="hbtn" onclick="clearChat()">🗑 Limpiar chat</button>
-      <button class="hbtn danger" onclick="resetConversacion()">♻ Reset conv.</button>
+    <div class="ci2">
+      <div class="cn" id="cn">PRUEBALAB</div>
+      <div class="cs2" id="cs2">Modo CLIENTE · chat-simulator v37</div>
     </div>
-  </div>
-
-  <!-- Banner de reset -->
-  <div class="reset-banner hidden" id="reset-banner">
-    ⚠ Conversación reseteada en BD. <span class="reset-link" onclick="hideResetBanner()">Cerrar</span>
-  </div>
-
-  <div class="chat-body" id="chat-body">
-    <div class="empty-state" id="empty-state">
-      <div class="empty-icon">💬</div>
-      <div class="empty-txt">Escribe un mensaje para iniciar la conversación</div>
-      <div style="font-size:0.65rem;color:var(--text2);margin-top:4px;">Usa los botones del panel izquierdo para enviar rápido</div>
+    <div style="display:flex;align-items:center;gap:5px;flex-shrink:0;">
+      <div class="tp" id="tp">+18091234567</div>
+      <button class="hbtn" onclick="clearChat()">🗑 Chat</button>
+      <button class="hbtn dx" onclick="resetConv()">♻ Reset BD</button>
     </div>
   </div>
-
+  <div class="chat-body" id="cb">
+    <div class="empty" id="es"><div class="ei">💬</div><div class="et">Escribe un mensaje o usa los botones</div><div class="es">Modo: Cliente</div></div>
+  </div>
   <div class="chat-input-wrap">
-    <input class="msg-input" id="msg-input" placeholder="Escribe un mensaje..." 
-           onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}">
-    <button class="send-btn" id="send-btn" onclick="sendMessage()">➤</button>
+    <input class="mi2" id="mi" placeholder="Escribe un mensaje..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg();}">
+    <button class="sb" id="sb" onclick="sendMsg()">➤</button>
   </div>
 </div>
 
 <!-- PANEL DERECHO -->
-<div class="right-panel">
-  <div class="rp-header">
-    <span>Estado & Logs</span>
-    <button class="rp-clear" onclick="clearLogs()">limpiar</button>
+<div class="rp">
+  <div class="rph"><span>Estado & Logs</span><button class="rpc" onclick="clearLogs()">limpiar</button></div>
+  <div class="sr">
+    <div class="sm2"><div class="sv" id="sm">0</div><div class="sl">Msgs</div></div>
+    <div class="sm2"><div class="sv" id="st" style="color:var(--gold);">—</div><div class="sl">ms</div></div>
+    <div class="sm2"><div class="sv" id="se" style="color:var(--red);">0</div><div class="sl">Errores</div></div>
   </div>
-
-  <!-- Stats -->
-  <div class="stats-row">
-    <div class="stat-mini">
-      <div class="stat-mini-val" id="stat-msgs">0</div>
-      <div class="stat-mini-lbl">Mensajes</div>
-    </div>
-    <div class="stat-mini">
-      <div class="stat-mini-val" id="stat-time" style="color:var(--gold);">—</div>
-      <div class="stat-mini-lbl">Último ms</div>
-    </div>
-    <div class="stat-mini">
-      <div class="stat-mini-val" id="stat-errors" style="color:var(--red);">0</div>
-      <div class="stat-mini-lbl">Errores</div>
-    </div>
+  <div class="stb">
+    <div class="stt">Estado conversación BD</div>
+    <div id="sbw"><span class="sbg s0">–</span></div>
+    <div id="sfs" style="margin-top:4px;"></div>
   </div>
-
-  <!-- Estado conversación -->
-  <div class="state-box">
-    <div class="state-title">Estado conversación</div>
-    <div id="state-badge-wrap">
-      <span class="state-badge s-inicio">inicio</span>
-    </div>
-    <div id="state-fields" style="margin-top:6px;"></div>
-  </div>
-
-  <!-- Logs -->
-  <div class="logs-box" id="logs-box">
-    <div class="log-entry info"><span class="log-time">--:--</span>Simulador listo</div>
+  <div class="lb" id="lb">
+    <div class="le info"><span class="lt">--:--</span>Simulador listo · v37</div>
   </div>
 </div>
 
 <script>
-// ════════════════════════════════════════
-// CONFIG
-// ════════════════════════════════════════
-const SB_URL = 'https://mmokunpuslcfphalrwot.supabase.co';
-const SB_KEY = 'sb_publishable_aETz_9ECH5RcBMjmRhUnfw_g71zRdwT';
-const BOT_URL = `${SB_URL}/functions/v1/chat-simulator`;
+const SBU = 'https://mmokunpuslcfphalrwot.supabase.co';
+const SBK = 'sb_publishable_aETz_9ECH5RcBMjmRhUnfw_g71zRdwT';
+const BOTU = `${SBU}/functions/v1/chat-simulator`;
+const H = {'apikey':SBK,'Authorization':`Bearer ${SBK}`};
 
-let currentShopId = '108a1a3b-802c-4fc3-ad99-3b2a42f6c875';
-let currentShopName = 'PRUEBALAB';
-let msgCount = 0;
-let errorCount = 0;
-let isLoading = false;
+let shopId='108a1a3b-802c-4fc3-ad99-3b2a42f6c875',shopName='PRUEBALAB';
+let mode='client',selBarber=null,msgs=0,errs=0,busy=false;
 
-// ════════════════════════════════════════
-// SHOP SELECTOR
-// ════════════════════════════════════════
-function selectShop(el) {
-  document.querySelectorAll('.shop-card').forEach(c => c.classList.remove('active'));
+const BARBEROS=[
+  {id:'d0700b88-1fa3-45b3-b24e-b5b15ec1ae70',nombre:'barbero-prueba 1',tel:'18091110001',sid:'108a1a3b-802c-4fc3-ad99-3b2a42f6c875',shop:'PRUEBALAB',activo:true},
+  {id:'475cf193-dd1d-4bd7-9ba0-c2724a8bf797',nombre:'RAFAEL',tel:'18091110002',sid:'108a1a3b-802c-4fc3-ad99-3b2a42f6c875',shop:'PRUEBALAB',activo:true},
+  {id:'4b238c83-5085-4938-923a-cbff35e73945',nombre:'Matías',tel:'18091110010',sid:'61797d02-7674-48c7-9b65-1ad30da82f7a',shop:'Elite Cuts',activo:true},
+  {id:'a78ac724-f861-487b-8bad-128b785d2252',nombre:'Lucas',tel:'18091110011',sid:'61797d02-7674-48c7-9b65-1ad30da82f7a',shop:'Elite Cuts',activo:true},
+  {id:'65456bc1-67d2-40a7-a456-f2628afbe2e1',nombre:'Gonzalo',tel:'18091110012',sid:'61797d02-7674-48c7-9b65-1ad30da82f7a',shop:'Elite Cuts',activo:false},
+];
+
+const SM={'inicio':'s0','esperando_servicio':'s1','esperando_barbero':'s2','esperando_confirmacion_slot':'s3','esperando_horario':'s4','esperando_nombre':'s5','esperando_confirmacion':'s6','completado':'s7','esperando_cancelacion':'s8','preguntando_reinicio':'s9','esperando_confirmacion_duplicado':'s10'};
+
+function p(n){return String(n).padStart(2,'0');}
+function now(){const d=new Date();return`${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;}
+
+function switchTab(t){
+  mode=t;
+  document.getElementById('tc').classList.toggle('active',t==='client');
+  document.getElementById('tb').classList.toggle('active',t==='barber');
+  ['tc','tb'].forEach(id=>document.getElementById(id).classList.remove('bt'));
+  if(t==='barber')document.getElementById('tb').classList.add('bt');
+  document.getElementById('pc').classList.toggle('active',t==='client');
+  document.getElementById('pb').classList.toggle('active',t==='barber');
+  if(t==='barber')renderBarbers();
+  updateHeader();
+}
+
+function renderBarbers(){
+  document.getElementById('barber-list').innerHTML=BARBEROS.map(b=>`
+    <div class="bcard${b.activo?'':' off'}${selBarber?.id===b.id?' sel':''}" onclick="selB('${b.id}')">
+      <div class="bc-row">
+        <div class="bc-av">${b.nombre.charAt(0).toUpperCase()}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="bc-nm">${b.nombre}</div>
+          <div class="bc-sh">✂ ${b.shop}</div>
+          <div class="bc-tl">+${b.tel}</div>
+        </div>
+        <div class="bc-st ${b.activo?'on':'of'}">${b.activo?'ACTIVO':'INACTIVO'}</div>
+      </div>
+    </div>`).join('');
+}
+
+function selB(id){
+  selBarber=BARBEROS.find(b=>b.id===id)||null;
+  if(!selBarber)return;
+  shopId=selBarber.sid; shopName=selBarber.shop;
+  document.querySelectorAll('.shop-card').forEach(c=>c.classList.toggle('active',c.dataset.id===shopId));
+  document.getElementById('tel-input').value='+'+selBarber.tel;
+  document.getElementById('nb').style.display='none';
+  document.getElementById('bsi').style.display='block';
+  document.getElementById('bcw').style.display='block';
+  document.getElementById('bsin').textContent='✂ '+selBarber.nombre;
+  document.getElementById('bsit').textContent='+'+selBarber.tel+' → '+selBarber.shop;
+  renderBarbers(); updateHeader(); clearChat();
+  log(`Barbero seleccionado: ${selBarber.nombre} (${selBarber.shop})`,'bar');
+}
+
+function selectShop(el){
+  if(mode==='barber')return;
+  document.querySelectorAll('.shop-card').forEach(c=>c.classList.remove('active'));
   el.classList.add('active');
-  currentShopId = el.dataset.id;
-  currentShopName = el.dataset.name;
-  document.getElementById('hdr-name').textContent = currentShopName;
-  document.getElementById('hdr-avatar').textContent = currentShopName.charAt(0);
-  clearChat();
-  addLog(`Barbería cambiada a: ${currentShopName}`, 'info');
+  shopId=el.dataset.id; shopName=el.dataset.name;
+  updateHeader(); clearChat();
 }
 
-// ════════════════════════════════════════
-// TELÉFONO
-// ════════════════════════════════════════
-function getTel() { return document.getElementById('tel-input').value.trim() || '+18091234567'; }
-function setTel(t) { document.getElementById('tel-input').value = t; document.getElementById('hdr-tel').textContent = t; addLog(`Tel cambiado: ${t}`, 'info'); }
-function randomTel() {
-  const n = '+1809' + Math.floor(1000000 + Math.random() * 9000000);
-  setTel(n);
+function getTel(){
+  if(mode==='barber'&&selBarber)return'+'+selBarber.tel;
+  return document.getElementById('tel-input').value.trim()||'+18091234567';
 }
-document.getElementById('tel-input').addEventListener('input', function() {
-  document.getElementById('hdr-tel').textContent = this.value;
-});
+function setTel(t){document.getElementById('tel-input').value=t;updateHeader();}
+function randomTel(){const n='+1809'+Math.floor(1000000+Math.random()*9000000);setTel(n);}
+document.getElementById('tel-input').addEventListener('input',updateHeader);
 
-// ════════════════════════════════════════
-// ENVIAR MENSAJE
-// ════════════════════════════════════════
-async function sendMessage() {
-  if (isLoading) return;
-  const input = document.getElementById('msg-input');
-  const msg = input.value.trim();
-  if (!msg) return;
-  input.value = '';
-  await processMessage(msg);
+function updateHeader(){
+  const isB=mode==='barber'&&selBarber;
+  const cav=document.getElementById('cav');
+  cav.textContent=isB?selBarber.nombre.charAt(0).toUpperCase():shopName.charAt(0);
+  cav.className='cav'+(isB?' bm':'');
+  document.getElementById('cdot').className='cdot '+(isB?'ba':'cl');
+  document.getElementById('cn').textContent=isB?`✂ ${selBarber.nombre} — ${shopName}`:shopName;
+  document.getElementById('cs2').textContent=isB?'Modo BARBERO · bot_barbero_activo = true':'Modo CLIENTE · chat-simulator v37';
+  const tel=getTel();
+  const tp=document.getElementById('tp');
+  tp.textContent=tel; tp.className='tp'+(isB?' ba':'');
+  document.getElementById('sb').className='sb'+(isB?' bs':'');
+  document.getElementById('mi').className='mi2'+(isB?' bi':'');
 }
 
-function quickSend(msg) {
-  document.getElementById('msg-input').value = msg;
-  sendMessage();
+async function sendMsg(){
+  if(busy)return;
+  const inp=document.getElementById('mi');
+  const msg=inp.value.trim();
+  if(!msg)return;
+  inp.value='';
+  await proc(msg);
+}
+function quickSend(m){document.getElementById('mi').value=m;sendMsg();}
+
+async function proc(msg){
+  if(busy)return;
+  busy=true;
+  document.getElementById('sb').disabled=true;
+  document.getElementById('es').style.display='none';
+  const isB=mode==='barber'&&selBarber;
+  addBub(msg,'out',isB);
+  msgs++; document.getElementById('sm').textContent=msgs;
+  const tid=showTyping();
+  const t0=Date.now();
+  try{
+    const tel=getTel();
+    const sid=isB?selBarber.sid:shopId;
+    const cid=`simulator:${tel.replace(/\D/g,'')}:${sid}`;
+    log(`→ "${msg}" [${tel}]${isB?' [BARBERO]':''}`,isB?'bar':'info');
+    const r=await fetch(BOTU,{method:'POST',headers:{'Content-Type':'application/json',...H},body:JSON.stringify({shop_id:sid,telefono:tel,mensaje:msg,chat_id:cid})});
+    const el=Date.now()-t0;
+    document.getElementById('st').textContent=el+'ms';
+    removeTyping(tid);
+    if(!r.ok){const e=await r.text();addBub(`❌ Error ${r.status}: ${e}`,'in',false,true);log(`Error ${r.status}: ${e}`,'err');errs++;}
+    else{const d=await r.json();if(d.error){addBub(`❌ ${d.error}`,'in',false,true);log(`Bot err: ${d.error}`,'err');errs++;}else{addBub(d.respuesta,'in');log(`✓ ${el}ms`,isB?'bar':'ok');setTimeout(updState,400);}}
+    document.getElementById('se').textContent=errs;
+  }catch(e){removeTyping(tid);addBub(`❌ Red: ${e.message}`,'in',false,true);log('Err: '+e.message,'err');errs++;document.getElementById('se').textContent=errs;}
+  busy=false;
+  document.getElementById('sb').disabled=false;
+  document.getElementById('mi').focus();
 }
 
-async function processMessage(msg) {
-  if (isLoading) return;
-  isLoading = true;
-  document.getElementById('send-btn').disabled = true;
-
-  // Ocultar estado vacío
-  document.getElementById('empty-state').style.display = 'none';
-
-  // Mostrar mensaje del usuario
-  addMessage(msg, 'out');
-  msgCount++;
-  document.getElementById('stat-msgs').textContent = msgCount;
-
-  // Typing indicator
-  const typingId = showTyping();
-  const t0 = Date.now();
-
-  try {
-    const tel = getTel();
-    const chatId = 'simulator:' + tel.replace(/\D/g,'') + ':' + currentShopId;
-
-    addLog(`→ "${msg}" [${tel}]`, 'info');
-
-    const resp = await fetch(BOT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` },
-      body: JSON.stringify({ shop_id: currentShopId, telefono: tel, mensaje: msg, chat_id: chatId })
-    });
-
-    const elapsed = Date.now() - t0;
-    document.getElementById('stat-time').textContent = elapsed + 'ms';
-
-    removeTyping(typingId);
-
-    if (!resp.ok) {
-      const errText = await resp.text();
-      addMessage(`❌ Error HTTP ${resp.status}: ${errText}`, 'in', true);
-      addLog(`Error ${resp.status}: ${errText}`, 'err');
-      errorCount++;
-      document.getElementById('stat-errors').textContent = errorCount;
-    } else {
-      const data = await resp.json();
-      if (data.error) {
-        addMessage(`❌ ${data.error}`, 'in', true);
-        addLog(`Bot error: ${data.error}`, 'err');
-        errorCount++;
-        document.getElementById('stat-errors').textContent = errorCount;
-      } else {
-        addMessage(data.respuesta, 'in');
-        addLog(`✓ ${elapsed}ms · v${data.version}`, 'ok');
-        // Actualizar estado
-        setTimeout(() => updateConvState(), 400);
-      }
-    }
-  } catch (e) {
-    removeTyping(typingId);
-    addMessage(`❌ Error de red: ${e.message}`, 'in', true);
-    addLog(`Network error: ${e.message}`, 'err');
-    errorCount++;
-    document.getElementById('stat-errors').textContent = errorCount;
-  }
-
-  isLoading = false;
-  document.getElementById('send-btn').disabled = false;
-  document.getElementById('msg-input').focus();
+function fmtWA(t){
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*([^*\n]+)\*/g,'<strong>$1</strong>')
+    .replace(/_([^_\n]+)_/g,'<em>$1</em>')
+    .replace(/\n/g,'<br>');
 }
 
-// ════════════════════════════════════════
-// RENDER MENSAJES
-// ════════════════════════════════════════
-function addMessage(text, dir, isError = false) {
-  const body = document.getElementById('chat-body');
-  const row = document.createElement('div');
-  row.className = `msg-row ${dir}`;
-
-  const bubble = document.createElement('div');
-  bubble.className = `bubble ${dir}`;
-  if (isError) bubble.style.background = 'rgba(255,68,68,0.2)';
-
-  // Formatear markdown básico de WhatsApp
-  bubble.innerHTML = formatWhatsApp(text);
-
-  const meta = document.createElement('div');
-  meta.className = `bubble-meta ${dir}`;
-  const now = new Date();
-  meta.textContent = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}${dir==='out'?' ✓✓':''}`;
-
-  row.appendChild(bubble);
-  row.appendChild(meta);
-  body.appendChild(row);
-  body.scrollTop = body.scrollHeight;
+function addBub(text,dir,isBm=false,isErr=false){
+  const cb=document.getElementById('cb');
+  const row=document.createElement('div');row.className=`mr ${dir}`;
+  const b=document.createElement('div');
+  b.className=`bub ${dir}${isErr?' er':isBm&&dir==='out'?' bx':''}`;
+  b.innerHTML=fmtWA(text);
+  const m=document.createElement('div');m.className=`bm2 ${dir}`;
+  const n=new Date();m.textContent=`${p(n.getHours())}:${p(n.getMinutes())}${dir==='out'?' ✓✓':''}${isBm&&dir==='out'?' ✂':''}`;
+  row.appendChild(b);row.appendChild(m);cb.appendChild(row);cb.scrollTop=cb.scrollHeight;
 }
 
-function formatWhatsApp(text) {
-  return text
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/\*([^*]+)\*/g, '<strong>$1</strong>')
-    .replace(/_([^_]+)_/g, '<em>$1</em>')
-    .replace(/\n/g, '<br>');
+function showTyping(){
+  const cb=document.getElementById('cb');
+  const r=document.createElement('div');r.className='mr in';r.id='ty'+Date.now();
+  r.innerHTML='<div class="ti"><div class="td"></div><div class="td"></div><div class="td"></div></div>';
+  cb.appendChild(r);cb.scrollTop=cb.scrollHeight;return r.id;
+}
+function removeTyping(id){const e=document.getElementById(id);if(e)e.remove();}
+
+function log(msg,type='info'){
+  const lb=document.getElementById('lb');
+  const el=document.createElement('div');el.className=`le ${type}`;
+  el.innerHTML=`<span class="lt">${now()}</span>${msg}`;
+  lb.appendChild(el);lb.scrollTop=lb.scrollHeight;
+  while(lb.children.length>120)lb.removeChild(lb.firstChild);
+}
+function clearLogs(){document.getElementById('lb').innerHTML='<div class="le info"><span class="lt">--:--</span>Limpiado</div>';}
+
+async function updState(){
+  try{
+    const tel=getTel().replace(/\D/g,'');
+    const sid=(mode==='barber'&&selBarber)?selBarber.sid:shopId;
+    const cid=`simulator:${tel}:${sid}`;
+    const r=await fetch(`${SBU}/rest/v1/conversaciones?chat_id=eq.${encodeURIComponent(cid)}&shop_id=eq.${sid}&select=*`,{headers:H});
+    const rows=await r.json();
+    if(!rows.length){document.getElementById('sbw').innerHTML='<span class="sbg s0">sin conv.</span>';document.getElementById('sfs').innerHTML='';return;}
+    const c=rows[0];const e=c.estado_conversacion||'inicio';const cls=SM[e]||'s0';
+    document.getElementById('sbw').innerHTML=`<span class="sbg ${cls}">${e}</span>`;
+    const f=[];
+    if(c.servicio_parcial)f.push(['Servicio',c.servicio_parcial]);
+    if(c.barbero_parcial)f.push(['Barbero',c.barbero_parcial]);
+    if(c.hora_parcial)f.push(['Hora',c.hora_parcial]);
+    if(c.fecha_parcial)f.push(['Fecha',c.fecha_parcial]);
+    if(c.nombre_parcial)f.push(['Nombre',c.nombre_parcial]);
+    if(c.ultima_actualizacion){const d=new Date(c.ultima_actualizacion);f.push(['Última',`${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`]);}
+    document.getElementById('sfs').innerHTML=f.map(([k,v])=>`<div class="sf"><span class="sfk">${k}</span><span class="sfv">${v}</span></div>`).join('');
+  }catch(e){log('Estado err: '+e.message,'warn');}
 }
 
-function showTyping() {
-  const body = document.getElementById('chat-body');
-  const el = document.createElement('div');
-  el.className = 'typing-indicator';
-  el.id = 'typing-' + Date.now();
-  el.innerHTML = `<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>`;
-  body.appendChild(el);
-  body.scrollTop = body.scrollHeight;
-  return el.id;
+async function resetConv(){
+  try{
+    const tel=getTel().replace(/\D/g,'');
+    const sid=(mode==='barber'&&selBarber)?selBarber.sid:shopId;
+    const cid=`simulator:${tel}:${sid}`;
+    await fetch(`${SBU}/rest/v1/conversaciones?chat_id=eq.${encodeURIComponent(cid)}&shop_id=eq.${sid}`,{method:'DELETE',headers:H});
+    document.getElementById('sbw').innerHTML='<span class="sbg s0">reseteado ✓</span>';
+    document.getElementById('sfs').innerHTML='';
+    log('✓ Conv. reseteada en BD','ok');
+    addBub('🔄 *Conversación reseteada.* Escribe *hola* para empezar.','in');
+  }catch(e){log('Reset err: '+e.message,'err');}
 }
 
-function removeTyping(id) {
-  const el = document.getElementById(id);
-  if (el) el.remove();
+function clearChat(){
+  const isB=mode==='barber'&&selBarber;
+  document.getElementById('cb').innerHTML=`<div class="empty" id="es"><div class="ei">${isB?'✂':'💬'}</div><div class="et">Escribe un mensaje o usa los botones</div><div class="es">Modo: ${isB?'✂ '+selBarber.nombre:'Cliente'}</div></div>`;
+  msgs=0;errs=0;
+  document.getElementById('sm').textContent='0';document.getElementById('st').textContent='—';document.getElementById('se').textContent='0';
+  document.getElementById('sbw').innerHTML='<span class="sbg s0">–</span>';document.getElementById('sfs').innerHTML='';
 }
 
-// ════════════════════════════════════════
-// LOGS
-// ════════════════════════════════════════
-function addLog(msg, type = 'info') {
-  const box = document.getElementById('logs-box');
-  const el = document.createElement('div');
-  el.className = `log-entry ${type}`;
-  const now = new Date();
-  const t = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
-  el.innerHTML = `<span class="log-time">${t}</span>${msg}`;
-  box.appendChild(el);
-  box.scrollTop = box.scrollHeight;
-  // Limitar a 100 entradas
-  while (box.children.length > 100) box.removeChild(box.firstChild);
-}
-
-function clearLogs() {
-  document.getElementById('logs-box').innerHTML = '<div class="log-entry info"><span class="log-time">--:--</span>Logs limpiados</div>';
-}
-
-// ════════════════════════════════════════
-// ESTADO DE CONVERSACIÓN
-// ════════════════════════════════════════
-const stateMap = {
-  'inicio': 's-inicio',
-  'esperando_servicio': 's-servicio',
-  'esperando_barbero': 's-barbero',
-  'esperando_confirmacion_slot': 's-slot',
-  'esperando_horario': 's-horario',
-  'esperando_nombre': 's-nombre',
-  'esperando_confirmacion': 's-confirmacion',
-  'completado': 's-completado',
-  'esperando_cancelacion': 's-cancelacion',
-  'preguntando_reinicio': 's-reinicio',
-  'esperando_confirmacion_duplicado': 's-duplicado',
-};
-
-async function updateConvState() {
-  try {
-    const tel = getTel().replace(/\D/g,'');
-    let telNorm = tel;
-    if (telNorm.length === 10 && (telNorm.startsWith('8')||telNorm.startsWith('9'))) telNorm = '1' + telNorm;
-    const chatId = 'simulator:' + tel + ':' + currentShopId;
-
-    const r = await fetch(`${SB_URL}/rest/v1/conversaciones?chat_id=eq.${encodeURIComponent(chatId)}&shop_id=eq.${currentShopId}&select=*`, {
-      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
-    });
-    const rows = await r.json();
-    if (!rows.length) {
-      document.getElementById('state-badge-wrap').innerHTML = '<span class="state-badge s-inicio">sin conversación</span>';
-      document.getElementById('state-fields').innerHTML = '';
-      return;
-    }
-    const conv = rows[0];
-    const estado = conv.estado_conversacion || 'inicio';
-    const cls = stateMap[estado] || 's-inicio';
-    document.getElementById('state-badge-wrap').innerHTML = `<span class="state-badge ${cls}">${estado}</span>`;
-
-    const fields = [];
-    if (conv.servicio_parcial) fields.push(['Servicio', conv.servicio_parcial]);
-    if (conv.barbero_parcial) fields.push(['Barbero', conv.barbero_parcial]);
-    if (conv.hora_parcial) fields.push(['Hora', conv.hora_parcial]);
-    if (conv.fecha_parcial) fields.push(['Fecha', conv.fecha_parcial]);
-    if (conv.nombre_parcial) fields.push(['Nombre', conv.nombre_parcial]);
-    if (conv.ultima_actualizacion) {
-      const d = new Date(conv.ultima_actualizacion);
-      fields.push(['Última act.', `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`]);
-    }
-
-    document.getElementById('state-fields').innerHTML = fields.map(([k,v]) =>
-      `<div class="state-field"><span class="sf-key">${k}</span><span class="sf-val">${v}</span></div>`
-    ).join('');
-
-  } catch(e) {
-    addLog('Error al leer estado: ' + e.message, 'warn');
-  }
-}
-
-// ════════════════════════════════════════
-// RESET CONVERSACIÓN
-// ════════════════════════════════════════
-async function resetConversacion() {
-  try {
-    const tel = getTel().replace(/\D/g,'');
-    const chatId = 'simulator:' + tel + ':' + currentShopId;
-    const r = await fetch(`${SB_URL}/rest/v1/conversaciones?chat_id=eq.${encodeURIComponent(chatId)}&shop_id=eq.${currentShopId}`, {
-      method: 'DELETE',
-      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
-    });
-    if (r.ok) {
-      document.getElementById('state-badge-wrap').innerHTML = '<span class="state-badge s-inicio">reseteado</span>';
-      document.getElementById('state-fields').innerHTML = '';
-      document.getElementById('reset-banner').classList.remove('hidden');
-      addLog('✓ Conversación reseteada en BD', 'ok');
-      addMessage('🔄 *Conversación reseteada.* El bot te saludará como nuevo cliente.\n\nEscribe *hola* para comenzar.', 'in');
-    } else {
-      addLog('Error al resetear: ' + r.status, 'err');
-    }
-  } catch(e) {
-    addLog('Error reset: ' + e.message, 'err');
-  }
-}
-
-function hideResetBanner() {
-  document.getElementById('reset-banner').classList.add('hidden');
-}
-
-// ════════════════════════════════════════
-// LIMPIAR CHAT
-// ════════════════════════════════════════
-function clearChat() {
-  const body = document.getElementById('chat-body');
-  body.innerHTML = `<div class="empty-state" id="empty-state">
-    <div class="empty-icon">💬</div>
-    <div class="empty-txt">Escribe un mensaje para iniciar la conversación</div>
-    <div style="font-size:0.65rem;color:var(--text2);margin-top:4px;">Usa los botones del panel izquierdo para enviar rápido</div>
-  </div>`;
-  msgCount = 0;
-  errorCount = 0;
-  document.getElementById('stat-msgs').textContent = '0';
-  document.getElementById('stat-time').textContent = '—';
-  document.getElementById('stat-errors').textContent = '0';
-  document.getElementById('state-badge-wrap').innerHTML = '<span class="state-badge s-inicio">inicio</span>';
-  document.getElementById('state-fields').innerHTML = '';
-}
-
-// ════════════════════════════════════════
-// ATAJOS DE TECLADO
-// ════════════════════════════════════════
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') document.getElementById('msg-input').focus();
-});
-
-// Focus inicial
-document.getElementById('msg-input').focus();
-addLog(`Simulador inicializado · Shop: ${currentShopName}`, 'ok');
+document.getElementById('mi').focus();
+log('Simulador listo · PRUEBALAB','ok');
+log('5 barberos con tel asignado en BD','info');
 </script>
 </body>
 </html>
