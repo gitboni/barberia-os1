@@ -2053,6 +2053,227 @@ document.getElementById('stripeBtn').addEventListener('click',()=>openModal('mod
 document.getElementById('paypalBtn').addEventListener('click',()=>openModal('modalPaypal'));
 
 // ════════════════════════════════════════════
+
+// ════════════════════════════════════════════
+//  FACTURA PDF — Diseño profesional
+// ════════════════════════════════════════════
+function imprimirFactura(shopId, shopNombre, shopSlug, plan, createdAt) {
+  const PLAN_PRICES = {pro: 29, elite: 79};
+  const monto = PLAN_PRICES[plan] || 29;
+  const hoy = new Date();
+  const fechaEmision = hoy.toLocaleDateString('es-DO', {day:'2-digit', month:'long', year:'numeric'});
+  const fechaVence = new Date(hoy.getTime() + 30*86400000).toLocaleDateString('es-DO', {day:'2-digit', month:'long', year:'numeric'});
+  const numFactura = 'BSAS-' + String(Math.floor(Math.random()*90000)+10000);
+  const inicio = new Date(createdAt).toLocaleDateString('es-DO', {day:'2-digit', month:'long', year:'numeric'});
+
+  const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Factura ${numFactura} — ${shopNombre}</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#111;font-size:14px;}
+  .page{max-width:800px;margin:0 auto;padding:48px 52px;min-height:100vh;position:relative;}
+
+  /* HEADER */
+  .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:48px;padding-bottom:28px;border-bottom:3px solid #111;}
+  .logo-area{display:flex;align-items:center;gap:14px;}
+  .logo-icon{width:52px;height:52px;background:#111;display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:#C9A84C;flex-shrink:0;}
+  .logo-text{font-size:1.8rem;font-weight:900;letter-spacing:0.06em;color:#111;line-height:1;}
+  .logo-sub{font-size:0.58rem;color:#888;letter-spacing:0.3em;text-transform:uppercase;margin-top:3px;}
+  .factura-badge{text-align:right;}
+  .factura-badge .titulo{font-size:2rem;font-weight:900;letter-spacing:0.12em;text-transform:uppercase;color:#111;}
+  .factura-badge .num{font-size:0.8rem;color:#C9A84C;letter-spacing:0.08em;font-weight:700;margin-top:2px;}
+  .factura-badge .estado{display:inline-block;background:#e6f9f0;color:#1a7a45;font-size:0.6rem;font-weight:700;letter-spacing:0.15em;padding:3px 10px;border:1px solid #1a7a45;margin-top:6px;text-transform:uppercase;}
+
+  /* INFO GRID */
+  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-bottom:40px;}
+  .info-block .label{font-size:0.55rem;color:#888;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:6px;font-weight:600;}
+  .info-block .value{font-size:0.9rem;font-weight:700;color:#111;line-height:1.5;}
+  .info-block .value-muted{font-size:0.8rem;color:#555;margin-top:2px;}
+
+  /* TABLA */
+  .table-wrap{margin-bottom:36px;}
+  table{width:100%;border-collapse:collapse;}
+  thead tr{background:#111;color:#fff;}
+  thead th{padding:12px 16px;text-align:left;font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;font-weight:700;}
+  thead th:last-child{text-align:right;}
+  tbody tr{border-bottom:1px solid #e8e8e8;}
+  tbody tr:last-child{border-bottom:2px solid #111;}
+  tbody td{padding:14px 16px;font-size:0.88rem;color:#222;}
+  tbody td:last-child{text-align:right;font-weight:700;}
+  .plan-badge{display:inline-block;padding:2px 10px;background:#C9A84C;color:#111;font-size:0.56rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;}
+
+  /* TOTALES */
+  .totals{display:flex;justify-content:flex-end;margin-bottom:36px;}
+  .totals-box{width:280px;}
+  .totals-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:0.85rem;}
+  .totals-row.total{border-bottom:none;border-top:2px solid #111;margin-top:4px;padding-top:12px;font-size:1.1rem;font-weight:900;color:#111;}
+  .totals-row.total span:last-child{color:#C9A84C;}
+
+  /* NOTAS */
+  .notas{background:#f8f8f8;border-left:4px solid #C9A84C;padding:16px 20px;margin-bottom:40px;font-size:0.78rem;color:#444;line-height:1.7;}
+  .notas strong{color:#111;}
+
+  /* FOOTER */
+  .footer{border-top:1px solid #ddd;padding-top:20px;display:flex;justify-content:space-between;align-items:flex-end;}
+  .footer-left{font-size:0.65rem;color:#888;line-height:1.8;}
+  .footer-right{text-align:right;font-size:0.65rem;color:#888;}
+  .footer-brand{font-size:0.8rem;font-weight:900;color:#111;letter-spacing:0.1em;}
+
+  /* SELLO */
+  .sello{position:absolute;top:200px;right:60px;width:130px;height:130px;border:4px solid rgba(201,168,76,0.25);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;transform:rotate(-18deg);opacity:0.35;}
+  .sello-text{font-size:0.5rem;font-weight:900;letter-spacing:0.25em;color:#C9A84C;text-transform:uppercase;text-align:center;line-height:1.5;}
+
+  @media print{
+    body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .no-print{display:none!important;}
+    .page{padding:32px 40px;}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- SELLO -->
+  <div class="sello">
+    <div class="sello-text">PAGADO<br>✓<br>ACTIVO</div>
+  </div>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo-area">
+      <div class="logo-icon">✂</div>
+      <div>
+        <div class="logo-text">BarberOS</div>
+        <div class="logo-sub">Sistema de Gestión · SaaS</div>
+      </div>
+    </div>
+    <div class="factura-badge">
+      <div class="titulo">Factura</div>
+      <div class="num">${numFactura}</div>
+      <div class="estado">● Pagada</div>
+    </div>
+  </div>
+
+  <!-- INFO -->
+  <div class="info-grid">
+    <div>
+      <div class="info-block" style="margin-bottom:20px;">
+        <div class="label">Proveedor del servicio</div>
+        <div class="value">BarberOS SaaS</div>
+        <div class="value-muted">Sistema de gestión para barberías</div>
+        <div class="value-muted">contacto@barberos.app</div>
+        <div class="value-muted">barberia-os1.vercel.app</div>
+      </div>
+    </div>
+    <div>
+      <div class="info-block" style="margin-bottom:20px;">
+        <div class="label">Facturado a</div>
+        <div class="value">${shopNombre}</div>
+        <div class="value-muted">Slug: ${shopSlug}</div>
+        <div class="value-muted">Plan: ${plan.toUpperCase()}</div>
+        <div class="value-muted">Cliente desde: ${inicio}</div>
+      </div>
+    </div>
+    <div>
+      <div class="info-block">
+        <div class="label">Fecha de emisión</div>
+        <div class="value">${fechaEmision}</div>
+      </div>
+    </div>
+    <div>
+      <div class="info-block">
+        <div class="label">Próximo cobro</div>
+        <div class="value" style="color:#C9A84C;">${fechaVence}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Descripción del servicio</th>
+          <th>Plan</th>
+          <th>Período</th>
+          <th>Cantidad</th>
+          <th>Precio</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="color:#888;">001</td>
+          <td>
+            <strong>BarberOS ${plan.toUpperCase()} — Suscripción mensual</strong><br>
+            <span style="font-size:0.75rem;color:#666;">Bot WhatsApp · Panel Admin · Sala de Espera · Reportes · Recordatorios automáticos</span>
+          </td>
+          <td><span class="plan-badge">${plan.toUpperCase()}</span></td>
+          <td style="color:#666;font-size:0.8rem;">${fechaEmision}<br>→ ${fechaVence}</td>
+          <td style="text-align:center;">1</td>
+          <td>$${monto}.00</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- TOTALES -->
+  <div class="totals">
+    <div class="totals-box">
+      <div class="totals-row"><span>Subtotal</span><span>$${monto}.00</span></div>
+      <div class="totals-row"><span>Descuento</span><span>$0.00</span></div>
+      <div class="totals-row"><span style="color:#888;font-size:0.75rem;">ITBIS (18%)</span><span style="color:#888;font-size:0.75rem;">Exento</span></div>
+      <div class="totals-row total"><span>TOTAL</span><span>$${monto}.00 USD</span></div>
+    </div>
+  </div>
+
+  <!-- NOTAS -->
+  <div class="notas">
+    <strong>Notas:</strong> Esta factura corresponde a la suscripción mensual del plan ${plan.toUpperCase()} de BarberOS.
+    El servicio incluye acceso completo a todas las funcionalidades del plan durante el período indicado.
+    Para soporte técnico contactar: <strong>contacto@barberos.app</strong>
+  </div>
+
+  <!-- BOTÓN IMPRIMIR (no se imprime) -->
+  <div class="no-print" style="text-align:center;margin-bottom:32px;">
+    <button onclick="window.print()" style="background:#111;color:#C9A84C;border:2px solid #C9A84C;padding:12px 40px;font-size:0.85rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;">
+      🖨 IMPRIMIR / GUARDAR PDF
+    </button>
+    <button onclick="window.close()" style="background:transparent;color:#888;border:1px solid #ddd;padding:12px 24px;font-size:0.8rem;cursor:pointer;margin-left:12px;">
+      CERRAR
+    </button>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-left">
+      <div class="footer-brand">BarberOS</div>
+      <div>Sistema de Gestión para Barberías</div>
+      <div>barberia-os1.vercel.app · contacto@barberos.app</div>
+    </div>
+    <div class="footer-right">
+      <div>Factura generada automáticamente</div>
+      <div>${new Date().toLocaleString('es-DO')}</div>
+      <div style="margin-top:4px;color:#C9A84C;font-weight:700;">${numFactura}</div>
+    </div>
+  </div>
+
+</div>
+<script>
+  // Auto-print al abrir
+  window.onload = () => setTimeout(() => window.print(), 800);
+</script>
+</body>
+</html>`;
+
+  const win = window.open('', '_blank', 'width=900,height=700');
+  win.document.write(html);
+  win.document.close();
+}
+
 //  FACTURACIÓN
 // ════════════════════════════════════════════
 async function loadFacturacion() {
@@ -2067,7 +2288,7 @@ async function loadFacturacion() {
       <td style="color:var(--gold)">${new Date(Date.now()+30*86400000).toLocaleDateString('es')}</td>
       <td style="color:var(--gold)">$${s.plan==='pro'?PLAN_PRICES.pro:PLAN_PRICES.elite}.00</td>
       <td class="status-active">● Activa</td>
-      <td><div class="action-btns"><button class="action-btn" onclick="showToast('PDF disponible con Stripe Invoices','info')">PDF</button></div></td>
+      <td><div class="action-btns"><button class="action-btn" style="background:rgba(0,255,120,0.07);border-color:rgba(0,255,120,0.3);color:var(--green);" onclick="imprimirFactura('${s.id}','${(s.nombre||'').replace(/'/g,\'\\\'\')}','${s.slug}','${s.plan}','${s.created_at||new Date().toISOString()}')">🖨 PDF</button></div></td>
     </tr>`).join('')||'<tr><td colspan="8" style="color:var(--muted);text-align:center;padding:22px;">Sin suscripciones</td></tr>';
 }
 document.getElementById('exportFacturasBtn').addEventListener('click',()=>{
