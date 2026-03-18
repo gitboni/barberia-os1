@@ -1685,6 +1685,184 @@ document.getElementById('clock').textContent=p(h12)+':'+p(mm)+':'+p(ss)+' '+ap;
 const days=['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'],months=['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
 document.getElementById('clock-date').textContent=days[n.getDay()]+' '+n.getDate()+' '+months[n.getMonth()]+' '+n.getFullYear();
 if(hh===0&&mm===0&&ss===0){setTimeout(()=>location.reload(),1500);}
+
+                 apply_patch_sala.js
+ * 
+ * Aplica el fix de openReagendar en public/sala.html
+ * Ejecutar desde la raíz del repo:
+ *   node apply_patch_sala.js
+ * 
+ * Hace backup automático en public/sala.html.bak
+ */
+ 
+const fs = require('fs');
+const path = require('path');
+ 
+const FILE = path.join(__dirname, 'public', 'sala.html');
+const BACKUP = FILE + '.bak';
+ 
+if (!fs.existsSync(FILE)) {
+  console.error('❌ No se encontró public/sala.html');
+  console.error('   Asegúrate de ejecutar desde la raíz del repo.');
+  process.exit(1);
+}
+ 
+let html = fs.readFileSync(FILE, 'utf8');
+const original = html;
+ 
+let applied = 0;
+ 
+// ══════════════════════════════════════════════════════════════
+// PATCH 1: takenHoy — agregar to24h y usarla en el .map
+// ══════════════════════════════════════════════════════════════
+const TAKEN_OLD = `const takenHoy=S.citas.filter(c=>c.barbero===barber&&c.id!=citaId&&c.estado!=='Completada').map(c=>c.time);`;
+const TAKEN_NEW = `// FIX: c.time viene en 12h ("5:00 PM"), los slots del grid están en 24h ("17:00")
+  function to24h(t12){
+    if(!t12)return'';
+    if(!/AM|PM/i.test(t12))return t12.substring(0,5);
+    const _p=t12.trim().split(' ');
+    const _ap=(_p[1]||'AM').toUpperCase();
+    const _hm=_p[0].split(':');
+    let _hh=parseInt(_hm[0]),_mm=parseInt(_hm[1]||'0');
+    if(_ap==='PM'&&_hh!==12)_hh+=12;
+    if(_ap==='AM'&&_hh===12)_hh=0;
+    return String(_hh).padStart(2,'0')+':'+String(_mm).padStart(2,'0');
+  }
+  const takenHoy=S.citas.filter(c=>c.barbero===barber&&c.id!=citaId&&c.estado!=='Completada').map(c=>to24h(c.time));`;
+ 
+if (html.includes(TAKEN_OLD)) {
+  html = html.replace(TAKEN_OLD, TAKEN_NEW);
+  console.log('✅ PATCH 1 aplicado: to24h + takenHoy');
+  applied++;
+} else {
+  console.warn('⚠️  PATCH 1: no se encontró el texto exacto de takenHoy');
+  console.warn('   Busca manualmente: .map(c=>c.time) dentro de openReagendar');
+}
+ 
+// ══════════════════════════════════════════════════════════════
+// PATCH 2: isCurrent — convertir horaActual a 24h
+// ══════════════════════════════════════════════════════════════
+const CURRENT_OLD = `const isCurrent=!usaMañana&&t===horaActual;`;
+const CURRENT_NEW = `const _horaActual24=to24h(horaActual);
+    const isCurrent=!usaMañana&&t===_horaActual24;`;
+ 
+if (html.includes(CURRENT_OLD)) {
+  html = html.replace(CURRENT_OLD, CURRENT_NEW);
+  console.log('✅ PATCH 2 aplicado: horaActual convertida a 24h en isCurrent');
+  applied++;
+} else {
+  // Intentar variante con espacios diferentes
+  const alt = `const isCurrent = !usaMañana && t === horaActual;`;
+  if (html.includes(alt)) {
+    html = html.replace(alt, `const _horaActual24=to24h(horaActual);\n    const isCurrent = !usaMañana && t === _horaActual24;`);
+    console.log('✅ PATCH 2 aplicado (variante): horaActual convertida a 24h');
+    applied++;
+  } else {
+    console.warn('⚠️  PATCH 2: no se encontró isCurrent. Busca manualmente t===horaActual');
+  }
+}
+ 
+// ══════════════════════════════════════════════════════════════
+// PATCH 3a: isPast usa .past en lugar de .taken
+// ══════════════════════════════════════════════════════════════
+// Patrón: } else if(isPast){cls+=' taken';}
+const PAST_PATTERNS = [
+  `} else if(isPast){cls+=' taken';}`,
+  `}else if(isPast){cls+=' taken';}`,
+  `} else if (isPast) { cls += ' taken'; }`,
+  `else if(isPast)`,
+];
+ 
+let patch3Done = false;
+for (const pat of PAST_PATTERNS) {
+  if (html.includes(pat) && pat.includes('taken')) {
+    html = html.replace(pat, pat.replace("taken", "past"));
+    console.log('✅ PATCH 3a aplicado: isPast usa .past (gris) en lugar de .taken (rojo)');
+    applied++;
+    patch3Done = true;
+    break;
+  }
+}
+if (!patch3Done) {
+  // Búsqueda más amplia
+  const regex = /else\s+if\s*\(isPast\)\s*\{[^}]*'taken'[^}]*\}/;
+  const match = html.match(regex);
+  if (match) {
+    html = html.replace(match[0], match[0].replace("'taken'", "'past'"));
+    console.log('✅ PATCH 3a aplicado (regex): isPast usa .past');
+    applied++;
+    patch3Done = true;
+  } else {
+    console.warn('⚠️  PATCH 3a: no se encontró isPast+taken. Busca "isPast" en el .map de slots');
+  }
+}
+ 
+// ══════════════════════════════════════════════════════════════
+// PATCH 3b: Agregar CSS .time-slot.past
+// ══════════════════════════════════════════════════════════════
+const CSS_TAKEN = `.time-slot.taken{`;
+const CSS_PAST_RULE = `\n.time-slot.past{opacity:0.3;pointer-events:none;color:rgba(255,255,255,0.2);border-color:rgba(255,255,255,0.06);background:transparent;text-decoration:none;}`;
+ 
+if (html.includes(CSS_TAKEN) && !html.includes('.time-slot.past{')) {
+  // Insertar después del bloque .time-slot.taken (buscar el cierre })
+  const idx = html.indexOf(CSS_TAKEN);
+  const closeIdx = html.indexOf('}', idx);
+  if (closeIdx !== -1) {
+    html = html.slice(0, closeIdx + 1) + CSS_PAST_RULE + html.slice(closeIdx + 1);
+    console.log('✅ PATCH 3b aplicado: CSS .time-slot.past agregado');
+    applied++;
+  }
+} else if (html.includes('.time-slot.past{')) {
+  console.log('ℹ️  PATCH 3b: .time-slot.past ya existe en CSS');
+  applied++;
+} else {
+  console.warn('⚠️  PATCH 3b: no se encontró .time-slot.taken en el CSS');
+}
+ 
+// ══════════════════════════════════════════════════════════════
+// PATCH 4: Actualizar leyenda del modal (agregar PASADO)
+// ══════════════════════════════════════════════════════════════
+const LEGEND_OLD_PATTERNS = [
+  `□LIBRE ■OCUPADO □SELECCIONADO`,
+  `LIBRE</span>.*OCUPADO</span>.*SELECCIONADO`,
+];
+ 
+// Buscar el div de leyenda y agregar PASADO
+const legendOld = `<span style="display:flex;align-items:center;gap:4px;color:rgba(255,0,110,0.7);"><span style="width:8px;height:8px;background:rgba(255,0,110,0.15);border:1px solid rgba(255,0,110,0.4);display:inline-block;"></span>OCUPADO</span>`;
+const legendNew = `<span style="display:flex;align-items:center;gap:4px;color:rgba(255,0,110,0.7);"><span style="width:8px;height:8px;background:rgba(255,0,110,0.15);border:1px solid rgba(255,0,110,0.4);display:inline-block;"></span>OCUPADO</span>
+        <span style="display:flex;align-items:center;gap:4px;color:rgba(255,255,255,0.25);"><span style="width:8px;height:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);display:inline-block;"></span>PASADO</span>`;
+ 
+if (html.includes(legendOld) && !html.includes('PASADO')) {
+  html = html.replace(legendOld, legendNew);
+  console.log('✅ PATCH 4 aplicado: leyenda actualizada con PASADO');
+  applied++;
+} else if (html.includes('PASADO')) {
+  console.log('ℹ️  PATCH 4: leyenda PASADO ya existe');
+} else {
+  console.warn('⚠️  PATCH 4: no se encontró la leyenda exacta (no crítico)');
+}
+ 
+// ══════════════════════════════════════════════════════════════
+// Guardar
+// ══════════════════════════════════════════════════════════════
+if (html === original) {
+  console.error('\n❌ No se aplicó ningún cambio. El archivo puede tener formato diferente.');
+  console.error('   Revisa el archivo manualmente con el patch_sala.md adjunto.');
+  process.exit(1);
+}
+ 
+// Backup
+fs.writeFileSync(BACKUP, original, 'utf8');
+console.log(`\n📋 Backup guardado en: ${BACKUP}`);
+ 
+// Guardar fix
+fs.writeFileSync(FILE, html, 'utf8');
+console.log(`✅ ${FILE} actualizado (${applied} patches aplicados)`);
+console.log('\nAhora haz commit y push:');
+console.log('  git add public/sala.html');
+console.log('  git commit -m "fix: openReagendar — slots 12h/24h, past vs taken"');
+console.log('  git push');
+ 
 }
 setInterval(tick,1000);tick();
 document.addEventListener('keydown',e=>{
