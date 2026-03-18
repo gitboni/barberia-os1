@@ -1264,25 +1264,53 @@ function subscribeRT(){
   function conn(){
     try{
       ws=new WebSocket(wsUrl);
-      ws.onopen=()=>{
-        rc=0;setRt('ok','REALTIME ●');
-        ws.send(JSON.stringify({topic:'realtime:public:citas:shop_id=eq.'+S.shopId,event:'phx_join',payload:{config:{broadcast:{self:false},presence:{key:''}}},ref:'1'}));
-        ws.send(JSON.stringify({topic:'realtime:public:shops:id=eq.'+S.shopId,event:'phx_join',payload:{config:{broadcast:{self:false},presence:{key:''}}},ref:'2'}));
-        hb=setInterval(()=>{if(ws&&ws.readyState===1)ws.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:'hb'}));},20000);
-      };
-      ws.onmessage=async(ev)=>{
-        try{
-          const m=JSON.parse(ev.data);
-          if(['INSERT','UPDATE','DELETE'].includes(m.event)){
-            if(m.topic&&m.topic.includes('shops')&&m.payload?.record?.activo===false){showDisplaySuspended(S.shopName);return;}
-            if(m.topic&&m.topic.includes('shops')&&m.payload?.record?.activo===true){
-              _barberiaPausada=false;actualizarBtnPause();
-            }
-            await loadCitas().catch(()=>{});render();
-            showToast(m.event==='INSERT'?'✓ Nueva cita':'↻ Actualizado','info');
-          }
-        }catch(_){}
-      };
+ws.onopen=()=>{
+  rc=0;setRt('ok','REALTIME ●');
+  ws.send(JSON.stringify({
+    topic:'realtime:public:citas',
+    event:'phx_join',
+    payload:{
+      config:{
+        broadcast:{self:false},
+        presence:{key:''},
+        postgres_changes:[
+          {event:'INSERT',schema:'public',table:'citas',filter:'shop_id=eq.'+S.shopId},
+          {event:'UPDATE',schema:'public',table:'citas',filter:'shop_id=eq.'+S.shopId},
+          {event:'DELETE',schema:'public',table:'citas',filter:'shop_id=eq.'+S.shopId}
+        ]
+      }
+    },
+    ref:'1'
+  }));
+  ws.send(JSON.stringify({
+    topic:'realtime:public:shops',
+    event:'phx_join',
+    payload:{
+      config:{
+        broadcast:{self:false},
+        presence:{key:''},
+        postgres_changes:[
+          {event:'UPDATE',schema:'public',table:'shops',filter:'id=eq.'+S.shopId}
+        ]
+      }
+    },
+    ref:'2'
+  }));
+  hb=setInterval(()=>{if(ws&&ws.readyState===1)ws.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:'hb'}));},20000);
+};
+ws.onmessage=async(ev)=>{
+  try{
+    const m=JSON.parse(ev.data);
+    const evType=m.payload?.data?.type||m.event||'';
+    const record=m.payload?.data?.record||m.payload?.record||{};
+    if(['INSERT','UPDATE','DELETE'].includes(evType)){
+      if(m.topic&&m.topic.includes('shops')&&record?.activo===false){showDisplaySuspended(S.shopName);return;}
+      if(m.topic&&m.topic.includes('shops')&&record?.activo===true){_barberiaPausada=false;actualizarBtnPause();}
+      await loadCitas().catch(()=>{});render();
+      showToast(evType==='INSERT'?'✓ Nueva cita':evType==='DELETE'?'✗ Cita eliminada':'↻ Actualizado','info');
+    }
+  }catch(_){}
+};
       ws.onerror=()=>setRt('error','RT ERROR');
       ws.onclose=()=>{clearInterval(hb);setRt('error','RT DESCONECTADO');rc++;rt=setTimeout(conn,rc < 3 ? 1000 : Math.min(2000*Math.pow(1.5,rc),15000));};
     }catch(e){setRt('error','SIN RT');}
