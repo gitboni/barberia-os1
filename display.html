@@ -1269,32 +1269,25 @@ ws.onopen=()=>{
   ws.send(JSON.stringify({
     topic:'realtime:public:citas',
     event:'phx_join',
-    payload:{
-      config:{
-        broadcast:{self:false},
-        presence:{key:''},
-        postgres_changes:[
-          {event:'INSERT',schema:'public',table:'citas',filter:'shop_id=eq.'+S.shopId},
-          {event:'UPDATE',schema:'public',table:'citas',filter:'shop_id=eq.'+S.shopId},
-          {event:'DELETE',schema:'public',table:'citas',filter:'shop_id=eq.'+S.shopId}
-        ]
-      }
-    },
-    ref:'1'
+    payload:{config:{broadcast:{self:false},presence:{key:''},postgres_changes:[
+      {event:'INSERT',schema:'public',table:'citas',filter:'shop_id=eq.'+S.shopId},
+      {event:'UPDATE',schema:'public',table:'citas',filter:'shop_id=eq.'+S.shopId},
+      {event:'DELETE',schema:'public',table:'citas',filter:'shop_id=eq.'+S.shopId}
+    ]}},ref:'1'
+  }));
+  ws.send(JSON.stringify({
+    topic:'realtime:public:barberos',
+    event:'phx_join',
+    payload:{config:{broadcast:{self:false},presence:{key:''},postgres_changes:[
+      {event:'UPDATE',schema:'public',table:'barberos',filter:'shop_id=eq.'+S.shopId}
+    ]}},ref:'3'
   }));
   ws.send(JSON.stringify({
     topic:'realtime:public:shops',
     event:'phx_join',
-    payload:{
-      config:{
-        broadcast:{self:false},
-        presence:{key:''},
-        postgres_changes:[
-          {event:'UPDATE',schema:'public',table:'shops',filter:'id=eq.'+S.shopId}
-        ]
-      }
-    },
-    ref:'2'
+    payload:{config:{broadcast:{self:false},presence:{key:''},postgres_changes:[
+      {event:'UPDATE',schema:'public',table:'shops',filter:'id=eq.'+S.shopId}
+    ]}},ref:'2'
   }));
   hb=setInterval(()=>{if(ws&&ws.readyState===1)ws.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:'hb'}));},20000);
 };
@@ -1532,7 +1525,11 @@ async function ejecutarPausarBarberia(){
     closeModal('pause-modal');
     actualizarBtnPause();
     showToast(nuevoEstado?'⏸ Barbería pausada — citas conservadas':'▶ Barbería reanudada',nuevoEstado?'warn':'ok');
-    if(!nuevoEstado){await loadCitas().catch(()=>{});render();}
+    if(!nuevoEstado){if(m.topic&&m.topic.includes('barberos')){
+  await loadBarberos().catch(()=>{});rebuildQueues();render();
+} else {
+  await loadCitas().catch(()=>{});render();
+}}
   }catch(e){showToast('⚠ Error: '+e.message,'error');}
   finally{if(btn){btn.textContent=_barberiaPausada?'▶ SÍ, REANUDAR':'⏸ SÍ, PAUSAR';btn.style.pointerEvents='';}}
 }
