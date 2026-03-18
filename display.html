@@ -1734,6 +1734,23 @@ document.addEventListener('click',()=>{
   const ctx=new(window.AudioContext||window.webkitAudioContext)();
   ctx.resume();
 },{once:true});
+// Evitar que la pantalla se bloquee (Wake Lock API)
+let _wakeLock=null;
+
+async function pedirWakeLock(){
+  try{
+    if('wakeLock' in navigator){
+      _wakeLock=await navigator.wakeLock.request('screen');
+    }
+  }catch(_){}
+}
+
+// Re-adquirir el wake lock si la pantalla vuelve a estar visible
+document.addEventListener('visibilitychange',async()=>{
+  if(document.visibilityState==='visible')await pedirWakeLock();
+});
+
+pedirWakeLock();
 init();
 
 
