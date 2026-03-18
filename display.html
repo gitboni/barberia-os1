@@ -397,7 +397,10 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .my-sub{font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:rgba(0,245,255,0.75);letter-spacing:0.2em;text-transform:uppercase;margin-top:2px;}
 .my-layout{flex:1;display:flex;flex-direction:row;overflow:hidden;min-height:0;}
 .my-left{flex:0 0 360px;display:flex;flex-direction:column;border-right:1px solid rgba(0,245,255,0.08);background:rgba(0,245,255,0.012);overflow:hidden;min-height:0;}
-.my-right{flex:1;display:flex;flex-direction:column;padding:14px 20px 10px;overflow:hidden;gap:8px;min-height:0;}
+.my-right{flex:1;display:flex;flex-direction:column;padding:14px 20px 10px;overflow-y:auto;gap:8px;min-height:0;padding-right:16px;}
+.my-right::-webkit-scrollbar{width:3px;}
+.my-right::-webkit-scrollbar-thumb{background:rgba(0,245,255,0.25);border-radius:2px;}
+.my-right::-webkit-scrollbar-thumb:hover{background:rgba(0,245,255,0.4);}
 .my-silla-zone{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:20px 24px 14px;position:relative;border-bottom:1px solid rgba(0,245,255,0.08);flex:1;}
 .my-silla-zone::before,.my-silla-zone::after{content:'';position:absolute;width:36px;height:36px;border-style:solid;border-color:rgba(0,245,255,0.3);}
 .my-silla-zone::before{top:14px;left:14px;border-width:2px 0 0 2px;}.my-silla-zone::after{bottom:14px;right:14px;border-width:0 2px 2px 0;}
@@ -413,8 +416,8 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .btn-my-sig:active{transform:scale(0.98);}
 .btn-my-sig.loading{pointer-events:none;opacity:0.6;}
 .btn-my-sig.success{border-color:var(--green);color:var(--green);}
-.my-queue-section{display:flex;flex-direction:column;gap:8px;overflow:hidden;flex:1;min-height:0;}
-.my-queue-title{font-family:'Orbitron',monospace;font-size:0.74rem;font-weight:600;letter-spacing:0.2em;color:var(--cyan);text-transform:uppercase;padding-bottom:8px;border-bottom:1px solid rgba(0,245,255,0.1);flex-shrink:0;position:relative;}
+.my-queue-section{display:flex;flex-direction:column;gap:6px;overflow:hidden;flex:1;min-height:0;}
+.my-queue-title{font-family:'Orbitron',monospace;font-size:0.74rem;font-weight:600;letter-spacing:0.2em;color:var(--cyan);text-transform:uppercase;padding-bottom:6px;border-bottom:1px solid rgba(0,245,255,0.1);flex-shrink:0;position:relative;}
 .my-queue-title::after{content:'';position:absolute;bottom:-1px;left:0;width:70px;height:1px;background:var(--cyan);box-shadow:0 0 12px var(--cyan);}
 .my-queue-meta{font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:rgba(0,245,255,0.65);float:right;margin-top:2px;}
 .my-queue-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:6px;min-height:0;padding-right:4px;}
@@ -1140,7 +1143,7 @@ function renderMyTurn(c){
   const{citas:allC,currentTurn}=q;const cur=allC[currentTurn-1];const nxt=allC[currentTurn];
   const remaining=Math.max(0,allC.length-currentTurn+1);
   const doneCitas=allC.slice(0,currentTurn-1).slice(-3);
-  const toggleHtml=bObj?`<button onclick="toggleBarberoActivo('${bObj.id}','${barber}',${isActive})" style="padding:6px 14px;border:1px solid ${isActive?'rgba(255,0,110,0.35)':'rgba(0,255,120,0.35)'};background:${isActive?'rgba(255,0,110,0.06)':'rgba(0,255,120,0.06)'};color:${isActive?'rgba(255,0,110,0.7)':'rgba(0,255,120,0.7)'};font-family:'Share Tech Mono',monospace;font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;">${isActive?'⏸ DESACTIVARME':'▶ ACTIVARME'}</button>`:'';
+  const toggleHtml='';
   const queueItems=[];
   // Solo activo + pendientes — los completados ya están arriba en "LISTOS"
   allC.slice(currentTurn-1).forEach((c,i)=>{queueItems.push({c,i:currentTurn-1+i,status:i===0?'active':i===1?'next':'wait'});});
