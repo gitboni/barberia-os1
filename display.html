@@ -898,7 +898,7 @@ async function siguienteTurno(barber,btnId){
     btn.innerHTML=scHtml()+'✓ AVANZADO';
     setTimeout(()=>{btn.classList.remove('success');btn.innerHTML=scHtml()+'▶ SIGUIENTE TURNO';},2000);
   }
-  setTimeout(async()=>{await loadCitas().catch(()=>{});render();},1500);
+  loadCitas().catch(()=>{}).then(render);
 }
 
 async function toggleBarberoActivo(barberoId,nombre,activo){
@@ -1255,6 +1255,7 @@ function setupSwipe(el,barber){
   },{passive:true});
 }
 
+
 function subscribeRT(){
   if(!S.shopId)return;
   setRt('connecting','CONECTANDO RT...');
@@ -1267,7 +1268,7 @@ function subscribeRT(){
         rc=0;setRt('ok','REALTIME ●');
         ws.send(JSON.stringify({topic:'realtime:public:citas:shop_id=eq.'+S.shopId,event:'phx_join',payload:{config:{broadcast:{self:false},presence:{key:''}}},ref:'1'}));
         ws.send(JSON.stringify({topic:'realtime:public:shops:id=eq.'+S.shopId,event:'phx_join',payload:{config:{broadcast:{self:false},presence:{key:''}}},ref:'2'}));
-        hb=setInterval(()=>{if(ws&&ws.readyState===1)ws.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:'hb'}));},25000);
+        hb=setInterval(()=>{if(ws&&ws.readyState===1)ws.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:'hb'}));},20000);
       };
       ws.onmessage=async(ev)=>{
         try{
@@ -1275,7 +1276,6 @@ function subscribeRT(){
           if(['INSERT','UPDATE','DELETE'].includes(m.event)){
             if(m.topic&&m.topic.includes('shops')&&m.payload?.record?.activo===false){showDisplaySuspended(S.shopName);return;}
             if(m.topic&&m.topic.includes('shops')&&m.payload?.record?.activo===true){
-              // Barbería reanudada via realtime
               _barberiaPausada=false;actualizarBtnPause();
             }
             await loadCitas().catch(()=>{});render();
@@ -1284,7 +1284,7 @@ function subscribeRT(){
         }catch(_){}
       };
       ws.onerror=()=>setRt('error','RT ERROR');
-      ws.onclose=()=>{clearInterval(hb);setRt('error','RT DESCONECTADO');rc++;rt=setTimeout(conn,Math.min(2000*Math.pow(1.5,rc),30000));};
+      ws.onclose=()=>{clearInterval(hb);setRt('error','RT DESCONECTADO');rc++;rt=setTimeout(conn,rc < 3 ? 1000 : Math.min(2000*Math.pow(1.5,rc),15000));};
     }catch(e){setRt('error','SIN RT');}
   }
   conn();
@@ -1641,7 +1641,7 @@ async function init(){
   // FIX BUG 5: guardar referencias para limpiar si es necesario
   _timerInterval=setInterval(updateTimers,30000);
   _etaInterval=setInterval(()=>{if(MODE!=='tv')render();},60000);
-  _citasInterval=setInterval(async()=>{await loadCitas().catch(()=>{});render();},30000);
+  _citasInterval=setInterval(async()=>{await loadCitas().catch(()=>{});render();},5000);
 }
 
 function loadDemo(){
