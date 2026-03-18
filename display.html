@@ -1439,6 +1439,7 @@ function openReagendar(citaId,nombre,horaActual,barber){
 
   // Citas de este barbero hoy (excluyendo la cita actual) — desde BD
 // Normalizar c.time de "9:00 AM" → "09:00" para comparar con slots
+// FIX: redondear minutos al slot más cercano
 function normalizarHora(t){
   if(!t)return'';
   if(!/AM|PM/i.test(t))return t.substring(0,5);
@@ -1446,6 +1447,9 @@ function normalizarHora(t){
   let [h,m]=time.split(':').map(Number);
   if(/PM/i.test(ap)&&h!==12)h+=12;
   if(/AM/i.test(ap)&&h===12)h=0;
+  // Redondear minutos al slot más cercano (en intervalos de DUR)
+  m=Math.round(m/DUR)*DUR;
+  if(m>=60){m=0;h+=1;}
   return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
 }
 const takenHoy=S.citas
