@@ -1710,7 +1710,7 @@ document.addEventListener('click',e=>{const bp=document.getElementById('barber-p
 function tick(){const n=new Date(),p=v=>String(v).padStart(2,'0');
 const hh=n.getHours(),mm=n.getMinutes(),ss=n.getSeconds();
 const ap=hh>=12?'PM':'AM';const h12=hh===0?12:hh>12?hh-12:hh;
-document.getElementById('clock').textContent=p(h12)+':'+p(mm)+':'+p(ss)+' '+ap;
+document.getElementById('clock').textContent=p(h12)+':'+p(mm)+':'+p(ss);
 const days=['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'],months=['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
 document.getElementById('clock-date').textContent=days[n.getDay()]+' '+n.getDate()+' '+months[n.getMonth()]+' '+n.getFullYear();
 if(hh===0&&mm===0&&ss===0){setTimeout(()=>location.reload(),1500);}
