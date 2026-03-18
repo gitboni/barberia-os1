@@ -417,9 +417,11 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .my-queue-title{font-family:'Orbitron',monospace;font-size:0.74rem;font-weight:600;letter-spacing:0.2em;color:var(--cyan);text-transform:uppercase;padding-bottom:8px;border-bottom:1px solid rgba(0,245,255,0.1);flex-shrink:0;position:relative;}
 .my-queue-title::after{content:'';position:absolute;bottom:-1px;left:0;width:70px;height:1px;background:var(--cyan);box-shadow:0 0 12px var(--cyan);}
 .my-queue-meta{font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:rgba(0,245,255,0.65);float:right;margin-top:2px;}
-.my-queue-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:4px;min-height:0;}
-.my-queue-list::-webkit-scrollbar{width:2px;}.my-queue-list::-webkit-scrollbar-thumb{background:rgba(0,245,255,0.1);}
-.my-q-item{display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:8px;padding:8px 12px;border:1px solid rgba(0,245,255,0.07);background:rgba(0,245,255,0.012);position:relative;overflow:hidden;animation:item-in 0.4s forwards;opacity:0;}
+.my-queue-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:6px;min-height:0;padding-right:4px;}
+.my-queue-list::-webkit-scrollbar{width:3px;}
+.my-queue-list::-webkit-scrollbar-thumb{background:rgba(0,245,255,0.25);border-radius:2px;}
+.my-queue-list::-webkit-scrollbar-thumb:hover{background:rgba(0,245,255,0.4);}
+.my-q-item{display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:8px;padding:10px 14px;border:1px solid rgba(0,245,255,0.11);background:rgba(0,245,255,0.025);position:relative;overflow:hidden;animation:item-in 0.4s forwards;opacity:0;border-radius:3px;}
 .my-q-item.mqi-active{border-left:3px solid var(--cyan);background:rgba(0,245,255,0.045);padding:11px 14px;}
 .my-q-item.mqi-next{border-left:3px solid var(--gold);background:rgba(255,214,0,0.02);}
 .my-q-item.mqi-wait{border-left:3px solid rgba(0,245,255,0.1);}
@@ -432,8 +434,8 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .mqi-name{font-family:'Rajdhani',sans-serif;font-size:0.88rem;font-weight:600;color:rgba(255,255,255,0.8);letter-spacing:0.08em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .my-q-item.mqi-active .mqi-name{font-size:1.1rem;color:#fff;}
 .my-q-item.mqi-next .mqi-name{font-size:0.95rem;}
-.mqi-svc{font-family:'Share Tech Mono',monospace;font-size:0.42rem;color:rgba(255,255,255,0.2);margin-top:1px;}
-.my-q-item.mqi-active .mqi-svc{font-size:0.5rem;color:rgba(255,255,255,0.3);}
+.mqi-svc{font-family:'Share Tech Mono',monospace;font-size:0.52rem;color:rgba(255,245,200,0.75);margin-top:1px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;}
+.my-q-item.mqi-active .mqi-svc{font-size:0.58rem;color:rgba(255,250,220,0.9);font-weight:600;}
 .mqi-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;min-width:80px;}
 .mqi-time{font-family:'Orbitron',monospace;font-size:0.92rem;font-weight:700;color:var(--gold);text-shadow:0 0 10px rgba(255,214,0,0.4);text-align:center;}
 .mqi-tag{font-family:'Share Tech Mono',monospace;font-size:0.44rem;padding:3px 8px;border:1px solid;letter-spacing:0.1em;text-transform:uppercase;text-align:center;}
