@@ -1307,6 +1307,7 @@ ws.onmessage=async(ev)=>{
       if(m.topic&&m.topic.includes('shops')&&record?.activo===false){showDisplaySuspended(S.shopName);return;}
       if(m.topic&&m.topic.includes('shops')&&record?.activo===true){_barberiaPausada=false;actualizarBtnPause();}
       await loadCitas().catch(()=>{});render();
+      if(evType==='INSERT')bipNuevaCita();
       showToast(evType==='INSERT'?'✓ Nueva cita':evType==='DELETE'?'✗ Cita eliminada':'↻ Actualizado','info');
     }
   }catch(_){}
@@ -1727,7 +1728,36 @@ document.addEventListener('keydown',e=>{
 });
 window.addEventListener('offline',()=>setOffline(true));
 window.addEventListener('online',()=>{setOffline(false);loadCitas().then(render);showToast('✓ Conexión restaurada','ok');});
+
+// Agrega esto justo antes de init();
+document.addEventListener('click',()=>{
+  const ctx=new(window.AudioContext||window.webkitAudioContext)();
+  ctx.resume();
+},{once:true});
 init();
+
+
+function bipNuevaCita(){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    // Nota 1
+    const o1=ctx.createOscillator();const g1=ctx.createGain();
+    o1.connect(g1);g1.connect(ctx.destination);
+    o1.frequency.value=880;o1.type='sine';
+    g1.gain.setValueAtTime(0,ctx.currentTime);
+    g1.gain.linearRampToValueAtTime(0.35,ctx.currentTime+0.01);
+    g1.gain.linearRampToValueAtTime(0,ctx.currentTime+0.18);
+    o1.start(ctx.currentTime);o1.stop(ctx.currentTime+0.18);
+    // Nota 2 (más alta, después de un pequeño silencio)
+    const o2=ctx.createOscillator();const g2=ctx.createGain();
+    o2.connect(g2);g2.connect(ctx.destination);
+    o2.frequency.value=1100;o2.type='sine';
+    g2.gain.setValueAtTime(0,ctx.currentTime+0.2);
+    g2.gain.linearRampToValueAtTime(0.35,ctx.currentTime+0.21);
+    g2.gain.linearRampToValueAtTime(0,ctx.currentTime+0.38);
+    o2.start(ctx.currentTime+0.2);o2.stop(ctx.currentTime+0.38);
+  }catch(_){}
+}
 </script>
 </body>
 </html>
