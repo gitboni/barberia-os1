@@ -1432,14 +1432,25 @@ let REAG_ID=null,REAG_HORA=null,REAG_BARBER=null;
 
 function openReagendar(citaId,nombre,horaActual,barber){
   REAG_ID=citaId;REAG_HORA=horaActual;REAG_BARBER=barber.toUpperCase();  const barbNotm=REAG_BARBER;
-  const inicio=S.horaInicio||7;const fin=S.horaFin||22;
+  const inicio=S.horaInicio||9;const fin=S.horaFin||18;
 
   // Generar todos los slots del día
   function generarSlots(){const s=[];for(let h=inicio;h<fin;h++){for(let m=0;m<60;m+=DUR){s.push(String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'));}}return s;}
 
   // Citas de este barbero hoy (excluyendo la cita actual) — desde BD
-  const takenHoy=S.citas.filter(c=>c.barbero.toUpperCase()===barbNotm&&c.id!=citaId&&c.estado!=='Completada').map(c=>c.time);
-  const slots=generarSlots();
+// Normalizar c.time de "9:00 AM" → "09:00" para comparar con slots
+function normalizarHora(t){
+  if(!t)return'';
+  if(!/AM|PM/i.test(t))return t.substring(0,5);
+  const [time,ap]=t.split(' ');
+  let [h,m]=time.split(':').map(Number);
+  if(/PM/i.test(ap)&&h!==12)h+=12;
+  if(/AM/i.test(ap)&&h===12)h=0;
+  return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+}
+const takenHoy=S.citas
+  .filter(c=>c.barbero.toUpperCase()===barbNotm&&c.id!=citaId&&c.estado!=='Completada')
+  .map(c=>normalizarHora(c.time));  const slots=generarSlots();
   const libresHoy=slots.filter(t=>t!==horaActual&&!takenHoy.includes(t));
 
   // Si no hay libres hoy → usar mañana
@@ -1465,12 +1476,13 @@ function openReagendar(citaId,nombre,horaActual,barber){
     'Mover cita de '+nombre+' ('+barbNotm+') · Actual: '+fmt12(horaActual)+
     (usaMañana?' — Sin disponibilidad hoy, mostrando mañana':'');
 
-  const slotsHtml=displaySlots.map(t=>{
+    const slotsHtml=displaySlots.map(t=>{
     const [hh,mm]=t.split(':').map(Number);
     const minSlot=hh*60+mm;
     const isCurrent=!usaMañana&&t===horaActual;
     const isTaken=takenDisplay.includes(t);
-    const isPast=!usaMañana&&minSlot<=minAhora&&t!==horaActual;
+   // Solo marcar como pasado si está más de 5 min en el pasado (no el slot actual)
+    const isPast=!usaMañana&&minSlot<(minAhora-5)&&normalizarHora(horaActual)!==t;
 
     let cls='time-slot';
     let clickFn='';
