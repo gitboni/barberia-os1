@@ -1431,15 +1431,14 @@ async function confirmWalkIn(){
 let REAG_ID=null,REAG_HORA=null,REAG_BARBER=null;
 
 function openReagendar(citaId,nombre,horaActual,barber){
-  REAG_ID=citaId;REAG_HORA=horaActual;REAG_BARBER=barber;
-
+  REAG_ID=citaId;REAG_HORA=horaActual;REAG_BARBER=barber.toUpperCase();  const barbNotm=REAG_BARBER;
   const inicio=S.horaInicio||7;const fin=S.horaFin||22;
 
   // Generar todos los slots del día
   function generarSlots(){const s=[];for(let h=inicio;h<fin;h++){for(let m=0;m<60;m+=DUR){s.push(String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'));}}return s;}
 
-  // Citas de este barbero hoy (excluyendo la cita actual)
-  const takenHoy=S.citas.filter(c=>c.barbero===barber&&c.id!=citaId&&c.estado!=='Completada').map(c=>c.time);
+  // Citas de este barbero hoy (excluyendo la cita actual) — desde BD
+  const takenHoy=S.citas.filter(c=>c.barbero.toUpperCase()===barbNotm&&c.id!=citaId&&c.estado!=='Completada').map(c=>c.time);
   const slots=generarSlots();
   const libresHoy=slots.filter(t=>t!==horaActual&&!takenHoy.includes(t));
 
@@ -1463,7 +1462,7 @@ function openReagendar(citaId,nombre,horaActual,barber){
   const minAhora=ahora.getHours()*60+ahora.getMinutes();
 
   document.getElementById('reag-sub').textContent=
-    'Mover cita de '+nombre+' · Actual: '+fmt12(horaActual)+
+    'Mover cita de '+nombre+' ('+barbNotm+') · Actual: '+fmt12(horaActual)+
     (usaMañana?' — Sin disponibilidad hoy, mostrando mañana':'');
 
   const slotsHtml=displaySlots.map(t=>{
