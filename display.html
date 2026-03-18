@@ -18,6 +18,9 @@
   --glow-g:rgba(0,255,120,0.5);--glow-p:rgba(176,110,255,0.5);
 }
 html,body{width:100%;height:100%;background:var(--bg);color:var(--cyan);font-family:'Rajdhani',sans-serif;overflow:hidden;}
+@media(prefers-reduced-motion:reduce){*{animation-duration:0.01ms!important;animation-iteration-count:1!important;transition-duration:0.01ms!important;}}
+@media(max-width:768px){html{font-size:90%;}}
+@media(min-width:769px) and (max-width:1199px){html{font-size:100%;}}
 @media(min-width:1200px){html{font-size:112%;}}
 @media(min-width:1600px){html{font-size:120%;}}
 @media(min-width:1920px){html{font-size:130%;}}
@@ -67,7 +70,9 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--cyan);font-fam
 .afield{margin-bottom:13px;}
 .afield label{font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:rgba(0,245,255,0.6);letter-spacing:0.22em;text-transform:uppercase;display:block;margin-bottom:5px;}
 .ainp{width:100%;background:rgba(0,245,255,0.03);border:1px solid rgba(0,245,255,0.12);color:var(--cyan);padding:9px 13px;font-family:'Rajdhani',sans-serif;font-size:0.92rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;outline:none;transition:border-color 0.2s;}
-.ainp:focus{border-color:rgba(0,245,255,0.4);}
+.ainp:focus{border-color:rgba(0,245,255,0.4);outline:2px solid rgba(0,245,255,0.3);outline-offset:1px;}
+.ainp:hover{border-color:rgba(0,245,255,0.25);}
+.ainp::placeholder{color:rgba(0,245,255,0.25);}
 .barber-sel{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;}
 .barber-sel-btn{padding:6px 14px;border:1px solid rgba(0,245,255,0.12);background:transparent;color:rgba(0,245,255,0.38);font-family:'Share Tech Mono',monospace;font-size:0.46rem;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;}
 .barber-sel-btn:hover{border-color:rgba(0,245,255,0.3);color:rgba(0,245,255,0.7);}
@@ -83,10 +88,12 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--cyan);font-fam
 .abtn{flex:1;padding:11px;font-family:'Orbitron',monospace;font-size:0.6rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;border:1px solid;}
 .abtn-confirm{background:rgba(0,245,255,0.1);border-color:rgba(0,245,255,0.35);color:var(--cyan);}
 .abtn-confirm:hover{background:rgba(0,245,255,0.2);box-shadow:0 0 20px rgba(0,245,255,0.15);}
+.abtn-confirm:focus{outline:2px solid var(--cyan);outline-offset:2px;}
+.abtn-confirm:focus:not(:focus-visible){outline:none;}
 .abtn-gold{background:rgba(255,214,0,0.1);border-color:rgba(255,214,0,0.4);color:var(--gold);}
-.abtn-gold:hover{background:rgba(255,214,0,0.2);}
+.abtn-gold:hover{background:rgba(255,214,0,0.2);box-shadow:0 0 15px rgba(255,214,0,0.1);}
 .abtn-danger{background:rgba(255,0,110,0.1);border-color:rgba(255,0,110,0.35);color:var(--magenta);}
-.abtn-danger:hover{background:rgba(255,0,110,0.2);}
+.abtn-danger:hover{background:rgba(255,0,110,0.2);box-shadow:0 0 15px rgba(255,0,110,0.1);}
 .action-box.purple-modal .abtn-confirm{background:rgba(176,110,255,0.1);border-color:rgba(176,110,255,0.35);color:var(--purple);}
 .abtn-cancel{background:transparent;border-color:rgba(255,255,255,0.07);color:rgba(255,255,255,0.18);}
 .abtn-cancel:hover{border-color:rgba(255,255,255,0.2);color:rgba(255,255,255,0.4);}
@@ -288,6 +295,8 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .btn-siguiente:hover::before{left:100%;}
 .btn-siguiente:hover{box-shadow:0 0 55px rgba(0,255,120,0.38);transform:translateY(-2px);}
 .btn-siguiente:active{transform:scale(0.98);}
+.btn-siguiente:focus{outline:2px solid var(--green);outline-offset:2px;}
+.btn-siguiente:focus:not(:focus-visible){outline:none;}
 .btn-siguiente.loading{pointer-events:none;opacity:0.6;animation:btn-pulse 0.6s ease-in-out infinite;}
 .btn-siguiente.success{border-color:var(--cyan);color:var(--cyan);}
 .sc{position:absolute;width:9px;height:9px;border-color:var(--green);border-style:solid;opacity:0.5;}
@@ -487,13 +496,24 @@ html.fs-sm{font-size:90%;}html.fs-md{font-size:112%;}html.fs-lg{font-size:130%;}
 
 @media(max-width:1024px){.layout-solo .barber-col{grid-template-columns:300px 1fr;}.my-layout .my-left{flex:0 0 300px;}}
 @media(max-width:860px){header{grid-template-columns:1fr 1fr;padding:8px 16px;}.clock-block{display:none;}.tv-cards.n3,.tv-cards.n4,.tv-cards.n5{grid-template-columns:repeat(2,1fr);}}
-@media(max-width:600px){.tv-cards.n2,.tv-cards.n3,.tv-cards.n4,.tv-cards.n5{grid-template-columns:1fr;}.my-layout{grid-template-columns:1fr;}.my-right{display:none;}}
+@media(max-width:600px){.tv-cards.n2,.tv-cards.n3,.tv-cards.n4,.tv-cards.n5{grid-template-columns:1fr;}.my-layout{grid-template-columns:1fr;}.my-right{display:none;}.tv-wrap{padding:8px 12px 6px;gap:8px;}.tv-card-head{padding:6px 10px;}.tv-barber-name{font-size:0.6rem;}.tv-num{font-size:2.5rem;}.tv-name{font-size:0.8rem;}.tv-service{font-size:0.48rem;}.tv-btn{font-size:0.58rem;padding:8px 0;}.content{flex-direction:column;}.layout-multi .barber-col{border-right:none;border-bottom:1px solid rgba(0,245,255,0.08);}.layout-solo .col-left{display:none;}}
+@media(max-width:480px){html{font-size:85%;}.tv-cards{gap:8px;}.brand-name{font-size:1rem;}.clock-time{font-size:1.2rem;}.hpill{font-size:0.42rem;padding:4px 8px;}.fs-btn{font-size:0.42rem;}.tv-card{border-width:1px;}.layout-multi .barber-col.libre{flex:1;opacity:0.4;}.footer-msg{font-size:0.85rem;}}
+@media(max-width:320px){.tv-barber-name{font-size:0.5rem;}.tv-num{font-size:1.8rem;}.tv-name{font-size:0.68rem;}.layout-multi .silla-name{font-size:0.65rem;}.btn-siguiente{font-size:0.52rem;padding:7px 0;}}
+@media(prefers-reduced-motion:reduce){@keyframes hero-pulse{0%,100%{text-shadow:none;}50%{text-shadow:none;}}@keyframes nebula-drift,@keyframes nebula-drift2,@keyframes nebula-drift3{0%,100%{transform:none;opacity:0.6;}}body.zen-mode *{animation:none!important;}.orb{animation:none!important;}.vignette{animation:none!important;}.blink,.tag-blink,.btn-pulse{animation:none!important;}}
 @media(min-width:1400px){.layout-solo .hero-num{font-size:11rem;}.layout-solo .silla-name{font-size:2rem;}.layout-multi .hero-num.n2{font-size:8rem;}.layout-multi .hero-num.n3{font-size:5.5rem;}.tv-cards.n1 .tv-num,.tv-cards.n2 .tv-num{font-size:13rem;}.tv-cards.n3 .tv-num{font-size:9rem;}.tv-cards.n4 .tv-num{font-size:7rem;}.my-hero-num{font-size:11rem;}}
 @media(min-width:1800px){.tv-cards.n1 .tv-num,.tv-cards.n2 .tv-num{font-size:18rem;}.tv-cards.n3 .tv-num{font-size:12rem;}}
+@media(prefers-contrast:more){.q-num{color:var(--cyan)!important;}.abtn-confirm{background:rgba(0,245,255,0.2);}.btn-siguiente{border-color:rgba(0,255,120,0.8);}.time-slot{color:var(--cyan);}}
+
+/* Performance Optimizations */
+.hero-num,.tv-num,.silla-name,.tv-name{will-change:transform;}
+@media(prefers-reduced-motion:reduce){.hero-num,.tv-num,.orb,.vignette,.btn-siguiente::before{will-change:auto;animation:none!important;}}
+@media(max-width:768px){#grain-canvas,#star-canvas{opacity:0!important;}.orb{opacity:0.3!important;}.scanline{opacity:0!important;}}
+/* Lazy load animations */
+@supports(animation-timeline:view()){.q-item{animation-timeline:view();}}
 </style>
 </head>
 <body>
-<div class="offline-banner" id="ob">⚠ Sin conexión — datos en caché</div>
+<div class="offline-banner" id="ob" role="status" aria-live="polite">⚠ Sin conexión — datos en caché</div>
 <div class="bg-base"></div>
 <canvas id="star-canvas"></canvas>
 <canvas id="hex-canvas"></canvas>
@@ -518,7 +538,7 @@ html.fs-sm{font-size:90%;}html.fs-md{font-size:112%;}html.fs-lg{font-size:130%;}
       </div>
     </div>
     <div class="clock-block">
-      <div class="clock-time" id="clock">00:00:00</div>
+      <div class="clock-time" id="clock" role="status" aria-live="off">00:00:00</div>
       <div class="clock-date" id="clock-date">—</div>
     </div>
     <div class="header-right">
@@ -526,10 +546,10 @@ html.fs-sm{font-size:90%;}html.fs-md{font-size:112%;}html.fs-lg{font-size:130%;}
       <div class="hpill hpill-db loading" id="db-pill"><span class="hpill-dot"></span><span id="db-lbl">DB...</span></div>
       <div class="hpill hpill-sys"><span class="sys-dot"></span>SISTEMA ACTIVO</div>
       <!-- FIX FEATURE: Botón PAUSAR barbería -->
-      <button class="pause-btn" id="pause-btn" onclick="pausarBarberia()" title="Pausar / Reanudar barbería">
+      <button class="pause-btn" id="pause-btn" aria-label="Pausar o reanudar operaciones de la barbería" onclick="pausarBarberia()" title="Pausar / Reanudar barbería">
         <span class="pause-dot"></span><span id="pause-lbl">⏸ PAUSAR</span>
       </button>
-      <button class="fs-btn" id="fs-btn">⛶ FS</button>
+      <button class="fs-btn" id="fs-btn" aria-label="Pantalla completa">⛶ FS</button>
     </div>
   </header>
   <div class="content" id="content"></div>
@@ -540,12 +560,12 @@ html.fs-sm{font-size:90%;}html.fs-md{font-size:112%;}html.fs-lg{font-size:130%;}
   </footer>
 </div>
 
-<div class="mode-bar" id="mode-bar">
-  <button class="mode-btn" id="mbtn-tv" onclick="setMode('tv')">📺 TV</button>
+<div class="mode-bar" id="mode-bar" role="tablist" aria-label="Modos de vista">
+  <button class="mode-btn" id="mbtn-tv" onclick="setMode('tv')" role="tab" aria-selected="false" aria-label="Modo TV - Pantalla de espera">📺 TV</button>
   <div class="mode-sep"></div>
-  <button class="mode-btn active" id="mbtn-shop" onclick="setMode('shop')">💈 BARBERÍA</button>
+  <button class="mode-btn active" id="mbtn-shop" onclick="setMode('shop')" role="tab" aria-selected="true" aria-label="Modo Barbería - Panel principal">💈 BARBERÍA</button>
   <div class="mode-sep"></div>
-  <button class="mode-btn" id="mbtn-my" onclick="openBarberPicker()">✂ MI TURNO</button>
+  <button class="mode-btn" id="mbtn-my" onclick="openBarberPicker()" role="tab" aria-selected="false" aria-label="Mi Turno - Citas del barbero actual">✂ MI TURNO</button>
 </div>
 
 <div class="barber-picker" id="barber-picker">
@@ -556,7 +576,7 @@ html.fs-sm{font-size:90%;}html.fs-md{font-size:112%;}html.fs-lg{font-size:130%;}
 <div class="toast" id="toast"></div>
 <button class="cfg-btn" id="cfg-open">⚙</button>
 
-<button class="walkin-fab" id="walkin-fab" onclick="openWalkIn()">
+<button class="walkin-fab" id="walkin-fab" aria-label="Agregar cliente sin cita (walk-in) a la cola" onclick="openWalkIn()">
   <div class="walkin-fab-dot"></div>+ WALK-IN
 </button>
 
