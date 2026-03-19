@@ -474,7 +474,7 @@ function renderPage(){
   else if(currentPage==='clientes')el.innerHTML=renderClientes();
   else if(currentPage==='barberos')el.innerHTML=renderBarberos();
   else if(currentPage==='reportes'){el.innerHTML=renderReportes();setTimeout(initReportesCharts,150);}
-  else if(currentPage==='bot')el.innerHTML=renderBot();
+  else if(currentPage==='bot'){el.innerHTML=renderBot();setTimeout(initModoRecordatorio,50);}
   else if(currentPage==='config')el.innerHTML=renderConfigPage();
   renderSidebar();updateBarberoSelect();
 }
@@ -1082,6 +1082,8 @@ function initReportesCharts(){
 function renderBot(){
   const s=S.shopData||{};
   const turnos=s.recordatorio_turnos??2;
+  const recMinutos=s.recordatorio_minutos??30;
+  const recModo=s.recordatorio_modo||'turnos';
   const recActivo=s.recordatorio_activo!==false;
   const botBarbero=s.bot_barbero_activo===true;
   const msgTpl=s.recordatorio_msg||'¡Hola {nombre}! 👋 Tu turno con {barbero} está próximo — quedan {turnos} turno(s). ✂️ ¡Te esperamos en {shop}!';
@@ -1122,15 +1124,41 @@ function renderBot(){
       </div>
       <div style="padding:18px;display:flex;flex-direction:column;gap:16px;">
         <div style="background:rgba(201,168,76,0.04);border:1px solid rgba(201,168,76,0.15);padding:12px 16px;font-size:0.75rem;color:var(--muted);line-height:1.6;">
-          El bot envía un WhatsApp al cliente cuando quedan <strong style="color:var(--gold);">N turnos</strong> antes del suyo. Por ejemplo, si N=2 y hay 3 clientes esperando, el tercer cliente en la fila recibe el recordatorio cuando el primer cliente termina.
+          El bot envía un WhatsApp al cliente antes de su turno. Elige entre avisarle cuando quedan <strong style="color:var(--gold);">N turnos</strong> antes, o un número exacto de <strong style="color:var(--gold);">minutos</strong> antes de su hora de cita.
         </div>
+
+        <!-- Modo de recordatorio -->
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <button id="modo-turnos-btn" onclick="setModoRecordatorio('turnos')"
+            style="flex:1;padding:9px;border:1px solid;font-family:'DM Mono',monospace;font-size:0.52rem;cursor:pointer;letter-spacing:0.08em;transition:all 0.2s;">
+            🔢 POR TURNOS
+          </button>
+          <button id="modo-minutos-btn" onclick="setModoRecordatorio('minutos')"
+            style="flex:1;padding:9px;border:1px solid;font-family:'DM Mono',monospace;font-size:0.52rem;cursor:pointer;letter-spacing:0.08em;transition:all 0.2s;">
+            ⏱ POR MINUTOS
+          </button>
+        </div>
+
         <div style="display:grid;grid-template-columns:1fr 2fr;gap:16px;align-items:start;">
           <div class="fg" style="margin:0;">
-            <label>Avisar cuando queden N turnos</label>
-            <div style="display:flex;align-items:center;gap:10px;margin-top:6px;">
-              <input type="number" id="bot-turnos-n" value="${turnos}" min="1" max="10"
-                style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 12px;width:80px;font-family:'DM Mono',monospace;font-size:1.1rem;text-align:center;">
-              <span style="font-size:0.7rem;color:var(--muted);">turno(s) antes</span>
+            <!-- Panel turnos -->
+            <div id="panel-modo-turnos">
+              <label>Avisar cuando queden N turnos</label>
+              <div style="display:flex;align-items:center;gap:10px;margin-top:6px;">
+                <input type="number" id="bot-turnos-n" value="${turnos}" min="1" max="10"
+                  style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 12px;width:80px;font-family:'DM Mono',monospace;font-size:1.1rem;text-align:center;">
+                <span style="font-size:0.7rem;color:var(--muted);">turno(s) antes</span>
+              </div>
+            </div>
+            <!-- Panel minutos -->
+            <div id="panel-modo-minutos" style="display:none;">
+              <label>Avisar X minutos antes</label>
+              <div style="display:flex;align-items:center;gap:10px;margin-top:6px;">
+                <input type="number" id="bot-minutos-n" value="${recMinutos}" min="5" max="120"
+                  style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 12px;width:80px;font-family:'DM Mono',monospace;font-size:1.1rem;text-align:center;">
+                <span style="font-size:0.7rem;color:var(--muted);">min antes</span>
+              </div>
+              <div style="font-size:0.62rem;color:var(--muted);margin-top:5px;">Ej: 30 = avisa media hora antes de la cita</div>
             </div>
           </div>
           <div class="fg" style="margin:0;">
@@ -1307,9 +1335,11 @@ function renderConfigPage(){
   </div>`;
 }
 async function saveConfigPage(){
-  const p={nombre:document.getElementById('cfg-nombre-pg').value.trim(),whatsapp_dueño:document.getElementById('cfg-whatsapp-pg').value.trim(),hora_inicio:parseInt(document.getElementById('cfg-inicio-pg').value)||9,hora_fin:parseInt(document.getElementById('cfg-fin-pg').value)||18,timezone:document.getElementById('cfg-tz-pg').value};
+  const p={nombre:document.getElementById('cfg-nombre-pg').value.trim(),'whatsapp_dueño':document.getElementById('cfg-whatsapp-pg').value.trim(),hora_inicio:parseInt(document.getElementById('cfg-inicio-pg').value)||9,hora_fin:parseInt(document.getElementById('cfg-fin-pg').value)||18,timezone:document.getElementById('cfg-tz-pg').value};
   try{
-    await sbPatch('shops','id=eq.'+S.shopId,p);
+    const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/update_shop_config`,{method:'POST',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify({p_shop_id:S.shopId,p_nombre:p.nombre,p_whatsapp_dueno:p['whatsapp_dueño'],p_hora_inicio:p.hora_inicio,p_hora_fin:p.hora_fin,p_timezone:p.timezone})});
+    const data=await r.json();
+    if(data&&data.error){toast('Error: '+data.error,'error');return;}
     Object.assign(S.shopData,p);
     document.getElementById('shop-name-sidebar').textContent=p.nombre;
     renderPage();
@@ -1318,13 +1348,29 @@ async function saveConfigPage(){
 }
 
 // ── BOT CONFIG FUNCTIONS ──
+function setModoRecordatorio(modo){
+  const esTurnos=modo==='turnos';
+  document.getElementById('panel-modo-turnos').style.display=esTurnos?'':'none';
+  document.getElementById('panel-modo-minutos').style.display=esTurnos?'none':'';
+  const btnT=document.getElementById('modo-turnos-btn');
+  const btnM=document.getElementById('modo-minutos-btn');
+  if(btnT){btnT.style.borderColor=esTurnos?'var(--gold)':'var(--border)';btnT.style.color=esTurnos?'var(--gold)':'var(--muted)';btnT.style.background=esTurnos?'rgba(201,168,76,0.08)':'transparent';}
+  if(btnM){btnM.style.borderColor=!esTurnos?'var(--gold)':'var(--border)';btnM.style.color=!esTurnos?'var(--gold)':'var(--muted)';btnM.style.background=!esTurnos?'rgba(201,168,76,0.08)':'transparent';}
+  // Guardar modo en data
+  if(S.shopData)S.shopData._recordatorio_modo_ui=modo;
+}
+
 async function saveConfigBot(){
+  const modo=S.shopData?._recordatorio_modo_ui||S.shopData?.recordatorio_modo||'turnos';
   const n=parseInt(document.getElementById('bot-turnos-n').value)||2;
+  const minutos=parseInt(document.getElementById('bot-minutos-n')?.value)||30;
   const msg=document.getElementById('bot-msg-tpl').value.trim();
   if(!msg){toast('El mensaje no puede estar vacío','error');return;}
   try{
-    await sbPatch('shops','id=eq.'+S.shopId,{recordatorio_turnos:n,recordatorio_msg:msg});
-    Object.assign(S.shopData,{recordatorio_turnos:n,recordatorio_msg:msg});
+    const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/update_shop_config`,{method:'POST',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify({p_shop_id:S.shopId,p_recordatorio_turnos:n,p_recordatorio_msg:msg,p_recordatorio_modo:modo,p_recordatorio_minutos:minutos})});
+    const data=await r.json();
+    if(data&&data.error){toast('Error: '+data.error,'error');return;}
+    Object.assign(S.shopData,{recordatorio_turnos:n,recordatorio_msg:msg,recordatorio_modo:modo,recordatorio_minutos:minutos});
     toast('Recordatorio guardado ✓');
   }catch(e){toast('Error: '+e.message,'error');}
 }
@@ -1333,7 +1379,9 @@ async function toggleBotRecordatorio(el){
   const on=el.dataset.on==='true';
   const newVal=!on;
   try{
-    await sbPatch('shops','id=eq.'+S.shopId,{recordatorio_activo:newVal});
+    const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/update_shop_config`,{method:'POST',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify({p_shop_id:S.shopId,p_recordatorio_activo:newVal})});
+    const data=await r.json();
+    if(data&&data.error){toast('Error: '+data.error,'error');return;}
     S.shopData.recordatorio_activo=newVal;
     el.dataset.on=String(newVal);
     el.querySelector('.toggle-slider').style.background=newVal?'var(--gold)':'rgba(255,255,255,0.1)';
@@ -1341,11 +1389,19 @@ async function toggleBotRecordatorio(el){
   }catch(e){toast('Error: '+e.message,'error');}
 }
 
+// Inicializar modo de recordatorio al abrir la sección bot
+function initModoRecordatorio(){
+  const modo=(S.shopData?.recordatorio_modo)||'turnos';
+  setModoRecordatorio(modo);
+}
+
 async function toggleBotBarbero(el){
   const on=el.dataset.on==='true';
   const newVal=!on;
   try{
-    await sbPatch('shops','id=eq.'+S.shopId,{bot_barbero_activo:newVal});
+    const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/update_shop_config`,{method:'POST',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify({p_shop_id:S.shopId,p_bot_barbero_activo:newVal})});
+    const data=await r.json();
+    if(data&&data.error){toast('Error: '+data.error,'error');return;}
     S.shopData.bot_barbero_activo=newVal;
     el.dataset.on=String(newVal);
     el.querySelector('.toggle-slider').style.background=newVal?'var(--gold)':'rgba(255,255,255,0.1)';
@@ -1422,8 +1478,13 @@ function openModal(type){
 }
 function closeModal(type){document.getElementById('modal-'+type).classList.remove('open');}
 async function saveConfig(){
-  const p={nombre:document.getElementById('cfg-nombre').value.trim(),whatsapp_dueño:document.getElementById('cfg-whatsapp').value.trim(),hora_inicio:parseInt(document.getElementById('cfg-inicio').value)||9,hora_fin:parseInt(document.getElementById('cfg-fin').value)||18,duracion_turno:parseInt(document.getElementById('cfg-duracion').value)||45,timezone:document.getElementById('cfg-timezone').value,dias_atencion:[0,1,2,3,4,5,6].filter(i=>{const cb=document.getElementById('dia-'+i);return cb&&cb.checked;})};
-  try{await sbPatch('shops','id=eq.'+S.shopId,p);Object.assign(S.shopData,p);toast('Configuración guardada');closeModal('config');renderPage();}catch(e){toast('Error: '+e.message,'error');}
+  const p={nombre:document.getElementById('cfg-nombre').value.trim(),'whatsapp_dueño':document.getElementById('cfg-whatsapp').value.trim(),hora_inicio:parseInt(document.getElementById('cfg-inicio').value)||9,hora_fin:parseInt(document.getElementById('cfg-fin').value)||18,duracion_turno:parseInt(document.getElementById('cfg-duracion').value)||45,timezone:document.getElementById('cfg-timezone').value,dias_atencion:[0,1,2,3,4,5,6].filter(i=>{const cb=document.getElementById('dia-'+i);return cb&&cb.checked;})};
+  try{
+    const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/update_shop_config`,{method:'POST',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify({p_shop_id:S.shopId,p_nombre:p.nombre,p_whatsapp_dueno:p['whatsapp_dueño'],p_hora_inicio:p.hora_inicio,p_hora_fin:p.hora_fin,p_duracion_turno:p.duracion_turno,p_timezone:p.timezone,p_dias_atencion:p.dias_atencion})});
+    const data=await r.json();
+    if(data&&data.error){toast('Error: '+data.error,'error');return;}
+    Object.assign(S.shopData,p);toast('Configuración guardada');closeModal('config');renderPage();
+  }catch(e){toast('Error: '+e.message,'error');}
 }
 ['cita','barbero','cliente','config'].forEach(t=>{document.getElementById('modal-'+t).addEventListener('click',e=>{if(e.target.id==='modal-'+t)closeModal(t);});});
 
@@ -1506,7 +1567,7 @@ async function cambiarPin(){
   if(!n||!/^\d{4}$/.test(n)){toast('El PIN debe ser de 4 dígitos','error');return;}
   if(n!==prompt('Confirma el PIN:')){toast('Los PINs no coinciden','error');return;}
   const h=await sha256(n);
-  try{await sbPatch('shops','id=eq.'+S.shopId,{admin_pin_hash:h});_pinHash=h;toast('PIN actualizado');}
+  try{const _pr=await fetch(`${SUPABASE_URL}/rest/v1/rpc/update_shop_config`,{method:'POST',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify({p_shop_id:S.shopId,p_admin_pin_hash:h})});const _pd=await _pr.json();if(_pd&&_pd.error)throw new Error(_pd.error);_pinHash=h;toast('PIN actualizado');}
   catch(e){toast('Error: '+e.message,'error');}
 }
 
