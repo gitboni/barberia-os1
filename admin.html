@@ -817,8 +817,15 @@ async function saveBarbero(){
   }catch(e){toast('Error: '+e.message,'error');}
 }
 async function deleteBarbero(id,nombre){
-  if(!confirm('¿Eliminar a '+nombre+'?'))return;
-  try{await sbDelete('barberos','id=eq.'+id);S.barberos=S.barberos.filter(x=>x.id!==id);toast(nombre+' eliminado');renderPage();}catch(e){toast('No se puede eliminar (tiene citas)','error');}
+  if(!confirm('¿Eliminar a '+nombre+'? Esta acción no se puede deshacer.'))return;
+  try{
+    const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/delete_barbero`,{method:'POST',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify({p_barbero_id:id,p_shop_id:S.shopId})});
+    const data=await r.json();
+    if(data.error){toast(data.error,'error');return;}
+    S.barberos=S.barberos.filter(x=>x.id!==id);
+    toast(nombre+' eliminado correctamente');
+    renderPage();
+  }catch(e){toast('Error al eliminar barbero','error');}
 }
 
 // ── REPORTES ──
