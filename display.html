@@ -814,10 +814,18 @@ function fmt12h(h24){
   return hh+':'+mm+' '+ap;
 }
 function parsearHora(raw){
-  if(!raw)return'12:00 AM';
-  try{
-    // Si tiene offset UTC (+00, Z, +04, etc.)
-    if(/[+\-]\d{2}|Z/.test(raw)){
+  if(!raw) return '12:00 AM';
+  try {
+    const clean = raw.trim().substring(0, 5); // "14:30:00" → "14:30"
+    if(/^\d{1,2}:\d{2}$/.test(clean)) return fmt12(clean);
+    if(/AM|PM/i.test(raw)) {
+      const [timePart, ap] = raw.trim().split(' ');
+      const [h, m] = timePart.split(':');
+      return h.replace(/^0/,'') + ':' + (m||'00') + ' ' + ap.toUpperCase();
+    }
+    return fmt12(raw.substring(0, 5));
+  } catch(_) { return raw.substring(0, 5) || '12:00 AM'; }
+}
       const today=new Date().toISOString().substring(0,10);
       const horaBase=raw.replace(/[+\-]\d{2}:\d{2}$/,'').replace(/Z$/,'').substring(0,8);
       const dt=new Date(today+'T'+horaBase+'Z');
@@ -835,16 +843,21 @@ async function loadCitas(){
   if(!S.shopId)return;
   const ahora=new Date(new Date().toLocaleString('en-US',{timeZone:S.tz||'America/Santo_Domingo'}));
   const hoy=ahora.getFullYear()+'-'+String(ahora.getMonth()+1).padStart(2,'0')+'-'+String(ahora.getDate()).padStart(2,'0');
-  const rows=await retry(()=>sbGet('citas','shop_id=eq.'+S.shopId+'&fecha=eq.'+hoy+'&estado=neq.Cancelada&order=hora.asc'),3);
+  const manana=new Date(ahora);manana.setDate(manana.getDate()+1);
+  const mananaStr=manana.getFullYear()+'-'+String(manana.getMonth()+1).padStart(2,'0')+'-'+String(manana.getDate()).padStart(2,'0');
+  const rows=await retry(()=>sbGet('citas','shop_id=eq.'+S.shopId+'&fecha=in.('+hoy+','+mananaStr+')&estado=neq.Cancelada&order=fecha.asc,hora.asc'),3);
   const prev=S.citas.length;
   S.citas=rows.map(c=>({
     id:c.id,
     name:(c.nombre||'CLIENTE').toUpperCase(),
-    time:parsearHora(c.hora),   // FIX BUG 1
+    time:parsearHora(c.hora),
+    fecha:c.fecha,
     servicio:(c.servicio||'CORTE').toUpperCase(),
     barbero:(c.barbero||'CUALQUIERA').toUpperCase(),
     estado:c.estado||'Confirmada'
   }));
+  const _ahora=new Date(new Date().toLocaleString('en-US',{timeZone:S.tz||'America/Santo_Domingo'}));
+  S.hoy=_ahora.toLocaleDateString('en-CA');
   if(rows.length>prev&&prev>0)showToast('✓ '+(rows.length-prev)+' nueva(s) cita(s)','info');
   rebuildQueues();
   S.lastUp=new Date();
@@ -865,8 +878,9 @@ function rebuildQueues(){
     :[...new Set(S.citas.map(c=>c.barbero))];
   const saved=loadTurns();
   const nq={};
+  const hoyDate=S.hoy||new Date().toLocaleDateString('en-CA',{timeZone:S.tz||'America/Santo_Domingo'});
   blist.forEach(name=>{
-    const mine=S.citas.filter(c=>c.barbero===name);
+    const mine=S.citas.filter(c=>c.barbero===name&&(!c.fecha||c.fecha===hoyDate));
     const prev=S.queues[name];
     let ct;
     if(prev){
@@ -1437,10 +1451,18 @@ function openReagendar(citaId,nombre,horaActual,barber){
   // Generar todos los slots del día
   function generarSlots(){const s=[];for(let h=inicio;h<fin;h++){for(let m=0;m<60;m+=DUR){s.push(String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'));}}return s;}
 
-  // Citas de este barbero hoy (excluyendo la cita actual) — desde BD
-// Normalizar c.time de "9:00 AM" → "09:00" para comparar con slots
-// FIX: redondear minutos al slot más cercano
-function normalizarHora(t){
+    function toHHMM(t){
+      if(!t) return '';
+      t=t.trim();
+      if(!/AM|PM/i.test(t)) return t.substring(0,5);
+      const parts=t.split(' ');const ap=parts[parts.length-1].toUpperCase();
+      const [hStr,mStr]=parts[0].split(':');
+      let h=parseInt(hStr),m=parseInt(mStr||'0');
+      if(ap==='PM'&&h!==12)h+=12;if(ap==='AM'&&h===12)h=0;
+      return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+    }
+    const horaActualNorm=toHHMM(horaActual);
+    const takenHoy=S.citas.filter(c=>c.barbero.toUpperCase()===barber.toUpperCase()&&c.id!=citaId&&c.estado!=='Completada').map(c=>toHHMM(c.time));
   if(!t)return'';
   if(!/AM|PM/i.test(t))return t.substring(0,5);
   const [time,ap]=t.split(' ');
@@ -1483,7 +1505,7 @@ const takenHoy=S.citas
     const slotsHtml=displaySlots.map(t=>{
     const [hh,mm]=t.split(':').map(Number);
     const minSlot=hh*60+mm;
-    const isCurrent=!usaMañana&&t===horaActual;
+    const isCurrent=!usaMañana&&t===horaActualNorm;
     const isTaken=takenDisplay.includes(t);
    // Solo marcar como pasado si está más de 5 min en el pasado (no el slot actual)
     const isPast=!usaMañana&&minSlot<(minAhora-5)&&normalizarHora(horaActual)!==t;
