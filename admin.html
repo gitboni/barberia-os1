@@ -1067,7 +1067,8 @@ async function exportarPDF(){
 <!-- Modal: Prueba de Recordatorio -->
 <div class="modal-overlay" id="modal-test-recordatorio">
   <div class="modal" style="max-width:420px;">
-    <h3 style="font-family:'DM Mono',monospace;font-size:0.78rem;letter-spacing:0.12em;color:var(--gold);margin-bottom:16px;">🧪 PRUEBA DE RECORDATORIO</h3>
+    <h3 style="font-family:'DM Mono',monospace;font-size:0.78rem;letter-spacing:0.12em;color:var(--gold);margin-bottom:4px;">🧪 PRUEBA DE RECORDATORIO</h3>
+    <div id="test-rec-canal" style="font-family:'DM Mono',monospace;font-size:0.56rem;color:var(--muted);margin-bottom:14px;"></div>
     <div style="display:flex;flex-direction:column;gap:14px;">
       <div class="fg">
         <label>Número WhatsApp destino</label>
@@ -1111,6 +1112,7 @@ function renderBot(){
   const recModo=s.recordatorio_modo||'turnos';
   const recActivo=s.recordatorio_activo!==false;
   const botBarbero=s.bot_barbero_activo===true;
+  const notifDueno=s.notificacion_dueno!==false; // default true
   const msgTpl=s.recordatorio_msg||'¡Hola {nombre}! 👋 Tu turno con {barbero} está próximo — quedan {turnos} turno(s). ✂️ ¡Te esperamos en {shop}!';
   const barbsConTel=(S.barberos||[]).filter(b=>b.telefono);
 
@@ -1202,6 +1204,21 @@ function renderBot(){
     </div>
 
     <!-- F2: BOT BARBEROS -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">🔔 Notificar al dueño por nueva cita</div>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <span style="font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);">ACTIVO</span>
+          <div class="toggle-switch" onclick="toggleNotifDueno(this)" data-on="${notifDueno}">
+            <input type="checkbox" style="display:none;" ${notifDueno?'checked':''}>
+            <span class="toggle-slider" style="background:${notifDueno?'var(--gold)':'rgba(255,255,255,0.1)'}"></span>
+          </div>
+        </label>
+      </div>
+      <div style="padding:12px 18px;font-size:0.7rem;color:var(--muted);line-height:1.6;">
+        Cuando un cliente confirma una cita, el bot envía un mensaje de WhatsApp al número del dueño con los detalles. Desactívalo si no deseas recibir estas notificaciones.
+      </div>
+    </div>
     <div class="card">
       <div class="card-header">
         <div class="card-title">💬 Bot para barberos (auto-inactivar)</div>
@@ -1379,11 +1396,26 @@ async function saveConfigPage(){
 
 async function abrirPruebaRecordatorio(){
   const s=S.shopData||{};
+  // Verificar que la shop tiene WhatsApp configurado
+  const provider=s.whatsapp_provider||'twilio';
+  const tieneMeta=s.meta_phone_number_id&&s.meta_access_token;
+  const tieneTwilio=s.twilio_number;
+  if(provider==='meta'&&!tieneMeta){
+    toast('Esta barbería no tiene Meta/WhatsApp configurado. Contacta al superadmin.','error');
+    return;
+  }
+  if(provider==='twilio'&&!tieneTwilio){
+    toast('Esta barbería no tiene Twilio configurado. Contacta al superadmin.','error');
+    return;
+  }
   const tpl=(s.recordatorio_msg)||'¡Hola {nombre}! 👋 Tu turno con {barbero} está próximo — quedan {turnos} turno(s). ✂️ ¡Te esperamos en {shop}!';
   const msgEjemplo=tpl.replace('{nombre}','Cliente').replace('{barbero}','tu barbero').replace('{turnos}','2').replace('{hora}','3:00 PM').replace('{shop}',s.nombre||'la barbería');
   document.getElementById('test-rec-tel').value='';
   document.getElementById('test-rec-msg').value=msgEjemplo;
   document.getElementById('test-rec-resultado').style.display='none';
+  // Mostrar qué canal se usará
+  const canal=provider==='meta'?'📱 Meta WhatsApp':'📱 Twilio WhatsApp';
+  document.getElementById('test-rec-canal').textContent=canal;
   openModal('test-recordatorio');
 }
 
@@ -1470,6 +1502,16 @@ function initModoRecordatorio(){
   setModoRecordatorio(modo);
 }
 
+async function toggleNotifDueno(el){
+  const newVal=el.dataset.on==='true'?false:true;
+  el.dataset.on=newVal;
+  el.querySelector('.toggle-slider').style.background=newVal?'var(--gold)':'rgba(255,255,255,0.1)';
+  try{
+    await fetch(`${SUPABASE_URL}/rest/v1/rpc/update_shop_config`,{method:'POST',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify({p_shop_id:S.shopId,p_notificacion_dueno:newVal})});
+    S.shopData.notificacion_dueno=newVal;
+    showToast(newVal?'Notificaciones activadas ✓':'Notificaciones desactivadas','success');
+  }catch(e){showToast('Error: '+e.message,'error');}
+}
 async function toggleBotBarbero(el){
   const on=el.dataset.on==='true';
   const newVal=!on;
@@ -1660,7 +1702,8 @@ initLogin();
 <!-- Modal: Prueba de Recordatorio -->
 <div class="modal-overlay" id="modal-test-recordatorio">
   <div class="modal" style="max-width:420px;">
-    <h3 style="font-family:'DM Mono',monospace;font-size:0.78rem;letter-spacing:0.12em;color:var(--gold);margin-bottom:16px;">🧪 PRUEBA DE RECORDATORIO</h3>
+    <h3 style="font-family:'DM Mono',monospace;font-size:0.78rem;letter-spacing:0.12em;color:var(--gold);margin-bottom:4px;">🧪 PRUEBA DE RECORDATORIO</h3>
+    <div id="test-rec-canal" style="font-family:'DM Mono',monospace;font-size:0.56rem;color:var(--muted);margin-bottom:14px;"></div>
     <div style="display:flex;flex-direction:column;gap:14px;">
       <div class="fg">
         <label>Número WhatsApp destino</label>
