@@ -2569,7 +2569,7 @@ async function loadReportesPage() {
   if (!cont) return;
   cont.innerHTML = `<div style="padding:40px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;font-size:0.62rem;">Cargando barberías...</div>`;
   try {
-    const shops = await sbFetch('shops', 'activo=eq.true&order=nombre.asc&select=id,nombre,slug,whatsapp_due%C3%B1o,twilio_number,whatsapp_provider,meta_phone_number_id');
+    const shops = await sbFetch('shops', 'activo=eq.true&order=nombre.asc&select=id,nombre,slug,whatsapp_dueño,twilio_number');
     _reportesShops = shops || [];
     const prog = await sbFetch('reportes_programados', 'order=created_at.desc');
     _reportesProgramados = {};
@@ -2934,21 +2934,14 @@ async function guardarReporteProg() {
   const porBarbero = document.getElementById('prog-barbero')?.checked || false;
   const alertaActiva = document.getElementById('prog-alerta')?.checked || false;
   const alertaPct = parseInt(document.getElementById('prog-alerta-pct')?.value) || 20;
-  // Calcular próximo envío según frecuencia
-  const ahora = new Date();
-  const prox = new Date(ahora);
-  if (freq === 'semanal') { prox.setDate(prox.getDate() + (7 - prox.getDay() + 1) % 7 || 7); prox.setHours(8,0,0,0); }
-  else if (freq === 'mensual') { prox.setMonth(prox.getMonth() + 1); prox.setDate(1); prox.setHours(8,0,0,0); }
-  else if (freq === 'trimestral') { prox.setMonth(prox.getMonth() + 3); prox.setDate(1); prox.setHours(8,0,0,0); }
-  else if (freq === 'anual') { prox.setFullYear(prox.getFullYear() + 1); prox.setMonth(0); prox.setDate(1); prox.setHours(8,0,0,0); }
   try {
     await fetch(`https://mmokunpuslcfphalrwot.supabase.co/rest/v1/reportes_programados`, {
       method: 'POST',
       headers: { 'apikey': SB_KEY_R, 'Authorization': `Bearer ${SB_KEY_R}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ shop_id: _shopSeleccionada.id, frecuencia: freq, whatsapp_destino: wa, activo: true, reporte_por_barbero: porBarbero, alerta_activa: alertaActiva, alerta_caida_pct: alertaPct, proximo_envio: prox.toISOString() })
+      body: JSON.stringify({ shop_id: _shopSeleccionada.id, frecuencia: freq, whatsapp_destino: wa, activo: true, reporte_por_barbero: porBarbero, alerta_activa: alertaActiva, alerta_caida_pct: alertaPct })
     });
     document.getElementById('modal-rpt-prog').style.display = 'none';
-    showToast('✓ Reporte programado — próximo envío: ' + prox.toLocaleDateString('es-DO'), 'success');
+    showToast('✓ Reporte programado guardado', 'success');
     loadReportesPage();
   } catch(e) { showToast('Error: ' + e.message, 'error'); }
 }
