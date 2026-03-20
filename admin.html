@@ -448,8 +448,9 @@ async function loadAll(){
     }catch(_){S._todasCitas=S.citas;}
     // Precargar servicios para que estén listos en reportes
     try{const svcs=await sbGet('servicios','shop_id=eq.'+S.shopId+'&activo=eq.true&order=orden.asc');S.servicios=svcs||[];}catch(_){S.servicios=[];}
+    // FIX: cargar servicios ANTES de renderPage para que reportes tenga los precios
+    await loadServicios().catch(()=>{});
     renderPage();
-    loadServicios();
   }catch(e){console.warn(e);toast('Error: '+e.message,'error');}
 }
 
@@ -836,7 +837,7 @@ function renderReportes(){
 
   // ── Cálculos ANTES del return ──
   const svcMap = {};
-  (S.servicios||[]).forEach(s=>{ svcMap[s.nombre.toUpperCase()] = parseFloat(s.precio)||0; });
+  (S.servicios||[]).forEach(s=>{ svcMap[s.nombre.trim().toUpperCase()] = parseFloat(s.precio)||0; });
 
   const completadas = todasCitas.filter(c=>c.estado==='Completada').length;
   const confirmadas = todasCitas.filter(c=>c.estado==='Confirmada').length;
@@ -844,12 +845,12 @@ function renderReportes(){
   const totalCitas  = todasCitas.length;
   const asistenciaPct = totalCitas > 0 ? Math.round((completadas / Math.max(completadas+canceladas,1)) * 100) : 0;
 
-  const ingresos = todasCitas.filter(c=>c.estado==='Completada').reduce((acc,c)=>acc+(svcMap[(c.servicio||'').toUpperCase()]||0),0);
+  const ingresos = todasCitas.filter(c=>c.estado==='Completada').reduce((acc,c)=>acc+(svcMap[(c.servicio||'').trim().toUpperCase()]||0),0);
 
   // Proyección futura
   const hoyStr = new Date().toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
   const citasFuturas = todasCitas.filter(c=>c.fecha>=hoyStr&&c.estado==='Confirmada');
-  const proyeccion = citasFuturas.reduce((acc,c)=>acc+(svcMap[(c.servicio||'').toUpperCase()]||0),0);
+  const proyeccion = citasFuturas.reduce((acc,c)=>acc+(svcMap[(c.servicio||'').trim().toUpperCase()]||0),0);
 
   // Comparativa 30 días
   const hoy30 = new Date(); hoy30.setDate(hoy30.getDate()-1);
@@ -947,7 +948,7 @@ function renderCharts(){
   if(typeof Chart === 'undefined') return;
   const todasCitas = S._todasCitas || S.citas;
   const svcMap = {};
-  (S.servicios||[]).forEach(s=>{ svcMap[s.nombre.toUpperCase()] = parseFloat(s.precio)||0; });
+  (S.servicios||[]).forEach(s=>{ svcMap[s.nombre.trim().toUpperCase()] = parseFloat(s.precio)||0; });
   const chartDefaults = { responsive:true, plugins:{legend:{display:false}}, scales:{x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'rgba(255,255,255,0.3)',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'rgba(255,255,255,0.3)',font:{size:10}}}} };
 
   // Tendencia semanal
@@ -997,7 +998,7 @@ function renderCharts(){
 // ── PDF Export ──
 async function exportarPDF(){
   const svcMap = {};
-  (S.servicios||[]).forEach(s=>{ svcMap[s.nombre.toUpperCase()] = parseFloat(s.precio)||0; });
+  (S.servicios||[]).forEach(s=>{ svcMap[s.nombre.trim().toUpperCase()] = parseFloat(s.precio)||0; });
   const el = document.getElementById('reporte-pdf-content');
   if(!el){ toast('Sin datos para exportar','error'); return; }
 
@@ -1037,7 +1038,7 @@ async function exportarPDF(){
   <div class="subtitle">Generado el ${fecha} · BarberOS</div>
 
   <div class="kpi-row">
-    <div class="kpi"><div class="kpi-val">$${(S._todasCitas||S.citas).filter(c=>c.estado==='Completada').reduce((a,c)=>a+(svcMap[(c.servicio||'').toUpperCase()]||0),0).toLocaleString()}</div><div class="kpi-lbl">Ingresos realizados</div></div>
+    <div class="kpi"><div class="kpi-val">$${(S._todasCitas||S.citas).filter(c=>c.estado==='Completada').reduce((a,c)=>a+(svcMap[(c.servicio||'').trim().toUpperCase()]||0),0).toLocaleString()}</div><div class="kpi-lbl">Ingresos realizados</div></div>
     <div class="kpi"><div class="kpi-val">${(S._todasCitas||S.citas).filter(c=>c.estado==='Completada').length}</div><div class="kpi-lbl">Servicios completados</div></div>
     <div class="kpi"><div class="kpi-val">${(S._todasCitas||S.citas).length > 0 ? Math.round((S._todasCitas||S.citas).filter(c=>c.estado==='Completada').length/(S._todasCitas||S.citas).length*100) : 0}%</div><div class="kpi-lbl">Asistencia</div></div>
     <div class="kpi"><div class="kpi-val">${S.clientes.length}</div><div class="kpi-lbl">Clientes registrados</div></div>
