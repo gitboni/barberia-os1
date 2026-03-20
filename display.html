@@ -1568,11 +1568,11 @@ async function ejecutarPausarBarberia(){
     closeModal('pause-modal');
     actualizarBtnPause();
     showToast(nuevoEstado?'⏸ Barbería pausada — citas conservadas':'▶ Barbería reanudada',nuevoEstado?'warn':'ok');
-    if(!nuevoEstado){if(m.topic&&m.topic.includes('barberos')){
-  await loadBarberos().catch(()=>{});rebuildQueues();render();
-} else {
-  await loadCitas().catch(()=>{});render();
-}}
+if(!nuevoEstado){
+  await loadBarberos().catch(()=>{});
+  await loadCitas().catch(()=>{});
+  render();
+}
   }catch(e){showToast('⚠ Error: '+e.message,'error');}
   finally{if(btn){btn.textContent=_barberiaPausada?'▶ SÍ, REANUDAR':'⏸ SÍ, PAUSAR';btn.style.pointerEvents='';}}
 }
