@@ -1063,7 +1063,32 @@ async function exportarPDF(){
 
   <div class="footer">BarberOS · Reporte generado automáticamente · ${fecha}</div>
   <script>window.onload=()=>{window.print();}<\/script>
-  </body></html>`);
+  
+<!-- Modal: Prueba de Recordatorio -->
+<div class="modal-overlay" id="modal-test-recordatorio">
+  <div class="modal" style="max-width:420px;">
+    <h3 style="font-family:'DM Mono',monospace;font-size:0.78rem;letter-spacing:0.12em;color:var(--gold);margin-bottom:16px;">🧪 PRUEBA DE RECORDATORIO</h3>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div class="fg">
+        <label>Número WhatsApp destino</label>
+        <input type="text" id="test-rec-tel" placeholder="8091234567"
+          style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:9px 12px;width:100%;font-family:'DM Mono',monospace;font-size:0.82rem;box-sizing:border-box;">
+        <div style="font-size:0.58rem;color:var(--muted);margin-top:4px;">Sin + ni código de país — se normaliza automático</div>
+      </div>
+      <div class="fg">
+        <label>Mensaje de prueba</label>
+        <textarea id="test-rec-msg" rows="3"
+          style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:9px 12px;width:100%;font-size:0.7rem;resize:vertical;box-sizing:border-box;"></textarea>
+      </div>
+      <div id="test-rec-resultado" style="display:none;padding:10px 12px;font-family:'DM Mono',monospace;font-size:0.62rem;border-left:2px solid var(--gold);background:rgba(201,168,76,0.04);"></div>
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <button class="btn-full btn-cancel" onclick="closeModal('test-recordatorio')">Cancelar</button>
+        <button class="btn-full btn-gold" id="test-rec-btn" onclick="enviarRecordatorioPrueba()">📤 Enviar prueba</button>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>`);
   printWin.document.close();
 }
 
@@ -1168,7 +1193,10 @@ function renderBot(){
           </div>
         </div>
         <div>
-          <button class="btn-sm btn-gold" style="padding:9px 24px;" onclick="saveConfigBot()">💾 Guardar recordatorio</button>
+          <div style="display:flex;gap:8px;">
+            <button class="btn-sm btn-gold" style="padding:9px 24px;" onclick="saveConfigBot()">💾 Guardar recordatorio</button>
+            <button class="btn-sm" style="padding:9px 18px;background:rgba(0,200,100,0.06);border:1px solid rgba(0,200,100,0.25);color:var(--green);" onclick="abrirPruebaRecordatorio()">🧪 Probar envío</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1348,6 +1376,51 @@ async function saveConfigPage(){
 }
 
 // ── BOT CONFIG FUNCTIONS ──
+
+async function abrirPruebaRecordatorio(){
+  const s=S.shopData||{};
+  const tpl=(s.recordatorio_msg)||'¡Hola {nombre}! 👋 Tu turno con {barbero} está próximo — quedan {turnos} turno(s). ✂️ ¡Te esperamos en {shop}!';
+  const msgEjemplo=tpl.replace('{nombre}','Cliente').replace('{barbero}','tu barbero').replace('{turnos}','2').replace('{hora}','3:00 PM').replace('{shop}',s.nombre||'la barbería');
+  document.getElementById('test-rec-tel').value='';
+  document.getElementById('test-rec-msg').value=msgEjemplo;
+  document.getElementById('test-rec-resultado').style.display='none';
+  openModal('test-recordatorio');
+}
+
+async function enviarRecordatorioPrueba(){
+  const tel=document.getElementById('test-rec-tel').value.trim();
+  const msg=document.getElementById('test-rec-msg').value.trim();
+  const res=document.getElementById('test-rec-resultado');
+  const btn=document.getElementById('test-rec-btn');
+  if(!tel){toast('Ingresa un número de WhatsApp','error');return;}
+  if(!msg){toast('El mensaje no puede estar vacío','error');return;}
+  btn.textContent='⏳ Enviando...';btn.disabled=true;
+  res.style.display='none';
+  try{
+    const r=await fetch(`${SUPABASE_URL}/functions/v1/trigger-recordatorios`,{
+      method:'POST',
+      headers:{...H,'Content-Type':'application/json'},
+      body:JSON.stringify({shop_id:S.shopId,tipo:'prueba',tel_prueba:tel,msg_prueba:msg})
+    });
+    const data=await r.json();
+    if(data.ok){
+      res.style.display='block';
+      res.style.borderColor='var(--green)';
+      res.style.background='rgba(0,200,100,0.04)';
+      res.innerHTML='✅ Mensaje enviado correctamente a <strong>'+tel+'</strong>';
+      toast('Mensaje de prueba enviado ✓','success');
+    } else {
+      throw new Error(data.error||'Error desconocido');
+    }
+  }catch(e){
+    res.style.display='block';
+    res.style.borderColor='var(--red)';
+    res.style.background='rgba(231,76,60,0.04)';
+    res.innerHTML='❌ Error: '+e.message;
+    toast('Error al enviar prueba','error');
+  }finally{btn.textContent='📤 Enviar prueba';btn.disabled=false;}
+}
+
 function setModoRecordatorio(modo){
   const esTurnos=modo==='turnos';
   document.getElementById('panel-modo-turnos').style.display=esTurnos?'':'none';
@@ -1581,5 +1654,30 @@ document.addEventListener('keydown',e=>{
 initLogin();
 </script>
 
+
+<!-- Modal: Prueba de Recordatorio -->
+<div class="modal-overlay" id="modal-test-recordatorio">
+  <div class="modal" style="max-width:420px;">
+    <h3 style="font-family:'DM Mono',monospace;font-size:0.78rem;letter-spacing:0.12em;color:var(--gold);margin-bottom:16px;">🧪 PRUEBA DE RECORDATORIO</h3>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div class="fg">
+        <label>Número WhatsApp destino</label>
+        <input type="text" id="test-rec-tel" placeholder="8091234567"
+          style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:9px 12px;width:100%;font-family:'DM Mono',monospace;font-size:0.82rem;box-sizing:border-box;">
+        <div style="font-size:0.58rem;color:var(--muted);margin-top:4px;">Sin + ni código de país — se normaliza automático</div>
+      </div>
+      <div class="fg">
+        <label>Mensaje de prueba</label>
+        <textarea id="test-rec-msg" rows="3"
+          style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:9px 12px;width:100%;font-size:0.7rem;resize:vertical;box-sizing:border-box;"></textarea>
+      </div>
+      <div id="test-rec-resultado" style="display:none;padding:10px 12px;font-family:'DM Mono',monospace;font-size:0.62rem;border-left:2px solid var(--gold);background:rgba(201,168,76,0.04);"></div>
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <button class="btn-full btn-cancel" onclick="closeModal('test-recordatorio')">Cancelar</button>
+        <button class="btn-full btn-gold" id="test-rec-btn" onclick="enviarRecordatorioPrueba()">📤 Enviar prueba</button>
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
