@@ -2102,7 +2102,8 @@ document.getElementById('paypalBtn').addEventListener('click',()=>openModal('mod
 // ════════════════════════════════════════════
 //  FACTURA PDF — Diseño profesional
 // ════════════════════════════════════════════
-function imprimirFactura(shopId, shopNombre, shopSlug, plan, createdAt) {
+function imprimirFactura(shopId, shopNombreEnc, shopSlug, plan, createdAt) {
+  const shopNombre = decodeURIComponent(shopNombreEnc);
   const PLAN_PRICES = {pro: 29, elite: 79};
   const monto = PLAN_PRICES[plan] || 29;
   const hoy = new Date();
@@ -2307,10 +2308,10 @@ function imprimirFactura(shopId, shopNombre, shopSlug, plan, createdAt) {
   </div>
 
 </div>
-<script>
+<scr'+'ipt>
   // Auto-print al abrir
   window.onload = () => setTimeout(() => window.print(), 800);
-</script>
+</scr'+'ipt>
 
 <!-- Modal: Editar Shop (Meta/Twilio/Config) -->
 <div class="modal-overlay" id="modalEditShop">
@@ -2368,7 +2369,7 @@ async function loadFacturacion() {
       <td style="color:var(--gold)">${new Date(Date.now()+30*86400000).toLocaleDateString('es')}</td>
       <td style="color:var(--gold)">$${s.plan==='pro'?PLAN_PRICES.pro:PLAN_PRICES.elite}.00</td>
       <td class="status-active">● Activa</td>
-      <td><div class="action-btns"><button class="action-btn" style="background:rgba(0,255,120,0.07);border-color:rgba(0,255,120,0.3);color:var(--green);" onclick="imprimirFactura('${s.id}','${(s.nombre||'').replace(/'/g,\'\\\'\')}','${s.slug}','${s.plan}','${s.created_at||new Date().toISOString()}')">🖨 PDF</button></div></td>
+      <td><div class="action-btns"><button class="action-btn" style="background:rgba(0,255,120,0.07);border-color:rgba(0,255,120,0.3);color:var(--green);" onclick="imprimirFactura('${s.id}','${encodeURIComponent(s.nombre||'')}','${s.slug}','${s.plan}','${s.created_at||new Date().toISOString()}')">🖨 PDF</button></div></td>
     </tr>`).join('')||'<tr><td colspan="8" style="color:var(--muted);text-align:center;padding:22px;">Sin suscripciones</td></tr>';
 }
 document.getElementById('exportFacturasBtn').addEventListener('click',()=>{
