@@ -3415,7 +3415,7 @@ function abrirEditShop(shopId){
   document.getElementById('editShopPlan').value=shop.plan||'pro';
   document.getElementById('editShop-resultado').style.display='none';
   toggleEditShopProvider();
-  document.getElementById('modalEditShop').style.display='flex';
+  openModal('modalEditShop');
 }
 
 async function guardarEditShop(){
@@ -3441,11 +3441,9 @@ async function guardarEditShop(){
     // Actualizar en memoria
     const idx=_shops.findIndex(s=>s.id===id);
     if(idx>=0) Object.assign(_shops[idx],updates);
-    const res=document.getElementById('editShop-resultado');
-    res.style.display='block';
-    res.innerHTML='✅ Barbería actualizada correctamente';
     showToast('Barbería actualizada ✓','success');
-    setTimeout(()=>{ closeModal('modalEditShop'); renderCurrentPage(); },1200);
+    closeModal('modalEditShop');
+    await fetchAll(); loadShops();
   }catch(e){showToast('Error: '+e.message,'error');}
 }
 
@@ -3464,38 +3462,6 @@ async function guardarEditShop(){
 </div>
 
 <!-- Modal: Editar Shop (Meta/Twilio/Config) -->
-<div class="modal-overlay" id="modalEditShop">
-  <div class="modal" style="max-width:500px;">
-    <div class="modal-title">✏️ Editar Barbería</div>
-    <input type="hidden" id="editShopId">
-    <div class="form-group"><label class="form-label">Nombre</label><input class="form-input" id="editShopNombre"></div>
-    <div class="form-group"><label class="form-label">WhatsApp del dueño</label><input class="form-input" id="editShopDueno" placeholder="+18097654321"></div>
-    <div class="form-group"><label class="form-label">Proveedor WhatsApp</label>
-      <select class="form-select" id="editShopProvider" onchange="toggleEditShopProvider()">
-        <option value="meta">📱 Meta (WhatsApp Business API)</option>
-        <option value="twilio">☁️ Twilio</option>
-      </select>
-    </div>
-    <div id="editShop-meta-fields">
-      <div class="form-group"><label class="form-label">Meta Phone Number ID</label><input class="form-input" id="editShopMetaPhoneId" placeholder="1083622031493111"></div>
-      <div class="form-group"><label class="form-label">Meta Access Token</label><input class="form-input" id="editShopMetaToken" placeholder="EAAN..." type="password"><div class="form-hint">Dejar vacío para no cambiar el token actual</div></div>
-    </div>
-    <div id="editShop-twilio-fields" style="display:none;">
-      <div class="form-group"><label class="form-label">Número Twilio</label><input class="form-input" id="editShopTwilio" placeholder="+18291234567"></div>
-    </div>
-    <div class="form-group"><label class="form-label">Plan</label>
-      <select class="form-select" id="editShopPlan">
-        <option value="free">Free — $0/mes</option>
-        <option value="pro">Pro — $29/mes</option>
-        <option value="elite">Elite — $79/mes</option>
-      </select>
-    </div>
-    <div id="editShop-resultado" style="display:none;padding:8px 12px;font-family:'DM Mono',monospace;font-size:0.58rem;margin-top:8px;border-left:2px solid var(--green);background:rgba(0,200,100,0.04);"></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal('modalEditShop')">CANCELAR</button>
-      <button class="btn btn-primary" onclick="guardarEditShop()">💾 GUARDAR</button>
-    </div>
-  </div>
-</div>
+
 </body>
 </html>
