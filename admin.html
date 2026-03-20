@@ -1399,17 +1399,15 @@ async function enviarRecordatorioPrueba(){
   try{
     const r=await fetch(`${SUPABASE_URL}/functions/v1/trigger-recordatorios`,{
       method:'POST',
-      headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY},
+      headers:{...H,'Content-Type':'application/json'},
       body:JSON.stringify({shop_id:S.shopId,tipo:'prueba',tel_prueba:tel,msg_prueba:msg})
     });
-    const txt=await r.text();
-    let data; try{data=JSON.parse(txt);}catch(_){throw new Error('Respuesta inválida: '+txt.substring(0,100));}
-    if(!r.ok) throw new Error(data.error||'HTTP '+r.status);
+    const data=await r.json();
     if(data.ok){
       res.style.display='block';
       res.style.borderColor='var(--green)';
       res.style.background='rgba(0,200,100,0.04)';
-      res.innerHTML='✅ Mensaje enviado a <strong>'+tel+'</strong>';
+      res.innerHTML='✅ Mensaje enviado correctamente a <strong>'+tel+'</strong>';
       toast('Mensaje de prueba enviado ✓','success');
     } else {
       throw new Error(data.error||'Error desconocido');
