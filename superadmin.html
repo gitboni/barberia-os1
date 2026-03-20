@@ -16,7 +16,7 @@
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 html{scroll-behavior:smooth;}
-body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-height:100vh;display:flex;overflow-x:hidden;overflow-y:hidden;}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-height:100vh;display:flex;overflow-x:auto;overflow-y:hidden;}
 body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.4;}
 ::-webkit-scrollbar{width:3px;height:3px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:rgba(201,168,76,0.25);}::-webkit-scrollbar-thumb:hover{background:rgba(201,168,76,0.5);}
 
@@ -47,7 +47,7 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .login-loading{display:none;text-align:center;padding:10px;color:var(--muted);font-size:0.6rem;letter-spacing:0.1em;}
 
 /* SIDEBAR */
-.sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100vh;position:sticky;top:0;transition:width 0.28s cubic-bezier(0.4,0,0.2,1),min-width 0.28s cubic-bezier(0.4,0,0.2,1);overflow-y:auto;overflow-x:hidden;z-index:50;}
+.sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100vh;position:sticky;top:0;transition:width 0.28s cubic-bezier(0.4,0,0.2,1),min-width 0.28s cubic-bezier(0.4,0,0.2,1);overflow:hidden;z-index:50;}
 .sidebar.collapsed{width:56px;min-width:56px;}
 .sidebar.collapsed .sidebar-text,.sidebar.collapsed .nav-section,.sidebar.collapsed .sidebar-badge,.sidebar.collapsed .sidebar-logo .sub,.sidebar.collapsed .admin-info,.sidebar.collapsed .admin-name,.sidebar.collapsed .logout-btn,.sidebar.collapsed .badge{display:none!important;}
 .sidebar.collapsed .nav-item{padding:11px 0;justify-content:center;}
@@ -78,7 +78,7 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .mobile-overlay.open{display:block;}
 
 /* MAIN */
-.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;position:relative;z-index:1;height:100vh;}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;position:relative;z-index:1;}
 .topbar{padding:11px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:rgba(12,12,20,0.95);backdrop-filter:blur(12px);gap:12px;flex-shrink:0;position:sticky;top:0;z-index:30;}
 .topbar-left{display:flex;align-items:center;gap:14px;}
 .menu-toggle{display:none;background:none;border:1px solid var(--border);color:var(--muted);padding:6px 10px;cursor:pointer;font-size:0.8rem;transition:all 0.2s;}
@@ -589,7 +589,7 @@ tr:hover td{background:rgba(255,255,255,0.016);}
         <button class="btn btn-ghost" id="refreshShopsBtn">↻</button>
       </div>
       <div class="table-wrap">
-        <table><thead><tr><th>Barbería</th><th class="col-hide-xs">Slug</th><th>WhatsApp</th><th>Plan</th><th>Trial</th><th class="col-hide-xs">Barberos</th><th>Estado</th><th class="col-hide-xs">Creado</th><th>Acciones</th></tr></thead><tbody id="shopsTable"></tbody></table>
+        <table><thead><tr><th>Barbería</th><th class="col-hide-xs">Slug</th><th>WhatsApp</th><th>Plan</th><th class="col-hide-xs">Barberos</th><th>Estado</th><th class="col-hide-xs">Creado</th><th>Acciones</th></tr></thead><tbody id="shopsTable"></tbody></table>
       </div>
     </div>
 
@@ -926,7 +926,6 @@ tr:hover td{background:rgba(255,255,255,0.016);}
   </div>
 </div>
 
-<div class="modal-overlay" id="modalPin"><div class="modal"><div class="modal-title">🔑 PIN de Acceso Admin</div><div id="pinShopName" style="font-size:0.78rem;color:var(--muted);margin-bottom:16px;"></div><div class="form-group"><label class="form-label">Nuevo PIN (4 dígitos)</label><input class="form-input" type="password" id="newPinInput" maxlength="4" placeholder="••••" inputmode="numeric"></div><div class="form-group"><label class="form-label">Confirmar PIN</label><input class="form-input" type="password" id="confirmPinInput" maxlength="4" placeholder="••••" inputmode="numeric"></div><input type="hidden" id="pinShopId"><div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modalPin')">CANCELAR</button><button class="btn btn-primary" id="savePinBtn">GUARDAR PIN</button></div></div></div>
 <div class="modal-overlay" id="modalEditPlan">
   <div class="modal">
     <div class="modal-title">Cambiar Plan</div>
@@ -938,51 +937,6 @@ tr:hover td{background:rgba(255,255,255,0.016);}
     </div>
     <input type="hidden" id="editPlanShopId">
     <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modalEditPlan')">CANCELAR</button><button class="btn btn-primary" id="savePlanBtn">GUARDAR PLAN</button></div>
-  </div>
-</div>
-
-<!-- MODAL TRIAL -->
-<div class="modal-overlay" id="modalTrial">
-  <div class="modal">
-    <div class="modal-title">⏱ Gestión de Trial</div>
-    <div id="trialShopName" style="font-size:0.78rem;color:var(--muted);margin-bottom:6px;"></div>
-    <div id="trialStatusBadge" style="margin-bottom:18px;"></div>
-    <input type="hidden" id="trialShopId">
-
-    <div style="display:flex;flex-direction:column;gap:14px;">
-      <!-- Extender trial -->
-      <div style="padding:14px;border:1px solid var(--border);background:rgba(0,255,120,0.03);">
-        <div style="font-size:0.52rem;color:var(--green);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:10px;">Extender / Establecer Trial</div>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <select id="trialDias" style="background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:8px 12px;font-family:inherit;font-size:0.7rem;flex:1;">
-            <option value="7">7 días</option>
-            <option value="14" selected>14 días</option>
-            <option value="30">30 días</option>
-            <option value="60">60 días</option>
-            <option value="90">90 días</option>
-          </select>
-          <button class="btn btn-primary" id="extenderTrialBtn" style="white-space:nowrap;">+ Extender</button>
-        </div>
-        <div style="font-size:0.52rem;color:var(--muted);margin-top:6px;">Suma los días desde HOY</div>
-      </div>
-
-      <!-- Convertir a producción -->
-      <div style="padding:14px;border:1px solid var(--border);background:rgba(201,168,76,0.03);">
-        <div style="font-size:0.52rem;color:var(--gold);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:8px;">Convertir a Producción</div>
-        <div style="font-size:0.62rem;color:var(--muted);margin-bottom:10px;line-height:1.6;">Marca la barbería como cliente de pago. Desactiva el trial y el bot funciona indefinidamente.</div>
-        <button class="btn" id="convertirProBtn" style="width:100%;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.3);color:var(--gold);">✓ Marcar como Producción</button>
-      </div>
-
-      <!-- Vencer trial -->
-      <div style="padding:14px;border:1px solid var(--border);background:rgba(231,76,60,0.03);">
-        <div style="font-size:0.52rem;color:var(--red);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:8px;">Vencer Trial Inmediatamente</div>
-        <button class="btn danger" id="vencerTrialBtn" style="width:100%;">⚠ Vencer Trial Ahora</button>
-      </div>
-    </div>
-
-    <div class="modal-actions" style="margin-top:18px;">
-      <button class="btn btn-ghost" onclick="closeModal('modalTrial')">CERRAR</button>
-    </div>
   </div>
 </div>
 
@@ -1134,7 +1088,6 @@ async function sbDelete(table, query) {
   });
   if (!res.ok) throw new Error(`DELETE ${table}: HTTP ${res.status}`);
 }
-async function sbRpc(fn,p={}){const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`,{method:'POST',headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${_accessToken||SUPABASE_KEY}`,'Content-Type':'application/json'},body:JSON.stringify(p)});if(!r.ok){const t=await r.text().catch(()=>'');throw new Error(`RPC ${fn}: ${r.status} ${t}`);}if(r.status===204)return null;const tx=await r.text();return tx?JSON.parse(tx):null;}
 
 // Mejora #6: persistir logs de acceso en Supabase
 async function logSuperadminAction(result, action='') {
@@ -1598,8 +1551,6 @@ function calcAgo(d) {
   const m=Math.round((Date.now()-new Date(d))/60000);
   if(m<1)return 'ahora';if(m<60)return `hace ${m}m`;return `hace ${Math.round(m/60)}h`;
 }
-function fmt12rpt(h){if(!h)return'—';const[hh,mm]=(h+':00').split(':').map(Number),ap=hh>=12?'PM':'AM',h12=hh===0?12:hh>12?hh-12:hh;return h12+':'+(mm<10?'0':'')+mm+' '+ap;}
-function fmt12rpt(h){ if(!h)return'—'; const[hh,mm]=(h+':00').split(':').map(Number),ap=hh>=12?'PM':'AM',h12=hh===0?12:hh>12?hh-12:hh; return h12+':'+(mm<10?'0':'')+mm+' '+ap; }
 
 function renderBarChart(citas) {
   const days=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
@@ -1754,38 +1705,23 @@ function _applyShopFilters() {
   _renderShopsTable(f, _barberos);
 }
 
-function _getTrialInfo(s) {
-  const plan = s.plan || 'free';
-  if (plan === 'pro' || plan === 'elite') return { label: 'PRODUCCIÓN', color: 'var(--blue)', dias: null };
-  if (s.trial_activo === false) return { label: 'PRODUCCIÓN', color: 'var(--blue)', dias: null };
-  if (!s.trial_ends_at) return { label: 'SIN FECHA', color: 'var(--muted)', dias: null };
-  const dias = Math.ceil((new Date(s.trial_ends_at) - new Date()) / (1000*60*60*24));
-  if (dias < 0) return { label: 'VENCIDO', color: 'var(--red)', dias };
-  if (dias <= 3) return { label: dias+'d restantes', color: 'var(--red)', dias };
-  if (dias <= 7) return { label: dias+'d restantes', color: 'var(--gold)', dias };
-  return { label: dias+'d restantes', color: 'var(--green)', dias };
-}
-
 function _renderShopsTable(shops, barberos=[]) {
   if(!shops.length){
-    document.getElementById('shopsTable').innerHTML='<tr><td colspan="9" style="color:var(--muted);text-align:center;padding:24px;">Sin barberías</td></tr>';
+    document.getElementById('shopsTable').innerHTML='<tr><td colspan="8" style="color:var(--muted);text-align:center;padding:24px;">Sin barberías</td></tr>';
     return;
   }
   document.getElementById('shopsTable').innerHTML=shops.map(s=>{
     const barbs=barberos.filter(b=>b.shop_id===s.id).length;
-    const trial=_getTrialInfo(s);
     return `<tr>
       <td style="color:var(--text);font-weight:500">${s.nombre}</td>
       <td style="color:var(--muted);font-size:0.58rem">${s.slug}</td>
       <td style="color:var(--muted)">${s.whatsapp_dueño||'—'}</td>
       <td><span class="plan-badge plan-${s.plan}">${s.plan}</span></td>
-      <td><span style="font-size:0.52rem;color:${trial.color};letter-spacing:0.08em;font-weight:500;">${trial.label}</span></td>
       <td style="color:var(--gold);text-align:center">${barbs}</td>
       <td class="${s.activo?'status-active':'status-pending'}">${s.activo?'● Activa':'○ Pendiente'}</td>
       <td style="color:var(--muted)">${s.created_at?new Date(s.created_at).toLocaleDateString('es'):'—'}</td>
       <td><div class="action-btns">
-        <button class="action-btn" onclick="openEditPlan('${s.id}','${s.nombre}','${s.plan}')">Plan</button><button class="action-btn" onclick="openPinModal('${s.id}','${s.nombre}')" style="background:rgba(201,168,76,0.07);border-color:rgba(201,168,76,0.3);color:var(--gold);">🔑 PIN</button>
-        <button class="action-btn" onclick="openTrialModal('${s.id}','${s.nombre}','${s.plan}',${s.trial_activo},'${s.trial_ends_at||''}')" style="background:rgba(0,255,120,0.07);border-color:rgba(0,255,120,0.25);color:var(--green);">⏱ Trial</button>
+        <button class="action-btn" onclick="openEditPlan('${s.id}','${s.nombre}','${s.plan}')">Plan</button>
         <button class="action-btn" onclick="openFeaturesModal('${s.id}','${s.nombre}')" style="background:rgba(176,110,255,0.1);border-color:rgba(176,110,255,0.3);color:var(--purple);">⚡ Features</button>
         <button class="action-btn ${s.activo?'danger':'success'}" onclick="confirmToggleShop('${s.id}',${s.activo},'${s.nombre}')">${s.activo?'Desactivar':'Activar'}</button>
       </div></td>
@@ -1840,84 +1776,19 @@ document.getElementById('savePlanBtn').addEventListener('click',async()=>{
   } catch(e){ showToast('Error: '+e.message,'error'); }
 });
 
-// ════════════════════════════════════════════
-//  GESTIÓN DE TRIAL
-// ════════════════════════════════════════════
-function openTrialModal(id, nombre, plan, trialActivo, trialEndsAt) {
-  document.getElementById('trialShopId').value = id;
-  document.getElementById('trialShopName').textContent = nombre;
-
-  // Badge de estado actual
-  const badge = document.getElementById('trialStatusBadge');
-  if (plan === 'pro' || plan === 'elite' || trialActivo === false) {
-    badge.innerHTML = '<span style="color:var(--blue);font-size:0.62rem;">● PRODUCCIÓN — Bot activo indefinidamente</span>';
-  } else if (trialEndsAt) {
-    const dias = Math.ceil((new Date(trialEndsAt) - new Date()) / (1000*60*60*24));
-    const fecha = new Date(trialEndsAt).toLocaleDateString('es-DO', {day:'numeric',month:'long',year:'numeric'});
-    if (dias < 0) {
-      badge.innerHTML = `<span style="color:var(--red);font-size:0.62rem;">⚠ TRIAL VENCIDO — Venció el ${fecha}</span>`;
-    } else {
-      badge.innerHTML = `<span style="color:${dias<=3?'var(--red)':dias<=7?'var(--gold)':'var(--green)'};font-size:0.62rem;">⏱ TRIAL ACTIVO — ${dias} días restantes (vence ${fecha})</span>`;
-    }
-  } else {
-    badge.innerHTML = '<span style="color:var(--muted);font-size:0.62rem;">Sin fecha de trial</span>';
-  }
-
-  openModal('modalTrial');
-}
-
-document.getElementById('extenderTrialBtn').addEventListener('click', async () => {
-  const id = document.getElementById('trialShopId').value;
-  const dias = parseInt(document.getElementById('trialDias').value);
-  const nuevaFecha = new Date(Date.now() + dias * 24 * 60 * 60 * 1000).toISOString();
-  try {
-    if (!usingDemo) await sbPatch('shops', `id=eq.${id}`, { trial_activo: true, trial_ends_at: nuevaFecha });
-    else { const s = _shops.find(x => x.id === id); if (s) { s.trial_activo = true; s.trial_ends_at = nuevaFecha; } }
-    showToast(`Trial extendido ${dias} días ✓`, 'success');
-    addLog('OK', `Trial extendido ${dias}d: ${id}`);
-    closeModal('modalTrial');
-    loadShops();
-  } catch(e) { showToast('Error: ' + e.message, 'error'); }
-});
-
-document.getElementById('convertirProBtn').addEventListener('click', () => {
-  const id = document.getElementById('trialShopId').value;
-  const nombre = document.getElementById('trialShopName').textContent;
+function confirmToggleShop(id,activo,nombre) {
   showConfirm(
-    `¿Convertir "${nombre}" a Producción? El bot funcionará indefinidamente.`,
-    async () => {
+    activo?`¿Desactivar "${nombre}"?`:`¿Activar "${nombre}"?`,
+    async()=>{
       try {
-        if (!usingDemo) await sbPatch('shops', `id=eq.${id}`, { trial_activo: false, plan: 'pro' });
-        else { const s = _shops.find(x => x.id === id); if (s) { s.trial_activo = false; s.plan = 'pro'; } }
-        showToast(`"${nombre}" → Producción ✓`, 'success');
-        addLog('OK', `Convertida a producción: ${nombre}`);
-        closeModal('modalTrial');
+        if(!usingDemo) await sbPatch('shops',`id=eq.${id}`,{activo:!activo});
+        else { const s=_shops.find(x=>x.id===id); if(s) s.activo=!activo; }
+        showToast(activo?'Desactivada':'Activada ✓', activo?'warn':'success');
         loadShops(); renderDashboard();
-      } catch(e) { showToast('Error: ' + e.message, 'error'); }
-    }, 'Confirmar'
+      } catch(e){ showToast('Error: '+e.message,'error'); }
+    }, activo?'Desactivar':'Activar'
   );
-});
-
-document.getElementById('vencerTrialBtn').addEventListener('click', () => {
-  const id = document.getElementById('trialShopId').value;
-  const nombre = document.getElementById('trialShopName').textContent;
-  showConfirm(
-    `¿Vencer el trial de "${nombre}" inmediatamente? El bot dejará de responder.`,
-    async () => {
-      try {
-        const fechaVencida = new Date(Date.now() - 1000).toISOString();
-        if (!usingDemo) await sbPatch('shops', `id=eq.${id}`, { trial_activo: true, trial_ends_at: fechaVencida });
-        else { const s = _shops.find(x => x.id === id); if (s) { s.trial_activo = true; s.trial_ends_at = fechaVencida; } }
-        showToast(`Trial vencido para "${nombre}"`, 'warn');
-        addLog('WARN', `Trial vencido manualmente: ${nombre}`);
-        closeModal('modalTrial');
-        loadShops();
-      } catch(e) { showToast('Error: ' + e.message, 'error'); }
-    }, 'Vencer Trial', true
-  );
-});
-
-function confirmToggleShop(id,activo,nombre){showConfirm(activo?`¿Desactivar "${nombre}"?`:`¿Activar "${nombre}"?`,async()=>{try{if(!usingDemo)await sbRpc('toggle_shop_activo',{p_shop_id:id,p_activo:!activo});else{const s=_shops.find(x=>x.id===id);if(s)s.activo=!activo;}showToast(activo?'Desactivada':'Activada ✓',activo?'warn':'success');logSuperadminAction('toggle_shop',`${nombre}:${!activo}`);await fetchAll();loadShops();renderDashboard();}catch(e){showToast('Error: '+e.message,'error');}},activo?'Desactivar':'Activar');}
+}
 
 // ════════════════════════════════════════════
 //  USUARIOS
@@ -2006,7 +1877,14 @@ document.getElementById('createBarberoBtn').addEventListener('click',async()=>{
     closeModal('modalNewBarbero'); loadBarberos();
   } catch(e){ showToast('Error: '+e.message,'error'); }
 });
-function confirmToggleBarbero(id,activo,nombre){showConfirm(`¿${activo?'Desactivar':'Activar'} al barbero "${nombre}"?`,async()=>{try{if(!usingDemo)await sbRpc('toggle_barbero_activo',{p_barbero_id:id,p_activo:!activo});else{const b=_barberos.find(x=>x.id===id);if(b)b.activo=!activo;}showToast(`Barbero ${activo?'desactivado':'activado ✓'}`,'info');logSuperadminAction('toggle_barbero',`${nombre}:${!activo}`);loadBarberos();}catch(e){showToast('Error: '+e.message,'error');}},activo?'Desactivar':'Activar');}
+function confirmToggleBarbero(id,activo,nombre) {
+  showConfirm(`¿${activo?'Desactivar':'Activar'} al barbero "${nombre}"?`,async()=>{
+    if(!usingDemo) await sbPatch('barberos',`id=eq.${id}`,{activo:!activo}).catch(()=>{});
+    else { const b=_barberos.find(x=>x.id===id); if(b) b.activo=!activo; }
+    showToast(`Barbero ${activo?'desactivado':'activado'}`,'info');
+    loadBarberos();
+  }, activo?'Desactivar':'Activar');
+}
 
 // ════════════════════════════════════════════
 //  PAGOS
@@ -2053,227 +1931,6 @@ document.getElementById('stripeBtn').addEventListener('click',()=>openModal('mod
 document.getElementById('paypalBtn').addEventListener('click',()=>openModal('modalPaypal'));
 
 // ════════════════════════════════════════════
-
-// ════════════════════════════════════════════
-//  FACTURA PDF — Diseño profesional
-// ════════════════════════════════════════════
-function imprimirFactura(shopId, shopNombre, shopSlug, plan, createdAt) {
-  const PLAN_PRICES = {pro: 29, elite: 79};
-  const monto = PLAN_PRICES[plan] || 29;
-  const hoy = new Date();
-  const fechaEmision = hoy.toLocaleDateString('es-DO', {day:'2-digit', month:'long', year:'numeric'});
-  const fechaVence = new Date(hoy.getTime() + 30*86400000).toLocaleDateString('es-DO', {day:'2-digit', month:'long', year:'numeric'});
-  const numFactura = 'BSAS-' + String(Math.floor(Math.random()*90000)+10000);
-  const inicio = new Date(createdAt).toLocaleDateString('es-DO', {day:'2-digit', month:'long', year:'numeric'});
-
-  const html = `<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<title>Factura ${numFactura} — ${shopNombre}</title>
-<style>
-  *{margin:0;padding:0;box-sizing:border-box;}
-  body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#111;font-size:14px;}
-  .page{max-width:800px;margin:0 auto;padding:48px 52px;min-height:100vh;position:relative;}
-
-  /* HEADER */
-  .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:48px;padding-bottom:28px;border-bottom:3px solid #111;}
-  .logo-area{display:flex;align-items:center;gap:14px;}
-  .logo-icon{width:52px;height:52px;background:#111;display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:#C9A84C;flex-shrink:0;}
-  .logo-text{font-size:1.8rem;font-weight:900;letter-spacing:0.06em;color:#111;line-height:1;}
-  .logo-sub{font-size:0.58rem;color:#888;letter-spacing:0.3em;text-transform:uppercase;margin-top:3px;}
-  .factura-badge{text-align:right;}
-  .factura-badge .titulo{font-size:2rem;font-weight:900;letter-spacing:0.12em;text-transform:uppercase;color:#111;}
-  .factura-badge .num{font-size:0.8rem;color:#C9A84C;letter-spacing:0.08em;font-weight:700;margin-top:2px;}
-  .factura-badge .estado{display:inline-block;background:#e6f9f0;color:#1a7a45;font-size:0.6rem;font-weight:700;letter-spacing:0.15em;padding:3px 10px;border:1px solid #1a7a45;margin-top:6px;text-transform:uppercase;}
-
-  /* INFO GRID */
-  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-bottom:40px;}
-  .info-block .label{font-size:0.55rem;color:#888;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:6px;font-weight:600;}
-  .info-block .value{font-size:0.9rem;font-weight:700;color:#111;line-height:1.5;}
-  .info-block .value-muted{font-size:0.8rem;color:#555;margin-top:2px;}
-
-  /* TABLA */
-  .table-wrap{margin-bottom:36px;}
-  table{width:100%;border-collapse:collapse;}
-  thead tr{background:#111;color:#fff;}
-  thead th{padding:12px 16px;text-align:left;font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;font-weight:700;}
-  thead th:last-child{text-align:right;}
-  tbody tr{border-bottom:1px solid #e8e8e8;}
-  tbody tr:last-child{border-bottom:2px solid #111;}
-  tbody td{padding:14px 16px;font-size:0.88rem;color:#222;}
-  tbody td:last-child{text-align:right;font-weight:700;}
-  .plan-badge{display:inline-block;padding:2px 10px;background:#C9A84C;color:#111;font-size:0.56rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;}
-
-  /* TOTALES */
-  .totals{display:flex;justify-content:flex-end;margin-bottom:36px;}
-  .totals-box{width:280px;}
-  .totals-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:0.85rem;}
-  .totals-row.total{border-bottom:none;border-top:2px solid #111;margin-top:4px;padding-top:12px;font-size:1.1rem;font-weight:900;color:#111;}
-  .totals-row.total span:last-child{color:#C9A84C;}
-
-  /* NOTAS */
-  .notas{background:#f8f8f8;border-left:4px solid #C9A84C;padding:16px 20px;margin-bottom:40px;font-size:0.78rem;color:#444;line-height:1.7;}
-  .notas strong{color:#111;}
-
-  /* FOOTER */
-  .footer{border-top:1px solid #ddd;padding-top:20px;display:flex;justify-content:space-between;align-items:flex-end;}
-  .footer-left{font-size:0.65rem;color:#888;line-height:1.8;}
-  .footer-right{text-align:right;font-size:0.65rem;color:#888;}
-  .footer-brand{font-size:0.8rem;font-weight:900;color:#111;letter-spacing:0.1em;}
-
-  /* SELLO */
-  .sello{position:absolute;top:200px;right:60px;width:130px;height:130px;border:4px solid rgba(201,168,76,0.25);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;transform:rotate(-18deg);opacity:0.35;}
-  .sello-text{font-size:0.5rem;font-weight:900;letter-spacing:0.25em;color:#C9A84C;text-transform:uppercase;text-align:center;line-height:1.5;}
-
-  @media print{
-    body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-    .no-print{display:none!important;}
-    .page{padding:32px 40px;}
-  }
-</style>
-</head>
-<body>
-<div class="page">
-
-  <!-- SELLO -->
-  <div class="sello">
-    <div class="sello-text">PAGADO<br>✓<br>ACTIVO</div>
-  </div>
-
-  <!-- HEADER -->
-  <div class="header">
-    <div class="logo-area">
-      <div class="logo-icon">✂</div>
-      <div>
-        <div class="logo-text">BarberOS</div>
-        <div class="logo-sub">Sistema de Gestión · SaaS</div>
-      </div>
-    </div>
-    <div class="factura-badge">
-      <div class="titulo">Factura</div>
-      <div class="num">${numFactura}</div>
-      <div class="estado">● Pagada</div>
-    </div>
-  </div>
-
-  <!-- INFO -->
-  <div class="info-grid">
-    <div>
-      <div class="info-block" style="margin-bottom:20px;">
-        <div class="label">Proveedor del servicio</div>
-        <div class="value">BarberOS SaaS</div>
-        <div class="value-muted">Sistema de gestión para barberías</div>
-        <div class="value-muted">contacto@barberos.app</div>
-        <div class="value-muted">barberia-os1.vercel.app</div>
-      </div>
-    </div>
-    <div>
-      <div class="info-block" style="margin-bottom:20px;">
-        <div class="label">Facturado a</div>
-        <div class="value">${shopNombre}</div>
-        <div class="value-muted">Slug: ${shopSlug}</div>
-        <div class="value-muted">Plan: ${plan.toUpperCase()}</div>
-        <div class="value-muted">Cliente desde: ${inicio}</div>
-      </div>
-    </div>
-    <div>
-      <div class="info-block">
-        <div class="label">Fecha de emisión</div>
-        <div class="value">${fechaEmision}</div>
-      </div>
-    </div>
-    <div>
-      <div class="info-block">
-        <div class="label">Próximo cobro</div>
-        <div class="value" style="color:#C9A84C;">${fechaVence}</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- TABLA -->
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Descripción del servicio</th>
-          <th>Plan</th>
-          <th>Período</th>
-          <th>Cantidad</th>
-          <th>Precio</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td style="color:#888;">001</td>
-          <td>
-            <strong>BarberOS ${plan.toUpperCase()} — Suscripción mensual</strong><br>
-            <span style="font-size:0.75rem;color:#666;">Bot WhatsApp · Panel Admin · Sala de Espera · Reportes · Recordatorios automáticos</span>
-          </td>
-          <td><span class="plan-badge">${plan.toUpperCase()}</span></td>
-          <td style="color:#666;font-size:0.8rem;">${fechaEmision}<br>→ ${fechaVence}</td>
-          <td style="text-align:center;">1</td>
-          <td>$${monto}.00</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- TOTALES -->
-  <div class="totals">
-    <div class="totals-box">
-      <div class="totals-row"><span>Subtotal</span><span>$${monto}.00</span></div>
-      <div class="totals-row"><span>Descuento</span><span>$0.00</span></div>
-      <div class="totals-row"><span style="color:#888;font-size:0.75rem;">ITBIS (18%)</span><span style="color:#888;font-size:0.75rem;">Exento</span></div>
-      <div class="totals-row total"><span>TOTAL</span><span>$${monto}.00 USD</span></div>
-    </div>
-  </div>
-
-  <!-- NOTAS -->
-  <div class="notas">
-    <strong>Notas:</strong> Esta factura corresponde a la suscripción mensual del plan ${plan.toUpperCase()} de BarberOS.
-    El servicio incluye acceso completo a todas las funcionalidades del plan durante el período indicado.
-    Para soporte técnico contactar: <strong>contacto@barberos.app</strong>
-  </div>
-
-  <!-- BOTÓN IMPRIMIR (no se imprime) -->
-  <div class="no-print" style="text-align:center;margin-bottom:32px;">
-    <button onclick="window.print()" style="background:#111;color:#C9A84C;border:2px solid #C9A84C;padding:12px 40px;font-size:0.85rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;">
-      🖨 IMPRIMIR / GUARDAR PDF
-    </button>
-    <button onclick="window.close()" style="background:transparent;color:#888;border:1px solid #ddd;padding:12px 24px;font-size:0.8rem;cursor:pointer;margin-left:12px;">
-      CERRAR
-    </button>
-  </div>
-
-  <!-- FOOTER -->
-  <div class="footer">
-    <div class="footer-left">
-      <div class="footer-brand">BarberOS</div>
-      <div>Sistema de Gestión para Barberías</div>
-      <div>barberia-os1.vercel.app · contacto@barberos.app</div>
-    </div>
-    <div class="footer-right">
-      <div>Factura generada automáticamente</div>
-      <div>${new Date().toLocaleString('es-DO')}</div>
-      <div style="margin-top:4px;color:#C9A84C;font-weight:700;">${numFactura}</div>
-    </div>
-  </div>
-
-</div>
-<script>
-  // Auto-print al abrir
-  window.onload = () => setTimeout(() => window.print(), 800);
-</script>
-</body>
-</html>`;
-
-  const win = window.open('', '_blank', 'width=900,height=700');
-  win.document.write(html);
-  win.document.close();
-}
-
 //  FACTURACIÓN
 // ════════════════════════════════════════════
 async function loadFacturacion() {
@@ -2288,7 +1945,7 @@ async function loadFacturacion() {
       <td style="color:var(--gold)">${new Date(Date.now()+30*86400000).toLocaleDateString('es')}</td>
       <td style="color:var(--gold)">$${s.plan==='pro'?PLAN_PRICES.pro:PLAN_PRICES.elite}.00</td>
       <td class="status-active">● Activa</td>
-      <td><div class="action-btns"><button class="action-btn" style="background:rgba(0,255,120,0.07);border-color:rgba(0,255,120,0.3);color:var(--green);" onclick="imprimirFactura('${s.id}','${(s.nombre||'').replace(/'/g,\'\\\'\')}','${s.slug}','${s.plan}','${s.created_at||new Date().toISOString()}')">🖨 PDF</button></div></td>
+      <td><div class="action-btns"><button class="action-btn" onclick="showToast('PDF disponible con Stripe Invoices','info')">PDF</button></div></td>
     </tr>`).join('')||'<tr><td colspan="8" style="color:var(--muted);text-align:center;padding:22px;">Sin suscripciones</td></tr>';
 }
 document.getElementById('exportFacturasBtn').addEventListener('click',()=>{
@@ -2370,7 +2027,7 @@ function renderCitasTable(citas, shopMap, barbMap) {
       <td style="color:var(--muted)">${c.nombre||'—'}</td>
       <td style="color:var(--muted)">${barbMap[c.barbero_id]||c.barbero||'—'}</td>
       <td style="color:var(--muted)">${c.servicio||'—'}</td>
-      <td style="color:var(--gold)">${fmt12rpt(c.hora)||'—'}</td>
+      <td style="color:var(--gold)">${c.hora||'—'}</td>
       <td class="${c.estado==='Completada'?'status-active':c.estado==='No-Show'?'status-inactive':'status-pending'}">${c.estado||'—'}</td>
     </tr>`).join('')||'<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:22px;">Sin citas</td></tr>';
 }
@@ -2569,7 +2226,7 @@ async function loadReportesPage() {
   if (!cont) return;
   cont.innerHTML = `<div style="padding:40px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;font-size:0.62rem;">Cargando barberías...</div>`;
   try {
-    const shops = await sbFetch('shops', 'activo=eq.true&order=nombre.asc&select=id,nombre,slug,whatsapp_due%C3%B1o,twilio_number,whatsapp_provider,meta_phone_number_id');
+    const shops = await sbFetch('shops', 'activo=eq.true&order=nombre.asc&select=id,nombre,slug,whatsapp_dueño,twilio_number');
     _reportesShops = shops || [];
     const prog = await sbFetch('reportes_programados', 'order=created_at.desc');
     _reportesProgramados = {};
@@ -2934,21 +2591,14 @@ async function guardarReporteProg() {
   const porBarbero = document.getElementById('prog-barbero')?.checked || false;
   const alertaActiva = document.getElementById('prog-alerta')?.checked || false;
   const alertaPct = parseInt(document.getElementById('prog-alerta-pct')?.value) || 20;
-  // Calcular próximo envío según frecuencia
-  const ahora = new Date();
-  const prox = new Date(ahora);
-  if (freq === 'semanal') { prox.setDate(prox.getDate() + (7 - prox.getDay() + 1) % 7 || 7); prox.setHours(8,0,0,0); }
-  else if (freq === 'mensual') { prox.setMonth(prox.getMonth() + 1); prox.setDate(1); prox.setHours(8,0,0,0); }
-  else if (freq === 'trimestral') { prox.setMonth(prox.getMonth() + 3); prox.setDate(1); prox.setHours(8,0,0,0); }
-  else if (freq === 'anual') { prox.setFullYear(prox.getFullYear() + 1); prox.setMonth(0); prox.setDate(1); prox.setHours(8,0,0,0); }
   try {
     await fetch(`https://mmokunpuslcfphalrwot.supabase.co/rest/v1/reportes_programados`, {
       method: 'POST',
       headers: { 'apikey': SB_KEY_R, 'Authorization': `Bearer ${SB_KEY_R}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ shop_id: _shopSeleccionada.id, frecuencia: freq, whatsapp_destino: wa, activo: true, reporte_por_barbero: porBarbero, alerta_activa: alertaActiva, alerta_caida_pct: alertaPct, proximo_envio: prox.toISOString() })
+      body: JSON.stringify({ shop_id: _shopSeleccionada.id, frecuencia: freq, whatsapp_destino: wa, activo: true, reporte_por_barbero: porBarbero, alerta_activa: alertaActiva, alerta_caida_pct: alertaPct })
     });
     document.getElementById('modal-rpt-prog').style.display = 'none';
-    showToast('✓ Reporte programado — próximo envío: ' + prox.toLocaleDateString('es-DO'), 'success');
+    showToast('✓ Reporte programado guardado', 'success');
     loadReportesPage();
   } catch(e) { showToast('Error: ' + e.message, 'error'); }
 }
@@ -3270,7 +2920,7 @@ async function openFeaturesModal(shopId, shopNombre) {
   } catch(e) { _featShopData = {}; }
 
   var items = FEATURES_DEF.map(function(f) {
-    var on = _featShopData[f.key] === true;
+    var on = _featShopData[f.key] !== false;
     var row = document.createElement('div');
     row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--border);';
     row.innerHTML = '<div>'
@@ -3308,12 +2958,28 @@ function featToggle(key) {
   if(lbl) { lbl.textContent = on ? 'ACTIVO' : 'INACTIVO'; lbl.style.color = on ? 'var(--green)' : 'var(--muted)'; }
 }
 
-async function saveFeatures(){if(!_featShopId)return;const btn=document.getElementById('saveFeatsBtn');btn.textContent='⏳ Guardando...';btn.disabled=true;try{const p={p_shop_id:_featShopId};FEATURES_DEF.forEach(f=>{const el=document.getElementById('feat-val-'+f.key);if(el)p['p_'+f.key]=el.value==='true';});await sbRpc('update_shop_features',p);closeModal('modalFeatures');showToast('✓ Features actualizadas','success');logSuperadminAction('update_features',`shop:${_featShopId}`);loadShops();}catch(e){showToast('Error: '+e.message,'error');}finally{btn.textContent='✓ GUARDAR CAMBIOS';btn.disabled=false;}}
+async function saveFeatures() {
+  if(!_featShopId) return;
+  var btn = document.getElementById('saveFeatsBtn');
+  btn.textContent = '⏳ Guardando...'; btn.disabled = true;
+  try {
+    var patch = {};
+    FEATURES_DEF.forEach(function(f){ var el=document.getElementById('feat-val-'+f.key); if(el) patch[f.key]=el.value==='true'; });
+    var r = await fetch(SUPABASE_URL+'/rest/v1/shops?id=eq.'+_featShopId, {
+      method:'PATCH',
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+(_accessToken||SUPABASE_KEY),'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify(patch)
+    });
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    var shop = allShops.find(function(s){return s.id===_featShopId;});
+    if(shop) Object.assign(shop, patch);
+    closeModal('modalFeatures');
+    showToast('✓ Funcionalidades actualizadas','success');
+    addLog('OK','Features actualizadas: '+(_featShopData.nombre||_featShopId));
+  } catch(e) { showToast('Error: '+e.message,'error'); }
+  finally { btn.textContent='✓ GUARDAR CAMBIOS'; btn.disabled=false; }
+}
 
-
-async function sha256pin(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');}
-function openPinModal(id,nombre){document.getElementById('pinShopId').value=id;document.getElementById('pinShopName').textContent=nombre;document.getElementById('newPinInput').value='';document.getElementById('confirmPinInput').value='';openModal('modalPin');}
-document.getElementById('savePinBtn').addEventListener('click',async()=>{const id=document.getElementById('pinShopId').value;const pin=document.getElementById('newPinInput').value.trim();const conf=document.getElementById('confirmPinInput').value.trim();if(!pin||!/^\d{4}$/.test(pin)){showToast('PIN debe ser 4 dígitos','error');return;}if(pin!==conf){showToast('PINs no coinciden','error');return;}const hash=await sha256pin(pin);try{await sbPatch('shops',`id=eq.${id}`,{admin_pin_hash:hash});showToast('✅ PIN actualizado','success');closeModal('modalPin');}catch(e){showToast('Error: '+e.message,'error');}});
 </script>
 <!-- ══ MODAL FEATURES ══════════════════════════════════════════════════ -->
 <div class="modal-overlay" id="modalFeatures">
