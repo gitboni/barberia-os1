@@ -629,7 +629,21 @@ html.fs-sm{font-size:90%;}html.fs-md{font-size:112%;}html.fs-lg{font-size:130%;}
     </div>
   </div>
 </div>
-
+<!-- CANCELAR CITA -->
+<div class="action-modal" id="cancel-modal">
+  <div class="action-box gold-modal">
+    <div class="action-title">✗ CANCELAR CITA</div>
+    <div class="action-sub" id="cancel-sub">Esta acción no se puede deshacer</div>
+    <div style="padding:14px 0;font-family:'Rajdhani',sans-serif;font-size:0.9rem;color:rgba(255,255,255,0.55);line-height:1.7;" id="cancel-msg">
+      ¿Confirmas que deseas cancelar esta cita?<br>
+      El cliente <strong id="cancel-nombre" style="color:#fff;">—</strong> será removido de la cola.
+    </div>
+    <div class="action-acts">
+      <button class="abtn abtn-cancel" onclick="closeModal('cancel-modal')">NO, VOLVER</button>
+      <button class="abtn abtn-danger" id="cancel-confirm-btn" onclick="ejecutarCancelarCita()">✗ SÍ, CANCELAR</button>
+    </div>
+  </div>
+</div>
 <!-- FEATURE: MODAL TRANSFERIR CITA -->
 <div class="action-modal" id="transfer-modal">
   <div class="action-box">
@@ -1086,7 +1100,7 @@ function renderSolo(barber,layout){
             ${zoneA.map((c,idx)=>{
               const num=c.originalIdx+1;const eta=c.pos>0?calcLiveETA(c.pos,barber):null;const{rc,tc,tl}=statusClasses(c.status);
               // FEATURE: botón transferir en cada fila pendiente
-              const tBtn=c.id&&c.status!=='done'?`<button class="btn-transfer" onclick="openTransferirCita('${c.id}','${c.name.replace(/'/g,"\\'")}','${c.time}','${barber.replace(/'/g,"\\'")}',${ num})">↔</button>`:'';
+              const cBtn=c.id&&c.status!=='done'?`<button class="btn-transfer" style="color:rgba(255,0,110,0.6);border-color:rgba(255,0,110,0.25);" onclick="openCancelarCita('${c.id}','${c.name.replace(/'/g,"\\'")}','${c.time}')">✗</button>`:'';
               return`<div class="q-item ${rc}" style="animation-delay:${idx*0.05}s"><div class="q-num">${String(num).padStart(2,'0')}</div><div><div class="q-name">${c.name}${eta?`<span class="wait-eta">⏱${eta}</span>`:''}</div><div class="q-svc">${c.servicio}</div></div><div class="q-barber">${tBtn}</div><div class="q-time">${fmt12(c.time)}</div><div><span class="status-tag ${tc}"><span class="tag-dot"></span>${tl}</span></div></div>`;
             }).join('')}
           </div>
@@ -1453,7 +1467,7 @@ function normalizarHora(t){
   return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
 }
 const takenHoy=S.citas
-  .filter(c=>c.barbero.toUpperCase()===barbNotm&&c.id!=citaId&&c.estado!=='Completada')
+ .filter(c=>c.barbero.toUpperCase()===barbNotm&&String(c.id)!==String(citaId)&&c.estado!=='Completada')
   .map(c=>normalizarHora(c.time));  const slots=generarSlots();
   const libresHoy=slots.filter(t=>t!==horaActual&&!takenHoy.includes(t));
 
@@ -1519,7 +1533,8 @@ async function confirmReagendar(){
   const btn=document.querySelector('#reag-modal .abtn-confirm');
   btn.textContent='⏳ GUARDANDO...';btn.style.pointerEvents='none';
   try{
-    await sbPatch('citas','id=eq.'+REAG_ID,{hora:REAG_HORA+':00'});
+   const horaFinal=REAG_HORA.length===5?REAG_HORA+':00':REAG_HORA;
+await sbPatch('citas','id=eq.'+REAG_ID,{hora:horaFinal});
     closeModal('reag-modal');await loadCitas();render();showToast('↻ Cita movida a las '+REAG_HORA,'ok');
   }catch(e){
     showToast('⚠ Error al reagendar','error');
@@ -1568,11 +1583,11 @@ async function ejecutarPausarBarberia(){
     closeModal('pause-modal');
     actualizarBtnPause();
     showToast(nuevoEstado?'⏸ Barbería pausada — citas conservadas':'▶ Barbería reanudada',nuevoEstado?'warn':'ok');
-if(!nuevoEstado){
-  await loadBarberos().catch(()=>{});
-  await loadCitas().catch(()=>{});
-  render();
-}
+    if(!nuevoEstado){if(m.topic&&m.topic.includes('barberos')){
+  await loadBarberos().catch(()=>{});rebuildQueues();render();
+} else {
+  await loadCitas().catch(()=>{});render();
+}}
   }catch(e){showToast('⚠ Error: '+e.message,'error');}
   finally{if(btn){btn.textContent=_barberiaPausada?'▶ SÍ, REANUDAR':'⏸ SÍ, PAUSAR';btn.style.pointerEvents='';}}
 }
@@ -1634,7 +1649,26 @@ async function confirmarTransferencia(){
 }
 
 function closeModal(id){document.getElementById(id).classList.remove('open');}
-
+// ── CANCELAR CITA ──
+let _cancelCitaId=null;
+function openCancelarCita(citaId,nombre,hora){
+  _cancelCitaId=citaId;
+  document.getElementById('cancel-sub').textContent='Turno · '+hora;
+  document.getElementById('cancel-nombre').textContent=nombre;
+  document.getElementById('cancel-modal').classList.add('open');
+}
+async function ejecutarCancelarCita(){
+  if(!_cancelCitaId)return;
+  const btn=document.getElementById('cancel-confirm-btn');
+  btn.textContent='⏳ Cancelando...';btn.style.pointerEvents='none';
+  try{
+    await sbPatch('citas','id=eq.'+_cancelCitaId,{estado:'Cancelada'});
+    closeModal('cancel-modal');
+    await loadCitas().catch(()=>{});render();
+    showToast('✗ Cita cancelada','warn');
+  }catch(e){showToast('⚠ Error: '+e.message,'error');}
+  finally{btn.textContent='✗ SÍ, CANCELAR';btn.style.pointerEvents='';}
+}
 // ── ZEN ──
 let ZEN=false;
 function toggleZen(){ZEN=!ZEN;document.body.classList.toggle('zen-mode',ZEN);const btn=document.getElementById('zen-btn');if(btn){btn.classList.toggle('active',ZEN);btn.textContent=ZEN?'☀ NORMAL (desactivar zen)':'☽ MODO ZEN (exterior / sol directo)';}try{localStorage.setItem('barberos_zen',ZEN?'1':'0');}catch(_){}}
