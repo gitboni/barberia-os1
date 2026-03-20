@@ -886,10 +886,22 @@ tr:hover td{background:rgba(255,255,255,0.016);}
     <div class="modal-title">Nueva Barbería</div>
     <div class="form-group"><label class="form-label">Nombre</label><input class="form-input" id="newShopNombre" placeholder="ej: King Cuts"></div>
     <div class="form-group"><label class="form-label">Slug (URL)</label><input class="form-input" id="newShopSlug" placeholder="ej: king-cuts"><div class="form-hint">URL: barberia-os.vercel.app/sala/king-cuts</div></div>
-    <div class="form-group"><label class="form-label">Número Twilio</label><input class="form-input" id="newShopTwilio" placeholder="+18291234567"></div>
     <div class="form-group"><label class="form-label">WhatsApp del dueño</label><input class="form-input" id="newShopDueño" placeholder="+18097654321"></div>
     <div class="form-group"><label class="form-label">Plan</label><select class="form-select" id="newShopPlan"><option value="free">Free — $0/mes</option><option value="pro" selected>Pro — $29/mes</option><option value="elite">Elite — $79/mes</option></select></div>
     <div class="form-group"><label class="form-label">Duración turno (min)</label><input class="form-input" id="newShopDuracion" value="45" type="number" min="15" max="120"></div>
+    <div class="form-group"><label class="form-label">Proveedor WhatsApp</label>
+      <select class="form-select" id="newShopProvider" onchange="toggleNewShopProvider()">
+        <option value="meta">📱 Meta (WhatsApp Business API)</option>
+        <option value="twilio">☁️ Twilio</option>
+      </select>
+    </div>
+    <div id="newShop-meta-fields">
+      <div class="form-group"><label class="form-label">Meta Phone Number ID</label><input class="form-input" id="newShopMetaPhoneId" placeholder="1083622031493111"><div class="form-hint">Meta Business → WhatsApp → Phone Numbers</div></div>
+      <div class="form-group"><label class="form-label">Meta Access Token</label><input class="form-input" id="newShopMetaToken" placeholder="EAAN..."><div class="form-hint">Token permanente desde Meta Business Suite</div></div>
+    </div>
+    <div id="newShop-twilio-fields" style="display:none;">
+      <div class="form-group"><label class="form-label">Número Twilio</label><input class="form-input" id="newShopTwilio" placeholder="+18291234567"></div>
+    </div>
     <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modalNewShop')">CANCELAR</button><button class="btn btn-primary" id="createShopBtn">CREAR BARBERÍA</button></div>
   </div>
 </div>
@@ -1251,10 +1263,10 @@ async function doLogin() {
 
     loginAttempts = 0; lockoutUntil = null;
     loginLog.push({ts:new Date().toISOString(),email,ip:fakeIp,result:'success'});
-    sessionStorage.setItem('sa_auth','ok');
-    sessionStorage.setItem('sa_email',email);
-    sessionStorage.setItem('sa_token', _accessToken);
-    sessionStorage.setItem('sa_exp', String(now + 8*3600*1000));
+    sessionStorage.setItem('sa_auth','ok'); localStorage.setItem('sa_auth','ok');
+    sessionStorage.setItem('sa_email',email); localStorage.setItem('sa_email',email);
+    sessionStorage.setItem('sa_token', _accessToken); localStorage.setItem('sa_token', _accessToken);
+    sessionStorage.setItem('sa_exp', String(now + 8*3600*1000)); localStorage.setItem('sa_exp', String(now + 8*3600*1000));
 
     document.getElementById('loginScreen').style.display='none';
     document.getElementById('adminAvatar').textContent = email.charAt(0).toUpperCase();
@@ -1287,6 +1299,9 @@ async function doLogin() {
 
 async function doLogout() {
   logSuperadminAction('logout', 'Sesión cerrada');
+  localStorage.removeItem('sa_auth'); localStorage.removeItem('sa_email');
+  localStorage.removeItem('sa_token'); localStorage.removeItem('sa_exp');
+  sessionStorage.clear();
   await sbSignOut();
   sessionStorage.clear();
   clearAutoRefresh();
@@ -1297,8 +1312,10 @@ async function doLogout() {
 }
 
 function checkSessionExpiry() {
-  const exp = sessionStorage.getItem('sa_exp');
-  if(!sessionStorage.getItem('sa_auth')) return false;
+  // Lee de sessionStorage primero, luego localStorage como fallback
+  const auth = sessionStorage.getItem('sa_auth') || localStorage.getItem('sa_auth');
+  const exp = sessionStorage.getItem('sa_exp') || localStorage.getItem('sa_exp');
+  if(!auth) return false;
   if(exp && Date.now() > parseInt(exp)) {
     showToast('Sesión expirada. Inicia sesión nuevamente.','warn');
     doLogout();
@@ -1314,10 +1331,18 @@ window.addEventListener('load', () => {
   document.getElementById('cfgSupabaseKey').value = SUPABASE_KEY;
   document.getElementById('citasFecha').value = new Date().toISOString().split('T')[0];
 
-  if(sessionStorage.getItem('sa_auth')==='ok') {
+  const savedAuth = sessionStorage.getItem('sa_auth') || localStorage.getItem('sa_auth');
+  if(savedAuth === 'ok') {
     if(!checkSessionExpiry()) return;
-    _accessToken = sessionStorage.getItem('sa_token') || null;
-    const email = sessionStorage.getItem('sa_email') || '';
+    _accessToken = sessionStorage.getItem('sa_token') || localStorage.getItem('sa_token') || null;
+    const email = sessionStorage.getItem('sa_email') || localStorage.getItem('sa_email') || '';
+    // Sincronizar sessionStorage desde localStorage si vacío
+    if(!sessionStorage.getItem('sa_auth')) {
+      sessionStorage.setItem('sa_auth','ok');
+      sessionStorage.setItem('sa_email', email);
+      sessionStorage.setItem('sa_token', _accessToken||'');
+      sessionStorage.setItem('sa_exp', localStorage.getItem('sa_exp')||'');
+    }
     document.getElementById('loginScreen').style.display='none';
     document.getElementById('adminAvatar').textContent = email.charAt(0).toUpperCase();
     document.getElementById('sidebarEmail').textContent = email;
@@ -1784,6 +1809,7 @@ function _renderShopsTable(shops, barberos=[]) {
       <td class="${s.activo?'status-active':'status-pending'}">${s.activo?'● Activa':'○ Pendiente'}</td>
       <td style="color:var(--muted)">${s.created_at?new Date(s.created_at).toLocaleDateString('es'):'—'}</td>
       <td><div class="action-btns">
+        <button class="action-btn" onclick="abrirEditShop('${s.id}')" style="background:rgba(201,168,76,0.07);border-color:rgba(201,168,76,0.3);color:var(--gold);">✏️ Editar</button>
         <button class="action-btn" onclick="openEditPlan('${s.id}','${s.nombre}','${s.plan}')">Plan</button><button class="action-btn" onclick="openPinModal('${s.id}','${s.nombre}')" style="background:rgba(201,168,76,0.07);border-color:rgba(201,168,76,0.3);color:var(--gold);">🔑 PIN</button>
         <button class="action-btn" onclick="openTrialModal('${s.id}','${s.nombre}','${s.plan}',${s.trial_activo},'${s.trial_ends_at||''}')" style="background:rgba(0,255,120,0.07);border-color:rgba(0,255,120,0.25);color:var(--green);">⏱ Trial</button>
         <button class="action-btn" onclick="openFeaturesModal('${s.id}','${s.nombre}')" style="background:rgba(176,110,255,0.1);border-color:rgba(176,110,255,0.3);color:var(--purple);">⚡ Features</button>
@@ -1793,8 +1819,15 @@ function _renderShopsTable(shops, barberos=[]) {
   }).join('');
 }
 
+function toggleNewShopProvider(){
+  const p=document.getElementById('newShopProvider').value;
+  document.getElementById('newShop-meta-fields').style.display=p==='meta'?'':'none';
+  document.getElementById('newShop-twilio-fields').style.display=p==='twilio'?'':'none';
+}
 document.getElementById('newShopBtn').addEventListener('click',()=>{
-  ['newShopNombre','newShopSlug','newShopTwilio','newShopDueño'].forEach(id=>document.getElementById(id).value='');
+  ['newShopNombre','newShopSlug','newShopTwilio','newShopDueño','newShopMetaPhoneId','newShopMetaToken'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('newShopProvider').value='meta';
+  toggleNewShopProvider();
   openModal('modalNewShop');
 });
 document.getElementById('newShopNombre').addEventListener('input',e=>{
@@ -1805,7 +1838,19 @@ document.getElementById('createShopBtn').addEventListener('click',async()=>{
   const slug=document.getElementById('newShopSlug').value.trim();
   if(!nombre||!slug){showToast('Nombre y slug requeridos','error');return;}
   if(_shops.some(s=>s.slug===slug)){showToast('El slug ya existe','error');return;}
-  const newShop={nombre,slug,twilio_number:document.getElementById('newShopTwilio').value.trim()||null,whatsapp_dueño:document.getElementById('newShopDueño').value.trim()||null,plan:document.getElementById('newShopPlan').value,duracion_turno:parseInt(document.getElementById('newShopDuracion').value)||45,activo:true,hora_inicio:9,hora_fin:18,timezone:'America/Santo_Domingo'};
+  const provider=document.getElementById('newShopProvider').value;
+  const newShop={
+    nombre,slug,
+    whatsapp_dueño:document.getElementById('newShopDueño').value.trim()||null,
+    plan:document.getElementById('newShopPlan').value,
+    duracion_turno:parseInt(document.getElementById('newShopDuracion').value)||45,
+    activo:true,hora_inicio:9,hora_fin:18,
+    timezone:'America/Santo_Domingo',
+    whatsapp_provider:provider,
+    twilio_number:provider==='twilio'?(document.getElementById('newShopTwilio').value.trim()||null):null,
+    meta_phone_number_id:provider==='meta'?(document.getElementById('newShopMetaPhoneId').value.trim()||null):null,
+    meta_access_token:provider==='meta'?(document.getElementById('newShopMetaToken').value.trim()||null):null,
+  };
   try {
     if(!usingDemo) await sbPost('shops',newShop);
     else { newShop.id='s'+Date.now(); newShop.created_at=new Date().toISOString(); _shops.push(newShop); }
@@ -2053,6 +2098,262 @@ document.getElementById('stripeBtn').addEventListener('click',()=>openModal('mod
 document.getElementById('paypalBtn').addEventListener('click',()=>openModal('modalPaypal'));
 
 // ════════════════════════════════════════════
+
+// ════════════════════════════════════════════
+//  FACTURA PDF — Diseño profesional
+// ════════════════════════════════════════════
+function imprimirFactura(shopId, shopNombre, shopSlug, plan, createdAt) {
+  const PLAN_PRICES = {pro: 29, elite: 79};
+  const monto = PLAN_PRICES[plan] || 29;
+  const hoy = new Date();
+  const fechaEmision = hoy.toLocaleDateString('es-DO', {day:'2-digit', month:'long', year:'numeric'});
+  const fechaVence = new Date(hoy.getTime() + 30*86400000).toLocaleDateString('es-DO', {day:'2-digit', month:'long', year:'numeric'});
+  const numFactura = 'BSAS-' + String(Math.floor(Math.random()*90000)+10000);
+  const inicio = new Date(createdAt).toLocaleDateString('es-DO', {day:'2-digit', month:'long', year:'numeric'});
+
+  const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Factura ${numFactura} — ${shopNombre}</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#111;font-size:14px;}
+  .page{max-width:800px;margin:0 auto;padding:48px 52px;min-height:100vh;position:relative;}
+
+  /* HEADER */
+  .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:48px;padding-bottom:28px;border-bottom:3px solid #111;}
+  .logo-area{display:flex;align-items:center;gap:14px;}
+  .logo-icon{width:52px;height:52px;background:#111;display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:#C9A84C;flex-shrink:0;}
+  .logo-text{font-size:1.8rem;font-weight:900;letter-spacing:0.06em;color:#111;line-height:1;}
+  .logo-sub{font-size:0.58rem;color:#888;letter-spacing:0.3em;text-transform:uppercase;margin-top:3px;}
+  .factura-badge{text-align:right;}
+  .factura-badge .titulo{font-size:2rem;font-weight:900;letter-spacing:0.12em;text-transform:uppercase;color:#111;}
+  .factura-badge .num{font-size:0.8rem;color:#C9A84C;letter-spacing:0.08em;font-weight:700;margin-top:2px;}
+  .factura-badge .estado{display:inline-block;background:#e6f9f0;color:#1a7a45;font-size:0.6rem;font-weight:700;letter-spacing:0.15em;padding:3px 10px;border:1px solid #1a7a45;margin-top:6px;text-transform:uppercase;}
+
+  /* INFO GRID */
+  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-bottom:40px;}
+  .info-block .label{font-size:0.55rem;color:#888;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:6px;font-weight:600;}
+  .info-block .value{font-size:0.9rem;font-weight:700;color:#111;line-height:1.5;}
+  .info-block .value-muted{font-size:0.8rem;color:#555;margin-top:2px;}
+
+  /* TABLA */
+  .table-wrap{margin-bottom:36px;}
+  table{width:100%;border-collapse:collapse;}
+  thead tr{background:#111;color:#fff;}
+  thead th{padding:12px 16px;text-align:left;font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;font-weight:700;}
+  thead th:last-child{text-align:right;}
+  tbody tr{border-bottom:1px solid #e8e8e8;}
+  tbody tr:last-child{border-bottom:2px solid #111;}
+  tbody td{padding:14px 16px;font-size:0.88rem;color:#222;}
+  tbody td:last-child{text-align:right;font-weight:700;}
+  .plan-badge{display:inline-block;padding:2px 10px;background:#C9A84C;color:#111;font-size:0.56rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;}
+
+  /* TOTALES */
+  .totals{display:flex;justify-content:flex-end;margin-bottom:36px;}
+  .totals-box{width:280px;}
+  .totals-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:0.85rem;}
+  .totals-row.total{border-bottom:none;border-top:2px solid #111;margin-top:4px;padding-top:12px;font-size:1.1rem;font-weight:900;color:#111;}
+  .totals-row.total span:last-child{color:#C9A84C;}
+
+  /* NOTAS */
+  .notas{background:#f8f8f8;border-left:4px solid #C9A84C;padding:16px 20px;margin-bottom:40px;font-size:0.78rem;color:#444;line-height:1.7;}
+  .notas strong{color:#111;}
+
+  /* FOOTER */
+  .footer{border-top:1px solid #ddd;padding-top:20px;display:flex;justify-content:space-between;align-items:flex-end;}
+  .footer-left{font-size:0.65rem;color:#888;line-height:1.8;}
+  .footer-right{text-align:right;font-size:0.65rem;color:#888;}
+  .footer-brand{font-size:0.8rem;font-weight:900;color:#111;letter-spacing:0.1em;}
+
+  /* SELLO */
+  .sello{position:absolute;top:200px;right:60px;width:130px;height:130px;border:4px solid rgba(201,168,76,0.25);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;transform:rotate(-18deg);opacity:0.35;}
+  .sello-text{font-size:0.5rem;font-weight:900;letter-spacing:0.25em;color:#C9A84C;text-transform:uppercase;text-align:center;line-height:1.5;}
+
+  @media print{
+    body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .no-print{display:none!important;}
+    .page{padding:32px 40px;}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- SELLO -->
+  <div class="sello">
+    <div class="sello-text">PAGADO<br>✓<br>ACTIVO</div>
+  </div>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo-area">
+      <div class="logo-icon">✂</div>
+      <div>
+        <div class="logo-text">BarberOS</div>
+        <div class="logo-sub">Sistema de Gestión · SaaS</div>
+      </div>
+    </div>
+    <div class="factura-badge">
+      <div class="titulo">Factura</div>
+      <div class="num">${numFactura}</div>
+      <div class="estado">● Pagada</div>
+    </div>
+  </div>
+
+  <!-- INFO -->
+  <div class="info-grid">
+    <div>
+      <div class="info-block" style="margin-bottom:20px;">
+        <div class="label">Proveedor del servicio</div>
+        <div class="value">BarberOS SaaS</div>
+        <div class="value-muted">Sistema de gestión para barberías</div>
+        <div class="value-muted">contacto@barberos.app</div>
+        <div class="value-muted">barberia-os1.vercel.app</div>
+      </div>
+    </div>
+    <div>
+      <div class="info-block" style="margin-bottom:20px;">
+        <div class="label">Facturado a</div>
+        <div class="value">${shopNombre}</div>
+        <div class="value-muted">Slug: ${shopSlug}</div>
+        <div class="value-muted">Plan: ${plan.toUpperCase()}</div>
+        <div class="value-muted">Cliente desde: ${inicio}</div>
+      </div>
+    </div>
+    <div>
+      <div class="info-block">
+        <div class="label">Fecha de emisión</div>
+        <div class="value">${fechaEmision}</div>
+      </div>
+    </div>
+    <div>
+      <div class="info-block">
+        <div class="label">Próximo cobro</div>
+        <div class="value" style="color:#C9A84C;">${fechaVence}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Descripción del servicio</th>
+          <th>Plan</th>
+          <th>Período</th>
+          <th>Cantidad</th>
+          <th>Precio</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="color:#888;">001</td>
+          <td>
+            <strong>BarberOS ${plan.toUpperCase()} — Suscripción mensual</strong><br>
+            <span style="font-size:0.75rem;color:#666;">Bot WhatsApp · Panel Admin · Sala de Espera · Reportes · Recordatorios automáticos</span>
+          </td>
+          <td><span class="plan-badge">${plan.toUpperCase()}</span></td>
+          <td style="color:#666;font-size:0.8rem;">${fechaEmision}<br>→ ${fechaVence}</td>
+          <td style="text-align:center;">1</td>
+          <td>$${monto}.00</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- TOTALES -->
+  <div class="totals">
+    <div class="totals-box">
+      <div class="totals-row"><span>Subtotal</span><span>$${monto}.00</span></div>
+      <div class="totals-row"><span>Descuento</span><span>$0.00</span></div>
+      <div class="totals-row"><span style="color:#888;font-size:0.75rem;">ITBIS (18%)</span><span style="color:#888;font-size:0.75rem;">Exento</span></div>
+      <div class="totals-row total"><span>TOTAL</span><span>$${monto}.00 USD</span></div>
+    </div>
+  </div>
+
+  <!-- NOTAS -->
+  <div class="notas">
+    <strong>Notas:</strong> Esta factura corresponde a la suscripción mensual del plan ${plan.toUpperCase()} de BarberOS.
+    El servicio incluye acceso completo a todas las funcionalidades del plan durante el período indicado.
+    Para soporte técnico contactar: <strong>contacto@barberos.app</strong>
+  </div>
+
+  <!-- BOTÓN IMPRIMIR (no se imprime) -->
+  <div class="no-print" style="text-align:center;margin-bottom:32px;">
+    <button onclick="window.print()" style="background:#111;color:#C9A84C;border:2px solid #C9A84C;padding:12px 40px;font-size:0.85rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;">
+      🖨 IMPRIMIR / GUARDAR PDF
+    </button>
+    <button onclick="window.close()" style="background:transparent;color:#888;border:1px solid #ddd;padding:12px 24px;font-size:0.8rem;cursor:pointer;margin-left:12px;">
+      CERRAR
+    </button>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-left">
+      <div class="footer-brand">BarberOS</div>
+      <div>Sistema de Gestión para Barberías</div>
+      <div>barberia-os1.vercel.app · contacto@barberos.app</div>
+    </div>
+    <div class="footer-right">
+      <div>Factura generada automáticamente</div>
+      <div>${new Date().toLocaleString('es-DO')}</div>
+      <div style="margin-top:4px;color:#C9A84C;font-weight:700;">${numFactura}</div>
+    </div>
+  </div>
+
+</div>
+<script>
+  // Auto-print al abrir
+  window.onload = () => setTimeout(() => window.print(), 800);
+</script>
+
+<!-- Modal: Editar Shop (Meta/Twilio/Config) -->
+<div class="modal-overlay" id="modalEditShop">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-title">✏️ Editar Barbería</div>
+    <input type="hidden" id="editShopId">
+    <div class="form-group"><label class="form-label">Nombre</label><input class="form-input" id="editShopNombre"></div>
+    <div class="form-group"><label class="form-label">WhatsApp del dueño</label><input class="form-input" id="editShopDueno" placeholder="+18097654321"></div>
+    <div class="form-group"><label class="form-label">Proveedor WhatsApp</label>
+      <select class="form-select" id="editShopProvider" onchange="toggleEditShopProvider()">
+        <option value="meta">📱 Meta (WhatsApp Business API)</option>
+        <option value="twilio">☁️ Twilio</option>
+      </select>
+    </div>
+    <div id="editShop-meta-fields">
+      <div class="form-group"><label class="form-label">Meta Phone Number ID</label><input class="form-input" id="editShopMetaPhoneId" placeholder="1083622031493111"></div>
+      <div class="form-group"><label class="form-label">Meta Access Token</label><input class="form-input" id="editShopMetaToken" placeholder="EAAN..." type="password"><div class="form-hint">Dejar vacío para no cambiar el token actual</div></div>
+    </div>
+    <div id="editShop-twilio-fields" style="display:none;">
+      <div class="form-group"><label class="form-label">Número Twilio</label><input class="form-input" id="editShopTwilio" placeholder="+18291234567"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Plan</label>
+      <select class="form-select" id="editShopPlan">
+        <option value="free">Free — $0/mes</option>
+        <option value="pro">Pro — $29/mes</option>
+        <option value="elite">Elite — $79/mes</option>
+      </select>
+    </div>
+    <div id="editShop-resultado" style="display:none;padding:8px 12px;font-family:'DM Mono',monospace;font-size:0.58rem;margin-top:8px;border-left:2px solid var(--green);background:rgba(0,200,100,0.04);"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modalEditShop')">CANCELAR</button>
+      <button class="btn btn-primary" onclick="guardarEditShop()">💾 GUARDAR</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>`;
+
+  const win = window.open('', '_blank', 'width=900,height=700');
+  win.document.write(html);
+  win.document.close();
+}
+
 //  FACTURACIÓN
 // ════════════════════════════════════════════
 async function loadFacturacion() {
@@ -2067,7 +2368,7 @@ async function loadFacturacion() {
       <td style="color:var(--gold)">${new Date(Date.now()+30*86400000).toLocaleDateString('es')}</td>
       <td style="color:var(--gold)">$${s.plan==='pro'?PLAN_PRICES.pro:PLAN_PRICES.elite}.00</td>
       <td class="status-active">● Activa</td>
-      <td><div class="action-btns"><button class="action-btn" onclick="showToast('PDF disponible con Stripe Invoices','info')">PDF</button></div></td>
+      <td><div class="action-btns"><button class="action-btn" style="background:rgba(0,255,120,0.07);border-color:rgba(0,255,120,0.3);color:var(--green);" onclick="imprimirFactura('${s.id}','${(s.nombre||'').replace(/'/g,\'\\\'\')}','${s.slug}','${s.plan}','${s.created_at||new Date().toISOString()}')">🖨 PDF</button></div></td>
     </tr>`).join('')||'<tr><td colspan="8" style="color:var(--muted);text-align:center;padding:22px;">Sin suscripciones</td></tr>';
 }
 document.getElementById('exportFacturasBtn').addEventListener('click',()=>{
@@ -2348,7 +2649,7 @@ async function loadReportesPage() {
   if (!cont) return;
   cont.innerHTML = `<div style="padding:40px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;font-size:0.62rem;">Cargando barberías...</div>`;
   try {
-    const shops = await sbFetch('shops', 'activo=eq.true&order=nombre.asc&select=id,nombre,slug,whatsapp_dueño,twilio_number');
+    const shops = await sbFetch('shops', 'activo=eq.true&order=nombre.asc&select=id,nombre,slug,whatsapp_due%C3%B1o,twilio_number,whatsapp_provider,meta_phone_number_id');
     _reportesShops = shops || [];
     const prog = await sbFetch('reportes_programados', 'order=created_at.desc');
     _reportesProgramados = {};
@@ -2713,14 +3014,21 @@ async function guardarReporteProg() {
   const porBarbero = document.getElementById('prog-barbero')?.checked || false;
   const alertaActiva = document.getElementById('prog-alerta')?.checked || false;
   const alertaPct = parseInt(document.getElementById('prog-alerta-pct')?.value) || 20;
+  // Calcular próximo envío según frecuencia
+  const ahora = new Date();
+  const prox = new Date(ahora);
+  if (freq === 'semanal') { prox.setDate(prox.getDate() + (7 - prox.getDay() + 1) % 7 || 7); prox.setHours(8,0,0,0); }
+  else if (freq === 'mensual') { prox.setMonth(prox.getMonth() + 1); prox.setDate(1); prox.setHours(8,0,0,0); }
+  else if (freq === 'trimestral') { prox.setMonth(prox.getMonth() + 3); prox.setDate(1); prox.setHours(8,0,0,0); }
+  else if (freq === 'anual') { prox.setFullYear(prox.getFullYear() + 1); prox.setMonth(0); prox.setDate(1); prox.setHours(8,0,0,0); }
   try {
     await fetch(`https://mmokunpuslcfphalrwot.supabase.co/rest/v1/reportes_programados`, {
       method: 'POST',
       headers: { 'apikey': SB_KEY_R, 'Authorization': `Bearer ${SB_KEY_R}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ shop_id: _shopSeleccionada.id, frecuencia: freq, whatsapp_destino: wa, activo: true, reporte_por_barbero: porBarbero, alerta_activa: alertaActiva, alerta_caida_pct: alertaPct })
+      body: JSON.stringify({ shop_id: _shopSeleccionada.id, frecuencia: freq, whatsapp_destino: wa, activo: true, reporte_por_barbero: porBarbero, alerta_activa: alertaActiva, alerta_caida_pct: alertaPct, proximo_envio: prox.toISOString() })
     });
     document.getElementById('modal-rpt-prog').style.display = 'none';
-    showToast('✓ Reporte programado guardado', 'success');
+    showToast('✓ Reporte programado — próximo envío: ' + prox.toLocaleDateString('es-DO'), 'success');
     loadReportesPage();
   } catch(e) { showToast('Error: ' + e.message, 'error'); }
 }
@@ -3086,6 +3394,60 @@ async function saveFeatures(){if(!_featShopId)return;const btn=document.getEleme
 async function sha256pin(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');}
 function openPinModal(id,nombre){document.getElementById('pinShopId').value=id;document.getElementById('pinShopName').textContent=nombre;document.getElementById('newPinInput').value='';document.getElementById('confirmPinInput').value='';openModal('modalPin');}
 document.getElementById('savePinBtn').addEventListener('click',async()=>{const id=document.getElementById('pinShopId').value;const pin=document.getElementById('newPinInput').value.trim();const conf=document.getElementById('confirmPinInput').value.trim();if(!pin||!/^\d{4}$/.test(pin)){showToast('PIN debe ser 4 dígitos','error');return;}if(pin!==conf){showToast('PINs no coinciden','error');return;}const hash=await sha256pin(pin);try{await sbPatch('shops',`id=eq.${id}`,{admin_pin_hash:hash});showToast('✅ PIN actualizado','success');closeModal('modalPin');}catch(e){showToast('Error: '+e.message,'error');}});
+
+function toggleEditShopProvider(){
+  const p=document.getElementById('editShopProvider').value;
+  document.getElementById('editShop-meta-fields').style.display=p==='meta'?'':'none';
+  document.getElementById('editShop-twilio-fields').style.display=p==='twilio'?'':'none';
+}
+
+function abrirEditShop(shopId){
+  const shop=_shops.find(s=>s.id===shopId);
+  if(!shop){showToast('Shop no encontrada','error');return;}
+  document.getElementById('editShopId').value=shop.id;
+  document.getElementById('editShopNombre').value=shop.nombre||'';
+  document.getElementById('editShopDueno').value=shop['whatsapp_dueño']||'';
+  document.getElementById('editShopProvider').value=shop.whatsapp_provider||'meta';
+  document.getElementById('editShopMetaPhoneId').value=shop.meta_phone_number_id||'';
+  document.getElementById('editShopMetaToken').value=''; // nunca pre-llenar token
+  document.getElementById('editShopTwilio').value=shop.twilio_number||'';
+  document.getElementById('editShopPlan').value=shop.plan||'pro';
+  document.getElementById('editShop-resultado').style.display='none';
+  toggleEditShopProvider();
+  document.getElementById('modalEditShop').style.display='flex';
+}
+
+async function guardarEditShop(){
+  const id=document.getElementById('editShopId').value;
+  const provider=document.getElementById('editShopProvider').value;
+  const token=document.getElementById('editShopMetaToken').value.trim();
+  const updates={
+    nombre:document.getElementById('editShopNombre').value.trim(),
+    'whatsapp_dueño':document.getElementById('editShopDueno').value.trim()||null,
+    whatsapp_provider:provider,
+    plan:document.getElementById('editShopPlan').value,
+    twilio_number:provider==='twilio'?(document.getElementById('editShopTwilio').value.trim()||null):null,
+    meta_phone_number_id:provider==='meta'?(document.getElementById('editShopMetaPhoneId').value.trim()||null):null,
+  };
+  // Solo actualizar token si se ingresó uno nuevo
+  if(provider==='meta'&&token) updates.meta_access_token=token;
+  try{
+    await fetch(`https://mmokunpuslcfphalrwot.supabase.co/rest/v1/shops?id=eq.${id}`,{
+      method:'PATCH',
+      headers:{'apikey':SB_KEY_R,'Authorization':`Bearer ${_accessToken||SB_KEY_R}`,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify(updates)
+    });
+    // Actualizar en memoria
+    const idx=_shops.findIndex(s=>s.id===id);
+    if(idx>=0) Object.assign(_shops[idx],updates);
+    const res=document.getElementById('editShop-resultado');
+    res.style.display='block';
+    res.innerHTML='✅ Barbería actualizada correctamente';
+    showToast('Barbería actualizada ✓','success');
+    setTimeout(()=>{ closeModal('modalEditShop'); renderCurrentPage(); },1200);
+  }catch(e){showToast('Error: '+e.message,'error');}
+}
+
 </script>
 <!-- ══ MODAL FEATURES ══════════════════════════════════════════════════ -->
 <div class="modal-overlay" id="modalFeatures">
@@ -3096,6 +3458,41 @@ document.getElementById('savePinBtn').addEventListener('click',async()=>{const i
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('modalFeatures')">CANCELAR</button>
       <button class="btn btn-primary" id="saveFeatsBtn" onclick="saveFeatures()">✓ GUARDAR CAMBIOS</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Editar Shop (Meta/Twilio/Config) -->
+<div class="modal-overlay" id="modalEditShop">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-title">✏️ Editar Barbería</div>
+    <input type="hidden" id="editShopId">
+    <div class="form-group"><label class="form-label">Nombre</label><input class="form-input" id="editShopNombre"></div>
+    <div class="form-group"><label class="form-label">WhatsApp del dueño</label><input class="form-input" id="editShopDueno" placeholder="+18097654321"></div>
+    <div class="form-group"><label class="form-label">Proveedor WhatsApp</label>
+      <select class="form-select" id="editShopProvider" onchange="toggleEditShopProvider()">
+        <option value="meta">📱 Meta (WhatsApp Business API)</option>
+        <option value="twilio">☁️ Twilio</option>
+      </select>
+    </div>
+    <div id="editShop-meta-fields">
+      <div class="form-group"><label class="form-label">Meta Phone Number ID</label><input class="form-input" id="editShopMetaPhoneId" placeholder="1083622031493111"></div>
+      <div class="form-group"><label class="form-label">Meta Access Token</label><input class="form-input" id="editShopMetaToken" placeholder="EAAN..." type="password"><div class="form-hint">Dejar vacío para no cambiar el token actual</div></div>
+    </div>
+    <div id="editShop-twilio-fields" style="display:none;">
+      <div class="form-group"><label class="form-label">Número Twilio</label><input class="form-input" id="editShopTwilio" placeholder="+18291234567"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Plan</label>
+      <select class="form-select" id="editShopPlan">
+        <option value="free">Free — $0/mes</option>
+        <option value="pro">Pro — $29/mes</option>
+        <option value="elite">Elite — $79/mes</option>
+      </select>
+    </div>
+    <div id="editShop-resultado" style="display:none;padding:8px 12px;font-family:'DM Mono',monospace;font-size:0.58rem;margin-top:8px;border-left:2px solid var(--green);background:rgba(0,200,100,0.04);"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modalEditShop')">CANCELAR</button>
+      <button class="btn btn-primary" onclick="guardarEditShop()">💾 GUARDAR</button>
     </div>
   </div>
 </div>
