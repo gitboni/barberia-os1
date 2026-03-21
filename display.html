@@ -18,9 +18,6 @@
   --glow-g:rgba(0,255,120,0.5);--glow-p:rgba(176,110,255,0.5);
 }
 html,body{width:100%;height:100%;background:var(--bg);color:var(--cyan);font-family:'Rajdhani',sans-serif;overflow:hidden;}
-@media(prefers-reduced-motion:reduce){*{animation-duration:0.01ms!important;animation-iteration-count:1!important;transition-duration:0.01ms!important;}}
-@media(max-width:768px){html{font-size:90%;}}
-@media(min-width:769px) and (max-width:1199px){html{font-size:100%;}}
 @media(min-width:1200px){html{font-size:112%;}}
 @media(min-width:1600px){html{font-size:120%;}}
 @media(min-width:1920px){html{font-size:130%;}}
@@ -70,9 +67,7 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--cyan);font-fam
 .afield{margin-bottom:13px;}
 .afield label{font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:rgba(0,245,255,0.6);letter-spacing:0.22em;text-transform:uppercase;display:block;margin-bottom:5px;}
 .ainp{width:100%;background:rgba(0,245,255,0.03);border:1px solid rgba(0,245,255,0.12);color:var(--cyan);padding:9px 13px;font-family:'Rajdhani',sans-serif;font-size:0.92rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;outline:none;transition:border-color 0.2s;}
-.ainp:focus{border-color:rgba(0,245,255,0.4);outline:2px solid rgba(0,245,255,0.3);outline-offset:1px;}
-.ainp:hover{border-color:rgba(0,245,255,0.25);}
-.ainp::placeholder{color:rgba(0,245,255,0.25);}
+.ainp:focus{border-color:rgba(0,245,255,0.4);}
 .barber-sel{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;}
 .barber-sel-btn{padding:6px 14px;border:1px solid rgba(0,245,255,0.12);background:transparent;color:rgba(0,245,255,0.38);font-family:'Share Tech Mono',monospace;font-size:0.46rem;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;}
 .barber-sel-btn:hover{border-color:rgba(0,245,255,0.3);color:rgba(0,245,255,0.7);}
@@ -88,12 +83,10 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--cyan);font-fam
 .abtn{flex:1;padding:11px;font-family:'Orbitron',monospace;font-size:0.6rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;border:1px solid;}
 .abtn-confirm{background:rgba(0,245,255,0.1);border-color:rgba(0,245,255,0.35);color:var(--cyan);}
 .abtn-confirm:hover{background:rgba(0,245,255,0.2);box-shadow:0 0 20px rgba(0,245,255,0.15);}
-.abtn-confirm:focus{outline:2px solid var(--cyan);outline-offset:2px;}
-.abtn-confirm:focus:not(:focus-visible){outline:none;}
 .abtn-gold{background:rgba(255,214,0,0.1);border-color:rgba(255,214,0,0.4);color:var(--gold);}
-.abtn-gold:hover{background:rgba(255,214,0,0.2);box-shadow:0 0 15px rgba(255,214,0,0.1);}
+.abtn-gold:hover{background:rgba(255,214,0,0.2);}
 .abtn-danger{background:rgba(255,0,110,0.1);border-color:rgba(255,0,110,0.35);color:var(--magenta);}
-.abtn-danger:hover{background:rgba(255,0,110,0.2);box-shadow:0 0 15px rgba(255,0,110,0.1);}
+.abtn-danger:hover{background:rgba(255,0,110,0.2);}
 .action-box.purple-modal .abtn-confirm{background:rgba(176,110,255,0.1);border-color:rgba(176,110,255,0.35);color:var(--purple);}
 .abtn-cancel{background:transparent;border-color:rgba(255,255,255,0.07);color:rgba(255,255,255,0.18);}
 .abtn-cancel:hover{border-color:rgba(255,255,255,0.2);color:rgba(255,255,255,0.4);}
@@ -295,8 +288,6 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .btn-siguiente:hover::before{left:100%;}
 .btn-siguiente:hover{box-shadow:0 0 55px rgba(0,255,120,0.38);transform:translateY(-2px);}
 .btn-siguiente:active{transform:scale(0.98);}
-.btn-siguiente:focus{outline:2px solid var(--green);outline-offset:2px;}
-.btn-siguiente:focus:not(:focus-visible){outline:none;}
 .btn-siguiente.loading{pointer-events:none;opacity:0.6;animation:btn-pulse 0.6s ease-in-out infinite;}
 .btn-siguiente.success{border-color:var(--cyan);color:var(--cyan);}
 .sc{position:absolute;width:9px;height:9px;border-color:var(--green);border-style:solid;opacity:0.5;}
@@ -317,10 +308,7 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .stat-lbl{font-family:'Share Tech Mono',monospace;font-size:0.6rem;color:rgba(0,245,255,0.65);letter-spacing:0.2em;text-transform:uppercase;margin-top:3px;}
 .stat-bar-line{height:2px;background:rgba(0,245,255,0.08);margin-top:6px;}
 .stat-bar-fill{height:100%;background:var(--cyan);box-shadow:0 0 6px var(--cyan);transition:width 1s ease;}
-.queue-body{display:flex;flex-direction:column;gap:6px;overflow-y:auto;flex:1;min-height:0;padding-right:4px;}
-.queue-body::-webkit-scrollbar{width:3px;}
-.queue-body::-webkit-scrollbar-thumb{background:rgba(0,245,255,0.25);border-radius:2px;}
-.queue-body::-webkit-scrollbar-thumb:hover{background:rgba(0,245,255,0.4);}
+.queue-body{display:flex;flex-direction:column;gap:4px;overflow:hidden;flex:1;min-height:0;}
 .done-strip{display:flex;align-items:center;gap:5px;padding:4px 7px;border:1px solid rgba(0,255,120,0.08);background:rgba(0,255,120,0.02);min-height:30px;overflow:hidden;flex-shrink:0;}
 .done-strip-label{font-family:'Share Tech Mono',monospace;font-size:0.6rem;letter-spacing:0.28em;color:rgba(0,255,120,0.7);text-transform:uppercase;white-space:nowrap;flex-shrink:0;padding-right:5px;border-right:1px solid rgba(0,255,120,0.3);}
 .done-pills{display:flex;gap:4px;flex:1;align-items:center;}
@@ -330,8 +318,8 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .done-pill-check{font-size:0.55rem;color:rgba(0,255,120,0.4);}
 .done-strip-empty{font-family:'Share Tech Mono',monospace;font-size:0.44rem;color:rgba(0,255,120,0.18);letter-spacing:0.15em;text-transform:uppercase;}
 .zone-a{display:flex;flex-direction:column;gap:3px;flex-shrink:0;}
-.q-col-header{display:grid;grid-template-columns:50px 1fr 96px 84px 96px;padding:0 10px 6px;font-family:'Share Tech Mono',monospace;font-size:0.4rem;letter-spacing:0.2em;color:rgba(0,245,255,0.35);text-transform:uppercase;border-bottom:1px solid rgba(0,245,255,0.1);font-weight:700;}
-.q-item{display:grid;grid-template-columns:50px 1fr 96px 84px 96px;align-items:center;padding:10px 12px;border:1px solid rgba(0,245,255,0.11);background:rgba(0,245,255,0.025);position:relative;overflow:hidden;transition:border-color 0.3s,background 0.3s;animation:item-in 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards;opacity:0;border-radius:3px;}
+.q-col-header{display:grid;grid-template-columns:50px 1fr 96px 84px 96px;padding:0 10px 4px;font-family:'Share Tech Mono',monospace;font-size:0.4rem;letter-spacing:0.2em;color:rgba(0,245,255,0.18);text-transform:uppercase;border-bottom:1px solid rgba(0,245,255,0.06);}
+.q-item{display:grid;grid-template-columns:50px 1fr 96px 84px 96px;align-items:center;padding:8px 10px;border:1px solid rgba(0,245,255,0.07);background:rgba(0,245,255,0.018);position:relative;overflow:hidden;transition:border-color 0.3s,background 0.3s;animation:item-in 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards;opacity:0;}
 .q-item.s-active{border-left:3px solid var(--cyan);background:rgba(0,245,255,0.045);}
 .q-item.s-next{border-left:3px solid var(--gold);background:rgba(255,214,0,0.022);}
 .q-item.s-alert{border-left:3px solid rgba(255,214,0,0.5);animation:item-in 0.4s forwards,alert-row 2.5s ease-in-out infinite;}
@@ -341,7 +329,7 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .q-item.s-active .q-num{color:var(--cyan);text-shadow:0 0 12px var(--glow-c);}
 .q-item.s-next .q-num{color:var(--gold);}
 .q-name{font-family:'Rajdhani',sans-serif;font-size:0.98rem;font-weight:600;color:#fff;letter-spacing:0.08em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.q-svc{font-family:'Share Tech Mono',monospace;font-size:0.52rem;color:rgba(255,245,200,0.75);font-weight:500;letter-spacing:0.08em;text-transform:uppercase;}
+.q-svc{font-family:'Share Tech Mono',monospace;font-size:0.45rem;color:rgba(255,255,255,0.22);}
 .q-barber{font-family:'Share Tech Mono',monospace;font-size:0.53rem;color:rgba(176,110,255,0.42);text-align:center;}
 .q-item.s-active .q-barber{color:rgba(176,110,255,0.78);}
 .q-time{font-family:'Orbitron',monospace;font-size:0.8rem;color:var(--gold);text-align:center;}
@@ -499,24 +487,13 @@ html.fs-sm{font-size:90%;}html.fs-md{font-size:112%;}html.fs-lg{font-size:130%;}
 
 @media(max-width:1024px){.layout-solo .barber-col{grid-template-columns:300px 1fr;}.my-layout .my-left{flex:0 0 300px;}}
 @media(max-width:860px){header{grid-template-columns:1fr 1fr;padding:8px 16px;}.clock-block{display:none;}.tv-cards.n3,.tv-cards.n4,.tv-cards.n5{grid-template-columns:repeat(2,1fr);}}
-@media(max-width:600px){.tv-cards.n2,.tv-cards.n3,.tv-cards.n4,.tv-cards.n5{grid-template-columns:1fr;}.my-layout{grid-template-columns:1fr;}.my-right{display:none;}.tv-wrap{padding:8px 12px 6px;gap:8px;}.tv-card-head{padding:6px 10px;}.tv-barber-name{font-size:0.6rem;}.tv-num{font-size:2.5rem;}.tv-name{font-size:0.8rem;}.tv-service{font-size:0.48rem;}.tv-btn{font-size:0.58rem;padding:8px 0;}.content{flex-direction:column;}.layout-multi .barber-col{border-right:none;border-bottom:1px solid rgba(0,245,255,0.08);}.layout-solo .col-left{display:none;}}
-@media(max-width:480px){html{font-size:85%;}.tv-cards{gap:8px;}.brand-name{font-size:1rem;}.clock-time{font-size:1.2rem;}.hpill{font-size:0.42rem;padding:4px 8px;}.fs-btn{font-size:0.42rem;}.tv-card{border-width:1px;}.layout-multi .barber-col.libre{flex:1;opacity:0.4;}.footer-msg{font-size:0.85rem;}}
-@media(max-width:320px){.tv-barber-name{font-size:0.5rem;}.tv-num{font-size:1.8rem;}.tv-name{font-size:0.68rem;}.layout-multi .silla-name{font-size:0.65rem;}.btn-siguiente{font-size:0.52rem;padding:7px 0;}}
-@media(prefers-reduced-motion:reduce){@keyframes hero-pulse{0%,100%{text-shadow:none;}50%{text-shadow:none;}}@keyframes nebula-drift,@keyframes nebula-drift2,@keyframes nebula-drift3{0%,100%{transform:none;opacity:0.6;}}body.zen-mode *{animation:none!important;}.orb{animation:none!important;}.vignette{animation:none!important;}.blink,.tag-blink,.btn-pulse{animation:none!important;}}
+@media(max-width:600px){.tv-cards.n2,.tv-cards.n3,.tv-cards.n4,.tv-cards.n5{grid-template-columns:1fr;}.my-layout{grid-template-columns:1fr;}.my-right{display:none;}}
 @media(min-width:1400px){.layout-solo .hero-num{font-size:11rem;}.layout-solo .silla-name{font-size:2rem;}.layout-multi .hero-num.n2{font-size:8rem;}.layout-multi .hero-num.n3{font-size:5.5rem;}.tv-cards.n1 .tv-num,.tv-cards.n2 .tv-num{font-size:13rem;}.tv-cards.n3 .tv-num{font-size:9rem;}.tv-cards.n4 .tv-num{font-size:7rem;}.my-hero-num{font-size:11rem;}}
 @media(min-width:1800px){.tv-cards.n1 .tv-num,.tv-cards.n2 .tv-num{font-size:18rem;}.tv-cards.n3 .tv-num{font-size:12rem;}}
-@media(prefers-contrast:more){.q-num{color:var(--cyan)!important;}.abtn-confirm{background:rgba(0,245,255,0.2);}.btn-siguiente{border-color:rgba(0,255,120,0.8);}.time-slot{color:var(--cyan);}}
-
-/* Performance Optimizations */
-.hero-num,.tv-num,.silla-name,.tv-name{will-change:transform;}
-@media(prefers-reduced-motion:reduce){.hero-num,.tv-num,.orb,.vignette,.btn-siguiente::before{will-change:auto;animation:none!important;}}
-@media(max-width:768px){#grain-canvas,#star-canvas{opacity:0!important;}.orb{opacity:0.3!important;}.scanline{opacity:0!important;}}
-/* Lazy load animations */
-@supports(animation-timeline:view()){.q-item{animation-timeline:view();}}
 </style>
 </head>
 <body>
-<div class="offline-banner" id="ob" role="status" aria-live="polite">⚠ Sin conexión — datos en caché</div>
+<div class="offline-banner" id="ob">⚠ Sin conexión — datos en caché</div>
 <div class="bg-base"></div>
 <canvas id="star-canvas"></canvas>
 <canvas id="hex-canvas"></canvas>
@@ -541,7 +518,7 @@ html.fs-sm{font-size:90%;}html.fs-md{font-size:112%;}html.fs-lg{font-size:130%;}
       </div>
     </div>
     <div class="clock-block">
-      <div class="clock-time" id="clock" role="status" aria-live="off">00:00:00</div>
+      <div class="clock-time" id="clock">00:00:00</div>
       <div class="clock-date" id="clock-date">—</div>
     </div>
     <div class="header-right">
@@ -549,10 +526,10 @@ html.fs-sm{font-size:90%;}html.fs-md{font-size:112%;}html.fs-lg{font-size:130%;}
       <div class="hpill hpill-db loading" id="db-pill"><span class="hpill-dot"></span><span id="db-lbl">DB...</span></div>
       <div class="hpill hpill-sys"><span class="sys-dot"></span>SISTEMA ACTIVO</div>
       <!-- FIX FEATURE: Botón PAUSAR barbería -->
-      <button class="pause-btn" id="pause-btn" aria-label="Pausar o reanudar operaciones de la barbería" onclick="pausarBarberia()" title="Pausar / Reanudar barbería">
+      <button class="pause-btn" id="pause-btn" onclick="pausarBarberia()" title="Pausar / Reanudar barbería">
         <span class="pause-dot"></span><span id="pause-lbl">⏸ PAUSAR</span>
       </button>
-      <button class="fs-btn" id="fs-btn" aria-label="Pantalla completa">⛶ FS</button>
+      <button class="fs-btn" id="fs-btn">⛶ FS</button>
     </div>
   </header>
   <div class="content" id="content"></div>
@@ -563,12 +540,12 @@ html.fs-sm{font-size:90%;}html.fs-md{font-size:112%;}html.fs-lg{font-size:130%;}
   </footer>
 </div>
 
-<div class="mode-bar" id="mode-bar" role="tablist" aria-label="Modos de vista">
-  <button class="mode-btn" id="mbtn-tv" onclick="setMode('tv')" role="tab" aria-selected="false" aria-label="Modo TV - Pantalla de espera">📺 TV</button>
+<div class="mode-bar" id="mode-bar">
+  <button class="mode-btn" id="mbtn-tv" onclick="setMode('tv')">📺 TV</button>
   <div class="mode-sep"></div>
-  <button class="mode-btn active" id="mbtn-shop" onclick="setMode('shop')" role="tab" aria-selected="true" aria-label="Modo Barbería - Panel principal">💈 BARBERÍA</button>
+  <button class="mode-btn active" id="mbtn-shop" onclick="setMode('shop')">💈 BARBERÍA</button>
   <div class="mode-sep"></div>
-  <button class="mode-btn" id="mbtn-my" onclick="openBarberPicker()" role="tab" aria-selected="false" aria-label="Mi Turno - Citas del barbero actual">✂ MI TURNO</button>
+  <button class="mode-btn" id="mbtn-my" onclick="openBarberPicker()">✂ MI TURNO</button>
 </div>
 
 <div class="barber-picker" id="barber-picker">
@@ -579,7 +556,7 @@ html.fs-sm{font-size:90%;}html.fs-md{font-size:112%;}html.fs-lg{font-size:130%;}
 <div class="toast" id="toast"></div>
 <button class="cfg-btn" id="cfg-open">⚙</button>
 
-<button class="walkin-fab" id="walkin-fab" aria-label="Agregar cliente sin cita (walk-in) a la cola" onclick="openWalkIn()">
+<button class="walkin-fab" id="walkin-fab" onclick="openWalkIn()">
   <div class="walkin-fab-dot"></div>+ WALK-IN
 </button>
 
@@ -809,37 +786,44 @@ function fmt12h(h24){
   return hh+':'+mm+' '+ap;
 }
 function parsearHora(raw){
-  if(!raw)return'12:00 AM';
-  try{
-    // Si tiene offset UTC (+00, Z, +04, etc.)
-    if(/[+\-]\d{2}|Z/.test(raw)){
-      const today=new Date().toISOString().substring(0,10);
-      const horaBase=raw.replace(/[+\-]\d{2}:\d{2}$/,'').replace(/Z$/,'').substring(0,8);
-      const dt=new Date(today+'T'+horaBase+'Z');
-      if(!isNaN(dt.getTime())){
-        const h24=dt.toLocaleTimeString('en-US',{timeZone:S.tz||'America/Santo_Domingo',hour:'2-digit',minute:'2-digit',hour12:false});
-        return fmt12(h24);
-      }
+  // La BD guarda texto plano "HH:MM:SS" sin timezone — convertir directo a 12h
+  if(!raw) return '12:00 AM';
+  try {
+    // Caso "HH:MM:SS" o "HH:MM" — texto plano sin offset
+    const clean = raw.trim().substring(0, 5); // "14:30"
+    if(/^\d{1,2}:\d{2}$/.test(clean)) return fmt12(clean);
+    // Si ya viene con AM/PM (del bot o conversaciones)
+    if(/AM|PM/i.test(raw)) {
+      // Normalizar a formato consistente
+      const [timePart, ap] = raw.trim().split(' ');
+      const [h, m] = timePart.split(':');
+      return h.replace(/^0/,'') + ':' + (m||'00') + ' ' + ap.toUpperCase();
     }
-    // Sin offset — hora local 24h → convertir a 12h
-    return fmt12(raw.substring(0,5));
-  }catch(_){return raw.substring(0,5);}
+    return fmt12(raw.substring(0, 5));
+  } catch(_) { return raw.substring(0, 5) || '12:00 AM'; }
 }
 
 async function loadCitas(){
   if(!S.shopId)return;
   const ahora=new Date(new Date().toLocaleString('en-US',{timeZone:S.tz||'America/Santo_Domingo'}));
   const hoy=ahora.getFullYear()+'-'+String(ahora.getMonth()+1).padStart(2,'0')+'-'+String(ahora.getDate()).padStart(2,'0');
-  const rows=await retry(()=>sbGet('citas','shop_id=eq.'+S.shopId+'&fecha=eq.'+hoy+'&estado=neq.Cancelada&order=hora.asc'),3);
+  // También cargar citas de mañana (agendadas por el bot cuando está cerrado)
+  const manana=new Date(ahora);manana.setDate(manana.getDate()+1);
+  const mananaStr=manana.getFullYear()+'-'+String(manana.getMonth()+1).padStart(2,'0')+'-'+String(manana.getDate()).padStart(2,'0');
+  const rows=await retry(()=>sbGet('citas','shop_id=eq.'+S.shopId+'&fecha=in.('+hoy+','+mananaStr+')&estado=neq.Cancelada&order=fecha.asc,hora.asc'),3);
   const prev=S.citas.length;
   S.citas=rows.map(c=>({
     id:c.id,
     name:(c.nombre||'CLIENTE').toUpperCase(),
-    time:parsearHora(c.hora),   // FIX BUG 1
+    time:parsearHora(c.hora),
+    fecha:c.fecha,   // guardar fecha para separar hoy vs mañana
     servicio:(c.servicio||'CORTE').toUpperCase(),
     barbero:(c.barbero||'CUALQUIERA').toUpperCase(),
     estado:c.estado||'Confirmada'
   }));
+  // Calcular fecha de hoy para separar
+  const _ahora=new Date(new Date().toLocaleString('en-US',{timeZone:S.tz||'America/Santo_Domingo'}));
+  S.hoy=_ahora.toLocaleDateString('en-CA');
   if(rows.length>prev&&prev>0)showToast('✓ '+(rows.length-prev)+' nueva(s) cita(s)','info');
   rebuildQueues();
   S.lastUp=new Date();
@@ -860,8 +844,10 @@ function rebuildQueues(){
     :[...new Set(S.citas.map(c=>c.barbero))];
   const saved=loadTurns();
   const nq={};
+  const hoyDate=S.hoy||new Date().toLocaleDateString('en-CA',{timeZone:S.tz||'America/Santo_Domingo'});
   blist.forEach(name=>{
-    const mine=S.citas.filter(c=>c.barbero===name);
+    // Solo citas de HOY en la cola activa (las de mañana se ven en reagendar)
+    const mine=S.citas.filter(c=>c.barbero===name&&(!c.fecha||c.fecha===hoyDate));
     const prev=S.queues[name];
     let ct;
     if(prev){
@@ -921,7 +907,7 @@ async function siguienteTurno(barber,btnId){
     btn.innerHTML=scHtml()+'✓ AVANZADO';
     setTimeout(()=>{btn.classList.remove('success');btn.innerHTML=scHtml()+'▶ SIGUIENTE TURNO';},2000);
   }
-  loadCitas().catch(()=>{}).then(render);
+  setTimeout(async()=>{await loadCitas().catch(()=>{});render();},1500);
 }
 
 async function toggleBarberoActivo(barberoId,nombre,activo){
@@ -1278,7 +1264,6 @@ function setupSwipe(el,barber){
   },{passive:true});
 }
 
-
 function subscribeRT(){
   if(!S.shopId)return;
   setRt('connecting','CONECTANDO RT...');
@@ -1287,49 +1272,28 @@ function subscribeRT(){
   function conn(){
     try{
       ws=new WebSocket(wsUrl);
-ws.onopen=()=>{
-  rc=0;setRt('ok','REALTIME ●');
-  ws.send(JSON.stringify({
-    topic:'realtime:public:citas',
-    event:'phx_join',
-    payload:{config:{broadcast:{self:false},presence:{key:''},postgres_changes:[
-      {event:'INSERT',schema:'public',table:'citas',filter:'shop_id=eq.'+S.shopId},
-      {event:'UPDATE',schema:'public',table:'citas',filter:'shop_id=eq.'+S.shopId},
-      {event:'DELETE',schema:'public',table:'citas',filter:'shop_id=eq.'+S.shopId}
-    ]}},ref:'1'
-  }));
-  ws.send(JSON.stringify({
-    topic:'realtime:public:barberos',
-    event:'phx_join',
-    payload:{config:{broadcast:{self:false},presence:{key:''},postgres_changes:[
-      {event:'UPDATE',schema:'public',table:'barberos',filter:'shop_id=eq.'+S.shopId}
-    ]}},ref:'3'
-  }));
-  ws.send(JSON.stringify({
-    topic:'realtime:public:shops',
-    event:'phx_join',
-    payload:{config:{broadcast:{self:false},presence:{key:''},postgres_changes:[
-      {event:'UPDATE',schema:'public',table:'shops',filter:'id=eq.'+S.shopId}
-    ]}},ref:'2'
-  }));
-  hb=setInterval(()=>{if(ws&&ws.readyState===1)ws.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:'hb'}));},20000);
-};
-ws.onmessage=async(ev)=>{
-  try{
-    const m=JSON.parse(ev.data);
-    const evType=m.payload?.data?.type||m.event||'';
-    const record=m.payload?.data?.record||m.payload?.record||{};
-    if(['INSERT','UPDATE','DELETE'].includes(evType)){
-      if(m.topic&&m.topic.includes('shops')&&record?.activo===false){showDisplaySuspended(S.shopName);return;}
-      if(m.topic&&m.topic.includes('shops')&&record?.activo===true){_barberiaPausada=false;actualizarBtnPause();}
-      await loadCitas().catch(()=>{});render();
-      if(evType==='INSERT')bipNuevaCita();
-      showToast(evType==='INSERT'?'✓ Nueva cita':evType==='DELETE'?'✗ Cita eliminada':'↻ Actualizado','info');
-    }
-  }catch(_){}
-};
+      ws.onopen=()=>{
+        rc=0;setRt('ok','REALTIME ●');
+        ws.send(JSON.stringify({topic:'realtime:public:citas:shop_id=eq.'+S.shopId,event:'phx_join',payload:{config:{broadcast:{self:false},presence:{key:''}}},ref:'1'}));
+        ws.send(JSON.stringify({topic:'realtime:public:shops:id=eq.'+S.shopId,event:'phx_join',payload:{config:{broadcast:{self:false},presence:{key:''}}},ref:'2'}));
+        hb=setInterval(()=>{if(ws&&ws.readyState===1)ws.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:'hb'}));},25000);
+      };
+      ws.onmessage=async(ev)=>{
+        try{
+          const m=JSON.parse(ev.data);
+          if(['INSERT','UPDATE','DELETE'].includes(m.event)){
+            if(m.topic&&m.topic.includes('shops')&&m.payload?.record?.activo===false){showDisplaySuspended(S.shopName);return;}
+            if(m.topic&&m.topic.includes('shops')&&m.payload?.record?.activo===true){
+              // Barbería reanudada via realtime
+              _barberiaPausada=false;actualizarBtnPause();
+            }
+            await loadCitas().catch(()=>{});render();
+            showToast(m.event==='INSERT'?'✓ Nueva cita':'↻ Actualizado','info');
+          }
+        }catch(_){}
+      };
       ws.onerror=()=>setRt('error','RT ERROR');
-      ws.onclose=()=>{clearInterval(hb);setRt('error','RT DESCONECTADO');rc++;rt=setTimeout(conn,rc < 3 ? 1000 : Math.min(2000*Math.pow(1.5,rc),15000));};
+      ws.onclose=()=>{clearInterval(hb);setRt('error','RT DESCONECTADO');rc++;rt=setTimeout(conn,Math.min(2000*Math.pow(1.5,rc),30000));};
     }catch(e){setRt('error','SIN RT');}
   }
   conn();
@@ -1433,10 +1397,25 @@ function openReagendar(citaId,nombre,horaActual,barber){
   // Generar todos los slots del día
   function generarSlots(){const s=[];for(let h=inicio;h<fin;h++){for(let m=0;m<60;m+=DUR){s.push(String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'));}}return s;}
 
-  // Citas de este barbero hoy (excluyendo la cita actual)
-  const takenHoy=S.citas.filter(c=>c.barbero===barber&&c.id!=citaId&&c.estado!=='Completada').map(c=>c.time);
+  // Función local para convertir cualquier formato de hora a "HH:MM" (24h) para comparar con slots
+  function toHHMM(t){
+    if(!t) return '';
+    t=t.trim();
+    if(!/AM|PM/i.test(t)) return t.substring(0,5); // "14:30:00" → "14:30"
+    const parts=t.split(' ');const ap=parts[parts.length-1].toUpperCase();
+    const [hStr,mStr]=parts[0].split(':');
+    let h=parseInt(hStr),m=parseInt(mStr||'0');
+    if(ap==='PM'&&h!==12)h+=12;if(ap==='AM'&&h===12)h=0;
+    return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+  }
+
+  const horaActualNorm=toHHMM(horaActual); // normalizar la hora actual de la cita
+
+  // Citas de este barbero HOY (excluyendo la cita actual) — convertidas a "HH:MM"
+  const horaActualFecha=S.citas.find(c=>c.id==citaId)?.fecha||new Date().toLocaleDateString('en-CA',{timeZone:S.tz||'America/Santo_Domingo'});
+  const takenHoy=S.citas.filter(c=>c.barbero.toUpperCase()===barber.toUpperCase()&&c.id!=citaId&&c.estado!=='Completada'&&c.fecha===horaActualFecha).map(c=>toHHMM(c.time));
   const slots=generarSlots();
-  const libresHoy=slots.filter(t=>t!==horaActual&&!takenHoy.includes(t));
+  const libresHoy=slots.filter(t=>t!==horaActualNorm&&!takenHoy.includes(t));
 
   // Si no hay libres hoy → usar mañana
   const usaMañana=libresHoy.length===0;
@@ -1445,10 +1424,12 @@ function openReagendar(citaId,nombre,horaActual,barber){
   let diaLabel='hoy';
 
   if(usaMañana){
-    // Para mañana: buscar citas del barbero en fecha siguiente
-    // Como no tenemos las citas de mañana cargadas, mostramos todos los slots libres
+    // Mañana: citas ya cargadas en S.citas (loadCitas incluye mañana)
+    const mananaDate=new Date(new Date().toLocaleString('en-US',{timeZone:S.tz||'America/Santo_Domingo'}));
+    mananaDate.setDate(mananaDate.getDate()+1);
+    const mananaStr=mananaDate.toLocaleDateString('en-CA');
     displaySlots=slots;
-    takenDisplay=[];
+    takenDisplay=S.citas.filter(c=>c.barbero.toUpperCase()===barber.toUpperCase()&&c.id!=citaId&&c.estado!=='Completada'&&c.fecha===mananaStr).map(c=>toHHMM(c.time));
     diaLabel='mañana';
     REAG_HORA=null; // Reset para que elija uno nuevo
   }
@@ -1464,9 +1445,11 @@ function openReagendar(citaId,nombre,horaActual,barber){
   const slotsHtml=displaySlots.map(t=>{
     const [hh,mm]=t.split(':').map(Number);
     const minSlot=hh*60+mm;
-    const isCurrent=!usaMañana&&t===horaActual;
+    // Comparar con horaActualNorm (formato "HH:MM" como los slots)
+    const isCurrent=!usaMañana&&t===horaActualNorm;
     const isTaken=takenDisplay.includes(t);
-    const isPast=!usaMañana&&minSlot<=minAhora&&t!==horaActual;
+    // Marcar como pasado: slot anterior a ahora-5min (no marcar el slot actual)
+    const isPast=!usaMañana&&minSlot<(minAhora-5)&&t!==horaActualNorm;
 
     let cls='time-slot';
     let clickFn='';
@@ -1499,8 +1482,10 @@ async function confirmReagendar(){
   const btn=document.querySelector('#reag-modal .abtn-confirm');
   btn.textContent='⏳ GUARDANDO...';btn.style.pointerEvents='none';
   try{
-    await sbPatch('citas','id=eq.'+REAG_ID,{hora:REAG_HORA+':00'});
-    closeModal('reag-modal');await loadCitas();render();showToast('↻ Cita movida a las '+REAG_HORA,'ok');
+    // Guardar en formato "HH:MM:00" (la BD espera texto HH:MM:SS)
+    const horaGuardar=REAG_HORA.length===5?REAG_HORA+':00':REAG_HORA;
+    await sbPatch('citas','id=eq.'+REAG_ID,{hora:horaGuardar});
+    closeModal('reag-modal');await loadCitas();render();showToast('↻ Cita movida a las '+fmt12(REAG_HORA),'ok');
   }catch(e){
     showToast('⚠ Error al reagendar','error');
     btn.textContent='↻ CONFIRMAR CAMBIO';btn.style.pointerEvents='';
@@ -1548,11 +1533,7 @@ async function ejecutarPausarBarberia(){
     closeModal('pause-modal');
     actualizarBtnPause();
     showToast(nuevoEstado?'⏸ Barbería pausada — citas conservadas':'▶ Barbería reanudada',nuevoEstado?'warn':'ok');
-    if(!nuevoEstado){if(m.topic&&m.topic.includes('barberos')){
-  await loadBarberos().catch(()=>{});rebuildQueues();render();
-} else {
-  await loadCitas().catch(()=>{});render();
-}}
+    if(!nuevoEstado){await loadBarberos().catch(()=>{});await loadCitas().catch(()=>{});rebuildQueues();render();}
   }catch(e){showToast('⚠ Error: '+e.message,'error');}
   finally{if(btn){btn.textContent=_barberiaPausada?'▶ SÍ, REANUDAR':'⏸ SÍ, PAUSAR';btn.style.pointerEvents='';}}
 }
@@ -1647,7 +1628,13 @@ function getDayProgress(){
 }
 function dayProgressHtml(){
   const{pct,done,total,avg}=getDayProgress();
-  return`<div class="day-progress"><div class="day-prog-label">PROGRESO DEL DÍA</div><div class="day-prog-track"><div class="day-prog-fill" style="width:${pct}%"></div></div><div class="day-prog-pct">${pct}%</div><div class="day-prog-avg">✂ ${done}/${total} · ⊘ ${avg}m prom.</div></div>`;
+  const hoyDate=S.hoy||new Date().toLocaleDateString('en-CA',{timeZone:S.tz||'America/Santo_Domingo'});
+  const mananaDate=new Date(new Date().toLocaleString('en-US',{timeZone:S.tz||'America/Santo_Domingo'}));
+  mananaDate.setDate(mananaDate.getDate()+1);
+  const mananaStr=mananaDate.toLocaleDateString('en-CA');
+  const citasManana=S.citas.filter(c=>c.fecha===mananaStr&&c.estado!=='Completada'&&c.estado!=='Cancelada');
+  const mananaHtml=citasManana.length?` · <span style="color:rgba(176,110,255,0.8);">📅 ${citasManana.length} mañana</span>`:'';
+  return\`<div class="day-progress"><div class="day-prog-label">PROGRESO DEL DÍA</div><div class="day-prog-track"><div class="day-prog-fill" style="width:\${pct}%"></div></div><div class="day-prog-pct">\${pct}%</div><div class="day-prog-avg">✂ \${done}/\${total} · ⊘ \${avg}m prom.\${mananaHtml}</div></div>\`;
 }
 
 // ── LIVE ETA ──
@@ -1690,7 +1677,7 @@ async function init(){
   // FIX BUG 5: guardar referencias para limpiar si es necesario
   _timerInterval=setInterval(updateTimers,30000);
   _etaInterval=setInterval(()=>{if(MODE!=='tv')render();},60000);
-  _citasInterval=setInterval(async()=>{await loadCitas().catch(()=>{});render();},5000);
+  _citasInterval=setInterval(async()=>{await loadCitas().catch(()=>{});render();},30000);
 }
 
 function loadDemo(){
@@ -1730,7 +1717,7 @@ document.addEventListener('click',e=>{const bp=document.getElementById('barber-p
 function tick(){const n=new Date(),p=v=>String(v).padStart(2,'0');
 const hh=n.getHours(),mm=n.getMinutes(),ss=n.getSeconds();
 const ap=hh>=12?'PM':'AM';const h12=hh===0?12:hh>12?hh-12:hh;
-document.getElementById('clock').textContent=p(h12)+':'+p(mm)+':'+p(ss);
+document.getElementById('clock').textContent=p(h12)+':'+p(mm)+':'+p(ss)+' '+ap;
 const days=['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'],months=['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
 document.getElementById('clock-date').textContent=days[n.getDay()]+' '+n.getDate()+' '+months[n.getMonth()]+' '+n.getFullYear();
 if(hh===0&&mm===0&&ss===0){setTimeout(()=>location.reload(),1500);}
@@ -1748,46 +1735,7 @@ document.addEventListener('keydown',e=>{
 });
 window.addEventListener('offline',()=>setOffline(true));
 window.addEventListener('online',()=>{setOffline(false);loadCitas().then(render);showToast('✓ Conexión restaurada','ok');});
-
-// Agrega esto justo antes de init();
-document.addEventListener('click',()=>{
-  const ctx=new(window.AudioContext||window.webkitAudioContext)();
-  ctx.resume();
-},{once:true});
-// Evitar que la pantalla se bloquee (Wake Lock API)
-let _wakeLock=null;
-
-async function pedirWakeLock(){
-  try{
-    if('wakeLock' in navigator){
-      _wakeLock=await navigator.wakeLock.request('screen');
-    }
-  }catch(_){}
-}
-
-// Re-adquirir el wake lock si la pantalla vuelve a estar visible
-document.addEventListener('visibilitychange',async()=>{
-  if(document.visibilityState==='visible')await pedirWakeLock();
-});
-
-pedirWakeLock();
 init();
-
-
-function bipNuevaCita(){
-  try{
-    const ctx=new(window.AudioContext||window.webkitAudioContext)();
-    [0, 0.12, 0.24].forEach((delay,i)=>{
-      const o=ctx.createOscillator();const g=ctx.createGain();
-      o.connect(g);g.connect(ctx.destination);
-      o.type='sine';o.frequency.value=1000+i*150;
-      g.gain.setValueAtTime(0,ctx.currentTime+delay);
-      g.gain.linearRampToValueAtTime(0.3,ctx.currentTime+delay+0.01);
-      g.gain.linearRampToValueAtTime(0,ctx.currentTime+delay+0.08);
-      o.start(ctx.currentTime+delay);o.stop(ctx.currentTime+delay+0.08);
-    });
-  }catch(_){}
-}
 </script>
 </body>
 </html>
