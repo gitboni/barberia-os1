@@ -849,45 +849,28 @@ async function loadCitas(){
   if(!S.shopId)return;
   const ahora=new Date(new Date().toLocaleString('en-US',{timeZone:S.tz||'America/Santo_Domingo'}));
   const hoy=ahora.getFullYear()+'-'+String(ahora.getMonth()+1).padStart(2,'0')+'-'+String(ahora.getDate()).padStart(2,'0');
-  // FIX: también cargar citas de ayer que fueron agendadas para hoy (reservas nocturnas post-12AM)
-  // Se usa fecha=gte.(ayer) & fecha=lte.(hoy) para capturar ambas fechas, luego se filtra en JS
-  const ayer=new Date(ahora);ayer.setDate(ayer.getDate()-1);
-  const ayerStr=ayer.getFullYear()+'-'+String(ayer.getMonth()+1).padStart(2,'0')+'-'+String(ayer.getDate()).padStart(2,'0');
-  const rows=await retry(()=>sbGet('citas','shop_id=eq.'+S.shopId+'&fecha=in.('+ayerStr+','+hoy+')&estado=neq.Cancelada&order=hora.asc'),3);
-  // Filtrar: de ayer solo las que están Confirmadas (pendientes), de hoy todas las no canceladas
-  const rowsFiltradas=rows.filter(c=>c.fecha===hoy||(c.fecha===ayerStr&&c.estado==='Confirmada'));
+  const rows=await retry(()=>sbGet('citas','shop_id=eq.'+S.shopId+'&fecha=eq.'+hoy+'&estado=neq.Cancelada&order=hora.asc'),3);
   const prev=S.citas.length;
-  S.citas=rowsFiltradas.map(c=>({
+  S.citas=rows.map(c=>({
     id:c.id,
     name:(c.nombre||'CLIENTE').toUpperCase(),
     time:parsearHora(c.hora),   // FIX BUG 1
     servicio:(c.servicio||'CORTE').toUpperCase(),
     barbero:(c.barbero||'CUALQUIERA').toUpperCase(),
-    estado:c.estado||'Confirmada',
-    fecha:c.fecha
+    estado:c.estado||'Confirmada'
   }));
-  if(rowsFiltradas.length>prev&&prev>0)showToast('✓ '+(rowsFiltradas.length-prev)+' nueva(s) cita(s)','info');
+  if(rows.length>prev&&prev>0)showToast('✓ '+(rows.length-prev)+' nueva(s) cita(s)','info');
   rebuildQueues();
   S.lastUp=new Date();
-  setDb('ok','DB · '+rowsFiltradas.length+' CITAS');
+  setDb('ok','DB · '+rows.length+' CITAS');
   setOffline(false);
 }
 
 function saveTurns(){
-  const ahora=new Date(new Date().toLocaleString('en-US',{timeZone:S.tz||'America/Santo_Domingo'}));
-  const hoy=ahora.getFullYear()+'-'+String(ahora.getMonth()+1).padStart(2,'0')+'-'+String(ahora.getDate()).padStart(2,'0');
-  const t={_fecha:hoy};Object.keys(S.queues).forEach(n=>{t[n]=S.queues[n].currentTurn;});
+  const t={};Object.keys(S.queues).forEach(n=>{t[n]=S.queues[n].currentTurn;});
   try{localStorage.setItem('barberos_turns_'+SLUG,JSON.stringify(t));}catch(_){}
 }
-function loadTurns(){
-  try{
-    const raw=JSON.parse(localStorage.getItem('barberos_turns_'+SLUG)||'{}');
-    const ahora=new Date(new Date().toLocaleString('en-US',{timeZone:S.tz||'America/Santo_Domingo'}));
-    const hoy=ahora.getFullYear()+'-'+String(ahora.getMonth()+1).padStart(2,'0')+'-'+String(ahora.getDate()).padStart(2,'0');
-    if(raw._fecha&&raw._fecha!==hoy){localStorage.removeItem('barberos_turns_'+SLUG);return {};}
-    return raw;
-  }catch(_){return {};}
-}
+function loadTurns(){try{return JSON.parse(localStorage.getItem('barberos_turns_'+SLUG)||'{}');}catch(_){return {};}}
 
 // FIX BUG 2: sync correcto con BD (completadas reales + in-memory)
 function rebuildQueues(){
@@ -1355,27 +1338,13 @@ ws.onmessage=async(ev)=>{
     const m=JSON.parse(ev.data);
     const evType=m.payload?.data?.type||m.event||'';
     const record=m.payload?.data?.record||m.payload?.record||{};
-    if(!['INSERT','UPDATE','DELETE'].includes(evType))return;
-    // Shops: activar/suspender barbería
-    if(m.topic&&m.topic.includes('shops')){
-      if(record?.activo===false){showDisplaySuspended(S.shopName);return;}
-      if(record?.activo===true){_barberiaPausada=false;actualizarBtnPause();}
+    if(['INSERT','UPDATE','DELETE'].includes(evType)){
+      if(m.topic&&m.topic.includes('shops')&&record?.activo===false){showDisplaySuspended(S.shopName);return;}
+      if(m.topic&&m.topic.includes('shops')&&record?.activo===true){_barberiaPausada=false;actualizarBtnPause();}
       await loadCitas().catch(()=>{});render();
-      showToast('↻ Configuración actualizada','info');
-      return;
+      if(evType==='INSERT')bipNuevaCita();
+      showToast(evType==='INSERT'?'✓ Nueva cita':evType==='DELETE'?'✗ Cita eliminada':'↻ Actualizado','info');
     }
-    // Barberos: recargar barberos Y citas (activo/inactivo cambia la cola)
-    if(m.topic&&m.topic.includes('barberos')){
-      await loadBarberos().catch(()=>{});
-      await loadCitas().catch(()=>{});
-      render();
-      showToast('↻ Barbero actualizado','info');
-      return;
-    }
-    // Citas: INSERT, UPDATE o DELETE
-    await loadCitas().catch(()=>{});render();
-    if(evType==='INSERT')bipNuevaCita();
-    showToast(evType==='INSERT'?'✓ Nueva cita':evType==='DELETE'?'✗ Cita eliminada':'↻ Cita actualizada','info');
   }catch(_){}
 };
       ws.onerror=()=>setRt('error','RT ERROR');
