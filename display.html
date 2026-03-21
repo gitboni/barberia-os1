@@ -1345,13 +1345,27 @@ ws.onmessage=async(ev)=>{
     const m=JSON.parse(ev.data);
     const evType=m.payload?.data?.type||m.event||'';
     const record=m.payload?.data?.record||m.payload?.record||{};
-    if(['INSERT','UPDATE','DELETE'].includes(evType)){
-      if(m.topic&&m.topic.includes('shops')&&record?.activo===false){showDisplaySuspended(S.shopName);return;}
-      if(m.topic&&m.topic.includes('shops')&&record?.activo===true){_barberiaPausada=false;actualizarBtnPause();}
+    if(!['INSERT','UPDATE','DELETE'].includes(evType))return;
+    // Shops: activar/suspender barbería
+    if(m.topic&&m.topic.includes('shops')){
+      if(record?.activo===false){showDisplaySuspended(S.shopName);return;}
+      if(record?.activo===true){_barberiaPausada=false;actualizarBtnPause();}
       await loadCitas().catch(()=>{});render();
-      if(evType==='INSERT')bipNuevaCita();
-      showToast(evType==='INSERT'?'✓ Nueva cita':evType==='DELETE'?'✗ Cita eliminada':'↻ Actualizado','info');
+      showToast('↻ Configuración actualizada','info');
+      return;
     }
+    // Barberos: recargar barberos Y citas (activo/inactivo cambia la cola)
+    if(m.topic&&m.topic.includes('barberos')){
+      await loadBarberos().catch(()=>{});
+      await loadCitas().catch(()=>{});
+      render();
+      showToast('↻ Barbero actualizado','info');
+      return;
+    }
+    // Citas: INSERT, UPDATE o DELETE
+    await loadCitas().catch(()=>{});render();
+    if(evType==='INSERT')bipNuevaCita();
+    showToast(evType==='INSERT'?'✓ Nueva cita':evType==='DELETE'?'✗ Cita eliminada':'↻ Cita actualizada','info');
   }catch(_){}
 };
       ws.onerror=()=>setRt('error','RT ERROR');
