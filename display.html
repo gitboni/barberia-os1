@@ -83,7 +83,7 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--cyan);font-fam
 .time-slot{padding:11px 6px;border:1px solid rgba(0,245,255,0.08);background:rgba(0,245,255,0.01);color:rgba(0,245,255,0.65);font-family:'Share Tech Mono',monospace;font-size:0.68rem;text-align:center;cursor:pointer;transition:all 0.15s;letter-spacing:0.06em;font-weight:600;}
 .time-slot:hover{border-color:rgba(0,245,255,0.28);color:rgba(0,245,255,0.7);}
 .time-slot.sel{border-color:var(--cyan);background:rgba(0,245,255,0.1);color:var(--cyan);}
-.time-slot.taken{opacity:1;pointer-events:none;background:rgba(255,0,110,0.15);border-color:rgba(255,0,110,0.6);color:rgba(255,0,110,0.85);text-decoration:line-through;font-weight:700;box-shadow:inset 0 0 8px rgba(255,0,110,0.1);}
+.time-slot.taken{opacity:0.7;pointer-events:none;background:rgba(255,0,110,0.08);border-color:rgba(255,0,110,0.4);color:rgba(255,0,110,0.7);text-decoration:line-through;}
 .action-acts{display:flex;gap:8px;margin-top:20px;}
 .abtn{flex:1;padding:11px;font-family:'Orbitron',monospace;font-size:0.6rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;border:1px solid;}
 .abtn-confirm{background:rgba(0,245,255,0.1);border-color:rgba(0,245,255,0.35);color:var(--cyan);}
@@ -397,10 +397,7 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .my-sub{font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:rgba(0,245,255,0.75);letter-spacing:0.2em;text-transform:uppercase;margin-top:2px;}
 .my-layout{flex:1;display:flex;flex-direction:row;overflow:hidden;min-height:0;}
 .my-left{flex:0 0 360px;display:flex;flex-direction:column;border-right:1px solid rgba(0,245,255,0.08);background:rgba(0,245,255,0.012);overflow:hidden;min-height:0;}
-.my-right{flex:1;display:flex;flex-direction:column;padding:14px 20px 10px;overflow-y:auto;gap:8px;min-height:0;padding-right:16px;}
-.my-right::-webkit-scrollbar{width:3px;}
-.my-right::-webkit-scrollbar-thumb{background:rgba(0,245,255,0.25);border-radius:2px;}
-.my-right::-webkit-scrollbar-thumb:hover{background:rgba(0,245,255,0.4);}
+.my-right{flex:1;display:flex;flex-direction:column;padding:14px 20px 10px;overflow:hidden;gap:8px;min-height:0;}
 .my-silla-zone{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:20px 24px 14px;position:relative;border-bottom:1px solid rgba(0,245,255,0.08);flex:1;}
 .my-silla-zone::before,.my-silla-zone::after{content:'';position:absolute;width:36px;height:36px;border-style:solid;border-color:rgba(0,245,255,0.3);}
 .my-silla-zone::before{top:14px;left:14px;border-width:2px 0 0 2px;}.my-silla-zone::after{bottom:14px;right:14px;border-width:0 2px 2px 0;}
@@ -416,15 +413,13 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .btn-my-sig:active{transform:scale(0.98);}
 .btn-my-sig.loading{pointer-events:none;opacity:0.6;}
 .btn-my-sig.success{border-color:var(--green);color:var(--green);}
-.my-queue-section{display:flex;flex-direction:column;gap:6px;overflow:hidden;flex:1;min-height:0;}
-.my-queue-title{font-family:'Orbitron',monospace;font-size:0.74rem;font-weight:600;letter-spacing:0.2em;color:var(--cyan);text-transform:uppercase;padding-bottom:6px;border-bottom:1px solid rgba(0,245,255,0.1);flex-shrink:0;position:relative;}
+.my-queue-section{display:flex;flex-direction:column;gap:8px;overflow:hidden;flex:1;min-height:0;}
+.my-queue-title{font-family:'Orbitron',monospace;font-size:0.74rem;font-weight:600;letter-spacing:0.2em;color:var(--cyan);text-transform:uppercase;padding-bottom:8px;border-bottom:1px solid rgba(0,245,255,0.1);flex-shrink:0;position:relative;}
 .my-queue-title::after{content:'';position:absolute;bottom:-1px;left:0;width:70px;height:1px;background:var(--cyan);box-shadow:0 0 12px var(--cyan);}
 .my-queue-meta{font-family:'Share Tech Mono',monospace;font-size:0.7rem;color:rgba(0,245,255,0.65);float:right;margin-top:2px;}
-.my-queue-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:6px;min-height:0;padding-right:4px;}
-.my-queue-list::-webkit-scrollbar{width:3px;}
-.my-queue-list::-webkit-scrollbar-thumb{background:rgba(0,245,255,0.25);border-radius:2px;}
-.my-queue-list::-webkit-scrollbar-thumb:hover{background:rgba(0,245,255,0.4);}
-.my-q-item{display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:8px;padding:10px 14px;border:1px solid rgba(0,245,255,0.11);background:rgba(0,245,255,0.025);position:relative;overflow:hidden;animation:item-in 0.4s forwards;opacity:0;border-radius:3px;}
+.my-queue-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:4px;min-height:0;}
+.my-queue-list::-webkit-scrollbar{width:2px;}.my-queue-list::-webkit-scrollbar-thumb{background:rgba(0,245,255,0.1);}
+.my-q-item{display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:8px;padding:8px 12px;border:1px solid rgba(0,245,255,0.07);background:rgba(0,245,255,0.012);position:relative;overflow:hidden;animation:item-in 0.4s forwards;opacity:0;}
 .my-q-item.mqi-active{border-left:3px solid var(--cyan);background:rgba(0,245,255,0.045);padding:11px 14px;}
 .my-q-item.mqi-next{border-left:3px solid var(--gold);background:rgba(255,214,0,0.02);}
 .my-q-item.mqi-wait{border-left:3px solid rgba(0,245,255,0.1);}
@@ -437,8 +432,8 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .mqi-name{font-family:'Rajdhani',sans-serif;font-size:0.88rem;font-weight:600;color:rgba(255,255,255,0.8);letter-spacing:0.08em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .my-q-item.mqi-active .mqi-name{font-size:1.1rem;color:#fff;}
 .my-q-item.mqi-next .mqi-name{font-size:0.95rem;}
-.mqi-svc{font-family:'Share Tech Mono',monospace;font-size:0.52rem;color:rgba(255,245,200,0.75);margin-top:1px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;}
-.my-q-item.mqi-active .mqi-svc{font-size:0.58rem;color:rgba(255,250,220,0.9);font-weight:600;}
+.mqi-svc{font-family:'Share Tech Mono',monospace;font-size:0.42rem;color:rgba(255,255,255,0.2);margin-top:1px;}
+.my-q-item.mqi-active .mqi-svc{font-size:0.5rem;color:rgba(255,255,255,0.3);}
 .mqi-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;min-width:80px;}
 .mqi-time{font-family:'Orbitron',monospace;font-size:0.92rem;font-weight:700;color:var(--gold);text-shadow:0 0 10px rgba(255,214,0,0.4);text-align:center;}
 .mqi-tag{font-family:'Share Tech Mono',monospace;font-size:0.44rem;padding:3px 8px;border:1px solid;letter-spacing:0.1em;text-transform:uppercase;text-align:center;}
@@ -541,7 +536,7 @@ html.fs-sm{font-size:90%;}html.fs-md{font-size:112%;}html.fs-lg{font-size:130%;}
         <div class="pole-cap pole-cap-bot"></div>
       </div>
       <div>
-        <div style="display:flex;align-items:center;"><svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:inline-block;vertical-align:middle;margin-right:10px;flex-shrink:0;"><rect x="2" y="2" width="96" height="96" rx="18" fill="#0A0A0A" stroke="#00F5FF" stroke-width="1.5" opacity="0.7"/><ellipse cx="50" cy="50" rx="32" ry="32" fill="none" stroke="#00F5FF" stroke-width="0.8" opacity="0.35"/><g transform="translate(50,50)"><g transform="rotate(-22)"><circle cx="0" cy="-22" r="7" fill="none" stroke="#00F5FF" stroke-width="1.6"/><circle cx="0" cy="-22" r="2.5" fill="#00F5FF"/><path d="M 0,-15 C 1,-8 2,-2 1,4" fill="none" stroke="#00F5FF" stroke-width="1.8" stroke-linecap="round"/><path d="M 1,4 C 1,10 0,18 -1,24 C -2,28 -4,30 -5,32" fill="none" stroke="#00F5FF" stroke-width="1.8" stroke-linecap="round"/></g><g transform="rotate(22)"><circle cx="0" cy="-22" r="7" fill="none" stroke="#00F5FF" stroke-width="1.6"/><circle cx="0" cy="-22" r="2.5" fill="#00F5FF"/><path d="M 0,-15 C -1,-8 -2,-2 -1,4" fill="none" stroke="#00F5FF" stroke-width="1.8" stroke-linecap="round"/><path d="M -1,4 C -1,10 0,18 1,24 C 2,28 4,30 5,32" fill="none" stroke="#00F5FF" stroke-width="1.8" stroke-linecap="round"/></g><circle cx="0" cy="4" r="2.5" fill="none" stroke="#00F5FF" stroke-width="1.2"/><circle cx="0" cy="4" r="1" fill="#00F5FF"/></g></svg><div class="brand-name" id="shop-name">BARBEROS</div></div>
+        <div class="brand-name" id="shop-name">BARBEROS</div>
         <div class="brand-sub" id="brand-sub">Sistema de Turnos · BarberOS</div>
       </div>
     </div>
@@ -564,7 +559,7 @@ html.fs-sm{font-size:90%;}html.fs-md{font-size:112%;}html.fs-lg{font-size:130%;}
   <footer>
     <div class="footer-msg" id="footer-msg">"El estilo es la firma del alma."</div>
     <div class="barberos-bar" id="barberos-bar"></div>
-    <div class="footer-version" id="ft-ver">BarberOS v9 · 2026</div>
+    <div class="footer-version" id="ft-ver">BarberOS v8 · 2025</div>
   </footer>
 </div>
 
@@ -617,9 +612,9 @@ html.fs-sm{font-size:90%;}html.fs-md{font-size:112%;}html.fs-lg{font-size:130%;}
     <div class="afield">
       <label>Nuevo horario</label>
       <div style="display:flex;gap:10px;margin-bottom:6px;font-family:'Share Tech Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;">
-        <span style="display:flex;align-items:center;gap:4px;color:rgba(0,245,255,0.6);"><span style="width:8px;height:8px;border:1px solid rgba(0,245,255,0.5);display:inline-block;"></span>LIBRE</span>
-        <span style="display:flex;align-items:center;gap:4px;color:rgba(255,0,110,0.85);"><span style="width:8px;height:8px;background:rgba(255,0,110,0.15);border:1px solid rgba(255,0,110,0.6);box-shadow:inset 0 0 4px rgba(255,0,110,0.1);display:inline-block;"></span>OCUPADO</span>
-        <span style="display:flex;align-items:center;gap:4px;color:rgba(0,245,255,0.8);"><span style="width:8px;height:8px;background:rgba(0,245,255,0.2);border:1px solid var(--cyan);display:inline-block;"></span>SELECCIONADO</span>
+        <span style="display:flex;align-items:center;gap:4px;color:rgba(0,245,255,0.5);"><span style="width:8px;height:8px;border:1px solid rgba(0,245,255,0.4);display:inline-block;"></span>LIBRE</span>
+        <span style="display:flex;align-items:center;gap:4px;color:rgba(255,0,110,0.7);"><span style="width:8px;height:8px;background:rgba(255,0,110,0.15);border:1px solid rgba(255,0,110,0.4);display:inline-block;"></span>OCUPADO</span>
+        <span style="display:flex;align-items:center;gap:4px;color:rgba(0,245,255,0.7);"><span style="width:8px;height:8px;background:rgba(0,245,255,0.1);border:1px solid var(--cyan);display:inline-block;"></span>SELECCIONADO</span>
       </div>
       <div class="time-slots" id="reag-slots"></div>
     </div>
@@ -629,21 +624,7 @@ html.fs-sm{font-size:90%;}html.fs-md{font-size:112%;}html.fs-lg{font-size:130%;}
     </div>
   </div>
 </div>
-<!-- CANCELAR CITA -->
-<div class="action-modal" id="cancel-modal">
-  <div class="action-box gold-modal">
-    <div class="action-title">✗ CANCELAR CITA</div>
-    <div class="action-sub" id="cancel-sub">Esta acción no se puede deshacer</div>
-    <div style="padding:14px 0;font-family:'Rajdhani',sans-serif;font-size:0.9rem;color:rgba(255,255,255,0.55);line-height:1.7;" id="cancel-msg">
-      ¿Confirmas que deseas cancelar esta cita?<br>
-      El cliente <strong id="cancel-nombre" style="color:#fff;">—</strong> será removido de la cola.
-    </div>
-    <div class="action-acts">
-      <button class="abtn abtn-cancel" onclick="closeModal('cancel-modal')">NO, VOLVER</button>
-      <button class="abtn abtn-danger" id="cancel-confirm-btn" onclick="ejecutarCancelarCita()">✗ SÍ, CANCELAR</button>
-    </div>
-  </div>
-</div>
+
 <!-- FEATURE: MODAL TRANSFERIR CITA -->
 <div class="action-modal" id="transfer-modal">
   <div class="action-box">
@@ -849,45 +830,28 @@ async function loadCitas(){
   if(!S.shopId)return;
   const ahora=new Date(new Date().toLocaleString('en-US',{timeZone:S.tz||'America/Santo_Domingo'}));
   const hoy=ahora.getFullYear()+'-'+String(ahora.getMonth()+1).padStart(2,'0')+'-'+String(ahora.getDate()).padStart(2,'0');
-  // FIX: también cargar citas de ayer que fueron agendadas para hoy (reservas nocturnas post-12AM)
-  // Se usa fecha=gte.(ayer) & fecha=lte.(hoy) para capturar ambas fechas, luego se filtra en JS
-  const ayer=new Date(ahora);ayer.setDate(ayer.getDate()-1);
-  const ayerStr=ayer.getFullYear()+'-'+String(ayer.getMonth()+1).padStart(2,'0')+'-'+String(ayer.getDate()).padStart(2,'0');
-  const rows=await retry(()=>sbGet('citas','shop_id=eq.'+S.shopId+'&fecha=in.('+ayerStr+','+hoy+')&estado=neq.Cancelada&order=hora.asc'),3);
-  // Filtrar: de ayer solo las que están Confirmadas (pendientes), de hoy todas las no canceladas
-  const rowsFiltradas=rows.filter(c=>c.fecha===hoy||(c.fecha===ayerStr&&c.estado==='Confirmada'));
+  const rows=await retry(()=>sbGet('citas','shop_id=eq.'+S.shopId+'&fecha=eq.'+hoy+'&estado=neq.Cancelada&order=hora.asc'),3);
   const prev=S.citas.length;
-  S.citas=rowsFiltradas.map(c=>({
+  S.citas=rows.map(c=>({
     id:c.id,
     name:(c.nombre||'CLIENTE').toUpperCase(),
     time:parsearHora(c.hora),   // FIX BUG 1
     servicio:(c.servicio||'CORTE').toUpperCase(),
     barbero:(c.barbero||'CUALQUIERA').toUpperCase(),
-    estado:c.estado||'Confirmada',
-    fecha:c.fecha
+    estado:c.estado||'Confirmada'
   }));
-  if(rowsFiltradas.length>prev&&prev>0)showToast('✓ '+(rowsFiltradas.length-prev)+' nueva(s) cita(s)','info');
+  if(rows.length>prev&&prev>0)showToast('✓ '+(rows.length-prev)+' nueva(s) cita(s)','info');
   rebuildQueues();
   S.lastUp=new Date();
-  setDb('ok','DB · '+rowsFiltradas.length+' CITAS');
+  setDb('ok','DB · '+rows.length+' CITAS');
   setOffline(false);
 }
 
 function saveTurns(){
-  const ahora=new Date(new Date().toLocaleString('en-US',{timeZone:S.tz||'America/Santo_Domingo'}));
-  const hoy=ahora.getFullYear()+'-'+String(ahora.getMonth()+1).padStart(2,'0')+'-'+String(ahora.getDate()).padStart(2,'0');
-  const t={_fecha:hoy};Object.keys(S.queues).forEach(n=>{t[n]=S.queues[n].currentTurn;});
+  const t={};Object.keys(S.queues).forEach(n=>{t[n]=S.queues[n].currentTurn;});
   try{localStorage.setItem('barberos_turns_'+SLUG,JSON.stringify(t));}catch(_){}
 }
-function loadTurns(){
-  try{
-    const raw=JSON.parse(localStorage.getItem('barberos_turns_'+SLUG)||'{}');
-    const ahora=new Date(new Date().toLocaleString('en-US',{timeZone:S.tz||'America/Santo_Domingo'}));
-    const hoy=ahora.getFullYear()+'-'+String(ahora.getMonth()+1).padStart(2,'0')+'-'+String(ahora.getDate()).padStart(2,'0');
-    if(raw._fecha&&raw._fecha!==hoy){localStorage.removeItem('barberos_turns_'+SLUG);return {};}
-    return raw;
-  }catch(_){return {};}
-}
+function loadTurns(){try{return JSON.parse(localStorage.getItem('barberos_turns_'+SLUG)||'{}');}catch(_){return {};}}
 
 // FIX BUG 2: sync correcto con BD (completadas reales + in-memory)
 function rebuildQueues(){
@@ -1059,7 +1023,13 @@ function renderSolo(barber,layout){
   const conflicts=checkConflicts(allC.filter((_,i)=>i>=currentTurn-1));
   const conflictIdx=new Set(conflicts.flatMap(c=>[c.i,c.j]));
 
-  // Siempre redibujar completo para evitar estados inconsistentes
+  // FIX BUG 4: actualizar partes específicas si ya existe el layout
+  const existingCol=document.getElementById('col-'+bid);
+  if(existingCol&&existingCol.closest('.layout-solo')===layout.querySelector('.layout-solo')||layout.querySelector('#col-'+bid)){
+    // Solo actualizar elementos que cambian
+    const hn=document.getElementById('hn-'+bid);if(hn)hn.textContent=cur?String(currentTurn).padStart(2,'0'):'—';
+    const sn=document.getElementById('sn-'+bid);if(sn){sn.textContent=cur?cur.name:'SIN CLIENTES';}
+  }
 
   layout.innerHTML=`
   <div class="barber-col bc-0" id="col-${bid}">
@@ -1111,7 +1081,7 @@ function renderSolo(barber,layout){
             ${zoneA.map((c,idx)=>{
               const num=c.originalIdx+1;const eta=c.pos>0?calcLiveETA(c.pos,barber):null;const{rc,tc,tl}=statusClasses(c.status);
               // FEATURE: botón transferir en cada fila pendiente
-              const cBtn=c.id&&c.status!=='done'?`<button class="btn-transfer" style="color:rgba(255,0,110,0.6);border-color:rgba(255,0,110,0.25);" onclick="openCancelarCita('${c.id}','${c.name.replace(/'/g,"\\'")}','${c.time}')">✗</button>`:'';
+              const tBtn=c.id&&c.status!=='done'?`<button class="btn-transfer" onclick="openTransferirCita('${c.id}','${c.name.replace(/'/g,"\\'")}','${c.time}','${barber.replace(/'/g,"\\'")}',${ num})">↔</button>`:'';
               return`<div class="q-item ${rc}" style="animation-delay:${idx*0.05}s"><div class="q-num">${String(num).padStart(2,'0')}</div><div><div class="q-name">${c.name}${eta?`<span class="wait-eta">⏱${eta}</span>`:''}</div><div class="q-svc">${c.servicio}</div></div><div class="q-barber">${tBtn}</div><div class="q-time">${fmt12(c.time)}</div><div><span class="status-tag ${tc}"><span class="tag-dot"></span>${tl}</span></div></div>`;
             }).join('')}
           </div>
@@ -1168,7 +1138,7 @@ function renderMyTurn(c){
   const{citas:allC,currentTurn}=q;const cur=allC[currentTurn-1];const nxt=allC[currentTurn];
   const remaining=Math.max(0,allC.length-currentTurn+1);
   const doneCitas=allC.slice(0,currentTurn-1).slice(-3);
-  const toggleHtml='';
+  const toggleHtml=bObj?`<button onclick="toggleBarberoActivo('${bObj.id}','${barber}',${isActive})" style="padding:6px 14px;border:1px solid ${isActive?'rgba(255,0,110,0.35)':'rgba(0,255,120,0.35)'};background:${isActive?'rgba(255,0,110,0.06)':'rgba(0,255,120,0.06)'};color:${isActive?'rgba(255,0,110,0.7)':'rgba(0,255,120,0.7)'};font-family:'Share Tech Mono',monospace;font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;">${isActive?'⏸ DESACTIVARME':'▶ ACTIVARME'}</button>`:'';
   const queueItems=[];
   // Solo activo + pendientes — los completados ya están arriba en "LISTOS"
   allC.slice(currentTurn-1).forEach((c,i)=>{queueItems.push({c,i:currentTurn-1+i,status:i===0?'active':i===1?'next':'wait'});});
@@ -1349,27 +1319,13 @@ ws.onmessage=async(ev)=>{
     const m=JSON.parse(ev.data);
     const evType=m.payload?.data?.type||m.event||'';
     const record=m.payload?.data?.record||m.payload?.record||{};
-    if(!['INSERT','UPDATE','DELETE'].includes(evType))return;
-    // Shops: activar/suspender barbería
-    if(m.topic&&m.topic.includes('shops')){
-      if(record?.activo===false){showDisplaySuspended(S.shopName);return;}
-      if(record?.activo===true){_barberiaPausada=false;actualizarBtnPause();}
+    if(['INSERT','UPDATE','DELETE'].includes(evType)){
+      if(m.topic&&m.topic.includes('shops')&&record?.activo===false){showDisplaySuspended(S.shopName);return;}
+      if(m.topic&&m.topic.includes('shops')&&record?.activo===true){_barberiaPausada=false;actualizarBtnPause();}
       await loadCitas().catch(()=>{});render();
-      showToast('↻ Configuración actualizada','info');
-      return;
+      if(evType==='INSERT')bipNuevaCita();
+      showToast(evType==='INSERT'?'✓ Nueva cita':evType==='DELETE'?'✗ Cita eliminada':'↻ Actualizado','info');
     }
-    // Barberos: recargar barberos Y citas (activo/inactivo cambia la cola)
-    if(m.topic&&m.topic.includes('barberos')){
-      await loadBarberos().catch(()=>{});
-      await loadCitas().catch(()=>{});
-      render();
-      showToast('↻ Barbero actualizado','info');
-      return;
-    }
-    // Citas: INSERT, UPDATE o DELETE
-    await loadCitas().catch(()=>{});render();
-    if(evType==='INSERT')bipNuevaCita();
-    showToast(evType==='INSERT'?'✓ Nueva cita':evType==='DELETE'?'✗ Cita eliminada':'↻ Cita actualizada','info');
   }catch(_){}
 };
       ws.onerror=()=>setRt('error','RT ERROR');
@@ -1470,30 +1426,16 @@ async function confirmWalkIn(){
 let REAG_ID=null,REAG_HORA=null,REAG_BARBER=null;
 
 function openReagendar(citaId,nombre,horaActual,barber){
-  REAG_ID=citaId;REAG_HORA=horaActual;REAG_BARBER=barber.toUpperCase();  const barbNotm=REAG_BARBER;
-  const inicio=S.horaInicio||9;const fin=S.horaFin||18;
+  REAG_ID=citaId;REAG_HORA=horaActual;REAG_BARBER=barber;
+
+  const inicio=S.horaInicio||7;const fin=S.horaFin||22;
 
   // Generar todos los slots del día
   function generarSlots(){const s=[];for(let h=inicio;h<fin;h++){for(let m=0;m<60;m+=DUR){s.push(String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'));}}return s;}
 
-  // Citas de este barbero hoy (excluyendo la cita actual) — desde BD
-// Normalizar c.time de "9:00 AM" → "09:00" para comparar con slots
-// FIX: redondear minutos al slot más cercano
-function normalizarHora(t){
-  if(!t)return'';
-  if(!/AM|PM/i.test(t))return t.substring(0,5);
-  const [time,ap]=t.split(' ');
-  let [h,m]=time.split(':').map(Number);
-  if(/PM/i.test(ap)&&h!==12)h+=12;
-  if(/AM/i.test(ap)&&h===12)h=0;
-  // Redondear minutos al slot más cercano (en intervalos de DUR)
-  m=Math.round(m/DUR)*DUR;
-  if(m>=60){m=0;h+=1;}
-  return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
-}
-const takenHoy=S.citas
- .filter(c=>c.barbero.toUpperCase()===barbNotm&&String(c.id)!==String(citaId)&&c.estado!=='Completada')
-  .map(c=>normalizarHora(c.time));  const slots=generarSlots();
+  // Citas de este barbero hoy (excluyendo la cita actual)
+  const takenHoy=S.citas.filter(c=>c.barbero===barber&&c.id!=citaId&&c.estado!=='Completada').map(c=>c.time);
+  const slots=generarSlots();
   const libresHoy=slots.filter(t=>t!==horaActual&&!takenHoy.includes(t));
 
   // Si no hay libres hoy → usar mañana
@@ -1516,16 +1458,15 @@ const takenHoy=S.citas
   const minAhora=ahora.getHours()*60+ahora.getMinutes();
 
   document.getElementById('reag-sub').textContent=
-    'Mover cita de '+nombre+' ('+barbNotm+') · Actual: '+fmt12(horaActual)+
+    'Mover cita de '+nombre+' · Actual: '+fmt12(horaActual)+
     (usaMañana?' — Sin disponibilidad hoy, mostrando mañana':'');
 
-    const slotsHtml=displaySlots.map(t=>{
+  const slotsHtml=displaySlots.map(t=>{
     const [hh,mm]=t.split(':').map(Number);
     const minSlot=hh*60+mm;
     const isCurrent=!usaMañana&&t===horaActual;
     const isTaken=takenDisplay.includes(t);
-   // Solo marcar como pasado si está más de 5 min en el pasado (no el slot actual)
-    const isPast=!usaMañana&&minSlot<(minAhora-5)&&normalizarHora(horaActual)!==t;
+    const isPast=!usaMañana&&minSlot<=minAhora&&t!==horaActual;
 
     let cls='time-slot';
     let clickFn='';
@@ -1558,8 +1499,7 @@ async function confirmReagendar(){
   const btn=document.querySelector('#reag-modal .abtn-confirm');
   btn.textContent='⏳ GUARDANDO...';btn.style.pointerEvents='none';
   try{
-   const horaFinal=REAG_HORA.length===5?REAG_HORA+':00':REAG_HORA;
-await sbPatch('citas','id=eq.'+REAG_ID,{hora:horaFinal});
+    await sbPatch('citas','id=eq.'+REAG_ID,{hora:REAG_HORA+':00'});
     closeModal('reag-modal');await loadCitas();render();showToast('↻ Cita movida a las '+REAG_HORA,'ok');
   }catch(e){
     showToast('⚠ Error al reagendar','error');
@@ -1608,12 +1548,11 @@ async function ejecutarPausarBarberia(){
     closeModal('pause-modal');
     actualizarBtnPause();
     showToast(nuevoEstado?'⏸ Barbería pausada — citas conservadas':'▶ Barbería reanudada',nuevoEstado?'warn':'ok');
-    if(!nuevoEstado){
-      await loadBarberos().catch(()=>{});
-      await loadCitas().catch(()=>{});
-      rebuildQueues();
-      render();
-    }
+    if(!nuevoEstado){if(m.topic&&m.topic.includes('barberos')){
+  await loadBarberos().catch(()=>{});rebuildQueues();render();
+} else {
+  await loadCitas().catch(()=>{});render();
+}}
   }catch(e){showToast('⚠ Error: '+e.message,'error');}
   finally{if(btn){btn.textContent=_barberiaPausada?'▶ SÍ, REANUDAR':'⏸ SÍ, PAUSAR';btn.style.pointerEvents='';}}
 }
@@ -1675,26 +1614,7 @@ async function confirmarTransferencia(){
 }
 
 function closeModal(id){document.getElementById(id).classList.remove('open');}
-// ── CANCELAR CITA ──
-let _cancelCitaId=null;
-function openCancelarCita(citaId,nombre,hora){
-  _cancelCitaId=citaId;
-  document.getElementById('cancel-sub').textContent='Turno · '+hora;
-  document.getElementById('cancel-nombre').textContent=nombre;
-  document.getElementById('cancel-modal').classList.add('open');
-}
-async function ejecutarCancelarCita(){
-  if(!_cancelCitaId)return;
-  const btn=document.getElementById('cancel-confirm-btn');
-  btn.textContent='⏳ Cancelando...';btn.style.pointerEvents='none';
-  try{
-    await sbPatch('citas','id=eq.'+_cancelCitaId,{estado:'Cancelada'});
-    closeModal('cancel-modal');
-    await loadCitas().catch(()=>{});render();
-    showToast('✗ Cita cancelada','warn');
-  }catch(e){showToast('⚠ Error: '+e.message,'error');}
-  finally{btn.textContent='✗ SÍ, CANCELAR';btn.style.pointerEvents='';}
-}
+
 // ── ZEN ──
 let ZEN=false;
 function toggleZen(){ZEN=!ZEN;document.body.classList.toggle('zen-mode',ZEN);const btn=document.getElementById('zen-btn');if(btn){btn.classList.toggle('active',ZEN);btn.textContent=ZEN?'☀ NORMAL (desactivar zen)':'☽ MODO ZEN (exterior / sol directo)';}try{localStorage.setItem('barberos_zen',ZEN?'1':'0');}catch(_){}}
