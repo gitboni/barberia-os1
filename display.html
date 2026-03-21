@@ -849,20 +849,27 @@ async function loadCitas(){
   if(!S.shopId)return;
   const ahora=new Date(new Date().toLocaleString('en-US',{timeZone:S.tz||'America/Santo_Domingo'}));
   const hoy=ahora.getFullYear()+'-'+String(ahora.getMonth()+1).padStart(2,'0')+'-'+String(ahora.getDate()).padStart(2,'0');
-  const rows=await retry(()=>sbGet('citas','shop_id=eq.'+S.shopId+'&fecha=eq.'+hoy+'&estado=neq.Cancelada&order=hora.asc'),3);
+  // FIX: también cargar citas de ayer que fueron agendadas para hoy (reservas nocturnas post-12AM)
+  // Se usa fecha=gte.(ayer) & fecha=lte.(hoy) para capturar ambas fechas, luego se filtra en JS
+  const ayer=new Date(ahora);ayer.setDate(ayer.getDate()-1);
+  const ayerStr=ayer.getFullYear()+'-'+String(ayer.getMonth()+1).padStart(2,'0')+'-'+String(ayer.getDate()).padStart(2,'0');
+  const rows=await retry(()=>sbGet('citas','shop_id=eq.'+S.shopId+'&fecha=in.('+ayerStr+','+hoy+')&estado=neq.Cancelada&order=hora.asc'),3);
+  // Filtrar: de ayer solo las que están Confirmadas (pendientes), de hoy todas las no canceladas
+  const rowsFiltradas=rows.filter(c=>c.fecha===hoy||(c.fecha===ayerStr&&c.estado==='Confirmada'));
   const prev=S.citas.length;
-  S.citas=rows.map(c=>({
+  S.citas=rowsFiltradas.map(c=>({
     id:c.id,
     name:(c.nombre||'CLIENTE').toUpperCase(),
     time:parsearHora(c.hora),   // FIX BUG 1
     servicio:(c.servicio||'CORTE').toUpperCase(),
     barbero:(c.barbero||'CUALQUIERA').toUpperCase(),
-    estado:c.estado||'Confirmada'
+    estado:c.estado||'Confirmada',
+    fecha:c.fecha
   }));
-  if(rows.length>prev&&prev>0)showToast('✓ '+(rows.length-prev)+' nueva(s) cita(s)','info');
+  if(rowsFiltradas.length>prev&&prev>0)showToast('✓ '+(rowsFiltradas.length-prev)+' nueva(s) cita(s)','info');
   rebuildQueues();
   S.lastUp=new Date();
-  setDb('ok','DB · '+rows.length+' CITAS');
+  setDb('ok','DB · '+rowsFiltradas.length+' CITAS');
   setOffline(false);
 }
 
