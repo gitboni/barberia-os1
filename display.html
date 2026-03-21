@@ -874,10 +874,20 @@ async function loadCitas(){
 }
 
 function saveTurns(){
-  const t={};Object.keys(S.queues).forEach(n=>{t[n]=S.queues[n].currentTurn;});
+  const ahora=new Date(new Date().toLocaleString('en-US',{timeZone:S.tz||'America/Santo_Domingo'}));
+  const hoy=ahora.getFullYear()+'-'+String(ahora.getMonth()+1).padStart(2,'0')+'-'+String(ahora.getDate()).padStart(2,'0');
+  const t={_fecha:hoy};Object.keys(S.queues).forEach(n=>{t[n]=S.queues[n].currentTurn;});
   try{localStorage.setItem('barberos_turns_'+SLUG,JSON.stringify(t));}catch(_){}
 }
-function loadTurns(){try{return JSON.parse(localStorage.getItem('barberos_turns_'+SLUG)||'{}');}catch(_){return {};}}
+function loadTurns(){
+  try{
+    const raw=JSON.parse(localStorage.getItem('barberos_turns_'+SLUG)||'{}');
+    const ahora=new Date(new Date().toLocaleString('en-US',{timeZone:S.tz||'America/Santo_Domingo'}));
+    const hoy=ahora.getFullYear()+'-'+String(ahora.getMonth()+1).padStart(2,'0')+'-'+String(ahora.getDate()).padStart(2,'0');
+    if(raw._fecha&&raw._fecha!==hoy){localStorage.removeItem('barberos_turns_'+SLUG);return {};}
+    return raw;
+  }catch(_){return {};}
+}
 
 // FIX BUG 2: sync correcto con BD (completadas reales + in-memory)
 function rebuildQueues(){
