@@ -1059,13 +1059,7 @@ function renderSolo(barber,layout){
   const conflicts=checkConflicts(allC.filter((_,i)=>i>=currentTurn-1));
   const conflictIdx=new Set(conflicts.flatMap(c=>[c.i,c.j]));
 
-  // FIX BUG 4: actualizar partes específicas si ya existe el layout
-  const existingCol=document.getElementById('col-'+bid);
-  if(existingCol&&existingCol.closest('.layout-solo')===layout.querySelector('.layout-solo')||layout.querySelector('#col-'+bid)){
-    // Solo actualizar elementos que cambian
-    const hn=document.getElementById('hn-'+bid);if(hn)hn.textContent=cur?String(currentTurn).padStart(2,'0'):'—';
-    const sn=document.getElementById('sn-'+bid);if(sn){sn.textContent=cur?cur.name:'SIN CLIENTES';}
-  }
+  // Siempre redibujar completo para evitar estados inconsistentes
 
   layout.innerHTML=`
   <div class="barber-col bc-0" id="col-${bid}">
