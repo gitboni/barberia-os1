@@ -2025,18 +2025,36 @@ async function loadUsers() {
   const nb = document.getElementById('newBarberoShop');
   if (nb) nb.innerHTML = optHtml;
 
-  // Cargar admins existentes desde cliente_shops + usuarios_app
+  // Cargar admins existentes — una sola query con join embedido
   let shopAdminMap = {};
   if (!usingDemo) {
     try {
-      const admins = await sbGet('usuarios_app', 'select=id,nombre,telefono,barbero_id&rol=eq.admin');
-      const adminShopLinks = await sbGet('cliente_shops', 'select=usuario_id,shop_id');
-      const adminIds = new Set(admins.map(a => a.id));
-      adminShopLinks.filter(cs => adminIds.has(cs.usuario_id)).forEach(cs => {
-        const admin = admins.find(a => a.id === cs.usuario_id);
-        if (admin) shopAdminMap[cs.shop_id] = admin;
+      // Trae cliente_shops con el perfil embebido del usuario admin
+      const links = await sbGet(
+        'cliente_shops',
+        'select=shop_id,usuarios_app!inner(id,nombre,telefono,rol)&usuarios_app.rol=in.(admin)'
+      );
+      links.forEach(row => {
+        const ua = row.usuarios_app;
+        // ua puede ser objeto o array según supabase
+        const admin = Array.isArray(ua) ? ua[0] : ua;
+        if (admin?.rol === 'admin' && !shopAdminMap[row.shop_id]) {
+          shopAdminMap[row.shop_id] = admin;
+        }
       });
-    } catch(e) {}
+    } catch(e) {
+      // Fallback: cargar por separado
+      try {
+        const admins = await sbGet('usuarios_app', 'select=id,nombre,telefono,rol&rol=eq.admin');
+        const links2 = await sbGet('cliente_shops', 'select=usuario_id,shop_id');
+        admins.forEach(admin => {
+          const link = links2.find(cs => cs.usuario_id === admin.id);
+          if (link && !shopAdminMap[link.shop_id]) {
+            shopAdminMap[link.shop_id] = admin;
+          }
+        });
+      } catch(e2) { addLog('WARN', 'loadUsers fallback: '+e2.message); }
+    }
   }
 
   const q = document.getElementById('userSearch').value.toLowerCase();
