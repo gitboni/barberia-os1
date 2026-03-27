@@ -614,13 +614,29 @@ tr:hover td{background:rgba(255,255,255,0.016);}
         <div class="section-title">Gestión de Barberos</div>
         <button class="btn btn-primary" id="newBarberoBtn">+ NUEVO BARBERO</button>
       </div>
+
+      <!-- Banner acceso app -->
+      <div style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.2);border-left:3px solid var(--gold);padding:12px 16px;margin-bottom:16px;font-size:0.6rem;color:var(--muted);display:flex;align-items:center;gap:10px;">
+        📱 <div>Asigna teléfono y contraseña para que cada barbero entre a la <strong style="color:var(--gold)">app móvil BarberOS</strong>. El usuario se crea automáticamente con <code style="color:var(--gold)">tel@barberos.app</code>.</div>
+      </div>
+
       <div class="filters-bar">
         <input class="filter-input" placeholder="Buscar barbero..." id="barberoSearch" style="flex:1;">
         <select class="filter-select" id="barberoShopFilter"><option value="">Todas las barberías</option></select>
         <button class="btn btn-ghost" id="refreshBarberosBtn">↻</button>
       </div>
       <div class="table-wrap">
-        <table><thead><tr><th>#</th><th>Nombre</th><th class="col-hide-xs">Barbería</th><th class="col-hide-xs">Orden</th><th>Estado</th><th>Citas hoy</th><th>Acciones</th></tr></thead><tbody id="barberosTable"></tbody></table>
+        <table><thead><tr>
+          <th>#</th>
+          <th>Nombre</th>
+          <th class="col-hide-xs">Barbería</th>
+          <th>Estado</th>
+          <th>Citas hoy</th>
+          <th>Teléfono App</th>
+          <th>Contraseña App</th>
+          <th>Acceso App</th>
+          <th>Acciones</th>
+        </tr></thead><tbody id="barberosTable"></tbody></table>
       </div>
     </div>
 
@@ -2020,12 +2036,14 @@ document.getElementById('createUserBtn').addEventListener('click',()=>{
 // ════════════════════════════════════════════
 //  BARBEROS
 // ════════════════════════════════════════════
+
+// Guardar estado temporal de inputs por barbero
+const _barberoInputs = {};
+
 async function loadBarberos() {
   const shops=usingDemo?_shops:await sbGet('shops','select=id,nombre').catch(()=>_shops);
-  // ✅ FIX: select con campo "orden"
   const barberos=usingDemo?_barberos:await sbGet('barberos','select=*&order=orden.asc').catch(()=>_barberos);
 
-  // Actualizar filtro de shop
   document.getElementById('barberoShopFilter').innerHTML='<option value="">Todas las barberías</option>'+shops.map(s=>`<option value="${s.id}">${s.nombre}</option>`).join('');
 
   const q=document.getElementById('barberoSearch').value.toLowerCase();
@@ -2037,19 +2055,92 @@ async function loadBarberos() {
 
   document.getElementById('barberosTable').innerHTML=filtered.map((b,i)=>{
     const shop=shopMap[b.shop_id];
-    const citasHoy=_citas.filter(c=>c.barbero_id===b.id).length;
-    return `<tr>
+    const citasHoy=_citas.filter(c=>c.barbero===b.nombre||c.barbero_id===b.id).length;
+    const tieneAcceso=!!b.app_password;
+    const tel=b.telefono||'';
+    // Preservar valores editados
+    const savedTel=_barberoInputs[b.id]?.tel??tel;
+    const savedPass=_barberoInputs[b.id]?.pass??'';
+    return `<tr id="brow-${b.id}">
       <td style="color:var(--muted)">${String(i+1).padStart(2,'0')}</td>
-      <td style="color:var(--text)">${b.nombre}</td>
+      <td style="color:var(--text);font-weight:600">${b.nombre}</td>
       <td style="color:var(--muted)">${shop?shop.nombre:'—'}</td>
-      <td style="color:var(--muted);text-align:center">${b.orden||'—'}</td>
       <td class="${b.activo?'status-active':'status-inactive'}">${b.activo?'● Activo':'○ Inactivo'}</td>
       <td style="color:var(--gold);text-align:center">${citasHoy}</td>
+      <td>
+        <input
+          id="btel-${b.id}"
+          type="text"
+          placeholder="8091234567"
+          value="${savedTel}"
+          oninput="_barberoInputs['${b.id}']=_barberoInputs['${b.id}']||{};_barberoInputs['${b.id}'].tel=this.value"
+          style="background:var(--surface3);border:1px solid var(--border);color:var(--text);padding:5px 8px;font-family:'DM Mono',monospace;font-size:0.6rem;width:130px;">
+      </td>
+      <td>
+        <input
+          id="bpass-${b.id}"
+          type="text"
+          placeholder="Nueva contraseña"
+          value="${savedPass}"
+          oninput="_barberoInputs['${b.id}']=_barberoInputs['${b.id}']||{};_barberoInputs['${b.id}'].pass=this.value"
+          style="background:var(--surface3);border:1px solid var(--border);color:var(--text);padding:5px 8px;font-family:'DM Mono',monospace;font-size:0.6rem;width:130px;">
+      </td>
+      <td>
+        ${tieneAcceso
+          ? `<span style="color:var(--green);font-size:0.52rem;letter-spacing:.06em;">✓ Con acceso</span>`
+          : `<span style="color:var(--orange);font-size:0.52rem;letter-spacing:.06em;">⚠ Sin acceso</span>`
+        }
+      </td>
       <td><div class="action-btns">
+        <button class="action-btn success" onclick="asignarAccesoApp('${b.id}','${b.nombre}')" style="background:rgba(201,168,76,0.08);border-color:rgba(201,168,76,0.4);color:var(--gold);">
+          ${tieneAcceso?'↻ Actualizar':'+ Asignar'}
+        </button>
         <button class="action-btn ${b.activo?'danger':'success'}" onclick="confirmToggleBarbero('${b.id}',${b.activo},'${b.nombre}')">${b.activo?'Desactivar':'Activar'}</button>
       </div></td>
     </tr>`;
-  }).join('')||'<tr><td colspan="7" style="color:var(--muted);text-align:center;padding:22px;">Sin barberos</td></tr>';
+  }).join('')||'<tr><td colspan="9" style="color:var(--muted);text-align:center;padding:22px;">Sin barberos</td></tr>';
+}
+
+async function asignarAccesoApp(barberoId, nombre) {
+  const tel = document.getElementById('btel-'+barberoId)?.value?.trim();
+  const pass = document.getElementById('bpass-'+barberoId)?.value?.trim();
+
+  if(!tel || tel.replace(/\D/g,'').length < 8) {
+    showToast('Ingresa un teléfono válido para '+nombre,'error'); return;
+  }
+  if(!pass || pass.length < 6) {
+    showToast('La contraseña debe tener al menos 6 caracteres','error'); return;
+  }
+
+  const btn = document.querySelector(`#brow-${barberoId} .action-btn.success`);
+  if(btn){ btn.textContent='⏳ Guardando...'; btn.disabled=true; }
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/gestionar-barbero-app`, {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':`Bearer ${_accessToken||SUPABASE_KEY}`,
+        'apikey': SUPABASE_KEY,
+      },
+      body: JSON.stringify({ barbero_id: barberoId, telefono: tel, password: pass, nombre })
+    });
+    const data = await res.json();
+    if(data.error) throw new Error(data.error);
+
+    showToast(`✓ ${nombre} — acceso asignado. Tel: ${tel}`, 'success');
+    addLog('OK', `Acceso app asignado: ${nombre} tel:${tel}`);
+    logSuperadminAction('asignar_acceso_app', `${nombre}: ${tel}`);
+    // Limpiar campos guardados
+    if(_barberoInputs[barberoId]) _barberoInputs[barberoId].pass = '';
+    // Recargar barberos para reflejar cambio
+    await fetchAll();
+    loadBarberos();
+  } catch(e) {
+    showToast('Error: '+e.message, 'error');
+    addLog('ERROR', 'asignarAccesoApp: '+e.message);
+    if(btn){ btn.textContent='+ Asignar'; btn.disabled=false; }
+  }
 }
 document.getElementById('newBarberoBtn').addEventListener('click',()=>{ loadUsers(); openModal('modalNewBarbero'); });
 document.getElementById('refreshBarberosBtn').addEventListener('click',loadBarberos);
