@@ -595,16 +595,30 @@ tr:hover td{background:rgba(255,255,255,0.016);}
     <!-- USUARIOS -->
     <div class="page" id="page-usuarios">
       <div class="section-header">
-        <div class="section-title">Usuarios & Accesos</div>
-        <button class="btn btn-primary" id="newUserBtn">+ CREAR USUARIO</button>
-      </div>
-      <div class="form-info">💡 Usuarios con acceso al panel de su barbería vía Supabase Auth.</div>
-      <div class="filters-bar">
-        <input class="filter-input" placeholder="Buscar..." id="userSearch" style="flex:1;">
+        <div class="section-title">Usuarios & Accesos App</div>
         <button class="btn btn-ghost" id="refreshUsersBtn">↻</button>
       </div>
+
+      <!-- Banner explicativo -->
+      <div style="background:rgba(52,152,219,0.06);border:1px solid rgba(52,152,219,0.2);border-left:3px solid var(--blue);padding:12px 16px;margin-bottom:20px;font-size:0.6rem;color:var(--muted);display:flex;align-items:center;gap:10px;">
+        👑 <div>Asigna teléfono y contraseña a cada <strong style="color:var(--blue)">dueño/admin</strong> para que entre a la app móvil BarberOS. El usuario se crea automáticamente — el admin NO necesita registrarse.</div>
+      </div>
+
+      <div class="filters-bar">
+        <input class="filter-input" placeholder="Buscar barbería o admin..." id="userSearch" style="flex:1;">
+      </div>
+
       <div class="table-wrap">
-        <table><thead><tr><th>Email</th><th class="col-hide-xs">Barbería</th><th>Plan</th><th>Estado</th><th class="col-hide-xs">Últ. acceso</th><th>Acciones</th></tr></thead><tbody id="usersTable"></tbody></table>
+        <table><thead><tr>
+          <th>#</th>
+          <th>Barbería</th>
+          <th>Plan</th>
+          <th>Nombre Admin</th>
+          <th>Teléfono App</th>
+          <th>Contraseña App</th>
+          <th>Estado Acceso</th>
+          <th>Acción</th>
+        </tr></thead><tbody id="usersTable"></tbody></table>
       </div>
     </div>
 
@@ -1999,39 +2013,115 @@ document.getElementById('vencerTrialBtn').addEventListener('click', () => {
 function confirmToggleShop(id,activo,nombre){showConfirm(activo?`¿Desactivar "${nombre}"?`:`¿Activar "${nombre}"?`,async()=>{try{if(!usingDemo)await sbRpc('toggle_shop_activo',{p_shop_id:id,p_activo:!activo});else{const s=_shops.find(x=>x.id===id);if(s)s.activo=!activo;}showToast(activo?'Desactivada':'Activada ✓',activo?'warn':'success');logSuperadminAction('toggle_shop',`${nombre}:${!activo}`);await fetchAll();loadShops();renderDashboard();}catch(e){showToast('Error: '+e.message,'error');}},activo?'Desactivar':'Activar');}
 
 // ════════════════════════════════════════════
-//  USUARIOS
+//  USUARIOS — Acceso app para admins/dueños
 // ════════════════════════════════════════════
-async function loadUsers() {
-  const shops=usingDemo?_shops:await sbGet('shops','select=id,nombre,plan,activo').catch(()=>_shops);
-  // Poblar selects de barberías
-  const optHtml='<option value="">Sin asignar</option>'+shops.map(s=>`<option value="${s.id}">${s.nombre}</option>`).join('');
-  document.getElementById('newUserShop').innerHTML=optHtml;
-  document.getElementById('newBarberoShop').innerHTML=optHtml;
+const _adminInputs = {};
 
-  const q=document.getElementById('userSearch').value.toLowerCase();
-  const rows=shops.filter(s=>!q||s.nombre.toLowerCase().includes(q));
-  document.getElementById('usersTable').innerHTML=rows.map(s=>`
-    <tr>
-      <td style="color:var(--text)">—</td>
-      <td style="color:var(--muted)">${s.nombre}</td>
+async function loadUsers() {
+  const shops = usingDemo ? _shops : await sbGet('shops', 'select=id,nombre,plan,activo&order=nombre.asc').catch(() => _shops);
+
+  // Poblar select de barberías en modal de barberos
+  const optHtml = '<option value="">Sin asignar</option>' + shops.map(s => `<option value="${s.id}">${s.nombre}</option>`).join('');
+  const nb = document.getElementById('newBarberoShop');
+  if (nb) nb.innerHTML = optHtml;
+
+  // Cargar admins existentes desde cliente_shops + usuarios_app
+  let shopAdminMap = {};
+  if (!usingDemo) {
+    try {
+      const admins = await sbGet('usuarios_app', 'select=id,nombre,telefono,barbero_id&rol=eq.admin');
+      const adminShopLinks = await sbGet('cliente_shops', 'select=usuario_id,shop_id');
+      const adminIds = new Set(admins.map(a => a.id));
+      adminShopLinks.filter(cs => adminIds.has(cs.usuario_id)).forEach(cs => {
+        const admin = admins.find(a => a.id === cs.usuario_id);
+        if (admin) shopAdminMap[cs.shop_id] = admin;
+      });
+    } catch(e) {}
+  }
+
+  const q = document.getElementById('userSearch').value.toLowerCase();
+  const filtered = shops.filter(s => !q || s.nombre.toLowerCase().includes(q));
+
+  document.getElementById('usersTable').innerHTML = filtered.map((s, i) => {
+    const admin = shopAdminMap[s.id];
+    const tieneAcceso = !!admin?.telefono;
+    const savedTel    = _adminInputs[s.id]?.tel    ?? (admin?.telefono || '');
+    const savedPass   = _adminInputs[s.id]?.pass   ?? '';
+    const savedNombre = _adminInputs[s.id]?.nombre ?? (admin?.nombre  || '');
+
+    return `<tr id="urow-${s.id}">
+      <td style="color:var(--muted)">${String(i+1).padStart(2,'0')}</td>
+      <td style="color:var(--text);font-weight:600">${s.nombre}</td>
       <td><span class="plan-badge plan-${s.plan}">${s.plan}</span></td>
-      <td class="${s.activo?'status-active':'status-pending'}">${s.activo?'● Activa':'○ Pendiente'}</td>
-      <td style="color:var(--muted)">—</td>
-      <td><div class="action-btns"><button class="action-btn" onclick="openModal('modalNewUser')">Crear acceso</button></div></td>
-    </tr>`).join('')||'<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:22px;">Sin datos</td></tr>';
+      <td>
+        <input id="unom-${s.id}" type="text" placeholder="Nombre del dueño" value="${savedNombre}"
+          oninput="_adminInputs['${s.id}']=_adminInputs['${s.id}']||{};_adminInputs['${s.id}'].nombre=this.value"
+          style="background:var(--surface3);border:1px solid var(--border);color:var(--text);padding:5px 8px;font-family:'DM Mono',monospace;font-size:0.6rem;width:140px;">
+      </td>
+      <td>
+        <input id="utel-${s.id}" type="text" placeholder="8091234567" value="${savedTel}"
+          oninput="_adminInputs['${s.id}']=_adminInputs['${s.id}']||{};_adminInputs['${s.id}'].tel=this.value"
+          style="background:var(--surface3);border:1px solid var(--border);color:var(--text);padding:5px 8px;font-family:'DM Mono',monospace;font-size:0.6rem;width:130px;">
+      </td>
+      <td>
+        <input id="upass-${s.id}" type="text" placeholder="Contraseña (mín. 6)" value="${savedPass}"
+          oninput="_adminInputs['${s.id}']=_adminInputs['${s.id}']||{};_adminInputs['${s.id}'].pass=this.value"
+          style="background:var(--surface3);border:1px solid var(--border);color:var(--text);padding:5px 8px;font-family:'DM Mono',monospace;font-size:0.6rem;width:130px;">
+      </td>
+      <td>
+        ${tieneAcceso
+          ? '<span style="color:var(--green);font-size:0.52rem;letter-spacing:.06em;">✓ Con acceso</span>'
+          : '<span style="color:var(--orange);font-size:0.52rem;letter-spacing:.06em;">⚠ Sin acceso</span>'}
+      </td>
+      <td>
+        <button class="action-btn" onclick="asignarAccesoAdmin('${s.id}','${s.nombre}')"
+          style="background:rgba(52,152,219,0.08);border:1px solid rgba(52,152,219,0.4);color:var(--blue);white-space:nowrap;">
+          ${tieneAcceso ? '↻ Actualizar' : '+ Asignar'}
+        </button>
+      </td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="8" style="color:var(--muted);text-align:center;padding:22px;">Sin barberías</td></tr>';
 }
-document.getElementById('newUserBtn').addEventListener('click',()=>{ loadUsers(); openModal('modalNewUser'); });
-document.getElementById('refreshUsersBtn').addEventListener('click',loadUsers);
-document.getElementById('userSearch').addEventListener('input',loadUsers);
-document.getElementById('createUserBtn').addEventListener('click',()=>{
-  const email=document.getElementById('newUserEmail').value.trim();
-  const pass=document.getElementById('newUserPass').value;
-  if(!email){showToast('Email requerido','error');return;}
-  if(pass.length<8){showToast('Contraseña mínimo 8 caracteres','error');return;}
-  showToast(`Usuario ${email} creado (usa Supabase Auth en producción) ✓`,'success');
-  addLog('INFO',`Usuario demo: ${email}`);
-  closeModal('modalNewUser');
-});
+
+async function asignarAccesoAdmin(shopId, shopNombre) {
+  const nombre = document.getElementById('unom-'+shopId)?.value?.trim();
+  const tel    = document.getElementById('utel-'+shopId)?.value?.trim();
+  const pass   = document.getElementById('upass-'+shopId)?.value?.trim();
+
+  if (!nombre) { showToast('Ingresa el nombre del admin', 'error'); return; }
+  if (!tel || tel.replace(/\D/g,'').length < 8) { showToast('Teléfono inválido', 'error'); return; }
+  if (!pass || pass.length < 6) { showToast('Contraseña mínimo 6 caracteres', 'error'); return; }
+
+  const btn = document.querySelector(`#urow-${shopId} .action-btn`);
+  if (btn) { btn.textContent = '⏳ Guardando...'; btn.disabled = true; }
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/gestionar-barbero-app`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${_accessToken || SUPABASE_KEY}`,
+        'apikey': SUPABASE_KEY,
+      },
+      body: JSON.stringify({ shop_id: shopId, telefono: tel, password: pass, nombre, rol: 'admin' }),
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    showToast(`✓ ${nombre} → ${shopNombre} — acceso asignado`, 'success');
+    addLog('OK', `Acceso admin: ${nombre} → ${shopNombre}`);
+    logSuperadminAction('asignar_acceso_admin', `${nombre}: ${shopNombre}`);
+    if (_adminInputs[shopId]) _adminInputs[shopId].pass = '';
+    loadUsers();
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
+    addLog('ERROR', 'asignarAccesoAdmin: ' + e.message);
+    if (btn) { btn.textContent = '+ Asignar'; btn.disabled = false; }
+  }
+}
+
+document.getElementById('refreshUsersBtn').addEventListener('click', loadUsers);
+document.getElementById('userSearch').addEventListener('input', loadUsers);
 
 // ════════════════════════════════════════════
 //  BARBEROS
