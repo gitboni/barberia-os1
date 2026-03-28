@@ -518,6 +518,35 @@ html.fs-sm{font-size:90%;}html.fs-md{font-size:112%;}html.fs-lg{font-size:130%;}
 @media(max-width:768px){#grain-canvas,#star-canvas{opacity:0!important;}.orb{opacity:0.3!important;}.scanline{opacity:0!important;}}
 /* Lazy load animations */
 @supports(animation-timeline:view()){.q-item{animation-timeline:view();}}
+
+/* ── MAÑANA ── */
+.manana-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:16px 24px 10px;gap:12px;}
+.manana-header{display:flex;align-items:flex-start;justify-content:space-between;flex-shrink:0;padding-bottom:12px;border-bottom:1px solid rgba(255,214,0,0.12);}
+.manana-title{font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;letter-spacing:0.2em;color:var(--gold);text-transform:uppercase;text-shadow:0 0 20px rgba(255,214,0,0.3);}
+.manana-subtitle{font-family:'Share Tech Mono',monospace;font-size:0.56rem;color:rgba(255,214,0,0.45);letter-spacing:0.2em;text-transform:uppercase;margin-top:4px;}
+.manana-stats{display:flex;gap:10px;}
+.manana-stat{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 14px;border:1px solid rgba(255,214,0,0.12);background:rgba(255,214,0,0.03);}
+.manana-stat-val{font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:800;color:var(--gold);line-height:1;}
+.manana-stat-lbl{font-family:'Share Tech Mono',monospace;font-size:0.44rem;color:rgba(255,214,0,0.45);letter-spacing:0.22em;text-transform:uppercase;}
+.manana-body{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding-right:4px;}
+.manana-body::-webkit-scrollbar{width:3px;}.manana-body::-webkit-scrollbar-thumb{background:rgba(255,214,0,0.2);border-radius:2px;}
+.manana-group{border:1px solid rgba(255,214,0,0.1);background:rgba(255,214,0,0.015);overflow:hidden;}
+.manana-group::before{content:'';display:block;height:2px;background:linear-gradient(90deg,transparent,var(--bc,var(--gold)),transparent);opacity:0.6;}
+.manana-group-header{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:1px solid rgba(255,214,0,0.07);background:rgba(0,0,0,0.2);}
+.manana-barber-name{font-family:'Orbitron',monospace;font-size:0.72rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--bc,var(--gold));}
+.manana-count{font-family:'Share Tech Mono',monospace;font-size:0.46rem;padding:2px 8px;border:1px solid rgba(255,214,0,0.2);color:rgba(255,214,0,0.55);letter-spacing:0.1em;}
+.manana-group-body{display:flex;flex-direction:column;gap:4px;padding:8px;}
+.manana-item{display:grid;grid-template-columns:40px 1fr auto auto;align-items:center;gap:10px;padding:9px 12px;border:1px solid rgba(255,214,0,0.07);background:rgba(255,214,0,0.015);animation:item-in 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards;opacity:0;}
+.manana-num{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:700;color:rgba(255,214,0,0.35);}
+.manana-name{font-family:'Rajdhani',sans-serif;font-size:0.95rem;font-weight:600;color:#fff;letter-spacing:0.08em;text-transform:uppercase;}
+.manana-svc{font-family:'Share Tech Mono',monospace;font-size:0.5rem;color:rgba(255,245,200,0.6);margin-top:2px;text-transform:uppercase;letter-spacing:0.08em;}
+.manana-time{font-family:'Orbitron',monospace;font-size:0.88rem;font-weight:700;color:var(--gold);opacity:0.8;}
+.manana-estado{font-family:'Share Tech Mono',monospace;font-size:0.42rem;padding:2px 8px;border:1px solid rgba(0,255,120,0.2);color:rgba(0,255,120,0.55);letter-spacing:0.1em;text-transform:uppercase;white-space:nowrap;}
+.manana-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 24px;text-align:center;}
+.manana-empty-txt{font-family:'Orbitron',monospace;font-size:0.9rem;font-weight:700;color:rgba(255,214,0,0.3);letter-spacing:0.22em;text-transform:uppercase;}
+.manana-empty-sub{font-family:'Share Tech Mono',monospace;font-size:0.5rem;color:rgba(255,214,0,0.18);letter-spacing:0.2em;text-transform:uppercase;margin-top:6px;}
+.manana-footer{flex-shrink:0;text-align:center;font-family:'Share Tech Mono',monospace;font-size:0.46rem;color:rgba(255,214,0,0.22);letter-spacing:0.14em;padding:6px 0;border-top:1px solid rgba(255,214,0,0.06);}
+.mode-btn.mode-manana-active{color:var(--gold);border-color:rgba(255,214,0,0.4);background:rgba(255,214,0,0.07);}
 </style>
 </head>
 <body>
@@ -574,6 +603,8 @@ html.fs-sm{font-size:90%;}html.fs-md{font-size:112%;}html.fs-lg{font-size:130%;}
   <button class="mode-btn active" id="mbtn-shop" onclick="setMode('shop')" role="tab" aria-selected="true" aria-label="Modo Barbería - Panel principal">💈 BARBERÍA</button>
   <div class="mode-sep"></div>
   <button class="mode-btn" id="mbtn-my" onclick="openBarberPicker()" role="tab" aria-selected="false" aria-label="Mi Turno - Citas del barbero actual">✂ MI TURNO</button>
+  <div class="mode-sep"></div>
+  <button class="mode-btn" id="mbtn-manana" onclick="setMode('manana')" role="tab" aria-selected="false" aria-label="Citas de Mañana">📅 MAÑANA</button>
 </div>
 
 <div class="barber-picker" id="barber-picker">
@@ -761,7 +792,7 @@ const SLUG=resolveSlug();
 let DUR=45;
 
 // FIX BUG 6: guardar hora_inicio/hora_fin de la shop
-const S={shopId:null,shopName:'BARBEROS',barberos:[],citas:[],queues:{},lastUp:null,horaInicio:7,horaFin:22,tz:'America/Santo_Domingo'};
+const S={shopId:null,shopName:'BARBEROS',barberos:[],citas:[],citasMañana:[],queues:{},lastUp:null,horaInicio:7,horaFin:22,tz:'America/Santo_Domingo'};
 let MODE='shop';
 let MY_BARBER=null;
 
@@ -941,6 +972,7 @@ function render(){
   const c=document.getElementById('content');
   if(MODE==='tv')renderTV(c);
   else if(MODE==='my')renderMyTurn(c);
+  else if(MODE==='manana')renderMañana(c);
   else renderShop(c);
 }
 
@@ -1242,12 +1274,88 @@ function renderMyTurn(c){
   if(myLeft)setupSwipe(myLeft,barber);
 }
 
+async function loadCitasMañana(){
+  if(!S.shopId){S.citasMañana=[];return[];}
+  const ahora=new Date(new Date().toLocaleString('en-US',{timeZone:S.tz||'America/Santo_Domingo'}));
+  const manana=new Date(ahora);manana.setDate(manana.getDate()+1);
+  const fechaM=manana.getFullYear()+'-'+String(manana.getMonth()+1).padStart(2,'0')+'-'+String(manana.getDate()).padStart(2,'0');
+  try{
+    const rows=await sbGet('citas','shop_id=eq.'+S.shopId+'&fecha=eq.'+fechaM+'&estado=neq.Cancelada&order=hora.asc');
+    S.citasMañana=rows.map(c=>({
+      id:c.id,
+      name:(c.nombre||'CLIENTE').toUpperCase(),
+      time:parsearHora(c.hora),
+      servicio:(c.servicio||'CORTE').toUpperCase(),
+      barbero:(c.barbero||'CUALQUIERA').toUpperCase(),
+      estado:c.estado||'Confirmada',
+      fecha:fechaM
+    }));
+  }catch(e){S.citasMañana=[];}
+  return S.citasMañana;
+}
+
+function renderMañana(c){
+  const ahora=new Date(new Date().toLocaleString('en-US',{timeZone:S.tz||'America/Santo_Domingo'}));
+  const manana=new Date(ahora);manana.setDate(manana.getDate()+1);
+  const days=['DOMINGO','LUNES','MARTES','MIÉRCOLES','JUEVES','VIERNES','SÁBADO'];
+  const months=['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+  const diaLabel=days[manana.getDay()]+' '+manana.getDate()+' '+months[manana.getMonth()];
+  const total=S.citasMañana.length;
+  const byBarber={};
+  S.citasMañana.forEach(cita=>{if(!byBarber[cita.barbero])byBarber[cita.barbero]=[];byBarber[cita.barbero].push(cita);});
+  const barbOrder=S.barberos.filter(b=>b.activo).map(b=>b.nombre);
+  const barbList=[...barbOrder.filter(n=>byBarber[n]),...Object.keys(byBarber).filter(n=>!barbOrder.includes(n))];
+  let groupsHtml='';
+  if(!total){
+    groupsHtml='<div class="manana-empty"><div style="font-size:2.5rem;opacity:0.2;margin-bottom:16px;">📅</div><div class="manana-empty-txt">SIN CITAS PARA MAÑANA</div><div class="manana-empty-sub">No hay reservas agendadas aún</div></div>';
+  } else {
+    barbList.forEach((barber,gi)=>{
+      const citas=byBarber[barber]||[];if(!citas.length)return;
+      const idx=S.barberos.findIndex(b=>b.nombre===barber);
+      const color=BC[idx>=0?idx%BC.length:gi%BC.length];
+      groupsHtml+=`<div class="manana-group" style="--bc:${color};--bc-glow:${hexGlow(color)};">
+        <div class="manana-group-header">
+          <div class="manana-barber-name">✂ ${barber}</div>
+          <div class="manana-count">${citas.length} CITA${citas.length>1?'S':''}</div>
+        </div>
+        <div class="manana-group-body">
+          ${citas.map((cita,i)=>`<div class="manana-item" style="animation-delay:${i*0.05}s;">
+            <div class="manana-num">${String(i+1).padStart(2,'0')}</div>
+            <div class="manana-info"><div class="manana-name">${cita.name}</div><div class="manana-svc">${cita.servicio}</div></div>
+            <div class="manana-time">${fmt12(cita.time)}</div>
+            <div class="manana-estado">${cita.estado==='Confirmada'?'✓ CONF.':cita.estado.toUpperCase()}</div>
+          </div>`).join('')}
+        </div>
+      </div>`;
+    });
+  }
+  const nConf=S.citasMañana.filter(ct=>ct.estado==='Confirmada').length;
+  const nBarb=barbList.filter(n=>byBarber[n]?.length).length;
+  c.innerHTML=`<div class="manana-wrap">
+    <div class="manana-header">
+      <div>
+        <div class="manana-title">📅 CITAS — MAÑANA</div>
+        <div class="manana-subtitle">${diaLabel} · ${total} RESERVA${total!==1?'S':''} AGENDADA${total!==1?'S':''}</div>
+      </div>
+      <div class="manana-stats">
+        <div class="manana-stat"><span class="manana-stat-val">${total}</span><span class="manana-stat-lbl">TOTAL</span></div>
+        <div class="manana-stat"><span class="manana-stat-val" style="color:var(--green)">${nConf}</span><span class="manana-stat-lbl">CONF.</span></div>
+        <div class="manana-stat"><span class="manana-stat-val" style="color:var(--purple)">${nBarb}</span><span class="manana-stat-lbl">BARBEROS</span></div>
+      </div>
+    </div>
+    <div class="manana-body">${groupsHtml}</div>
+    <div class="manana-footer">Al comenzar el día, estas citas aparecerán automáticamente en Barbería · Mi Turno · TV</div>
+  </div>`;
+}
+
 function setMode(m,barber){
   MODE=m;if(m==='my'&&barber)MY_BARBER=barber;
-  ['tv','shop','my'].forEach(id=>{const btn=document.getElementById('mbtn-'+id);if(btn)btn.classList.remove('active','mode-barber-active');});
-  const ab=document.getElementById('mbtn-'+(m==='my'?'my':m));if(ab)ab.classList.add(m==='my'?'mode-barber-active':'active');
-  document.getElementById('brand-sub').textContent={tv:'Vista Global · TV',shop:'Vista Barbería',my:MY_BARBER?'✂ '+MY_BARBER:'Vista Personal'}[m]||'Sistema de Turnos · BarberOS';
-  document.getElementById('footer-msg').textContent={tv:'"Todos en la mira — vista global."',shop:'"El estilo es la firma del alma."',my:'"Tu turno, tu trabajo, tu orgullo."'}[m]||'"El estilo es la firma del alma."';
+  ['tv','shop','my','manana'].forEach(id=>{const btn=document.getElementById('mbtn-'+id);if(btn)btn.classList.remove('active','mode-barber-active','mode-manana-active');});
+  const modeClass={tv:'active',shop:'active',my:'mode-barber-active',manana:'mode-manana-active'};
+  const ab=document.getElementById('mbtn-'+(m==='my'?'my':m));if(ab)ab.classList.add(modeClass[m]||'active');
+  document.getElementById('brand-sub').textContent={tv:'Vista Global · TV',shop:'Vista Barbería',my:MY_BARBER?'✂ '+MY_BARBER:'Vista Personal',manana:'Citas para Mañana'}[m]||'Sistema de Turnos · BarberOS';
+  document.getElementById('footer-msg').textContent={tv:'"Todos en la mira — vista global."',shop:'"El estilo es la firma del alma."',my:'"Tu turno, tu trabajo, tu orgullo."',manana:'"Mañana también hay estilo."'}[m]||'"El estilo es la firma del alma."';
+  if(m==='manana')loadCitasMañana().catch(()=>{}).then(()=>render());
   document.getElementById('content').innerHTML='';render();
 }
 
@@ -1703,14 +1811,14 @@ async function init(){
   ['tv','shop','my'].forEach(id=>document.getElementById('mbtn-'+id)?.classList.remove('active','mode-barber-active'));
   document.getElementById('mbtn-'+(MODE==='tv'?'tv':MODE==='my'?'my':'shop'))?.classList.add(MODE==='my'?'mode-barber-active':'active');
   const ok=await loadShop().catch(()=>false);
-  if(ok){await loadBarberos().catch(()=>{});await loadCitas().catch(()=>{});subscribeRT();}
+  if(ok){await loadBarberos().catch(()=>{});await loadCitas().catch(()=>{});loadCitasMañana().catch(()=>{});subscribeRT();}
   else loadDemo();
   Object.keys(S.queues).forEach(b=>{if(!SILLA_TIMES[b])SILLA_TIMES[b]=Date.now();});
   render();updateTimers();
   // FIX BUG 5: guardar referencias para limpiar si es necesario
   _timerInterval=setInterval(updateTimers,30000);
   _etaInterval=setInterval(()=>{if(MODE!=='tv')render();},60000);
-  _citasInterval=setInterval(async()=>{await loadCitas().catch(()=>{});render();},5000);
+  _citasInterval=setInterval(async()=>{await loadCitas().catch(()=>{});if(MODE==='manana')await loadCitasMañana().catch(()=>{});render();},5000);
 }
 
 function loadDemo(){
@@ -1762,6 +1870,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='t'||e.key==='T')setMode('tv');
   if(e.key==='s'||e.key==='S')setMode('shop');
   if(e.key==='p'||e.key==='P')pausarBarberia();
+  if(e.key==='m'||e.key==='M')setMode('manana');
   if(e.key==='Escape'){['cfg-modal','walkin-modal','reag-modal','transfer-modal','pause-modal'].forEach(id=>closeModal(id));document.getElementById('barber-picker').classList.remove('open');}
   const nn=parseInt(e.key);if(nn>=1&&nn<=5&&MODE!=='tv'){const b=Object.keys(S.queues)[nn-1];if(b)siguienteTurno(b);}
   if(e.key==='ArrowRight'||e.key==='n'||e.key==='N'){if(MODE==='my'&&MY_BARBER)siguienteTurno(MY_BARBER,'btn-my');else{const b=Object.keys(S.queues)[0];if(b)siguienteTurno(b);}}
