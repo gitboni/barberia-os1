@@ -1662,7 +1662,19 @@ async function confirmReagendar(){
   btn.textContent='⏳ GUARDANDO...';btn.style.pointerEvents='none';
   try{
     await sbPatch('citas','id=eq.'+REAG_ID,{hora:REAG_HORA+':00'});
-    closeModal('reag-modal');await loadCitas();await loadAgenda().catch(()=>{});render();showToast('↻ Cita movida a las '+REAG_HORA,'ok');
+    // Update optimista: actualiza en memoria de inmediato sin esperar round-trip
+    const newTime=parsearHora(REAG_HORA+':00');
+    const cLocal=S.citas.find(c=>c.id==REAG_ID);
+    if(cLocal)cLocal.time=newTime;
+    const aLocal=S.agenda.find(a=>a.id==REAG_ID);
+    if(aLocal){aLocal.time=newTime;aLocal.raw_hora=REAG_HORA+':00';}
+    rebuildQueues();
+    closeModal('reag-modal');
+    render();
+    showToast('↻ Cita movida a las '+REAG_HORA,'ok');
+    // Recarga en background para sincronizar con BD
+    loadCitas().catch(()=>{});
+    loadAgenda().catch(()=>{});
   }catch(e){
     showToast('⚠ Error al reagendar','error');
     btn.textContent='↻ CONFIRMAR CAMBIO';btn.style.pointerEvents='';
@@ -1784,9 +1796,13 @@ async function confirmarTransferencia(){
   btn.textContent='⏳ Transfiriendo...';btn.style.pointerEvents='none';
   try{
     await sbPatch('citas','id=eq.'+_transferCitaId,{barbero:_transferBarberoDestino});
+    // Update optimista inmediato
+    [S.citas,S.agenda].forEach(arr=>{const c=arr.find(x=>x.id==_transferCitaId);if(c)c.barbero=_transferBarberoDestino.toUpperCase();});
+    rebuildQueues();
     closeModal('transfer-modal');
-    await loadCitas().catch(()=>{});render();
+    render();
     showToast('↔ Cita transferida a '+_transferBarberoDestino,'ok');
+    loadCitas().catch(()=>{});loadAgenda().catch(()=>{});
   }catch(e){showToast('⚠ Error: '+e.message,'error');}
   finally{btn.textContent='↔ CONFIRMAR';btn.style.pointerEvents='';}
 }
