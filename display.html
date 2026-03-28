@@ -996,7 +996,7 @@ async function siguienteTurno(barber,btnId){
     btn.innerHTML=scHtml()+'✓ AVANZADO';
     setTimeout(()=>{btn.classList.remove('success');btn.innerHTML=scHtml()+'▶ SIGUIENTE TURNO';},2000);
   }
-  setTimeout(async()=>{await loadCitas().catch(()=>{});render();},1500);
+  // RT con self:true confirma el cambio automáticamente — no hace falta reload explícito
 }
 
 async function toggleBarberoActivo(barberoId,nombre,activo){
@@ -1480,6 +1480,31 @@ function setupSwipe(el,barber){
   },{passive:true});
 }
 
+// ── MICRO-UPDATE REALTIME: aplica cambios directo del payload sin round-trip a BD ──
+function applyRealtimeCita(event,rec){
+  if(!rec||!rec.id)return;
+  const ahora=new Date(new Date().toLocaleString('en-US',{timeZone:S.tz||'America/Santo_Domingo'}));
+  const hoy=ahora.getFullYear()+'-'+String(ahora.getMonth()+1).padStart(2,'0')+'-'+String(ahora.getDate()).padStart(2,'0');
+  if(rec.shop_id&&rec.shop_id!==S.shopId)return;
+  const norm={id:rec.id,name:(rec.nombre||'CLIENTE').toUpperCase(),time:parsearHora(rec.hora,rec.fecha),servicio:(rec.servicio||'CORTE').toUpperCase(),barbero:(rec.barbero||'CUALQUIERA').toUpperCase(),estado:rec.estado||'Confirmada',fecha:rec.fecha};
+  const cancelada=rec.estado==='Cancelada';
+  if(event==='DELETE'||cancelada){
+    S.citas=S.citas.filter(c=>c.id!==rec.id);
+    S.agenda=S.agenda.filter(a=>a.id!==rec.id);
+  } else if(event==='INSERT'){
+    if(rec.fecha===hoy&&!S.citas.find(c=>c.id===rec.id)){S.citas.push(norm);S.citas.sort((a,b)=>a.time.localeCompare(b.time));}
+    if(rec.fecha>=hoy&&!S.agenda.find(a=>a.id===rec.id)){S.agenda.push({...norm,raw_hora:rec.hora});S.agenda.sort((a,b)=>a.fecha.localeCompare(b.fecha)||a.time.localeCompare(b.time));}
+  } else if(event==='UPDATE'){
+    const ci=S.citas.findIndex(c=>c.id===rec.id);
+    if(ci>=0){if(cancelada)S.citas.splice(ci,1);else S.citas[ci]=norm;}
+    else if(rec.fecha===hoy&&!cancelada){S.citas.push(norm);S.citas.sort((a,b)=>a.time.localeCompare(b.time));}
+    const ai=S.agenda.findIndex(a=>a.id===rec.id);
+    if(ai>=0){if(cancelada)S.agenda.splice(ai,1);else S.agenda[ai]={...norm,raw_hora:rec.hora};}
+    else if(rec.fecha>=hoy&&!cancelada){S.agenda.push({...norm,raw_hora:rec.hora});S.agenda.sort((a,b)=>a.fecha.localeCompare(b.fecha)||a.time.localeCompare(b.time));}
+  }
+  rebuildQueues();
+}
+
 function subscribeRT(){
   if(!S.shopId)return;
   setRt('connecting','CONECTANDO RT...');
@@ -1490,23 +1515,30 @@ function subscribeRT(){
       ws=new WebSocket(wsUrl);
       ws.onopen=()=>{
         rc=0;setRt('ok','REALTIME ●');
-        ws.send(JSON.stringify({topic:'realtime:public:citas:shop_id=eq.'+S.shopId,event:'phx_join',payload:{config:{broadcast:{self:false},presence:{key:''}}},ref:'1'}));
-        ws.send(JSON.stringify({topic:'realtime:public:shops:id=eq.'+S.shopId,event:'phx_join',payload:{config:{broadcast:{self:false},presence:{key:''}}},ref:'2'}));
+        // self:true — recibe sus propios cambios también para confirmación
+        ws.send(JSON.stringify({topic:'realtime:public:citas:shop_id=eq.'+S.shopId,event:'phx_join',payload:{config:{broadcast:{self:true},presence:{key:''}}},ref:'1'}));
+        ws.send(JSON.stringify({topic:'realtime:public:shops:id=eq.'+S.shopId,event:'phx_join',payload:{config:{broadcast:{self:true},presence:{key:''}}},ref:'2'}));
         hb=setInterval(()=>{if(ws&&ws.readyState===1)ws.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:'hb'}));},25000);
       };
-      ws.onmessage=async(ev)=>{
+      ws.onmessage=(ev)=>{
         try{
           const m=JSON.parse(ev.data);
           if(['INSERT','UPDATE','DELETE'].includes(m.event)){
-            if(m.topic&&m.topic.includes('shops')&&m.payload?.record?.activo===false){showDisplaySuspended(S.shopName);return;}
-            if(m.topic&&m.topic.includes('shops')&&m.payload?.record?.activo===true){
-              // Barbería reanudada via realtime
-              _barberiaPausada=false;actualizarBtnPause();
+            if(m.topic&&m.topic.includes('shops')){
+              if(m.payload?.record?.activo===false){showDisplaySuspended(S.shopName);return;}
+              if(m.payload?.record?.activo===true){_barberiaPausada=false;actualizarBtnPause();}
+              return;
             }
-            await loadCitas().catch(()=>{});
-            loadAgenda().catch(()=>{});
-            render();
-            showToast(m.event==='INSERT'?'✓ Nueva cita':'↻ Actualizado','info');
+            // Aplicar micro-update directo del payload — sin round-trip a BD
+            if(m.payload?.record){
+              applyRealtimeCita(m.event,m.payload.record);
+              render();
+              if(m.event==='INSERT')showToast('✓ Nueva cita: '+(m.payload.record.nombre||'').toUpperCase(),'info');
+            } else {
+              // Fallback: recargar si no hay record en el payload
+              loadCitas().catch(()=>{});loadAgenda().catch(()=>{});
+              setTimeout(render,200);
+            }
           }
         }catch(_){}
       };
@@ -1882,7 +1914,7 @@ async function init(){
   // FIX BUG 5: guardar referencias para limpiar si es necesario
   _timerInterval=setInterval(updateTimers,30000);
   _etaInterval=setInterval(()=>{if(MODE!=='tv')render();},60000);
-  _citasInterval=setInterval(async()=>{await loadCitas().catch(()=>{});render();},30000);
+  _citasInterval=setInterval(async()=>{await loadCitas().catch(()=>{});await loadAgenda().catch(()=>{});render();},15000);
   setInterval(()=>{loadAgenda().catch(()=>{});},300000);
 }
 
