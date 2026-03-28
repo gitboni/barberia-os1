@@ -2261,8 +2261,8 @@ document.getElementById('createBarberoBtn').addEventListener('click',async()=>{
     let barberoId=null;
     if(!usingDemo){
       await sbPost('barberos',newB);
-      // sbPost puede no devolver el ID por RLS — buscar el barbero recién creado
-      const found=await sbGet('barberos',`select=id&nombre=eq.${encodeURIComponent(nombre.toUpperCase())}&shop_id=eq.${shopId}&order=created_at.desc&limit=1`).catch(()=>[]);
+      // Buscar el barbero recién creado por nombre+shop (created_at no existe en la tabla)
+      const found=await sbGet('barberos',`select=id&nombre=eq.${encodeURIComponent(nombre.toUpperCase())}&shop_id=eq.${shopId}&limit=1`).catch(()=>[]);
       barberoId=found[0]?.id||null;
     } else { newB.id='b'+Date.now(); _barberos.push(newB); barberoId=newB.id; }
     // Asignar credenciales si se proporcionaron
@@ -2277,9 +2277,12 @@ document.getElementById('createBarberoBtn').addEventListener('click',async()=>{
       });
       const data=await res.json();
       if(!res.ok)throw new Error(data.error||'Error al crear acceso');
-      // Si tenemos el barbero_id, vincular manualmente en caso que el edge function no lo haya hecho
-      if(barberoId&&data.usuario_id){
-        await fetch(`${SUPABASE_URL}/rest/v1/barberos?id=eq.${barberoId}`,{
+      // Vincular usuario_id al barbero (por id si lo tenemos, sino por nombre+shop)
+      if(data.usuario_id){
+        const patchUrl=barberoId
+          ?`${SUPABASE_URL}/rest/v1/barberos?id=eq.${barberoId}`
+          :`${SUPABASE_URL}/rest/v1/barberos?nombre=eq.${encodeURIComponent(nombre.toUpperCase())}&shop_id=eq.${shopId}`;
+        await fetch(patchUrl,{
           method:'PATCH',
           headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${_accessToken||SUPABASE_KEY}`,'Content-Type':'application/json'},
           body:JSON.stringify({usuario_id:data.usuario_id,app_password:pass})
