@@ -953,6 +953,11 @@ tr:hover td{background:rgba(255,255,255,0.016);}
     <div class="form-group"><label class="form-label">Barbería</label><select class="form-select" id="newBarberoShop"></select></div>
     <div class="form-group"><label class="form-label">Orden</label><input class="form-input" id="newBarberoOrden" value="1" type="number" min="1"></div>
     <div class="form-group"><label class="form-label">Estado</label><select class="form-select" id="newBarberoActivo"><option value="true">Activo</option><option value="false">Inactivo</option></select></div>
+    <div style="border-top:1px solid var(--border);margin:12px 0;padding-top:12px;">
+      <div style="font-size:0.65rem;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.05em;">Acceso a la app (opcional)</div>
+      <div class="form-group"><label class="form-label">Teléfono</label><input class="form-input" id="newBarberoTel" placeholder="ej: 8091234567" type="tel"></div>
+      <div class="form-group"><label class="form-label">Contraseña</label><input class="form-input" id="newBarberoPass" placeholder="Contraseña para la app" type="text"></div>
+    </div>
     <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modalNewBarbero')">CANCELAR</button><button class="btn btn-primary" id="createBarberoBtn">CREAR BARBERO</button></div>
   </div>
 </div>
@@ -2246,13 +2251,34 @@ document.getElementById('createBarberoBtn').addEventListener('click',async()=>{
   const nombre=document.getElementById('newBarberoNombre').value.trim();
   const shopId=document.getElementById('newBarberoShop').value;
   const orden=parseInt(document.getElementById('newBarberoOrden').value)||1;
+  const tel=document.getElementById('newBarberoTel').value.trim();
+  const pass=document.getElementById('newBarberoPass').value.trim();
   if(!nombre){showToast('Nombre requerido','error');return;}
+  if((tel&&!pass)||(pass&&!tel)){showToast('Ingresa teléfono Y contraseña para el acceso','error');return;}
   const newB={shop_id:shopId||null,nombre:nombre.toUpperCase(),activo:document.getElementById('newBarberoActivo').value==='true',orden};
   try {
-    if(!usingDemo) await sbPost('barberos',newB);
-    else { newB.id='b'+Date.now(); _barberos.push(newB); }
-    showToast(`${nombre} creado ✓`,'success');
+    let barberoId=null;
+    if(!usingDemo){
+      const created=await sbPost('barberos',newB);
+      barberoId=created[0]?.id;
+    } else { newB.id='b'+Date.now(); _barberos.push(newB); barberoId=newB.id; }
+    // Asignar credenciales si se proporcionaron
+    if(tel&&pass&&barberoId){
+      const res=await fetch(`${SUPABASE_URL}/functions/v1/crear-usuario-app`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':`Bearer ${_accessToken||SUPABASE_KEY}`,'apikey':SUPABASE_KEY},
+        body:JSON.stringify({barbero_id:barberoId,telefono:tel,password:pass,nombre:nombre.toUpperCase()})
+      });
+      const data=await res.json();
+      if(!res.ok)throw new Error(data.error||'Error al crear acceso');
+      showToast(`${nombre} creado con acceso a la app ✓`,'success');
+    } else {
+      showToast(`${nombre} creado ✓`,'success');
+    }
     addLog('OK',`Barbero: ${nombre}`);
+    // Limpiar campos de acceso
+    document.getElementById('newBarberoTel').value='';
+    document.getElementById('newBarberoPass').value='';
     closeModal('modalNewBarbero'); loadBarberos();
   } catch(e){ showToast('Error: '+e.message,'error'); }
 });
