@@ -2197,6 +2197,7 @@ async function loadBarberos() {
           ${tieneAcceso?'↻ Actualizar':'+ Asignar'}
         </button>
         <button class="action-btn ${b.activo?'danger':'success'}" onclick="confirmToggleBarbero('${b.id}',${b.activo},'${b.nombre}')">${b.activo?'Desactivar':'Activar'}</button>
+        <button class="action-btn danger" onclick="confirmarEliminarBarbero('${b.id}','${b.nombre}')" style="background:rgba(180,30,30,0.1);border-color:rgba(180,30,30,0.4);color:#e05555;">Eliminar</button>
       </div></td>
     </tr>`;
   }).join('')||'<tr><td colspan="9" style="color:var(--muted);text-align:center;padding:22px;">Sin barberos</td></tr>';
@@ -2259,8 +2260,10 @@ document.getElementById('createBarberoBtn').addEventListener('click',async()=>{
   try {
     let barberoId=null;
     if(!usingDemo){
-      const created=await sbPost('barberos',newB);
-      barberoId=created[0]?.id;
+      await sbPost('barberos',newB);
+      // sbPost puede no devolver el ID por RLS — buscar el barbero recién creado
+      const found=await sbGet('barberos',`select=id&nombre=eq.${encodeURIComponent(nombre.toUpperCase())}&shop_id=eq.${shopId}&order=created_at.desc&limit=1`).catch(()=>[]);
+      barberoId=found[0]?.id||null;
     } else { newB.id='b'+Date.now(); _barberos.push(newB); barberoId=newB.id; }
     // Asignar credenciales si se proporcionaron
     if(tel&&pass&&barberoId){
@@ -2283,6 +2286,7 @@ document.getElementById('createBarberoBtn').addEventListener('click',async()=>{
   } catch(e){ showToast('Error: '+e.message,'error'); }
 });
 function confirmToggleBarbero(id,activo,nombre){showConfirm(`¿${activo?'Desactivar':'Activar'} al barbero "${nombre}"?`,async()=>{try{if(!usingDemo)await sbRpc('toggle_barbero_activo',{p_barbero_id:id,p_activo:!activo});else{const b=_barberos.find(x=>x.id===id);if(b)b.activo=!activo;}showToast(`Barbero ${activo?'desactivado':'activado ✓'}`,'info');logSuperadminAction('toggle_barbero',`${nombre}:${!activo}`);loadBarberos();}catch(e){showToast('Error: '+e.message,'error');}},activo?'Desactivar':'Activar');}
+function confirmarEliminarBarbero(id,nombre){showConfirm(`¿Eliminar al barbero "${nombre}"? Esta acción no se puede deshacer.`,async()=>{try{if(!usingDemo){const res=await fetch(`${SUPABASE_URL}/rest/v1/barberos?id=eq.${id}`,{method:'DELETE',headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${_accessToken||SUPABASE_KEY}`,'Content-Type':'application/json'}});if(!res.ok){const e=await res.text();throw new Error(e);}}else{const i=_barberos.findIndex(x=>x.id===id);if(i>-1)_barberos.splice(i,1);}showToast(`${nombre} eliminado`,'info');addLog('OK',`Barbero eliminado: ${nombre}`);loadBarberos();}catch(e){showToast('Error: '+e.message,'error');}},'Eliminar');}
 
 // ════════════════════════════════════════════
 //  PAGOS
