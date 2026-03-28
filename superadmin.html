@@ -2266,14 +2266,25 @@ document.getElementById('createBarberoBtn').addEventListener('click',async()=>{
       barberoId=found[0]?.id||null;
     } else { newB.id='b'+Date.now(); _barberos.push(newB); barberoId=newB.id; }
     // Asignar credenciales si se proporcionaron
-    if(tel&&pass&&barberoId){
+    if(tel&&pass){
+      if(!shopId){showToast('Selecciona una barbería para asignar acceso','error');return;}
+      const body={telefono:tel,password:pass,nombre:nombre.toUpperCase(),rol:'barbero',shop_id:shopId};
+      if(barberoId) body.barbero_id=barberoId;
       const res=await fetch(`${SUPABASE_URL}/functions/v1/crear-usuario-app`,{
         method:'POST',
         headers:{'Content-Type':'application/json','Authorization':`Bearer ${_accessToken||SUPABASE_KEY}`,'apikey':SUPABASE_KEY},
-        body:JSON.stringify({barbero_id:barberoId,telefono:tel,password:pass,nombre:nombre.toUpperCase()})
+        body:JSON.stringify(body)
       });
       const data=await res.json();
       if(!res.ok)throw new Error(data.error||'Error al crear acceso');
+      // Si tenemos el barbero_id, vincular manualmente en caso que el edge function no lo haya hecho
+      if(barberoId&&data.usuario_id){
+        await fetch(`${SUPABASE_URL}/rest/v1/barberos?id=eq.${barberoId}`,{
+          method:'PATCH',
+          headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${_accessToken||SUPABASE_KEY}`,'Content-Type':'application/json'},
+          body:JSON.stringify({usuario_id:data.usuario_id,app_password:pass})
+        });
+      }
       showToast(`${nombre} creado con acceso a la app ✓`,'success');
     } else {
       showToast(`${nombre} creado ✓`,'success');
