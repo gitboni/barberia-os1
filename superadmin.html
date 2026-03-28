@@ -2102,7 +2102,7 @@ async function asignarAccesoAdmin(shopId, shopNombre) {
   if (btn) { btn.textContent = '⏳ Guardando...'; btn.disabled = true; }
 
   try {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/gestionar-barbero-app`, {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/crear-usuario-app`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -2212,7 +2212,7 @@ async function asignarAccesoApp(barberoId, nombre) {
   if(btn){ btn.textContent='⏳ Guardando...'; btn.disabled=true; }
 
   try {
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/gestionar-barbero-app`, {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/crear-usuario-app`, {
       method:'POST',
       headers:{
         'Content-Type':'application/json',
