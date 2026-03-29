@@ -909,11 +909,15 @@ async function loadCitas(){
   setOffline(false);
 }
 
+function getTodayKey(){
+  const ahora=new Date(new Date().toLocaleString('en-US',{timeZone:S.tz||'America/Santo_Domingo'}));
+  return ahora.getFullYear()+'-'+String(ahora.getMonth()+1).padStart(2,'0')+'-'+String(ahora.getDate()).padStart(2,'0');
+}
 function saveTurns(){
   const t={};Object.keys(S.queues).forEach(n=>{t[n]=S.queues[n].currentTurn;});
-  try{localStorage.setItem('barberos_turns_'+SLUG,JSON.stringify(t));}catch(_){}
+  try{localStorage.setItem('barberos_turns_'+SLUG+'_'+getTodayKey(),JSON.stringify(t));}catch(_){}
 }
-function loadTurns(){try{return JSON.parse(localStorage.getItem('barberos_turns_'+SLUG)||'{}');}catch(_){return {};}}
+function loadTurns(){try{return JSON.parse(localStorage.getItem('barberos_turns_'+SLUG+'_'+getTodayKey())||'{}');}catch(_){return {};}}
 
 // FIX BUG 2: sync correcto con BD (completadas reales + in-memory)
 function rebuildQueues(){
@@ -929,7 +933,7 @@ function rebuildQueues(){
     if(prev){
       // In-memory siempre tiene prioridad
       ct=prev.currentTurn;
-    } else if(saved[name]&&saved[name]>0){
+    } else if(saved[name]&&saved[name]>0&&saved[name]<=mine.length+1){
       ct=saved[name];
     } else {
       // FIX BUG 2: detectar desde citas completadas en BD

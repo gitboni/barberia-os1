@@ -646,6 +646,7 @@ tr:hover td{background:rgba(255,255,255,0.016);}
           <th class="col-hide-xs">Barbería</th>
           <th>Estado</th>
           <th>Citas hoy</th>
+          <th>Nombre</th>
           <th>Teléfono App</th>
           <th>Contraseña App</th>
           <th>Acceso App</th>
@@ -2160,6 +2161,7 @@ async function loadBarberos() {
     const tieneAcceso=!!b.app_password;
     const tel=b.telefono||'';
     // Preservar valores editados
+    const savedNombre=_barberoInputs[b.id]?.nombre??b.nombre;
     const savedTel=_barberoInputs[b.id]?.tel??tel;
     const savedPass=_barberoInputs[b.id]?.pass??'';
     return `<tr id="brow-${b.id}">
@@ -2168,6 +2170,15 @@ async function loadBarberos() {
       <td style="color:var(--muted)">${shop?shop.nombre:'—'}</td>
       <td class="${b.activo?'status-active':'status-inactive'}">${b.activo?'● Activo':'○ Inactivo'}</td>
       <td style="color:var(--gold);text-align:center">${citasHoy}</td>
+      <td>
+        <input
+          id="bnombre-${b.id}"
+          type="text"
+          placeholder="Nombre barbero"
+          value="${savedNombre}"
+          oninput="_barberoInputs['${b.id}']=_barberoInputs['${b.id}']||{};_barberoInputs['${b.id}'].nombre=this.value"
+          style="background:var(--surface3);border:1px solid var(--border);color:var(--text);padding:5px 8px;font-family:'DM Mono',monospace;font-size:0.6rem;width:140px;">
+      </td>
       <td>
         <input
           id="btel-${b.id}"
@@ -2193,25 +2204,29 @@ async function loadBarberos() {
         }
       </td>
       <td><div class="action-btns">
-        <button class="action-btn success" onclick="asignarAccesoApp('${b.id}','${b.nombre}')" style="background:rgba(201,168,76,0.08);border-color:rgba(201,168,76,0.4);color:var(--gold);">
+        <button class="action-btn success" onclick="asignarAccesoApp('${b.id}')" style="background:rgba(201,168,76,0.08);border-color:rgba(201,168,76,0.4);color:var(--gold);">
           ${tieneAcceso?'↻ Actualizar':'+ Asignar'}
         </button>
         <button class="action-btn ${b.activo?'danger':'success'}" onclick="confirmToggleBarbero('${b.id}',${b.activo},'${b.nombre}')">${b.activo?'Desactivar':'Activar'}</button>
         <button class="action-btn danger" onclick="confirmarEliminarBarbero('${b.id}','${b.nombre}')" style="background:rgba(180,30,30,0.1);border-color:rgba(180,30,30,0.4);color:#e05555;">Eliminar</button>
       </div></td>
     </tr>`;
-  }).join('')||'<tr><td colspan="9" style="color:var(--muted);text-align:center;padding:22px;">Sin barberos</td></tr>';
+  }).join('')||'<tr><td colspan="10" style="color:var(--muted);text-align:center;padding:22px;">Sin barberos</td></tr>';
 }
 
-async function asignarAccesoApp(barberoId, nombre) {
-  const tel = document.getElementById('btel-'+barberoId)?.value?.trim();
-  const pass = document.getElementById('bpass-'+barberoId)?.value?.trim();
+async function asignarAccesoApp(barberoId) {
+  const nombre = document.getElementById('bnombre-'+barberoId)?.value?.trim();
+  const tel    = document.getElementById('btel-'+barberoId)?.value?.trim();
+  const pass   = document.getElementById('bpass-'+barberoId)?.value?.trim();
 
+  if(!nombre) {
+    showToast('Ingresa el nombre del barbero', 'error'); return;
+  }
   if(!tel || tel.replace(/\D/g,'').length < 8) {
-    showToast('Ingresa un teléfono válido para '+nombre,'error'); return;
+    showToast('Ingresa un teléfono válido para '+nombre, 'error'); return;
   }
   if(!pass || pass.length < 6) {
-    showToast('La contraseña debe tener al menos 6 caracteres','error'); return;
+    showToast('La contraseña debe tener al menos 6 caracteres', 'error'); return;
   }
 
   const btn = document.querySelector(`#brow-${barberoId} .action-btn.success`);
@@ -2230,10 +2245,10 @@ async function asignarAccesoApp(barberoId, nombre) {
     const data = await res.json();
     if(data.error) throw new Error(data.error);
 
-    showToast(`✓ ${nombre} — acceso asignado. Tel: ${tel}`, 'success');
-    addLog('OK', `Acceso app asignado: ${nombre} tel:${tel}`);
+    showToast(`✓ ${nombre} — actualizado. Tel: ${tel}`, 'success');
+    addLog('OK', `Acceso app actualizado: ${nombre} tel:${tel}`);
     logSuperadminAction('asignar_acceso_app', `${nombre}: ${tel}`);
-    // Limpiar campos guardados
+    // Limpiar contraseña pero mantener nombre y tel
     if(_barberoInputs[barberoId]) _barberoInputs[barberoId].pass = '';
     // Recargar barberos para reflejar cambio
     await fetchAll();
@@ -2241,7 +2256,7 @@ async function asignarAccesoApp(barberoId, nombre) {
   } catch(e) {
     showToast('Error: '+e.message, 'error');
     addLog('ERROR', 'asignarAccesoApp: '+e.message);
-    if(btn){ btn.textContent='+ Asignar'; btn.disabled=false; }
+    if(btn){ btn.textContent='↻ Actualizar'; btn.disabled=false; }
   }
 }
 document.getElementById('newBarberoBtn').addEventListener('click',()=>{ loadUsers(); openModal('modalNewBarbero'); });
