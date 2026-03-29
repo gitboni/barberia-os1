@@ -614,10 +614,10 @@ html.fs-sm{font-size:90%;}html.fs-md{font-size:112%;}html.fs-lg{font-size:130%;}
 </div>
 
 <!-- QR código para reservar desde la app -->
-<div id="qr-panel" style="display:none;position:fixed;bottom:80px;right:20px;z-index:60;background:rgba(2,4,8,0.92);border:1px solid rgba(0,245,255,0.25);padding:14px 14px 10px;border-radius:6px;text-align:center;backdrop-filter:blur(12px);box-shadow:0 0 30px rgba(0,245,255,0.1);">
+<div id="qr-panel" style="display:none;position:fixed;bottom:56px;left:18px;z-index:100;background:rgba(2,4,8,0.95);border:1px solid rgba(0,245,255,0.3);padding:12px 12px 8px;border-radius:6px;text-align:center;box-shadow:0 0 24px rgba(0,245,255,0.15),0 4px 20px rgba(0,0,0,0.6);">
   <canvas id="qr-canvas"></canvas>
-  <div style="font-family:'Share Tech Mono',monospace;font-size:0.52rem;color:rgba(0,245,255,0.6);letter-spacing:0.12em;text-transform:uppercase;margin-top:8px;">📱 RESERVAR TURNO</div>
-  <div style="font-family:'Rajdhani',sans-serif;font-size:0.6rem;font-weight:600;color:rgba(255,255,255,0.35);margin-top:2px;">Escanea con BarberOS</div>
+  <div style="font-family:'Share Tech Mono',monospace;font-size:0.45rem;color:rgba(0,245,255,0.7);letter-spacing:0.14em;text-transform:uppercase;margin-top:6px;">📱 RESERVAR TURNO</div>
+  <div style="font-family:'Rajdhani',sans-serif;font-size:0.55rem;font-weight:600;color:rgba(255,255,255,0.4);margin-top:1px;">Escanea con BarberOS</div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -833,18 +833,29 @@ async function loadShop(){
 }
 
 function generarQR(shopId){
-  if(!shopId||typeof QRCode==='undefined')return;
+  if(!shopId)return;
   const deepLink='barberos:///reservar?shop_id='+shopId;
+  const panel=document.getElementById('qr-panel');
   const canvas=document.getElementById('qr-canvas');
-  if(!canvas)return;
-  QRCode.toCanvas(canvas,deepLink,{
-    width:120,
-    margin:1,
-    color:{dark:'#00F5FF',light:'#020408'},
-    errorCorrectionLevel:'M'
-  },function(err){
-    if(!err)document.getElementById('qr-panel').style.display='block';
-  });
+  if(!panel||!canvas)return;
+
+  function renderQR(){
+    if(typeof QRCode==='undefined'){
+      // Reintenta hasta 3s si la librería aún no cargó
+      setTimeout(renderQR,500);
+      return;
+    }
+    QRCode.toCanvas(canvas,deepLink,{
+      width:140,
+      margin:2,
+      color:{dark:'#00F5FF',light:'#020408'},
+      errorCorrectionLevel:'M'
+    },function(err){
+      if(err){console.warn('[QR] error:',err);}
+      else{panel.style.display='block';}
+    });
+  }
+  renderQR();
 }
 
 function showDisplaySuspended(nombre){
