@@ -9,7 +9,6 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=Share+Tech+Mono&display=swap&font-display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -615,7 +614,7 @@ html.fs-sm{font-size:90%;}html.fs-md{font-size:112%;}html.fs-lg{font-size:130%;}
 
 <!-- QR código para reservar desde la app -->
 <div id="qr-panel" style="display:none;position:fixed;bottom:56px;left:18px;z-index:100;background:rgba(2,4,8,0.95);border:1px solid rgba(0,245,255,0.3);padding:12px 12px 8px;border-radius:6px;text-align:center;box-shadow:0 0 24px rgba(0,245,255,0.15),0 4px 20px rgba(0,0,0,0.6);">
-  <canvas id="qr-canvas"></canvas>
+  <img id="qr-img" src="" width="140" height="140" style="display:block;" alt="QR reservar turno">
   <div style="font-family:'Share Tech Mono',monospace;font-size:0.45rem;color:rgba(0,245,255,0.7);letter-spacing:0.14em;text-transform:uppercase;margin-top:6px;">📱 RESERVAR TURNO</div>
   <div style="font-family:'Rajdhani',sans-serif;font-size:0.55rem;font-weight:600;color:rgba(255,255,255,0.4);margin-top:1px;">Escanea con BarberOS</div>
 </div>
@@ -834,28 +833,19 @@ async function loadShop(){
 
 function generarQR(shopId){
   if(!shopId)return;
-  const deepLink='barberos:///reservar?shop_id='+shopId;
+  const deepLink=encodeURIComponent('barberos:///reservar?shop_id='+shopId);
+  const img=document.getElementById('qr-img');
   const panel=document.getElementById('qr-panel');
-  const canvas=document.getElementById('qr-canvas');
-  if(!panel||!canvas)return;
-
-  function renderQR(){
-    if(typeof QRCode==='undefined'){
-      // Reintenta hasta 3s si la librería aún no cargó
-      setTimeout(renderQR,500);
-      return;
-    }
-    QRCode.toCanvas(canvas,deepLink,{
-      width:140,
-      margin:2,
-      color:{dark:'#00F5FF',light:'#020408'},
-      errorCorrectionLevel:'M'
-    },function(err){
-      if(err){console.warn('[QR] error:',err);}
-      else{panel.style.display='block';}
-    });
-  }
-  renderQR();
+  if(!img||!panel)return;
+  // Usar API de QR sin dependencias externas de JS
+  img.src='https://api.qrserver.com/v1/create-qr-code/?size=140x140&data='+deepLink+'&bgcolor=020408&color=00F5FF&margin=2';
+  img.onload=function(){panel.style.display='block';};
+  img.onerror=function(){
+    // Fallback a quickchart si el primer servicio falla
+    img.onerror=null;
+    img.src='https://quickchart.io/qr?text='+deepLink+'&size=140&dark=00F5FF&light=020408';
+    img.onload=function(){panel.style.display='block';};
+  };
 }
 
 function showDisplaySuspended(nombre){
