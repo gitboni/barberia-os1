@@ -1570,7 +1570,7 @@ async function confirmWalkIn(){
 // FIX BUG 6: REAGENDAR — usa hora_inicio/hora_fin reales de la shop
 let REAG_ID=null,REAG_HORA=null,REAG_BARBER=null;
 
-function openReagendar(citaId,nombre,horaActual,barber){
+async function openReagendar(citaId,nombre,horaActual,barber){
   REAG_ID=citaId;REAG_HORA=horaActual;REAG_BARBER=barber.toUpperCase();  const barbNotm=REAG_BARBER;
   const inicio=S.horaInicio||9;const fin=S.horaFin||18;
 
@@ -1592,9 +1592,31 @@ function normalizarHora(t){
   if(m>=60){m=0;h+=1;}
   return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
 }
-const takenHoy=S.citas
+let takenHoy=S.citas
   .filter(c=>c.barbero.toUpperCase()===barbNotm&&c.id!=citaId&&c.estado!=='Completada')
-  .map(c=>normalizarHora(c.time));  const slots=generarSlots();
+  .map(c=>normalizarHora(c.time));
+
+  // Agregar horarios bloqueados (descanso/almuerzo) del barbero hoy
+  const barbObj=S.barberos.find(b=>b.nombre===barbNotm);
+  if(barbObj?.id){
+    const ahoraRef=new Date(new Date().toLocaleString('en-US',{timeZone:S.tz||'America/Santo_Domingo'}));
+    const hoyStr=ahoraRef.getFullYear()+'-'+String(ahoraRef.getMonth()+1).padStart(2,'0')+'-'+String(ahoraRef.getDate()).padStart(2,'0');
+    try{
+      const bloqueos=await sbGet('horarios_bloqueados','barbero_id=eq.'+barbObj.id+'&fecha=eq.'+hoyStr);
+      bloqueos.forEach(b=>{
+        const [bhi,bhim]=(b.hora_inicio||'00:00').split(':').map(Number);
+        const [bhf,bhfm]=(b.hora_fin||'00:00').split(':').map(Number);
+        const minIni=bhi*60+bhim;const minFin=bhf*60+bhfm;
+        generarSlots().forEach(t=>{
+          const[th,tm]=t.split(':').map(Number);
+          const minT=th*60+tm;
+          if(minT>=minIni&&minT<minFin&&!takenHoy.includes(t))takenHoy.push(t);
+        });
+      });
+    }catch(_){}
+  }
+
+  const slots=generarSlots();
   const libresHoy=slots.filter(t=>t!==horaActual&&!takenHoy.includes(t));
 
   // Si no hay libres hoy → usar mañana
@@ -1608,6 +1630,25 @@ const takenHoy=S.citas
     takenDisplay=S.citasMañana
       .filter(c=>c.barbero.toUpperCase()===barbNotm&&c.id!=citaId&&c.estado!=='Completada')
       .map(c=>normalizarHora(c.time));
+    // Agregar bloqueos de mañana
+    if(barbObj?.id){
+      const ahoraRef2=new Date(new Date().toLocaleString('en-US',{timeZone:S.tz||'America/Santo_Domingo'}));
+      ahoraRef2.setDate(ahoraRef2.getDate()+1);
+      const mananaStr=ahoraRef2.getFullYear()+'-'+String(ahoraRef2.getMonth()+1).padStart(2,'0')+'-'+String(ahoraRef2.getDate()).padStart(2,'0');
+      try{
+        const bloqueosMañana=await sbGet('horarios_bloqueados','barbero_id=eq.'+barbObj.id+'&fecha=eq.'+mananaStr);
+        bloqueosMañana.forEach(b=>{
+          const[bhi,bhim]=(b.hora_inicio||'00:00').split(':').map(Number);
+          const[bhf,bhfm]=(b.hora_fin||'00:00').split(':').map(Number);
+          const minIni=bhi*60+bhim;const minFin=bhf*60+bhfm;
+          generarSlots().forEach(t=>{
+            const[th,tm]=t.split(':').map(Number);
+            const minT=th*60+tm;
+            if(minT>=minIni&&minT<minFin&&!takenDisplay.includes(t))takenDisplay.push(t);
+          });
+        });
+      }catch(_){}
+    }
     diaLabel='mañana';
     REAG_HORA=null;
   }

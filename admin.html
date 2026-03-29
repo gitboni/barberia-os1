@@ -248,7 +248,7 @@ input:checked+.toggle-slider:before{transform:translateX(18px);background:var(--
       <div class="fg"><label>Hora</label><input type="time" id="m-hora"></div>
     </div>
     <div class="fg"><label>Servicio</label>
-      <select id="m-servicio"><option>Corte de cabello</option><option>Corte + Barba</option><option>Fade / Degradado</option><option>Afeitado clásico</option><option>Barba</option></select>
+      <select id="m-servicio"></select>
     </div>
     <div class="fg"><label>Barbero</label><select id="m-barbero"></select></div>
     <div class="fg"><label>Estado</label>
@@ -339,6 +339,74 @@ input:checked+.toggle-slider:before{transform:translateX(18px);background:var(--
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- MODAL BLOQUEOS BARBERO -->
+<div class="modal-overlay" id="modal-bloqueos" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal" style="max-height:85vh;overflow-y:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <div>
+        <h3 style="margin-bottom:2px;">🕐 Horarios bloqueados</h3>
+        <div id="blq-barbero-nombre" style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--gold);"></div>
+      </div>
+      <button onclick="document.getElementById('modal-bloqueos').classList.remove('open')" style="background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;">✕</button>
+    </div>
+    <!-- Formulario nuevo bloqueo -->
+    <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border);padding:16px;margin-bottom:16px;">
+      <div style="font-family:'DM Mono',monospace;font-size:0.46rem;color:var(--muted);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:12px;">NUEVO BLOQUEO</div>
+      <div class="fg-row" style="margin-bottom:10px;">
+        <div class="fg" style="margin:0;"><label>Fecha</label><input type="date" id="blq-fecha" style="width:100%;"></div>
+        <div class="fg" style="margin:0;"><label>Motivo</label>
+          <select id="blq-motivo" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text);padding:9px 12px;font-family:'Syne',sans-serif;font-size:0.88rem;outline:none;">
+            <option value="almuerzo">🍽 Almuerzo</option>
+            <option value="descanso">☕ Descanso</option>
+            <option value="capacitacion">📚 Capacitación</option>
+            <option value="medico">🏥 Médico</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg-row" style="margin-bottom:12px;">
+        <div class="fg" style="margin:0;"><label>Hora inicio</label>
+          <select id="blq-ini" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text);padding:9px 12px;font-family:'Syne',sans-serif;font-size:0.88rem;outline:none;"></select>
+        </div>
+        <div class="fg" style="margin:0;"><label>Hora fin</label>
+          <select id="blq-fin" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text);padding:9px 12px;font-family:'Syne',sans-serif;font-size:0.88rem;outline:none;"></select>
+        </div>
+      </div>
+      <button id="blq-add-btn" onclick="agregarBloqueoBarbero()" class="btn-sm btn-gold" style="width:100%;padding:10px;">+ Agregar bloqueo</button>
+    </div>
+    <!-- Lista de bloqueos activos -->
+    <div style="font-family:'DM Mono',monospace;font-size:0.46rem;color:var(--muted);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:8px;">BLOQUEOS ACTIVOS</div>
+    <div id="blq-lista"></div>
+  </div>
+</div>
+
+<!-- MODAL HISTORIAL CLIENTE -->
+<div class="modal-overlay" id="modal-historial" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal wide" style="max-height:85vh;overflow-y:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+      <div>
+        <h3 id="h-nombre" style="margin-bottom:3px;"></h3>
+        <div id="h-tel" style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);"></div>
+      </div>
+      <button onclick="document.getElementById('modal-historial').classList.remove('open')" style="background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;">✕</button>
+    </div>
+    <div id="h-stats"></div>
+    <div style="font-family:'DM Mono',monospace;font-size:0.48rem;color:var(--muted);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:8px;">HISTORIAL DE CITAS (90 días)</div>
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;">
+        <thead><tr style="border-bottom:1px solid var(--border);">
+          <th style="text-align:left;padding:6px 10px;font-family:'DM Mono',monospace;font-size:0.44rem;color:var(--muted);font-weight:400;letter-spacing:0.1em;text-transform:uppercase;">Fecha</th>
+          <th style="text-align:left;padding:6px 10px;font-family:'DM Mono',monospace;font-size:0.44rem;color:var(--muted);font-weight:400;letter-spacing:0.1em;text-transform:uppercase;">Hora</th>
+          <th style="text-align:left;padding:6px 10px;font-family:'DM Mono',monospace;font-size:0.44rem;color:var(--muted);font-weight:400;letter-spacing:0.1em;text-transform:uppercase;">Servicio</th>
+          <th style="text-align:left;padding:6px 10px;font-family:'DM Mono',monospace;font-size:0.44rem;color:var(--muted);font-weight:400;letter-spacing:0.1em;text-transform:uppercase;">Barbero</th>
+          <th style="text-align:left;padding:6px 10px;font-family:'DM Mono',monospace;font-size:0.44rem;color:var(--muted);font-weight:400;letter-spacing:0.1em;text-transform:uppercase;">Estado</th>
+        </tr></thead>
+        <tbody id="h-tabla"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
 <script>
 const SUPABASE_URL='https://mmokunpuslcfphalrwot.supabase.co';
@@ -457,6 +525,7 @@ async function loadAll(){
 function calcAgo(d){const m=Math.round((Date.now()-d)/60000);if(m<1)return 'ahora';if(m<60)return 'hace '+m+' min';return 'hace '+Math.round(m/60)+'h';}
 
 let currentPage='dashboard';
+let _citasFechaVer='';let _citasBarberoFiltro='';let _citasEstadoFiltro='';
 function setPage(page,btn){
   const f=getFeatures();
   const blocked={'reportes':!f.reportes,'config':!f.config,'bot':!f.bot,'clientes':!f.clientes,'barberos':!f.barberos};
@@ -562,21 +631,49 @@ function renderDashboard(){
 }
 
 // ── CITAS ──
+function _getCitasVer(){return _citasFechaVer===getHoyRD()?S.citas:(S._citasOtraFecha||[]);}
 function renderCitas(){
+  if(!_citasFechaVer)_citasFechaVer=getHoyRD();
+  const hoy=getHoyRD();
+  const esHoy=_citasFechaVer===hoy;
+  const citasVer=_getCitasVer();
+  const barbList=[...new Set(S.barberos.map(b=>b.nombre))];
+  const navStyle='background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text);padding:5px 10px;font-family:\'DM Mono\',monospace;font-size:0.62rem;cursor:pointer;';
+  const selStyle='background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--muted);padding:5px 10px;font-family:\'DM Mono\',monospace;font-size:0.62rem;';
   return `<div class="card" style="flex:1;">
-    <div class="card-header">
-      <div class="card-title">Citas de hoy · ${nowStr()}</div>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <div class="search-bar">🔍 <input type="text" id="search-citas" placeholder="Buscar cliente..." oninput="filterCitas()"></div>
+    <div class="card-header" style="flex-wrap:wrap;gap:10px;">
+      <div>
+        <div class="card-title">Citas · ${_citasFechaVer}${esHoy?' (hoy)':''}</div>
+        <div class="card-meta">${citasVer.length} citas · ${citasVer.filter(c=>c.estado==='Completada').length} completadas · ${citasVer.filter(c=>c.estado==='Confirmada').length} confirmadas</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:4px;">
+          <button style="${navStyle}" onclick="cambiarFechaCitas(-1)">◀</button>
+          <input type="date" id="fecha-citas-nav" value="${_citasFechaVer}" onchange="irFechaCitas(this.value)" style="${navStyle}padding:4px 8px;">
+          <button style="${navStyle}" onclick="cambiarFechaCitas(1)">▶</button>
+          ${!esHoy?`<button style="${navStyle}color:var(--gold);border-color:rgba(201,168,76,0.3);" onclick="irFechaCitas('${hoy}')">Hoy</button>`:''}
+        </div>
+        <select id="filter-barbero" onchange="filterCitas()" style="${selStyle}">
+          <option value="">Todos los barberos</option>
+          ${barbList.map(b=>`<option value="${b}" ${_citasBarberoFiltro===b?'selected':''}>${b}</option>`).join('')}
+        </select>
+        <select id="filter-estado" onchange="filterCitas()" style="${selStyle}">
+          <option value="">Todos los estados</option>
+          <option value="Confirmada" ${_citasEstadoFiltro==='Confirmada'?'selected':''}>Confirmada</option>
+          <option value="Completada" ${_citasEstadoFiltro==='Completada'?'selected':''}>Completada</option>
+          <option value="Cancelada" ${_citasEstadoFiltro==='Cancelada'?'selected':''}>Cancelada</option>
+          <option value="Pendiente" ${_citasEstadoFiltro==='Pendiente'?'selected':''}>Pendiente</option>
+        </select>
+        <div class="search-bar">🔍 <input type="text" id="search-citas" placeholder="Buscar..." oninput="filterCitas()"></div>
         <button class="btn-sm btn-gold" onclick="openModal('cita')">+ Nueva cita</button>
       </div>
     </div>
     <table><thead><tr><th>#</th><th>Hora</th><th>Cliente</th><th>Teléfono</th><th>Servicio</th><th>Barbero</th><th>Estado</th><th>Acciones</th></tr></thead>
-    <tbody id="citas-tbody">${renderCitasRows(S.citas)}</tbody></table>
+    <tbody id="citas-tbody">${renderCitasRows(citasVer)}</tbody></table>
   </div>`;
 }
 function renderCitasRows(citas){
-  if(!citas.length)return `<tr><td colspan="8" style="text-align:center;padding:32px;font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);">Sin citas para hoy</td></tr>`;
+  if(!citas.length)return `<tr><td colspan="8" style="text-align:center;padding:32px;font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);">Sin citas para esta fecha</td></tr>`;
   return citas.map((c,i)=>`<tr>
     <td style="font-family:'DM Mono',monospace;color:var(--muted);font-size:0.68rem;">${String(i+1).padStart(2,'0')}</td>
     <td style="font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--gold);font-weight:500;">${fmt12rpt(c.hora)}</td>
@@ -593,21 +690,46 @@ function renderCitasRows(citas){
   </tr>`).join('');
 }
 function filterCitas(){
-  const q=(document.getElementById('search-citas').value||'').toLowerCase();
-  const f=q?S.citas.filter(c=>c.nombre.toLowerCase().includes(q)||c.tel.includes(q)):S.citas;
+  _citasBarberoFiltro=document.getElementById('filter-barbero')?.value||'';
+  _citasEstadoFiltro=document.getElementById('filter-estado')?.value||'';
+  const q=(document.getElementById('search-citas')?.value||'').toLowerCase();
+  let f=[..._getCitasVer()];
+  if(q)f=f.filter(c=>c.nombre.toLowerCase().includes(q)||(c.tel||'').includes(q));
+  if(_citasBarberoFiltro)f=f.filter(c=>c.barbero===_citasBarberoFiltro);
+  if(_citasEstadoFiltro)f=f.filter(c=>c.estado===_citasEstadoFiltro);
   document.getElementById('citas-tbody').innerHTML=renderCitasRows(f);
 }
+async function cambiarFechaCitas(delta){
+  const d=new Date((_citasFechaVer||getHoyRD())+'T12:00:00');
+  d.setDate(d.getDate()+delta);
+  await irFechaCitas(d.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'}));
+}
+async function irFechaCitas(fecha){
+  if(!fecha)return;
+  _citasFechaVer=fecha;
+  _citasBarberoFiltro='';_citasEstadoFiltro='';
+  if(fecha===getHoyRD()){renderPage();return;}
+  // Cargar citas de otra fecha
+  document.getElementById('citas-tbody').innerHTML=`<tr><td colspan="8" style="text-align:center;padding:32px;font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);">⏳ Cargando...</td></tr>`;
+  try{
+    const rows=await sbGet('citas','shop_id=eq.'+S.shopId+'&fecha=eq.'+fecha+'&order=hora.asc');
+    S._citasOtraFecha=rows.map(c=>({id:c.id,nombre:c.nombre||'Cliente',hora:(c.hora||'').substring(0,5),servicio:c.servicio||'Corte',barbero:c.barbero||'—',estado:c.estado||'Confirmada',tel:c.telefono||'',fecha:c.fecha||fecha}));
+  }catch(e){S._citasOtraFecha=[];toast('Error cargando citas','error');}
+  renderPage();
+}
+function _findCita(id){return S.citas.find(x=>x.id===id)||(S._citasOtraFecha||[]).find(x=>x.id===id);}
 async function editCita(id){
-  const c=S.citas.find(x=>x.id===id);if(!c)return;
+  const c=_findCita(id);if(!c)return;
   document.getElementById('modal-cita-title').textContent='Editar Cita';
   document.getElementById('m-cita-id').value=id;
   document.getElementById('m-nombre').value=c.nombre;
   document.getElementById('m-tel').value=c.tel||'';
   document.getElementById('m-fecha').value=c.fecha||nowStr();
   document.getElementById('m-hora').value=c.hora;
-  document.getElementById('m-servicio').value=c.servicio;
-  document.getElementById('m-barbero').value=c.barbero;
   document.getElementById('m-estado').value=c.estado;
+  updateServicioSelect(c.servicio);
+  updateBarberoSelect(c.barbero);
+  document.getElementById('m-barbero').value=c.barbero;
   openModal('cita');
 }
 async function saveCita(){
@@ -615,17 +737,17 @@ async function saveCita(){
   const p={nombre:document.getElementById('m-nombre').value.trim(),telefono:document.getElementById('m-tel').value.trim(),fecha:document.getElementById('m-fecha').value,hora:document.getElementById('m-hora').value,servicio:document.getElementById('m-servicio').value,barbero:document.getElementById('m-barbero').value,estado:document.getElementById('m-estado').value,shop_id:S.shopId};
   if(!p.nombre||!p.hora){toast('Nombre y hora requeridos','error');return;}
   try{
-    if(id){await sbPatch('citas','id=eq.'+id,p);const i=S.citas.findIndex(x=>x.id==id);if(i>=0)S.citas[i]={...S.citas[i],...p,id:parseInt(id),tel:p.telefono};toast('Cita actualizada');}
+    if(id){await sbPatch('citas','id=eq.'+id,p);const i=S.citas.findIndex(x=>x.id==id);if(i>=0)S.citas[i]={...S.citas[i],...p,id:parseInt(id),tel:p.telefono};else if(S._citasOtraFecha){const j=S._citasOtraFecha.findIndex(x=>x.id==id);if(j>=0)S._citasOtraFecha[j]={...S._citasOtraFecha[j],...p,id:parseInt(id),tel:p.telefono};}toast('Cita actualizada');}
     else{const [n]=await sbPost('citas',p);S.citas.push({id:n.id,nombre:p.nombre,hora:p.hora,servicio:p.servicio,barbero:p.barbero,estado:p.estado,tel:p.telefono,fecha:p.fecha});document.getElementById('nb-citas').textContent=S.citas.length;toast('Cita creada');}
     closeModal('cita');renderPage();
   }catch(e){toast('Error: '+e.message,'error');}
 }
 async function completarCita(id){
-  try{await sbPatch('citas','id=eq.'+id,{estado:'Completada'});const c=S.citas.find(x=>x.id===id);if(c)c.estado='Completada';toast('Cita completada ✓');renderPage();}catch(e){toast('Error','error');}
+  try{await sbPatch('citas','id=eq.'+id,{estado:'Completada'});const c=_findCita(id);if(c)c.estado='Completada';toast('Cita completada ✓');renderPage();}catch(e){toast('Error','error');}
 }
 async function cancelCita(id){
   if(!confirm('¿Cancelar esta cita?'))return;
-  try{await sbPatch('citas','id=eq.'+id,{estado:'Cancelada'});const c=S.citas.find(x=>x.id===id);if(c)c.estado='Cancelada';toast('Cita cancelada');renderPage();}catch(e){toast('Error','error');}
+  try{await sbPatch('citas','id=eq.'+id,{estado:'Cancelada'});const c=_findCita(id);if(c)c.estado='Cancelada';toast('Cita cancelada');renderPage();}catch(e){toast('Error','error');}
 }
 
 // ── CLIENTES ──
@@ -655,6 +777,7 @@ function renderClientesRows(lista){
       <td><span class="badge ${visitas>5?'badge-green':visitas>0?'badge-blue':'badge-gray'}">${visitas} ${visitas===1?'visita':'visitas'}</span></td>
       <td style="font-family:'DM Mono',monospace;font-size:0.66rem;color:var(--muted);">${ult}</td>
       <td><div class="row-actions">
+        <button class="ra-btn" onclick="openHistorialCliente('${c.nombre.replace(/'/g,"\\'")}','${c.telefono}')">📋 Historial</button>
         <button class="ra-btn success" onclick="citarCliente('${c.nombre.replace(/'/g,"\\'")}','${c.telefono}')">📅 Citar</button>
         <button class="ra-btn" onclick="sendWA('${c.telefono}')">💬 WA</button>
         <button class="ra-btn" onclick="editarCliente('${c.id||''}','${c.nombre.replace(/'/g,"\\'")}','${c.telefono}','${(c.notas||'').replace(/'/g,"\\'")}')">✏️</button>
@@ -719,6 +842,45 @@ function citarCliente(nombre,tel){
 }
 function sendWA(tel){window.open('https://wa.me/'+tel.replace(/\D/g,'')+'?text=Hola!+Te+contactamos+desde+'+(S.shopData?.nombre||'nuestra barbería'),'_blank');}
 
+function openHistorialCliente(nombre,tel){
+  const todas=S._todasCitas||S.citas;
+  const hist=todas.filter(c=>c.tel===tel||c.nombre===nombre).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const clienteInfo=S.clientes.find(c=>c.telefono===tel)||{};
+  const svcCount={};const barbCount={};
+  hist.forEach(c=>{svcCount[c.servicio]=(svcCount[c.servicio]||0)+1;barbCount[c.barbero]=(barbCount[c.barbero]||0)+1;});
+  const svcFav=Object.entries(svcCount).sort((a,b)=>b[1]-a[1])[0]?.[0]||'—';
+  const barbFav=Object.entries(barbCount).sort((a,b)=>b[1]-a[1])[0]?.[0]||'—';
+  const completadas=hist.filter(c=>c.estado==='Completada').length;
+  const modal=document.getElementById('modal-historial');
+  modal.querySelector('#h-nombre').textContent=nombre;
+  modal.querySelector('#h-tel').textContent=tel;
+  modal.querySelector('#h-stats').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;">
+      <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);padding:12px;text-align:center;">
+        <div style="font-size:1.4rem;font-weight:800;color:var(--gold);">${hist.length}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.48rem;color:var(--muted);text-transform:uppercase;">Total citas</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);padding:12px;text-align:center;">
+        <div style="font-size:1.4rem;font-weight:800;color:var(--green);">${completadas}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.48rem;color:var(--muted);text-transform:uppercase;">Completadas</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);padding:12px;text-align:center;">
+        <div style="font-size:1rem;font-weight:800;color:var(--text);">${svcFav}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.48rem;color:var(--muted);text-transform:uppercase;">Servicio fav.</div>
+      </div>
+    </div>
+    <div style="margin-bottom:10px;font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);">BARBERO FAVORITO: <span style="color:var(--gold);">${barbFav}</span>${clienteInfo.notas?` · NOTAS: <span style="color:var(--text);">${clienteInfo.notas}</span>`:''}</div>`;
+  modal.querySelector('#h-tabla').innerHTML=hist.length?hist.map(c=>`
+    <tr style="border-bottom:1px solid rgba(255,255,255,0.03);">
+      <td style="padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);">${c.fecha}</td>
+      <td style="padding:8px 10px;font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--gold);">${fmt12rpt(c.hora)}</td>
+      <td style="padding:8px 10px;font-size:0.75rem;">${c.servicio}</td>
+      <td style="padding:8px 10px;font-size:0.75rem;color:var(--muted);">${c.barbero}</td>
+      <td style="padding:8px 10px;"><span class="badge ${bc(c.estado)}" style="font-size:0.42rem;"><span class="badge-dot"></span>${c.estado}</span></td>
+    </tr>`).join(''):'<tr><td colspan="5" style="padding:24px;text-align:center;font-family:\'DM Mono\',monospace;font-size:0.6rem;color:var(--muted);">Sin historial disponible</td></tr>';
+  modal.classList.add('open');
+}
+
 // ── BARBEROS ──
 function renderBarberos(){
   const maxC=Math.max(...S.barberos.map(b=>b.citas_hoy),1);
@@ -741,6 +903,7 @@ function renderBarberos(){
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <span class="${b.activo?'chip-active':'chip-off'}">${b.activo?'✓ Disponible':'✗ No disponible'}</span>
         <div class="row-actions">
+          <button class="ra-btn" onclick="abrirBloqueoBarbero('${b.id}','${b.nombre.replace(/'/g,"\\'")}')">🕐</button>
           <button class="ra-btn" onclick="editBarbero('${b.id}')">✏</button>
           <button class="ra-btn danger" onclick="deleteBarbero('${b.id}','${b.nombre}')">✕</button>
         </div>
@@ -827,6 +990,77 @@ async function deleteBarbero(id,nombre){
     toast(nombre+' eliminado correctamente');
     renderPage();
   }catch(e){toast('Error al eliminar barbero','error');}
+}
+
+// ── HORARIOS BLOQUEADOS ──
+let _bloqueosBarbId=null,_bloqueosBarbNombre='',_bloqueosLista=[];
+
+const SLOTS_BLOQUEO=(()=>{const s=[];for(let h=6;h<23;h++){for(let m=0;m<60;m+=30){s.push(String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'));}}return s;})();
+
+function fmt12b(t){if(!t)return'—';const[h,m]=t.split(':').map(Number);const ap=h>=12?'PM':'AM';const h12=h===0?12:h>12?h-12:h;return h12+':'+(m<10?'0':'')+m+' '+ap;}
+
+async function abrirBloqueoBarbero(id,nombre){
+  _bloqueosBarbId=id;_bloqueosBarbNombre=nombre;
+  document.getElementById('blq-barbero-nombre').textContent=nombre;
+  const hoy=getHoyRD();
+  document.getElementById('blq-fecha').value=hoy;
+  document.getElementById('blq-motivo').value='almuerzo';
+  // Poblar selects de hora
+  const optsHtml=SLOTS_BLOQUEO.map(s=>`<option value="${s}">${fmt12b(s)}</option>`).join('');
+  document.getElementById('blq-ini').innerHTML=optsHtml;
+  document.getElementById('blq-fin').innerHTML=optsHtml;
+  document.getElementById('blq-ini').value='12:00';
+  document.getElementById('blq-fin').value='13:00';
+  await cargarBloqueos(hoy);
+  document.getElementById('modal-bloqueos').classList.add('open');
+}
+
+async function cargarBloqueos(fecha){
+  try{
+    const rows=await sbGet('horarios_bloqueados','barbero_id=eq.'+_bloqueosBarbId+'&fecha=gte.'+fecha+'&order=fecha.asc,hora_inicio.asc&limit=30');
+    _bloqueosLista=rows||[];
+  }catch(e){_bloqueosLista=[];}
+  renderBloqueosLista();
+}
+
+function renderBloqueosLista(){
+  const hoy=getHoyRD();
+  const el=document.getElementById('blq-lista');
+  if(!_bloqueosLista.length){el.innerHTML='<div style="padding:14px;font-family:\'DM Mono\',monospace;font-size:0.58rem;color:var(--muted);text-align:center;">Sin bloqueos activos</div>';return;}
+  el.innerHTML=_bloqueosLista.map(b=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-left:2px solid var(--red);margin-bottom:5px;">
+      <div style="flex:1;">
+        <div style="font-size:0.78rem;font-weight:600;">${b.fecha}${b.fecha===hoy?' <span style="color:var(--gold);font-size:0.5rem;">HOY</span>':''} · ${fmt12b(b.hora_inicio)} – ${fmt12b(b.hora_fin)}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);">${b.motivo||'Sin motivo'}</div>
+      </div>
+      <button onclick="eliminarBloqueoBarbero('${b.id}')" style="background:none;border:1px solid rgba(248,113,113,0.25);color:var(--red);padding:3px 8px;font-size:0.5rem;font-family:'DM Mono',monospace;cursor:pointer;">✕</button>
+    </div>`).join('');
+}
+
+async function agregarBloqueoBarbero(){
+  const fecha=document.getElementById('blq-fecha').value;
+  const ini=document.getElementById('blq-ini').value;
+  const fin=document.getElementById('blq-fin').value;
+  const motivo=document.getElementById('blq-motivo').value.trim()||'descanso';
+  if(!fecha||!ini||!fin){toast('Completa todos los campos','error');return;}
+  if(ini>=fin){toast('La hora inicio debe ser antes del fin','error');return;}
+  const btn=document.getElementById('blq-add-btn');
+  btn.textContent='⏳';btn.disabled=true;
+  try{
+    await sbPost('horarios_bloqueados',{barbero_id:_bloqueosBarbId,fecha,hora_inicio:ini+':00',hora_fin:fin+':00',motivo});
+    toast('Bloqueo agregado ✓');
+    await cargarBloqueos(document.getElementById('blq-fecha').value);
+  }catch(e){toast('Error: '+e.message,'error');}
+  finally{btn.textContent='+ Agregar';btn.disabled=false;}
+}
+
+async function eliminarBloqueoBarbero(id){
+  try{
+    await sbDelete('horarios_bloqueados','id=eq.'+id);
+    _bloqueosLista=_bloqueosLista.filter(b=>b.id!==id);
+    renderBloqueosLista();
+    toast('Bloqueo eliminado');
+  }catch(e){toast('Error: '+e.message,'error');}
 }
 
 // ── REPORTES ──
@@ -1064,33 +1298,7 @@ async function exportarPDF(){
 
   <div class="footer">BarberOS · Reporte generado automáticamente · ${fecha}</div>
   <script>window.onload=()=>{window.print();}<\/script>
-  
-<!-- Modal: Prueba de Recordatorio -->
-<div class="modal-overlay" id="modal-test-recordatorio">
-  <div class="modal" style="max-width:420px;">
-    <h3 style="font-family:'DM Mono',monospace;font-size:0.78rem;letter-spacing:0.12em;color:var(--gold);margin-bottom:4px;">🧪 PRUEBA DE RECORDATORIO</h3>
-    <div id="test-rec-canal" style="font-family:'DM Mono',monospace;font-size:0.56rem;color:var(--muted);margin-bottom:14px;"></div>
-    <div style="display:flex;flex-direction:column;gap:14px;">
-      <div class="fg">
-        <label>Número WhatsApp destino</label>
-        <input type="text" id="test-rec-tel" placeholder="8091234567"
-          style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:9px 12px;width:100%;font-family:'DM Mono',monospace;font-size:0.82rem;box-sizing:border-box;">
-        <div style="font-size:0.58rem;color:var(--muted);margin-top:4px;">Sin + ni código de país — se normaliza automático</div>
-      </div>
-      <div class="fg">
-        <label>Mensaje de prueba</label>
-        <textarea id="test-rec-msg" rows="3"
-          style="background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:9px 12px;width:100%;font-size:0.7rem;resize:vertical;box-sizing:border-box;"></textarea>
-      </div>
-      <div id="test-rec-resultado" style="display:none;padding:10px 12px;font-family:'DM Mono',monospace;font-size:0.62rem;border-left:2px solid var(--gold);background:rgba(201,168,76,0.04);"></div>
-      <div style="display:flex;gap:8px;margin-top:4px;">
-        <button class="btn-full btn-cancel" onclick="closeModal('test-recordatorio')">Cancelar</button>
-        <button class="btn-full btn-gold" id="test-rec-btn" onclick="enviarRecordatorioPrueba()">📤 Enviar prueba</button>
-      </div>
-    </div>
-  </div>
-</div>
-</body></html>`);
+  </body></html>`);
   printWin.document.close();
 }
 
@@ -1301,6 +1509,7 @@ function renderConfigPage(){
             <div class="fg"><label>Hora apertura</label><input type="number" id="cfg-inicio-pg" value="${s.hora_inicio||9}" min="0" max="23"></div>
             <div class="fg"><label>Hora cierre</label><input type="number" id="cfg-fin-pg" value="${s.hora_fin||18}" min="0" max="23"></div>
           </div>
+          <div class="fg"><label>Duración de turno (minutos)</label><input type="number" id="cfg-dur-pg" value="${s.duracion_turno||45}" min="15" max="120"></div>
           <div class="fg"><label>Zona horaria</label>
             <select id="cfg-tz-pg">
               <option value="America/Santo_Domingo" ${s.timezone==='America/Santo_Domingo'?'selected':''}>America/Santo_Domingo (RD)</option>
@@ -1311,7 +1520,7 @@ function renderConfigPage(){
           </div>
           <div class="fg"><label>Días de atención</label>
             <div class="horario-grid" style="margin-top:8px;">
-              ${['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map((d,i)=>`<div class="dia-toggle"><input type="checkbox" id="pgdia-${i}" ${i<6?'checked':''}><label for="pgdia-${i}"><div class="dia-check">✓</div>${d}</label></div>`).join('')}
+              ${['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map((d,i)=>`<div class="dia-toggle"><input type="checkbox" id="pgdia-${i}" ${(s.dias_atencion||[0,1,2,3,4,5]).includes(i)?'checked':''}><label for="pgdia-${i}"><div class="dia-check">✓</div>${d}</label></div>`).join('')}
             </div>
           </div>
           <button class="btn-sm btn-gold" style="align-self:flex-start;padding:10px 24px;" onclick="saveConfigPage()">💾 Guardar cambios</button>
@@ -1381,9 +1590,10 @@ function renderConfigPage(){
   </div>`;
 }
 async function saveConfigPage(){
-  const p={nombre:document.getElementById('cfg-nombre-pg').value.trim(),'whatsapp_dueño':document.getElementById('cfg-whatsapp-pg').value.trim(),hora_inicio:parseInt(document.getElementById('cfg-inicio-pg').value)||9,hora_fin:parseInt(document.getElementById('cfg-fin-pg').value)||18,timezone:document.getElementById('cfg-tz-pg').value};
+  const dias=[0,1,2,3,4,5,6].filter(i=>{const cb=document.getElementById('pgdia-'+i);return cb&&cb.checked;});
+  const p={nombre:document.getElementById('cfg-nombre-pg').value.trim(),'whatsapp_dueño':document.getElementById('cfg-whatsapp-pg').value.trim(),hora_inicio:parseInt(document.getElementById('cfg-inicio-pg').value)||9,hora_fin:parseInt(document.getElementById('cfg-fin-pg').value)||18,timezone:document.getElementById('cfg-tz-pg').value,duracion_turno:parseInt(document.getElementById('cfg-dur-pg').value)||45,dias_atencion:dias};
   try{
-    const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/update_shop_config`,{method:'POST',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify({p_shop_id:S.shopId,p_nombre:p.nombre,p_whatsapp_dueno:p['whatsapp_dueño'],p_hora_inicio:p.hora_inicio,p_hora_fin:p.hora_fin,p_timezone:p.timezone})});
+    const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/update_shop_config`,{method:'POST',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify({p_shop_id:S.shopId,p_nombre:p.nombre,p_whatsapp_dueno:p['whatsapp_dueño'],p_hora_inicio:p.hora_inicio,p_hora_fin:p.hora_fin,p_timezone:p.timezone,p_duracion_turno:p.duracion_turno,p_dias_atencion:p.dias_atencion})});
     const data=await r.json();
     if(data&&data.error){toast('Error: '+data.error,'error');return;}
     Object.assign(S.shopData,p);
@@ -1510,7 +1720,7 @@ async function toggleNotifDueno(el){
   try{
     await fetch(`${SUPABASE_URL}/rest/v1/rpc/update_shop_config`,{method:'POST',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify({p_shop_id:S.shopId,p_notificacion_dueno:newVal})});
     S.shopData.notificacion_dueno=newVal;
-    showToast(newVal?'Notificaciones activadas ✓':'Notificaciones desactivadas','success');
+    toast(newVal?'Notificaciones activadas ✓':'Notificaciones desactivadas');
   }catch(e){showToast('Error: '+e.message,'error');}
 }
 async function toggleBotBarbero(el){
@@ -1588,7 +1798,7 @@ async function addServicio(){
 
 // ── MODALS ──
 function openModal(type){
-  if(type==='cita'){document.getElementById('modal-cita-title').textContent='Nueva Cita';document.getElementById('m-cita-id').value='';document.getElementById('m-nombre').value='';document.getElementById('m-tel').value='';document.getElementById('m-fecha').value=nowStr();document.getElementById('m-hora').value='09:00';document.getElementById('m-estado').value='Confirmada';}
+  if(type==='cita'){document.getElementById('modal-cita-title').textContent='Nueva Cita';document.getElementById('m-cita-id').value='';document.getElementById('m-nombre').value='';document.getElementById('m-tel').value='';document.getElementById('m-fecha').value=nowStr();document.getElementById('m-hora').value='09:00';document.getElementById('m-estado').value='Confirmada';updateServicioSelect();updateBarberoSelect();}
   if(type==='barbero'){document.getElementById('modal-barbero-title').textContent='Nuevo Barbero';document.getElementById('mb-id').value='';document.getElementById('mb-nombre').value='';document.getElementById('mb-orden').value=S.barberos.length+1;document.getElementById('mb-activo').checked=true;}
   if(type==='cliente'){document.getElementById('modal-cliente-title').textContent='Nuevo Cliente';document.getElementById('mc-id').value='';document.getElementById('mc-nombre').value='';document.getElementById('mc-tel').value='';document.getElementById('mc-notas').value='';}
   if(type==='config'){const s=S.shopData||{};document.getElementById('cfg-nombre').value=s.nombre||'';document.getElementById('cfg-whatsapp').value=s.whatsapp_dueño||'';document.getElementById('cfg-inicio').value=s.hora_inicio||9;document.getElementById('cfg-fin').value=s.hora_fin||18;document.getElementById('cfg-duracion').value=s.duracion_turno||45;document.getElementById('cfg-timezone').value=s.timezone||'America/Santo_Domingo';const dias=s.dias_atencion||[0,1,2,3,4,5];for(let i=0;i<7;i++){const cb=document.getElementById('dia-'+i);if(cb)cb.checked=dias.includes(i);}}
@@ -1606,9 +1816,26 @@ async function saveConfig(){
 }
 ['cita','barbero','cliente','config'].forEach(t=>{document.getElementById('modal-'+t).addEventListener('click',e=>{if(e.target.id==='modal-'+t)closeModal(t);});});
 
-function updateBarberoSelect(){
+function updateBarberoSelect(incluirNombre){
   const sel=document.getElementById('m-barbero');if(!sel)return;
-  sel.innerHTML=S.barberos.filter(b=>b.activo).map(b=>`<option value="${b.nombre}">${b.nombre}</option>`).join('');
+  let lista=S.barberos.filter(b=>b.activo);
+  // Si se edita y el barbero está inactivo, incluirlo igual
+  if(incluirNombre&&!lista.find(b=>b.nombre===incluirNombre)){
+    const inact=S.barberos.find(b=>b.nombre===incluirNombre);
+    if(inact)lista=[inact,...lista];
+  }
+  sel.innerHTML=lista.map(b=>`<option value="${b.nombre}">${b.nombre}</option>`).join('');
+}
+function updateServicioSelect(valorActual){
+  const sel=document.getElementById('m-servicio');if(!sel)return;
+  const FALLBACK=['Corte de cabello','Corte + Barba','Fade / Degradado','Afeitado clásico','Barba'];
+  const svcs=S.servicios&&S.servicios.length?S.servicios.filter(s=>s.activo).map(s=>s.nombre):FALLBACK;
+  sel.innerHTML=svcs.map(s=>`<option value="${s}">${s}</option>`).join('');
+  if(valorActual){
+    // Si el valor actual no está en la lista (servicio inactivo), agrégarlo
+    if(!svcs.includes(valorActual)){const o=document.createElement('option');o.value=valorActual;o.textContent=valorActual+' (inactivo)';sel.prepend(o);}
+    sel.value=valorActual;
+  }
 }
 
 function updateDate(){document.getElementById('page-date').textContent=new Date().toLocaleDateString('es-DO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});}
