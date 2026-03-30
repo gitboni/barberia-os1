@@ -12,7 +12,7 @@
   --text:#EAE8E2;--muted:#52504E;--muted2:#7A7875;
   --gold:#C9A84C;--gold2:#E8C96A;--gold3:rgba(201,168,76,0.12);
   --green:#2ECC71;--red:#E74C3C;--blue:#3498DB;--orange:#E67E22;
-  --sidebar-w:220px;
+  --sidebar-w:245px;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 html{scroll-behavior:smooth;}
@@ -58,11 +58,11 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .sidebar-badge{display:inline-block;background:var(--red);color:#fff;font-size:0.42rem;padding:2px 6px;letter-spacing:0.2em;margin-top:5px;}
 .collapse-btn{background:none;border:1px solid var(--border);color:var(--muted);width:26px;height:26px;cursor:pointer;font-size:0.68rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;}
 .collapse-btn:hover{border-color:var(--gold);color:var(--gold);}
-.nav-section{padding:16px 18px 5px;font-size:0.45rem;color:var(--muted);letter-spacing:0.28em;text-transform:uppercase;white-space:nowrap;}
-.nav-item{display:flex;align-items:center;gap:11px;padding:10px 20px;cursor:pointer;transition:all 0.15s;font-size:0.68rem;letter-spacing:0.04em;border-left:2px solid transparent;color:var(--muted);white-space:nowrap;position:relative;}
+.nav-section{padding:16px 18px 5px;font-size:0.52rem;color:var(--muted);letter-spacing:0.24em;text-transform:uppercase;white-space:nowrap;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 20px;cursor:pointer;transition:all 0.15s;font-size:0.78rem;letter-spacing:0.04em;border-left:2px solid transparent;color:var(--muted);white-space:nowrap;position:relative;}
 .nav-item:hover{color:var(--text);background:rgba(255,255,255,0.025);}
 .nav-item.active{color:var(--gold);border-left-color:var(--gold);background:linear-gradient(90deg,rgba(201,168,76,0.07),transparent);}
-.nav-item .icon{font-size:0.85rem;width:17px;text-align:center;flex-shrink:0;}
+.nav-item .icon{font-size:1.05rem;width:20px;text-align:center;flex-shrink:0;}
 .nav-item .badge{margin-left:auto;background:var(--red);color:#fff;font-size:0.42rem;padding:2px 5px;border-radius:10px;animation:badge-pulse 2s ease-in-out infinite;}
 .nav-item .badge.green{background:var(--green);animation:none;}
 @keyframes badge-pulse{0%,100%{opacity:1;}50%{opacity:0.6;}}
