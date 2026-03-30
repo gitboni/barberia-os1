@@ -432,7 +432,7 @@ tr:hover td{background:rgba(255,255,255,0.016);}
   <div class="nav-section sidebar-text">Sistema</div>
   <div class="nav-item" data-page="citas"><span class="icon">📅</span><span class="sidebar-text">Citas Global</span></div>
   <div class="nav-item" data-page="simulador"><span class="icon">🧪</span><span class="sidebar-text">Simulador Chat</span></div>
-  <div class="nav-item" data-page="whatsapp"><span class="icon">💬</span><span class="sidebar-text">WhatsApp / n8n</span></div>
+  <div class="nav-item" data-page="whatsapp"><span class="icon">💬</span><span class="sidebar-text">WhatsApp</span></div>
   <div class="nav-item" data-page="leads"><span class="icon">📋</span><span class="sidebar-text">Leads</span></div>
   <div class="nav-item" data-page="landing"><span class="icon">🌐</span><span class="sidebar-text">Landing Page</span></div>
   <div class="nav-item" data-page="reportes"><span class="icon">📊</span><span class="sidebar-text">Reportes</span></div>
@@ -461,7 +461,6 @@ tr:hover td{background:rgba(255,255,255,0.016);}
         <div class="refresh-dot" id="refreshDot"></div>
         <span id="refreshLabel">—</span>
       </div>
-      <button onclick="showPage('simulador')" style="display:flex;align-items:center;gap:6px;background:rgba(37,211,102,0.08);border:1px solid rgba(37,211,102,0.3);color:#25D366;padding:5px 12px;font-family:'DM Mono',monospace;font-size:0.55rem;letter-spacing:0.12em;cursor:pointer;text-transform:uppercase;transition:all 0.2s;flex-shrink:0;" onmouseover="this.style.background='rgba(37,211,102,0.18)'" onmouseout="this.style.background='rgba(37,211,102,0.08)'">💬 Simulador</button>
       <div class="notif-bell" id="notifBell">
         🔔<span class="notif-count" id="notifCount" style="display:none">0</span>
         <div class="notif-dropdown" id="notifDropdown">
@@ -514,6 +513,28 @@ tr:hover td{background:rgba(255,255,255,0.016);}
           <div class="kpi-value" id="kpi-pending" style="color:var(--orange)">—</div>
           <div class="kpi-sub">Esperando aprobación</div>
           <div class="kpi-trend warn" id="kpi-pending-trend"></div>
+        </div>
+      </div>
+      <div class="kpi-grid" style="margin-bottom:14px;">
+        <div class="kpi-card" style="--accent-color:var(--blue)">
+          <div class="kpi-label">Clientes Únicos</div>
+          <div class="kpi-value" id="kpi-clientes">—</div>
+          <div class="kpi-sub">Total registrados</div>
+        </div>
+        <div class="kpi-card" style="--accent-color:var(--red)">
+          <div class="kpi-label">No-Shows Hoy</div>
+          <div class="kpi-value" id="kpi-noshows">—</div>
+          <div class="kpi-sub">Clientes ausentes</div>
+        </div>
+        <div class="kpi-card" style="--accent-color:var(--orange)">
+          <div class="kpi-label">Tasa Completadas</div>
+          <div class="kpi-value" id="kpi-tasa">—</div>
+          <div class="kpi-sub">De citas de hoy</div>
+        </div>
+        <div class="kpi-card" style="--accent-color:var(--green)">
+          <div class="kpi-label">Barberos Activos</div>
+          <div class="kpi-value" id="kpi-barberos-activos">—</div>
+          <div class="kpi-sub">En todas las barberías</div>
         </div>
       </div>
       <div class="charts-grid">
@@ -596,7 +617,10 @@ tr:hover td{background:rgba(255,255,255,0.016);}
     <div class="page" id="page-usuarios">
       <div class="section-header">
         <div class="section-title">Usuarios & Accesos App</div>
-        <button class="btn btn-ghost" id="refreshUsersBtn">↻</button>
+        <div class="btn-group">
+          <button class="btn btn-ghost" onclick="exportUsuariosCSV()" title="Exportar CSV">⬇ CSV</button>
+          <button class="btn btn-ghost" id="refreshUsersBtn">↻</button>
+        </div>
       </div>
 
       <!-- Banner explicativo -->
@@ -638,6 +662,7 @@ tr:hover td{background:rgba(255,255,255,0.016);}
         <input class="filter-input" placeholder="Buscar barbero..." id="barberoSearch" style="flex:1;">
         <select class="filter-select" id="barberoShopFilter"><option value="">Todas las barberías</option></select>
         <button class="btn btn-ghost" id="refreshBarberosBtn">↻</button>
+        <button class="btn btn-ghost" onclick="exportBarberosCSV()" title="Exportar CSV">⬇ CSV</button>
       </div>
       <div class="table-wrap">
         <table><thead><tr>
@@ -646,7 +671,7 @@ tr:hover td{background:rgba(255,255,255,0.016);}
           <th class="col-hide-xs">Barbería</th>
           <th>Estado</th>
           <th>Citas hoy</th>
-          <th>Nombre</th>
+          <th>Usuario App</th>
           <th>Teléfono App</th>
           <th>Contraseña App</th>
           <th>Acceso App</th>
@@ -725,50 +750,27 @@ tr:hover td{background:rgba(255,255,255,0.016);}
         <button class="btn btn-ghost" onclick="window.open('chat-test.html','_blank')">↗ Abrir en ventana nueva</button>
       </div>
       <div style="background:rgba(37,211,102,0.05);border:1px solid rgba(37,211,102,0.2);border-left:3px solid var(--green);padding:12px 16px;margin-bottom:16px;font-size:0.62rem;color:var(--muted);">
-        💬 <strong style="color:var(--green);">Pruebas internas sin Twilio</strong> — Envía mensajes directamente al webhook de n8n simulando WhatsApp. Sin consumir créditos.
+        💬 <strong style="color:var(--green);">Simulador de Chat</strong> — Prueba flujos de WhatsApp sin consumir créditos ni mensajes reales.
       </div>
       <div style="border:1px solid var(--border);overflow:hidden;height:calc(100vh - 200px);min-height:600px;">
         <iframe src="chat-test.html" style="width:100%;height:100%;border:none;" loading="lazy"></iframe>
       </div>
     </div>
 
-    <!-- WHATSAPP / N8N -->
+    <!-- WHATSAPP -->
     <div class="page" id="page-whatsapp">
       <div class="section-header">
-        <div class="section-title">WhatsApp & n8n Workflows</div>
-        <!-- Botón que abre el simulador de chat -->
-        <button class="btn btn-primary" onclick="openChatSimulator()" style="display:flex;align-items:center;gap:8px;">
-          <span style="font-size:1rem;">💬</span> SIMULADOR DE CHAT
-        </button>
-      </div>
-
-      <!-- Banner del simulador -->
-      <div style="background:rgba(37,211,102,0.05);border:1px solid rgba(37,211,102,0.2);border-left:3px solid var(--green);padding:12px 16px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span style="font-size:1.2rem;">🧪</span>
-          <div>
-            <div style="font-size:0.64rem;color:var(--text);font-weight:500;letter-spacing:0.06em;">Simulador de Chat — Pruebas internas sin Twilio</div>
-            <div style="font-size:0.54rem;color:var(--muted);margin-top:2px;">Envía mensajes directamente al webhook de n8n como si fueran de WhatsApp. Sin consumir créditos de Twilio.</div>
-          </div>
-        </div>
-        <div style="display:flex;gap:8px;">
-          <button class="btn btn-ghost" onclick="openChatSimulator()" style="border-color:rgba(37,211,102,0.35);color:var(--green);">↗ Abrir en ventana completa</button>
-          <button class="btn btn-ghost" onclick="toggleSimulatorEmbed()" id="embedToggleBtn">⊞ Ver aquí</button>
-        </div>
-      </div>
-
-      <!-- Simulador embebido (oculto por defecto) -->
-      <div id="simulatorEmbed" style="display:none;margin-bottom:20px;border:1px solid var(--border);overflow:hidden;height:680px;">
-        <iframe id="simulatorFrame" src="chat-test.html" style="width:100%;height:100%;border:none;" loading="lazy"></iframe>
+        <div class="section-title">WhatsApp — Monitor de Conversaciones</div>
+        <button class="btn btn-ghost" id="refreshWebhooksBtn">↻ Actualizar</button>
       </div>
 
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;">
-        <div class="kpi-card" style="--accent-color:var(--green)"><div class="kpi-label">Estado n8n</div><div class="kpi-value" style="font-size:1rem;color:var(--green);">● ACTIVO</div><div class="kpi-sub">donovan01.app.n8n.cloud</div></div>
-        <div class="kpi-card" style="--accent-color:var(--gold)"><div class="kpi-label">Conversaciones activas</div><div class="kpi-value" id="n8n-convs">—</div><div class="kpi-sub">En Supabase</div></div>
-        <div class="kpi-card" style="--accent-color:var(--blue)"><div class="kpi-label">Plan n8n</div><div class="kpi-value" style="font-size:1rem;">FREE</div><div class="kpi-sub">5,000 ejecuciones/mes</div></div>
+        <div class="kpi-card" style="--accent-color:var(--green)"><div class="kpi-label">Barberías activas</div><div class="kpi-value" id="wa-shops-active">—</div><div class="kpi-sub">Con WhatsApp configurado</div></div>
+        <div class="kpi-card" style="--accent-color:var(--gold)"><div class="kpi-label">Conversaciones activas</div><div class="kpi-value" id="wa-convs-total">—</div><div class="kpi-sub">En Supabase</div></div>
+        <div class="kpi-card" style="--accent-color:var(--blue)"><div class="kpi-label">Sin WhatsApp</div><div class="kpi-value" id="wa-shops-missing" style="color:var(--orange)">—</div><div class="kpi-sub">Bot inactivo</div></div>
       </div>
-      <div class="section-header"><div class="section-title">Webhooks & Números Twilio</div><button class="btn btn-ghost" id="refreshWebhooksBtn">↻</button></div>
-      <div class="table-wrap"><table><thead><tr><th>Barbería</th><th>Número Twilio</th><th class="col-hide-xs">Webhook URL</th><th>Estado</th><th class="col-hide-xs">Últ. conversación</th><th class="col-hide-xs">Mensajes</th></tr></thead><tbody id="webhooksTable"></tbody></table></div>
+      <div class="section-header"><div class="section-title">Números WhatsApp por Barbería</div></div>
+      <div class="table-wrap"><table><thead><tr><th>Barbería</th><th>Número WhatsApp</th><th class="col-hide-xs">Webhook URL</th><th>Estado</th><th class="col-hide-xs">Últ. conversación</th><th class="col-hide-xs">Mensajes</th></tr></thead><tbody id="webhooksTable"></tbody></table></div>
       <div style="margin-top:20px;">
         <div class="section-header"><div class="section-title">Conversaciones Recientes</div></div>
         <div class="table-wrap"><table><thead><tr><th>Barbería</th><th>Teléfono</th><th>Estado Conv.</th><th>Últ. mensaje</th><th>Actualizado</th></tr></thead><tbody id="convsTable"></tbody></table></div>
@@ -897,12 +899,6 @@ tr:hover td{background:rgba(255,255,255,0.016);}
             <select class="form-select" id="refreshInterval"><option value="30">30 segundos</option><option value="60" selected>1 minuto</option><option value="300">5 minutos</option><option value="0">Desactivado</option></select>
           </div>
           <button class="btn btn-primary" id="saveRefreshBtn">GUARDAR</button>
-        </div>
-        <div class="config-card">
-          <div class="config-section-title">n8n WORKFLOW</div>
-          <div class="form-group"><label class="form-label">URL n8n Cloud</label><input class="form-input" value="https://donovan01.app.n8n.cloud" id="cfgN8nUrl"></div>
-          <div class="form-group"><label class="form-label">Webhook path</label><input class="form-input" value="/webhook/whatsapp" id="cfgN8nPath"></div>
-          <button class="btn btn-primary" id="saveN8nBtn">GUARDAR</button>
         </div>
       </div>
     </div>
@@ -1389,7 +1385,7 @@ window.addEventListener('load', () => {
 const PAGE_TITLES = {
   landing:'Landing Page Editor', dashboard:'Dashboard Global', solicitudes:'Solicitudes de Registro', shops:'Gestión de Barberías',
   usuarios:'Usuarios & Accesos', barberos:'Gestión de Barberos', pagos:'Pagos & Suscripciones',
-  facturacion:'Facturación', citas:'Citas Global', simulador:'Simulador de Chat WhatsApp', whatsapp:'WhatsApp & n8n',
+  facturacion:'Facturación', citas:'Citas Global', simulador:'Simulador de Chat WhatsApp', whatsapp:'WhatsApp',
   leads:'Leads del Landing', reportes:'Reportes por Barbería', seguridad:'Centro de Seguridad', logs:'Logs del Sistema', config:'Configuración Global'
 };
 document.querySelectorAll('.nav-item[data-page]').forEach(el => {
@@ -1549,20 +1545,29 @@ function renderDashboard() {
   document.getElementById('mrrDisplay').textContent='$'+mrr;
   document.getElementById('shopsCount').textContent=shops.length;
 
-  // KPIs avanzados (mejora #3)
+  // KPIs avanzados
   if(_globalKpis) {
     const completadas = _globalKpis.completadas_hoy;
     const total = _globalKpis.citas_hoy || 1;
     const tasa = Math.round((completadas/total)*100);
-    const sinTwilio = _globalKpis.shops_sin_twilio;
+    const sinWA = _globalKpis.shops_sin_twilio;
     document.getElementById('kpi-citas').textContent = _globalKpis.citas_hoy;
-    // Actualizar tendencias con datos reales
     const trendsEl = document.getElementById('kpi-citas-trend');
     if(trendsEl) trendsEl.textContent = `${tasa}% completadas · ${_globalKpis.noshows_hoy} no-shows`;
-    if(sinTwilio > 0) {
-      addNotification(`⚠ ${sinTwilio} shop(s) sin Twilio — bot WhatsApp inactivo`);
+    if(sinWA > 0) {
+      addNotification(`⚠ ${sinWA} shop(s) sin WhatsApp configurado — bot inactivo`);
     }
+    // Segunda fila de KPIs
+    const noShowsEl = document.getElementById('kpi-noshows');
+    if(noShowsEl) noShowsEl.textContent = _globalKpis.noshows_hoy ?? '—';
+    const tasaEl = document.getElementById('kpi-tasa');
+    if(tasaEl) tasaEl.textContent = (total > 0 ? tasa : 0) + '%';
   }
+  // Clientes y barberos activos (calculados localmente)
+  const clientesEl = document.getElementById('kpi-clientes');
+  if(clientesEl) clientesEl.textContent = _globalKpis?.total_clientes ?? '—';
+  const barberosActivosEl = document.getElementById('kpi-barberos-activos');
+  if(barberosActivosEl) barberosActivosEl.textContent = _barberos.filter(b=>b.activo).length || '—';
 
   if(pendingShops>0){
     document.getElementById('kpi-pending-trend').className='kpi-trend warn';
@@ -1591,7 +1596,7 @@ function renderShopRankings() {
     return;
   }
   el.innerHTML = _shopRankings.map((s,i)=>`
-    <tr>
+    <tr style="cursor:pointer;" onclick="showPage('shops')" title="Ver barbería">
       <td style="color:var(--gold);font-family:'DM Mono',monospace;">#${i+1}</td>
       <td style="color:var(--text);font-weight:700;">${s.shop_nombre}</td>
       <td><span class="plan-badge plan-${s.plan}">${s.plan}</span></td>
@@ -1707,13 +1712,13 @@ async function loadSolicitudes() {
     const shops = all.filter(s => !s.aprobado);
     const el = document.getElementById('solicitudesList');
 
-    // Mejora #2: alerta de shops sin Twilio
-    const sinTwilio = (usingDemo ? DEMO.shops : all).filter(s => s.activo && s.aprobado && (!s.twilio_number || s.twilio_number === ''));
+    // Alerta de shops sin WhatsApp configurado
+    const sinWA = (usingDemo ? DEMO.shops : all).filter(s => s.activo && s.aprobado && (!s.meta_phone_number_id && !s.twilio_number));
     let alertaHtml = '';
-    if(sinTwilio.length) {
+    if(sinWA.length) {
       alertaHtml = `<div style="background:rgba(230,126,34,0.08);border:1px solid var(--orange);border-left:3px solid var(--orange);padding:12px 16px;margin-bottom:16px;font-size:0.66rem;display:flex;align-items:center;gap:10px;">
         <span style="font-size:1.2rem;">⚠️</span>
-        <div><strong style="color:var(--orange)">${sinTwilio.length} barbería(s) sin Twilio configurado</strong> — El bot de WhatsApp no funcionará para: <span style="color:var(--text)">${sinTwilio.map(s=>s.nombre).join(', ')}</span>
+        <div><strong style="color:var(--orange)">${sinWA.length} barbería(s) sin WhatsApp configurado</strong> — Bot inactivo para: <span style="color:var(--text)">${sinWA.map(s=>s.nombre).join(', ')}</span>
         <button style="margin-left:10px;background:none;border:1px solid var(--orange);color:var(--orange);padding:2px 8px;cursor:pointer;font-size:0.6rem;" onclick="showPage('shops',null)">Configurar →</button></div>
       </div>`;
     }
@@ -2713,7 +2718,10 @@ async function loadWebhooks() {
   const shops=usingDemo?_shops.filter(s=>s.activo):await sbGet('shops','select=*&activo=eq.true').catch(()=>_shops.filter(s=>s.activo));
   // ✅ FIX: campo correcto es "ultima_actualizacion" no "updated_at"
   const convs=usingDemo?_convs:await sbGet('conversaciones','select=*&order=ultima_actualizacion.desc&limit=50').catch(()=>_convs);
-  document.getElementById('n8n-convs').textContent=convs.length;
+  document.getElementById('wa-convs-total').textContent=convs.length;
+  const withWA=shops.filter(s=>s.meta_phone_number_id||s.twilio_number);
+  document.getElementById('wa-shops-active').textContent=withWA.length;
+  document.getElementById('wa-shops-missing').textContent=shops.length-withWA.length;
 
   const convMap={};
   convs.forEach(c=>{ if(!convMap[c.shop_id]) convMap[c.shop_id]=c; });
@@ -3437,7 +3445,6 @@ function renderLogs(){
 async function loadLogs(){
   addLog('INFO','Vista de logs abierta');
   addLog('OK',`Supabase: ${SUPABASE_URL}`);
-  addLog('INFO',`n8n: donovan01.app.n8n.cloud`);
   addLog(usingDemo?'WARN':'OK',usingDemo?'Modo demo activo':'Supabase conectado y activo');
   addLog(usingDemo?'WARN':'OK',_accessToken?'Token JWT activo':'Sin token (demo mode)');
   renderLogs();
@@ -3488,10 +3495,6 @@ document.getElementById('saveRefreshBtn').addEventListener('click',()=>{
   AUTO_REFRESH_SECS=parseInt(document.getElementById('refreshInterval').value)||60;
   startAutoRefresh();
   showToast(AUTO_REFRESH_SECS===0?'Auto-refresh desactivado':`Auto-refresh: ${AUTO_REFRESH_SECS}s`,'success');
-});
-document.getElementById('saveN8nBtn').addEventListener('click',()=>{
-  showToast('Config n8n guardada ✓','success');
-  addLog('INFO','n8n config actualizada');
 });
 
 // ════════════════════════════════════════════
@@ -3556,6 +3559,23 @@ function downloadCSV(content,filename){
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob); a.download=filename; a.click();
   URL.revokeObjectURL(a.href);
+}
+
+function exportBarberosCSV() {
+  const shops=Object.fromEntries(_shops.map(s=>[s.id,s.nombre]));
+  const rows=[['#','Nombre','Barbería','Estado','Teléfono','Acceso App']];
+  _barberos.forEach((b,i)=>rows.push([i+1, b.nombre, shops[b.shop_id]||'—', b.activo?'Activo':'Inactivo', b.telefono||'', b.app_password?'Sí':'No']));
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  downloadCSV(csv,'barberos_'+new Date().toISOString().split('T')[0]+'.csv');
+  showToast('CSV de barberos exportado ✓','success');
+}
+
+function exportUsuariosCSV() {
+  const rows=[['#','Barbería','Plan','Nombre Admin','Teléfono App','Acceso']];
+  _shops.forEach((s,i)=>rows.push([i+1, s.nombre, s.plan||'free', s.admin_nombre||'—', s.admin_telefono||'—', s.admin_acceso?'Sí':'No']));
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  downloadCSV(csv,'usuarios_'+new Date().toISOString().split('T')[0]+'.csv');
+  showToast('CSV de usuarios exportado ✓','success');
 }
 
 // ════════════════════════════════════════════════════════
