@@ -428,6 +428,7 @@ tr:hover td{background:rgba(255,255,255,0.016);}
   <div class="nav-item" data-page="shops"><span class="icon">✂</span><span class="sidebar-text">Barberías</span><span class="badge green sidebar-text" id="shopsCount">0</span></div>
   <div class="nav-item" data-page="usuarios"><span class="icon">◎</span><span class="sidebar-text">Usuarios</span></div>
   <div class="nav-item" data-page="barberos"><span class="icon">💈</span><span class="sidebar-text">Barberos</span></div>
+  <div class="nav-item" data-page="clientes-app"><span class="icon">👥</span><span class="sidebar-text">Clientes App</span></div>
   <div class="nav-section sidebar-text">Finanzas</div>
   <div class="nav-item" data-page="pagos"><span class="icon">$</span><span class="sidebar-text">Pagos</span></div>
   <div class="nav-item" data-page="facturacion"><span class="icon">≡</span><span class="sidebar-text">Facturación</span></div>
@@ -687,6 +688,58 @@ tr:hover td{background:rgba(255,255,255,0.016);}
           <th>Acceso App</th>
           <th>Acciones</th>
         </tr></thead><tbody id="barberosTable"></tbody></table>
+      </div>
+    </div>
+
+    <!-- CLIENTES APP -->
+    <div class="page" id="page-clientes-app">
+      <div class="kpi-grid" style="margin-bottom:16px;">
+        <div class="kpi-card" style="--accent-color:var(--gold)">
+          <div class="kpi-icon">👥</div>
+          <div class="kpi-label">Total en la app</div>
+          <div class="kpi-value" id="ca-total">—</div>
+          <div class="kpi-sub">Clientes registrados</div>
+        </div>
+        <div class="kpi-card" style="--accent-color:var(--green)">
+          <div class="kpi-icon">📲</div>
+          <div class="kpi-label">Registros esta semana</div>
+          <div class="kpi-value" id="ca-semana">—</div>
+          <div class="kpi-sub">Últimos 7 días</div>
+        </div>
+        <div class="kpi-card" style="--accent-color:var(--blue)">
+          <div class="kpi-icon">📅</div>
+          <div class="kpi-label">Registros este mes</div>
+          <div class="kpi-value" id="ca-mes">—</div>
+          <div class="kpi-sub">Mes actual</div>
+        </div>
+        <div class="kpi-card" style="--accent-color:var(--orange)">
+          <div class="kpi-icon">🕐</div>
+          <div class="kpi-label">Nuevos hoy</div>
+          <div class="kpi-value" id="ca-hoy">—</div>
+          <div class="kpi-sub">Registros de hoy</div>
+        </div>
+      </div>
+      <div class="section-header">
+        <div class="section-title">Clientes Registrados en la App</div>
+        <div class="btn-group">
+          <input class="filter-input" placeholder="Buscar nombre o teléfono..." id="caSearch" style="width:220px;">
+          <select class="filter-select" id="caShopFilter"><option value="">Todas las barberías</option></select>
+          <button class="btn btn-ghost" onclick="loadClientesApp()">↻</button>
+          <button class="btn btn-ghost" onclick="exportClientesAppCSV()">⬇ CSV</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>#</th>
+            <th>Nombre</th>
+            <th>Teléfono</th>
+            <th>Barbería</th>
+            <th>Registrado</th>
+            <th>Estado</th>
+          </tr></thead>
+          <tbody id="caTable"></tbody>
+        </table>
       </div>
     </div>
 
@@ -1395,6 +1448,7 @@ window.addEventListener('load', () => {
 const PAGE_TITLES = {
   landing:'Landing Page Editor', dashboard:'Dashboard Global', solicitudes:'Solicitudes de Registro', shops:'Gestión de Barberías',
   usuarios:'Usuarios & Accesos', barberos:'Gestión de Barberos', pagos:'Pagos & Suscripciones',
+  'clientes-app':'Clientes en la App',
   facturacion:'Facturación', citas:'Citas Global', simulador:'Simulador de Chat WhatsApp', whatsapp:'WhatsApp',
   leads:'Leads del Landing', reportes:'Reportes por Barbería', seguridad:'Centro de Seguridad', logs:'Logs del Sistema', config:'Configuración Global'
 };
@@ -1416,6 +1470,7 @@ function showPage(id, el) {
   closeMobileMenu();
   const loaders = {
     shops:loadShops, usuarios:loadUsers, barberos:loadBarberos,
+    'clientes-app':loadClientesApp,
     pagos:loadPayments, facturacion:loadFacturacion, whatsapp:loadWebhooks,
     logs:loadLogs, solicitudes:loadSolicitudes, seguridad:loadSeguridad,
     leads:loadLeads, reportes:loadReportesPage,
@@ -2274,6 +2329,82 @@ async function asignarAccesoApp(barberoId) {
     if(btn){ btn.textContent='↻ Actualizar'; btn.disabled=false; }
   }
 }
+// ════════════════════════════════════════════
+//  CLIENTES APP
+// ════════════════════════════════════════════
+let _clientesApp = [];
+async function loadClientesApp() {
+  const tbody = document.getElementById('caTable');
+  if(!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:22px;">Cargando...</td></tr>';
+
+  const shops = usingDemo ? _shops : await sbGet('shops','select=id,nombre').catch(()=>_shops);
+
+  let clientes = [];
+  if(!usingDemo) {
+    // Traer clientes de usuarios_app (rol = cliente)
+    const [usuarios, links] = await Promise.all([
+      sbGet('usuarios_app','select=id,nombre,telefono,activo,created_at&rol=eq.cliente&order=created_at.desc').catch(()=>[]),
+      sbGet('cliente_shops','select=usuario_id,shop_id').catch(()=>[])
+    ]);
+    const shopMap = Object.fromEntries(shops.map(s=>[s.id,s.nombre]));
+    const linkMap = Object.fromEntries(links.map(l=>[l.usuario_id, shopMap[l.shop_id]||'—']));
+    clientes = usuarios.map(u=>({...u, barberia: linkMap[u.id]||'—'}));
+  } else {
+    clientes = [
+      {id:'1',nombre:'Juan Pérez',telefono:'+18091234567',activo:true,created_at:new Date().toISOString(),barberia:'King Cuts'},
+      {id:'2',nombre:'Carlos Díaz',telefono:'+18097654321',activo:true,created_at:new Date(Date.now()-86400000*2).toISOString(),barberia:'Barber House'},
+    ];
+  }
+  _clientesApp = clientes;
+
+  // KPIs
+  const now = new Date();
+  const hoy = now.toISOString().split('T')[0];
+  const semanaMs = 7*24*60*60*1000;
+  const mesInicio = new Date(now.getFullYear(), now.getMonth(), 1);
+  const nuevosHoy = clientes.filter(c=>c.created_at?.startsWith(hoy)).length;
+  const nuevosSemana = clientes.filter(c=>new Date(c.created_at)>=(new Date(Date.now()-semanaMs))).length;
+  const nuevosMes = clientes.filter(c=>new Date(c.created_at)>=mesInicio).length;
+  document.getElementById('ca-total').textContent = clientes.length;
+  document.getElementById('ca-hoy').textContent = nuevosHoy;
+  document.getElementById('ca-semana').textContent = nuevosSemana;
+  document.getElementById('ca-mes').textContent = nuevosMes;
+
+  // Poblar filtro de barbería
+  const shopFilter = document.getElementById('caShopFilter');
+  if(shopFilter && shopFilter.options.length <= 1) {
+    shops.forEach(s=>{ const o=document.createElement('option'); o.value=s.nombre; o.textContent=s.nombre; shopFilter.appendChild(o); });
+  }
+
+  // Filtros
+  const q = (document.getElementById('caSearch')?.value||'').toLowerCase();
+  const sf = document.getElementById('caShopFilter')?.value||'';
+  let filtrados = clientes;
+  if(q) filtrados = filtrados.filter(c=>(c.nombre||'').toLowerCase().includes(q)||(c.telefono||'').includes(q));
+  if(sf) filtrados = filtrados.filter(c=>c.barberia===sf);
+
+  tbody.innerHTML = filtrados.map((c,i)=>`
+    <tr>
+      <td style="color:var(--muted)">${String(i+1).padStart(2,'0')}</td>
+      <td style="color:var(--text);font-weight:600">${c.nombre||'—'}</td>
+      <td style="color:var(--muted)">${c.telefono||'—'}</td>
+      <td style="color:var(--muted)">${c.barberia}</td>
+      <td style="color:var(--muted)">${c.created_at?new Date(c.created_at).toLocaleDateString('es-DO'):'—'}</td>
+      <td class="${c.activo?'status-active':'status-inactive'}">${c.activo?'● Activo':'○ Inactivo'}</td>
+    </tr>`).join('') ||
+    '<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:22px;">Sin clientes registrados</td></tr>';
+}
+function exportClientesAppCSV(){
+  const rows=[['#','Nombre','Teléfono','Barbería','Registrado','Estado']];
+  _clientesApp.forEach((c,i)=>rows.push([i+1,c.nombre||'',c.telefono||'',c.barberia,c.created_at?new Date(c.created_at).toLocaleDateString('es-DO'):'',c.activo?'Activo':'Inactivo']));
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  downloadCSV(csv,'clientes_app_'+new Date().toISOString().split('T')[0]+'.csv');
+  showToast('CSV exportado ✓','success');
+}
+document.getElementById('caSearch')?.addEventListener('input', loadClientesApp);
+document.getElementById('caShopFilter')?.addEventListener('change', loadClientesApp);
+
 document.getElementById('newBarberoBtn').addEventListener('click',()=>{ loadUsers(); openModal('modalNewBarbero'); });
 document.getElementById('refreshBarberosBtn').addEventListener('click',loadBarberos);
 document.getElementById('barberoSearch').addEventListener('input',loadBarberos);
