@@ -111,15 +111,16 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .notif-time{font-size:0.46rem;color:var(--muted);margin-top:3px;}
 
 /* KPI */
-.kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:22px;}
-.kpi-card{background:var(--surface);border:1px solid var(--border);padding:20px;position:relative;overflow:hidden;transition:transform 0.2s,border-color 0.25s,box-shadow 0.25s;cursor:default;}
-.kpi-card:hover{transform:translateY(-2px);border-color:rgba(201,168,76,0.18);box-shadow:0 8px 24px rgba(0,0,0,0.3);}
-.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent-color,var(--gold));}
-.kpi-card::after{content:'';position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;background:var(--accent-color,var(--gold));opacity:0.04;}
-.kpi-label{font-size:0.48rem;color:var(--muted);letter-spacing:0.22em;text-transform:uppercase;margin-bottom:9px;}
-.kpi-value{font-family:'Bebas Neue',sans-serif;font-size:2.4rem;letter-spacing:0.04em;line-height:1;}
-.kpi-sub{font-size:0.5rem;color:var(--muted);margin-top:5px;}
-.kpi-trend{font-size:0.56rem;margin-top:4px;}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:16px;}
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--accent-color,var(--gold));padding:22px 20px 18px;position:relative;overflow:hidden;transition:transform 0.22s,box-shadow 0.3s,border-color 0.25s;cursor:default;}
+.kpi-card:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(0,0,0,0.45),0 0 0 1px var(--accent-color,var(--gold));border-color:var(--accent-color,var(--gold));}
+.kpi-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--accent-color,var(--gold)) 0%,transparent 55%);opacity:0.04;pointer-events:none;}
+.kpi-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--accent-color,var(--gold)),transparent);opacity:0.25;}
+.kpi-icon{position:absolute;top:14px;right:14px;font-size:1.4rem;opacity:0.22;filter:drop-shadow(0 0 8px var(--accent-color,var(--gold)));}
+.kpi-label{font-size:0.48rem;color:var(--muted);letter-spacing:0.22em;text-transform:uppercase;margin-bottom:10px;}
+.kpi-value{font-family:'Bebas Neue',sans-serif;font-size:2.8rem;letter-spacing:0.04em;line-height:1;color:var(--accent-color,var(--text));}
+.kpi-sub{font-size:0.5rem;color:var(--muted);margin-top:6px;opacity:0.75;}
+.kpi-trend{font-size:0.56rem;margin-top:5px;display:flex;align-items:center;gap:4px;}
 .kpi-trend.up{color:var(--green);}
 .kpi-trend.down{color:var(--red);}
 .kpi-trend.warn{color:var(--orange);}
@@ -169,26 +170,27 @@ tr:hover td{background:rgba(255,255,255,0.016);}
 .action-btn.success:hover{background:rgba(46,204,113,0.1);}
 
 /* CHARTS */
-.charts-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:14px;margin-bottom:22px;}
-.chart-card{background:var(--surface);border:1px solid var(--border);padding:20px;}
-.chart-title{font-size:0.52rem;color:var(--muted);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;}
-.bar-chart{display:flex;align-items:flex-end;gap:7px;height:115px;}
-.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;}
-.bar-col:hover .bar{opacity:1;background:var(--gold)!important;}
-.bar{width:100%;background:rgba(201,168,76,0.28);min-height:4px;transition:all 0.3s;}
-.bar.today{background:linear-gradient(0deg,var(--gold),var(--gold2));}
-.bar-label{font-size:0.4rem;color:var(--muted);}
-.bar-val{font-size:0.38rem;color:var(--gold);opacity:0;transition:opacity 0.2s;}
+.charts-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:14px;margin-bottom:20px;}
+.chart-card{background:var(--surface);border:1px solid var(--border);padding:22px;position:relative;overflow:hidden;}
+.chart-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),transparent);}
+.chart-title{font-size:0.52rem;color:var(--muted);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;}
+.bar-chart{display:flex;align-items:flex-end;gap:8px;height:140px;}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;}
+.bar-col:hover .bar{opacity:1;background:linear-gradient(0deg,var(--gold),var(--gold2))!important;box-shadow:0 0 12px rgba(201,168,76,0.5);}
+.bar{width:100%;background:rgba(201,168,76,0.2);min-height:4px;transition:all 0.35s;border-radius:3px 3px 0 0;}
+.bar.today{background:linear-gradient(0deg,rgba(201,168,76,0.5),var(--gold2));box-shadow:0 0 10px rgba(201,168,76,0.3);}
+.bar-label{font-size:0.42rem;color:var(--muted);}
+.bar-val{font-size:0.4rem;color:var(--gold);opacity:0.7;transition:opacity 0.2s;}
 .bar-col:hover .bar-val{opacity:1;}
-.donut-wrap{display:flex;align-items:center;gap:18px;}
-.donut{position:relative;width:96px;height:96px;flex-shrink:0;}
+.donut-wrap{display:flex;align-items:center;gap:22px;}
+.donut{position:relative;width:110px;height:110px;flex-shrink:0;}
 .donut svg{transform:rotate(-90deg);}
 .donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
-.donut-pct{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--gold);}
-.donut-sub{font-size:0.4rem;color:var(--muted);}
-.legend{display:flex;flex-direction:column;gap:8px;}
-.legend-item{display:flex;align-items:center;gap:8px;font-size:0.58rem;color:var(--muted);}
-.legend-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.donut-pct{font-family:'Bebas Neue',sans-serif;font-size:1.7rem;color:var(--gold);line-height:1;}
+.donut-sub{font-size:0.42rem;color:var(--muted);letter-spacing:0.1em;}
+.legend{display:flex;flex-direction:column;gap:10px;}
+.legend-item{display:flex;align-items:center;gap:9px;font-size:0.62rem;color:var(--muted);}
+.legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;box-shadow:0 0 5px currentColor;}
 
 /* ACTIVITY FEED */
 .activity-feed{background:var(--surface);border:1px solid var(--border);padding:14px;max-height:300px;overflow-y:auto;overscroll-behavior:contain;}
@@ -414,6 +416,7 @@ tr:hover td{background:rgba(255,255,255,0.016);}
 <!-- ═══ SIDEBAR ═══ -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
+    <div>
       <svg width="36" height="36" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="96" height="96" rx="18" fill="#0C0C0C" stroke="#C9A84C" stroke-width="1.5"/><ellipse cx="50" cy="50" rx="32" ry="32" fill="none" stroke="#C9A84C" stroke-width="1" opacity="0.5"/><ellipse cx="50" cy="50" rx="35" ry="35" fill="none" stroke="#C9A84C" stroke-width="0.4" opacity="0.2"/><g transform="translate(50,50)"><g transform="rotate(-22)"><circle cx="0" cy="-22" r="7" fill="none" stroke="#C9A84C" stroke-width="1.6"/><circle cx="0" cy="-22" r="2.5" fill="#C9A84C"/><path d="M 0,-15 C 1,-8 2,-2 1,4" fill="none" stroke="#C9A84C" stroke-width="1.8" stroke-linecap="round"/><path d="M -3,-16 C -2,-9 -1,-2 -2,4" fill="none" stroke="#C9A84C" stroke-width="0.9" stroke-linecap="round" opacity="0.5"/><path d="M 1,4 C 1,10 0,18 -1,24 C -2,28 -4,30 -5,32" fill="none" stroke="#C9A84C" stroke-width="1.8" stroke-linecap="round"/><path d="M -2,4 C -3,10 -3,18 -4,24 C -5,28 -7,30 -8,32" fill="none" stroke="#C9A84C" stroke-width="0.9" stroke-linecap="round" opacity="0.5"/></g><g transform="rotate(22)"><circle cx="0" cy="-22" r="7" fill="none" stroke="#C9A84C" stroke-width="1.6"/><circle cx="0" cy="-22" r="2.5" fill="#C9A84C"/><path d="M 0,-15 C -1,-8 -2,-2 -1,4" fill="none" stroke="#C9A84C" stroke-width="1.8" stroke-linecap="round"/><path d="M 3,-16 C 2,-9 1,-2 2,4" fill="none" stroke="#C9A84C" stroke-width="0.9" stroke-linecap="round" opacity="0.5"/><path d="M -1,4 C -1,10 0,18 1,24 C 2,28 4,30 5,32" fill="none" stroke="#C9A84C" stroke-width="1.8" stroke-linecap="round"/><path d="M 2,4 C 3,10 3,18 4,24 C 5,28 7,30 8,32" fill="none" stroke="#C9A84C" stroke-width="0.9" stroke-linecap="round" opacity="0.5"/></g><circle cx="0" cy="4" r="2.5" fill="none" stroke="#C9A84C" stroke-width="1.2"/><circle cx="0" cy="4" r="1" fill="#C9A84C"/></g></svg>
       <div class="brand sidebar-text" style="margin-left:10px;">BarberOS</div>
       <div class="sidebar-badge sidebar-text">ROOT ACCESS</div>
@@ -491,47 +494,55 @@ tr:hover td{background:rgba(255,255,255,0.016);}
       </div>
       <div class="kpi-grid">
         <div class="kpi-card" style="--accent-color:var(--gold)">
+          <div class="kpi-icon">🏪</div>
           <div class="kpi-label">Barberías Totales</div>
           <div class="kpi-value" id="kpi-shops">—</div>
           <div class="kpi-sub">Registradas en el sistema</div>
           <div class="kpi-trend up" id="kpi-shops-trend"></div>
         </div>
         <div class="kpi-card" style="--accent-color:var(--green)">
+          <div class="kpi-icon">💰</div>
           <div class="kpi-label">MRR</div>
           <div class="kpi-value" id="kpi-mrr">—</div>
           <div class="kpi-sub">Ingresos mensuales recurrentes</div>
           <div class="kpi-trend up">↑ Creciendo</div>
         </div>
         <div class="kpi-card" style="--accent-color:var(--blue)">
+          <div class="kpi-icon">📅</div>
           <div class="kpi-label">Citas Hoy (Global)</div>
           <div class="kpi-value" id="kpi-citas">—</div>
           <div class="kpi-sub">En todas las barberías</div>
-          <div class="kpi-trend up">↑ Sistema activo</div>
+          <div class="kpi-trend up" id="kpi-citas-trend">↑ Sistema activo</div>
         </div>
         <div class="kpi-card" style="--accent-color:var(--orange)">
+          <div class="kpi-icon">📋</div>
           <div class="kpi-label">Solicitudes Pendientes</div>
-          <div class="kpi-value" id="kpi-pending" style="color:var(--orange)">—</div>
+          <div class="kpi-value" id="kpi-pending">—</div>
           <div class="kpi-sub">Esperando aprobación</div>
           <div class="kpi-trend warn" id="kpi-pending-trend"></div>
         </div>
       </div>
-      <div class="kpi-grid" style="margin-bottom:14px;">
-        <div class="kpi-card" style="--accent-color:var(--blue)">
+      <div class="kpi-grid" style="margin-bottom:16px;">
+        <div class="kpi-card" style="--accent-color:#8B5CF6">
+          <div class="kpi-icon">👥</div>
           <div class="kpi-label">Clientes Únicos</div>
           <div class="kpi-value" id="kpi-clientes">—</div>
           <div class="kpi-sub">Total registrados</div>
         </div>
         <div class="kpi-card" style="--accent-color:var(--red)">
+          <div class="kpi-icon">🚫</div>
           <div class="kpi-label">No-Shows Hoy</div>
           <div class="kpi-value" id="kpi-noshows">—</div>
           <div class="kpi-sub">Clientes ausentes</div>
         </div>
-        <div class="kpi-card" style="--accent-color:var(--orange)">
+        <div class="kpi-card" style="--accent-color:var(--green)">
+          <div class="kpi-icon">✅</div>
           <div class="kpi-label">Tasa Completadas</div>
           <div class="kpi-value" id="kpi-tasa">—</div>
           <div class="kpi-sub">De citas de hoy</div>
         </div>
-        <div class="kpi-card" style="--accent-color:var(--green)">
+        <div class="kpi-card" style="--accent-color:var(--gold)">
+          <div class="kpi-icon">✂️</div>
           <div class="kpi-label">Barberos Activos</div>
           <div class="kpi-value" id="kpi-barberos-activos">—</div>
           <div class="kpi-sub">En todas las barberías</div>
