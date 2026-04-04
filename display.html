@@ -158,9 +158,15 @@ header{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;paddin
 header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);animation:line-pulse 3s ease-in-out infinite;}
 .brand{display:flex;align-items:center;gap:12px;}
 .barber-pole-wrap{position:relative;width:28px;height:54px;flex-shrink:0;animation:pole-glow 3s ease-in-out infinite;}
-.shop-icon-wrap{position:relative;width:54px;height:54px;flex-shrink:0;display:flex;align-items:center;justify-content:center;animation:pole-glow 3s ease-in-out infinite,icon-float 2.8s ease-in-out infinite;border:1px solid rgba(0,245,255,0.22);border-radius:6px;background:linear-gradient(180deg,rgba(0,245,255,0.04),rgba(0,245,255,0.01));overflow:hidden;}
-.shop-icon-wrap::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 0%,rgba(0,245,255,0.08) 50%,transparent 100%);background-size:100% 60%;animation:icon-scan 2.2s linear infinite;pointer-events:none;}
-.shop-icon-emoji{font-size:2.2rem;position:relative;z-index:1;line-height:1;}
+.shop-icon-wrap{position:relative;width:44px;height:54px;flex-shrink:0;animation:pole-glow 3s ease-in-out infinite,icon-float 2.8s ease-in-out infinite;}
+.shop-icon-cap{position:absolute;left:0;width:44px;height:8px;background:linear-gradient(180deg,#1c1c3a,#0d0d20);border:1px solid rgba(0,245,255,0.4);box-shadow:0 0 10px rgba(0,245,255,0.3);z-index:10;}
+.shop-icon-cap.top{top:0;border-radius:5px 5px 2px 2px;}
+.shop-icon-cap.bot{bottom:0;border-radius:2px 2px 5px 5px;}
+.shop-icon-body{position:absolute;top:7px;left:2px;width:40px;height:40px;border-radius:3px;overflow:hidden;background:linear-gradient(160deg,#08081a,#020510);border:1px solid rgba(0,245,255,0.18);z-index:5;display:flex;align-items:center;justify-content:center;}
+.shop-icon-shine{position:absolute;top:7px;left:2px;width:40px;height:40px;border-radius:3px;background:linear-gradient(90deg,rgba(0,0,0,0.3) 0%,rgba(0,245,255,0.12) 40%,rgba(0,0,0,0.2) 100%);pointer-events:none;z-index:8;}
+.shop-icon-scan{position:absolute;top:7px;left:2px;width:40px;height:40px;border-radius:3px;overflow:hidden;z-index:7;pointer-events:none;}
+.shop-icon-scan::after{content:'';position:absolute;left:0;width:100%;height:30%;background:linear-gradient(180deg,transparent,rgba(0,245,255,0.07),transparent);animation:icon-scan 2.4s linear infinite;}
+.shop-icon-emoji{font-size:1.7rem;line-height:1;position:relative;z-index:1;filter:drop-shadow(0 0 6px rgba(0,245,255,0.35));}
 .pole-cap{position:absolute;left:0;width:28px;height:8px;background:linear-gradient(180deg,#1c1c3a,#0d0d20);border:1px solid rgba(0,245,255,0.4);box-shadow:0 0 10px rgba(0,245,255,0.3);z-index:10;}
 .pole-cap-top{top:0;border-radius:5px 5px 2px 2px;}.pole-cap-bot{bottom:0;border-radius:2px 2px 5px 5px;}
 .pole-body{position:absolute;top:7px;left:4px;width:20px;height:40px;border-radius:3px;overflow:hidden;background:#020510;border:1px solid rgba(0,245,255,0.15);z-index:5;}
@@ -830,12 +836,17 @@ async function loadShop(){
   document.getElementById('shop-name').textContent=S.shopName;
   document.title=S.shopName+' — Sala de Espera';
   document.getElementById('ft-ver').textContent=S.shopName+' · BarberOS v9';
-  // Icono personalizado: reemplazar barber-pole con emoji animado si está configurado
+  // Icono personalizado: reemplazar barber-pole con estructura animada si está configurado
   if(s.icono){
     const wrap=document.querySelector('.barber-pole-wrap');
     if(wrap){
       wrap.className='shop-icon-wrap';
-      wrap.innerHTML=`<span class="shop-icon-emoji">${s.icono}</span>`;
+      wrap.innerHTML=
+        '<div class="shop-icon-cap top"></div>'+
+        '<div class="shop-icon-body"><span class="shop-icon-emoji">'+s.icono+'</span></div>'+
+        '<div class="shop-icon-shine"></div>'+
+        '<div class="shop-icon-scan"></div>'+
+        '<div class="shop-icon-cap bot"></div>';
     }
   }
   // Generar QR de reserva
