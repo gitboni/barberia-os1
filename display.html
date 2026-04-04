@@ -811,7 +811,7 @@ async function retry(fn,max=3){for(let i=0;i<=max;i++){try{return await fn();}ca
 
 async function loadShop(){
   // FIX BUG 6: cargar hora_inicio, hora_fin, timezone
-  const rows=await retry(()=>sbGet('shops','slug=eq.'+SLUG+'&select=id,nombre,duracion_turno,activo,hora_inicio,hora_fin,timezone'));
+  const rows=await retry(()=>sbGet('shops','slug=eq.'+SLUG+'&select=id,nombre,duracion_turno,activo,hora_inicio,hora_fin,timezone,icono'));
   if(!rows||!rows.length){setDb('err','NO ENCONTRADA');return false;}
   const s=rows[0];
   if(s.activo===false){showDisplaySuspended(s.nombre||SLUG);return false;}
@@ -825,6 +825,15 @@ async function loadShop(){
   document.getElementById('shop-name').textContent=S.shopName;
   document.title=S.shopName+' — Sala de Espera';
   document.getElementById('ft-ver').textContent=S.shopName+' · BarberOS v9';
+  // Icono personalizado: reemplazar barber-pole con emoji si está configurado
+  if(s.icono){
+    const wrap=document.querySelector('.barber-pole-wrap');
+    if(wrap){
+      wrap.innerHTML='';
+      wrap.style.cssText='width:54px;height:54px;display:flex;align-items:center;justify-content:center;font-size:2.6rem;filter:drop-shadow(0 0 10px var(--glow-c));flex-shrink:0;';
+      wrap.textContent=s.icono;
+    }
+  }
   // Generar QR de reserva
   generarQR(s.id);
   // Verificar si está pausada
