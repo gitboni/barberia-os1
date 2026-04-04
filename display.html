@@ -29,8 +29,14 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--cyan);font-fam
 @keyframes line-pulse{0%,100%{opacity:0.3}50%{opacity:1}}
 @keyframes stripe-scroll{from{transform:translateY(0)}to{transform:translateY(-50%)}}
 @keyframes pole-glow{0%,100%{filter:drop-shadow(0 0 8px rgba(0,245,255,0.4))}50%{filter:drop-shadow(0 0 18px rgba(0,245,255,0.7))}}
-@keyframes icon-float{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-4px) scale(1.08)}}
-@keyframes icon-scan{0%{background-position:0 -100%}100%{background-position:0 200%}}
+@keyframes glow-pink{0%,100%{filter:drop-shadow(0 0 8px rgba(255,105,170,0.45))}50%{filter:drop-shadow(0 0 20px rgba(255,105,170,0.8))}}
+@keyframes glow-teal{0%,100%{filter:drop-shadow(0 0 8px rgba(42,210,180,0.4))}50%{filter:drop-shadow(0 0 20px rgba(42,210,180,0.75))}}
+@keyframes glow-rose{0%,100%{filter:drop-shadow(0 0 8px rgba(220,100,130,0.4))}50%{filter:drop-shadow(0 0 20px rgba(220,100,130,0.75))}}
+@keyframes glow-green{0%,100%{filter:drop-shadow(0 0 8px rgba(60,200,90,0.4))}50%{filter:drop-shadow(0 0 20px rgba(60,200,90,0.75))}}
+@keyframes glow-blue{0%,100%{filter:drop-shadow(0 0 8px rgba(52,152,219,0.4))}50%{filter:drop-shadow(0 0 20px rgba(52,152,219,0.75))}}
+@keyframes glow-orange{0%,100%{filter:drop-shadow(0 0 8px rgba(230,120,40,0.4))}50%{filter:drop-shadow(0 0 20px rgba(230,120,40,0.75))}}
+@keyframes icon-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes icon-scan{0%{top:-40%}100%{top:130%}}
 @keyframes flip-in{0%{transform:scale(0.6) translateY(-20px);opacity:0}60%{transform:scale(1.08)}100%{transform:scale(1) translateY(0);opacity:1}}
 @keyframes item-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes pill-in{from{opacity:0;transform:translateX(-8px) scale(0.9)}to{opacity:1;transform:translateX(0) scale(1)}}
@@ -158,15 +164,65 @@ header{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;paddin
 header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);animation:line-pulse 3s ease-in-out infinite;}
 .brand{display:flex;align-items:center;gap:12px;}
 .barber-pole-wrap{position:relative;width:28px;height:54px;flex-shrink:0;animation:pole-glow 3s ease-in-out infinite;}
-.shop-icon-wrap{position:relative;width:44px;height:54px;flex-shrink:0;animation:pole-glow 3s ease-in-out infinite,icon-float 2.8s ease-in-out infinite;}
-.shop-icon-cap{position:absolute;left:0;width:44px;height:8px;background:linear-gradient(180deg,#1c1c3a,#0d0d20);border:1px solid rgba(0,245,255,0.4);box-shadow:0 0 10px rgba(0,245,255,0.3);z-index:10;}
+/* ── SHOP ICON BASE ── */
+.shop-icon-wrap{position:relative;width:44px;height:54px;flex-shrink:0;animation:icon-float 2.8s ease-in-out infinite;}
+.shop-icon-cap{position:absolute;left:0;width:44px;height:8px;background:linear-gradient(180deg,#1c1c3a,#0d0d20);z-index:10;}
 .shop-icon-cap.top{top:0;border-radius:5px 5px 2px 2px;}
 .shop-icon-cap.bot{bottom:0;border-radius:2px 2px 5px 5px;}
-.shop-icon-body{position:absolute;top:7px;left:2px;width:40px;height:40px;border-radius:3px;overflow:hidden;background:linear-gradient(160deg,#08081a,#020510);border:1px solid rgba(0,245,255,0.18);z-index:5;display:flex;align-items:center;justify-content:center;}
-.shop-icon-shine{position:absolute;top:7px;left:2px;width:40px;height:40px;border-radius:3px;background:linear-gradient(90deg,rgba(0,0,0,0.3) 0%,rgba(0,245,255,0.12) 40%,rgba(0,0,0,0.2) 100%);pointer-events:none;z-index:8;}
-.shop-icon-scan{position:absolute;top:7px;left:2px;width:40px;height:40px;border-radius:3px;overflow:hidden;z-index:7;pointer-events:none;}
-.shop-icon-scan::after{content:'';position:absolute;left:0;width:100%;height:30%;background:linear-gradient(180deg,transparent,rgba(0,245,255,0.07),transparent);animation:icon-scan 2.4s linear infinite;}
-.shop-icon-emoji{font-size:1.7rem;line-height:1;position:relative;z-index:1;filter:drop-shadow(0 0 6px rgba(0,245,255,0.35));}
+.shop-icon-body{position:absolute;top:7px;left:2px;width:40px;height:40px;border-radius:3px;overflow:hidden;background:#020510;z-index:5;display:flex;align-items:center;justify-content:center;}
+.shop-icon-stripes{position:absolute;inset:0;width:100%;height:200%;animation:stripe-scroll 1.4s linear infinite;}
+.shop-icon-shine{position:absolute;top:7px;left:2px;width:40px;height:40px;border-radius:3px;background:linear-gradient(90deg,rgba(0,0,0,0.35) 0%,rgba(255,255,255,0.15) 40%,rgba(0,0,0,0.25) 100%);pointer-events:none;z-index:8;}
+.shop-icon-scan{position:absolute;left:2px;width:40px;height:14px;z-index:7;pointer-events:none;background:linear-gradient(180deg,transparent,rgba(255,255,255,0.09),transparent);animation:icon-scan 2.2s linear infinite;}
+.shop-icon-emoji{font-size:1.65rem;line-height:1;position:relative;z-index:6;}
+
+/* ── TEMA: BARBERÍA — rojo/blanco/azul, glow cyan ── */
+.theme-barber{animation:pole-glow 3s ease-in-out infinite,icon-float 2.8s ease-in-out infinite;}
+.theme-barber .shop-icon-cap{border:1px solid rgba(0,245,255,0.4);box-shadow:0 0 10px rgba(0,245,255,0.3);}
+.theme-barber .shop-icon-body{border:1px solid rgba(0,245,255,0.18);}
+.theme-barber .shop-icon-stripes{background:repeating-linear-gradient(-55deg,#c01020 0,#c01020 6px,#f5f5f5 6px,#f5f5f5 11px,#1133bb 11px,#1133bb 17px,#f5f5f5 17px,#f5f5f5 22px);}
+.theme-barber .shop-icon-emoji{filter:drop-shadow(0 0 5px rgba(0,245,255,0.5));}
+
+/* ── TEMA: UÑAS — rosa/dorado/blanco, glow rosa ── */
+.theme-nails{animation:glow-pink 3s ease-in-out infinite,icon-float 2.8s ease-in-out infinite;}
+.theme-nails .shop-icon-cap{border:1px solid rgba(255,105,170,0.45);box-shadow:0 0 10px rgba(255,105,170,0.3);}
+.theme-nails .shop-icon-body{border:1px solid rgba(255,105,170,0.2);}
+.theme-nails .shop-icon-stripes{background:repeating-linear-gradient(-55deg,#d4507a 0,#d4507a 5px,#fce8f0 5px,#fce8f0 9px,#c8a04a 9px,#c8a04a 14px,#fce8f0 14px,#fce8f0 18px);animation-duration:2s;}
+.theme-nails .shop-icon-emoji{filter:drop-shadow(0 0 5px rgba(255,105,170,0.6));}
+
+/* ── TEMA: SPA / MASAJES — teal/blanco/celeste, glow teal ── */
+.theme-spa{animation:glow-teal 3s ease-in-out infinite,icon-float 3.2s ease-in-out infinite;}
+.theme-spa .shop-icon-cap{border:1px solid rgba(42,210,180,0.4);box-shadow:0 0 10px rgba(42,210,180,0.25);}
+.theme-spa .shop-icon-body{border:1px solid rgba(42,210,180,0.18);}
+.theme-spa .shop-icon-stripes{background:repeating-linear-gradient(-30deg,#1a9e8e 0,#1a9e8e 5px,#e0f8f4 5px,#e0f8f4 9px,#6ad4c8 9px,#6ad4c8 14px,#e0f8f4 14px,#e0f8f4 18px);animation-duration:2.6s;}
+.theme-spa .shop-icon-emoji{filter:drop-shadow(0 0 5px rgba(42,210,180,0.6));}
+
+/* ── TEMA: BEAUTY / MAQUILLAJE — rosa oscuro/dorado/crema, glow rose ── */
+.theme-beauty{animation:glow-rose 3s ease-in-out infinite,icon-float 2.6s ease-in-out infinite;}
+.theme-beauty .shop-icon-cap{border:1px solid rgba(220,100,130,0.45);box-shadow:0 0 10px rgba(220,100,130,0.3);}
+.theme-beauty .shop-icon-body{border:1px solid rgba(220,100,130,0.2);}
+.theme-beauty .shop-icon-stripes{background:repeating-linear-gradient(-55deg,#b84060 0,#b84060 5px,#f8e0e8 5px,#f8e0e8 9px,#c8903a 9px,#c8903a 14px,#f8e0e8 14px,#f8e0e8 18px);animation-duration:1.8s;}
+.theme-beauty .shop-icon-emoji{filter:drop-shadow(0 0 5px rgba(220,100,130,0.6));}
+
+/* ── TEMA: WELLNESS / NATURAL — verde/blanco/menta, glow verde ── */
+.theme-wellness{animation:glow-green 3s ease-in-out infinite,icon-float 3.4s ease-in-out infinite;}
+.theme-wellness .shop-icon-cap{border:1px solid rgba(60,200,90,0.4);box-shadow:0 0 10px rgba(60,200,90,0.25);}
+.theme-wellness .shop-icon-body{border:1px solid rgba(60,200,90,0.18);}
+.theme-wellness .shop-icon-stripes{background:repeating-linear-gradient(-40deg,#1e8040 0,#1e8040 5px,#d8f5e0 5px,#d8f5e0 9px,#70c890 9px,#70c890 14px,#d8f5e0 14px,#d8f5e0 18px);animation-duration:3s;}
+.theme-wellness .shop-icon-emoji{filter:drop-shadow(0 0 5px rgba(60,200,90,0.6));}
+
+/* ── TEMA: MÉDICO / CLÍNICA — azul/blanco/verde, glow azul ── */
+.theme-medical{animation:glow-blue 3s ease-in-out infinite,icon-float 2.9s ease-in-out infinite;}
+.theme-medical .shop-icon-cap{border:1px solid rgba(52,152,219,0.45);box-shadow:0 0 10px rgba(52,152,219,0.3);}
+.theme-medical .shop-icon-body{border:1px solid rgba(52,152,219,0.2);}
+.theme-medical .shop-icon-stripes{background:repeating-linear-gradient(-55deg,#1a6aaa 0,#1a6aaa 5px,#e8f4fc 5px,#e8f4fc 9px,#2ecc71 9px,#2ecc71 14px,#e8f4fc 14px,#e8f4fc 18px);animation-duration:2.2s;}
+.theme-medical .shop-icon-emoji{filter:drop-shadow(0 0 5px rgba(52,152,219,0.6));}
+
+/* ── TEMA: MASCOTAS — naranja/marrón/crema, glow naranja ── */
+.theme-pets{animation:glow-orange 3s ease-in-out infinite,icon-float 2.5s ease-in-out infinite;}
+.theme-pets .shop-icon-cap{border:1px solid rgba(230,120,40,0.45);box-shadow:0 0 10px rgba(230,120,40,0.3);}
+.theme-pets .shop-icon-body{border:1px solid rgba(230,120,40,0.2);}
+.theme-pets .shop-icon-stripes{background:repeating-linear-gradient(-55deg,#c86010 0,#c86010 5px,#fde8cc 5px,#fde8cc 9px,#8b5a2b 9px,#8b5a2b 14px,#fde8cc 14px,#fde8cc 18px);animation-duration:1.9s;}
+.theme-pets .shop-icon-emoji{filter:drop-shadow(0 0 5px rgba(230,120,40,0.6));}
 .pole-cap{position:absolute;left:0;width:28px;height:8px;background:linear-gradient(180deg,#1c1c3a,#0d0d20);border:1px solid rgba(0,245,255,0.4);box-shadow:0 0 10px rgba(0,245,255,0.3);z-index:10;}
 .pole-cap-top{top:0;border-radius:5px 5px 2px 2px;}.pole-cap-bot{bottom:0;border-radius:2px 2px 5px 5px;}
 .pole-body{position:absolute;top:7px;left:4px;width:20px;height:40px;border-radius:3px;overflow:hidden;background:#020510;border:1px solid rgba(0,245,255,0.15);z-index:5;}
@@ -836,14 +892,27 @@ async function loadShop(){
   document.getElementById('shop-name').textContent=S.shopName;
   document.title=S.shopName+' — Sala de Espera';
   document.getElementById('ft-ver').textContent=S.shopName+' · BarberOS v9';
-  // Icono personalizado: reemplazar barber-pole con estructura animada si está configurado
+  // Icono personalizado: reemplazar barber-pole con icono animado temático
   if(s.icono){
+    const ICON_THEMES={
+      '✂️':'barber','💈':'barber','💇':'barber','🪒':'barber',
+      '💅':'nails','👄':'nails',
+      '💆':'spa','🧖':'spa','🌿':'wellness','🧠':'wellness',
+      '💄':'beauty','💋':'beauty',
+      '🏥':'medical','💉':'medical',
+      '🐾':'pets',
+      '🧴':'beauty',
+    };
+    const theme=ICON_THEMES[s.icono]||'barber';
     const wrap=document.querySelector('.barber-pole-wrap');
     if(wrap){
-      wrap.className='shop-icon-wrap';
+      wrap.className='shop-icon-wrap theme-'+theme;
       wrap.innerHTML=
         '<div class="shop-icon-cap top"></div>'+
-        '<div class="shop-icon-body"><span class="shop-icon-emoji">'+s.icono+'</span></div>'+
+        '<div class="shop-icon-body">'+
+          '<div class="shop-icon-stripes"></div>'+
+          '<span class="shop-icon-emoji">'+s.icono+'</span>'+
+        '</div>'+
         '<div class="shop-icon-shine"></div>'+
         '<div class="shop-icon-scan"></div>'+
         '<div class="shop-icon-cap bot"></div>';
