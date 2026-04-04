@@ -1348,9 +1348,10 @@ async function doLogin() {
     const authData = await sbSignIn(email, pass);
     _accessToken = authData.access_token;
 
-    // Verificar que el usuario es superadmin (tiene email correcto)
+    // Verificar que el usuario es superadmin (acepta ambos emails por compatibilidad)
     const userEmail = authData.user?.email || email;
-    if(userEmail !== 'superadmin@auraos.app') {
+    const ALLOWED = ['superadmin@barberos.app', 'superadmin@auraos.app'];
+    if(!ALLOWED.includes(userEmail)) {
       _accessToken = null;
       throw new Error('Acceso denegado. Solo superadmin permitido.');
     }
