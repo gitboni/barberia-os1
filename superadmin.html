@@ -1905,7 +1905,7 @@ function _renderShopsTable(shops, barberos=[]) {
     const barbs=barberos.filter(b=>b.shop_id===s.id).length;
     const trial=_getTrialInfo(s);
     return `<tr>
-      <td style="color:var(--text);font-weight:500">${s.nombre}</td>
+      <td style="color:var(--text);font-weight:500"><span style="margin-right:6px;font-size:1rem;">${s.icono||'✂️'}</span>${s.nombre}</td>
       <td style="color:var(--muted);font-size:0.58rem">${s.slug}</td>
       <td style="color:var(--muted)">${s.whatsapp_dueño||'—'}</td>
       <td><span class="plan-badge plan-${s.plan}">${s.plan}</span></td>
@@ -3794,6 +3794,48 @@ function toggleEditShopProvider(){
   document.getElementById('editShop-twilio-fields').style.display=p==='twilio'?'':'none';
 }
 
+const SHOP_ICONOS = [
+  { emoji:'✂️', label:'Barbería' },
+  { emoji:'💈', label:'Barber Pole' },
+  { emoji:'💇', label:'Salón de corte' },
+  { emoji:'💅', label:'Uñas / Nail Salon' },
+  { emoji:'💆', label:'Spa / Masajes' },
+  { emoji:'🧖', label:'Wellness' },
+  { emoji:'🧴', label:'Estética' },
+  { emoji:'💄', label:'Maquillaje / Beauty' },
+  { emoji:'🪒', label:'Afeitado clásico' },
+  { emoji:'👄', label:'Labios / Micropigmentación' },
+  { emoji:'🌿', label:'Holístico / Natural' },
+  { emoji:'🧠', label:'Mente / Bienestar' },
+  { emoji:'🐾', label:'Mascotas / Grooming' },
+  { emoji:'🏥', label:'Clínica / Salud' },
+  { emoji:'💉', label:'Medicina estética' },
+];
+
+function renderIconoPicker(currentIcono) {
+  const grid = document.getElementById('editShopIconoGrid');
+  const cur = currentIcono || '✂️';
+  document.getElementById('editShopIcono').value = cur;
+  grid.innerHTML = SHOP_ICONOS.map(opt => `
+    <button type="button" title="${opt.label}"
+      onclick="selectShopIcono('${opt.emoji}')"
+      id="iconoBtn_${opt.emoji.codePointAt(0)}"
+      style="width:42px;height:42px;border:1.5px solid ${cur===opt.emoji?'var(--gold)':'var(--border)'};background:${cur===opt.emoji?'var(--gold3)':'var(--surface2)'};
+        border-radius:6px;font-size:1.4rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;"
+      onmouseover="this.style.borderColor='var(--gold2)'" onmouseout="if(document.getElementById('editShopIcono').value!=='${opt.emoji}')this.style.borderColor='var(--border)'"
+    >${opt.emoji}</button>
+  `).join('');
+}
+
+function selectShopIcono(emoji) {
+  document.getElementById('editShopIcono').value = emoji;
+  document.querySelectorAll('#editShopIconoGrid button').forEach(btn => {
+    const sel = btn.textContent.trim() === emoji;
+    btn.style.border = `1.5px solid ${sel?'var(--gold)':'var(--border)'}`;
+    btn.style.background = sel?'var(--gold3)':'var(--surface2)';
+  });
+}
+
 function abrirEditShop(shopId){
   const shop=_shops.find(s=>s.id===shopId);
   if(!shop){showToast('Shop no encontrada','error');return;}
@@ -3806,6 +3848,7 @@ function abrirEditShop(shopId){
   document.getElementById('editShopTwilio').value=shop.twilio_number||'';
   document.getElementById('editShopPlan').value=shop.plan||'pro';
   document.getElementById('editShop-resultado').style.display='none';
+  renderIconoPicker(shop.icono||'✂️');
   toggleEditShopProvider();
   openModal('modalEditShop');
 }
@@ -3819,6 +3862,7 @@ async function guardarEditShop(){
     'whatsapp_dueño':document.getElementById('editShopDueno').value.trim()||null,
     whatsapp_provider:provider,
     plan:document.getElementById('editShopPlan').value,
+    icono:document.getElementById('editShopIcono').value||'✂️',
     twilio_number:provider==='twilio'?(document.getElementById('editShopTwilio').value.trim()||null):null,
     meta_phone_number_id:provider==='meta'?(document.getElementById('editShopMetaPhoneId').value.trim()||null):null,
   };
@@ -3881,6 +3925,13 @@ async function guardarEditShop(){
         <option value="pro">Pro — $29/mes</option>
         <option value="elite">Elite — $79/mes</option>
       </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Tipo de negocio / Icono</label>
+      <div id="editShopIconoGrid" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;">
+        <!-- Populated by JS -->
+      </div>
+      <input type="hidden" id="editShopIcono" value="✂️">
     </div>
     <div id="editShop-resultado" style="display:none;padding:8px 12px;font-family:'DM Mono',monospace;font-size:0.58rem;margin-top:8px;border-left:2px solid var(--green);background:rgba(0,200,100,0.04);"></div>
     <div class="modal-actions">
