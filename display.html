@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>BarberOS — Sala de Espera</title>
+<title>AuraOS — Sala de Espera</title>
 <meta name="theme-color" content="#020408">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -639,7 +639,7 @@ html.fs-sm{font-size:90%;}html.fs-md{font-size:112%;}html.fs-lg{font-size:130%;}
       </div>
       <div>
         <div class="brand-name" id="shop-name">BARBEROS</div>
-        <div class="brand-sub" id="brand-sub">Sistema de Turnos · BarberOS</div>
+        <div class="brand-sub" id="brand-sub">Sistema de Turnos · AuraOS</div>
       </div>
     </div>
     <div class="clock-block">
@@ -661,7 +661,7 @@ html.fs-sm{font-size:90%;}html.fs-md{font-size:112%;}html.fs-lg{font-size:130%;}
   <footer>
     <div class="footer-msg" id="footer-msg">"El estilo es la firma del alma."</div>
     <div class="barberos-bar" id="barberos-bar"></div>
-    <div class="footer-version" id="ft-ver">BarberOS v8 · 2025</div>
+    <div class="footer-version" id="ft-ver">AuraOS v9 · 2026</div>
   </footer>
 </div>
 
@@ -684,7 +684,7 @@ html.fs-sm{font-size:90%;}html.fs-md{font-size:112%;}html.fs-lg{font-size:130%;}
 <div id="qr-panel" style="display:none;position:fixed;bottom:80px;right:20px;z-index:60;background:rgba(2,4,8,0.92);border:1px solid rgba(0,245,255,0.25);padding:14px 14px 10px;border-radius:6px;text-align:center;backdrop-filter:blur(12px);box-shadow:0 0 30px rgba(0,245,255,0.1);">
   <canvas id="qr-canvas"></canvas>
   <div style="font-family:'Share Tech Mono',monospace;font-size:0.52rem;color:rgba(0,245,255,0.6);letter-spacing:0.12em;text-transform:uppercase;margin-top:8px;">📱 RESERVAR TURNO</div>
-  <div style="font-family:'Rajdhani',sans-serif;font-size:0.6rem;font-weight:600;color:rgba(255,255,255,0.35);margin-top:2px;">Escanea con BarberOS</div>
+  <div style="font-family:'Rajdhani',sans-serif;font-size:0.6rem;font-weight:600;color:rgba(255,255,255,0.35);margin-top:2px;">Escanea con AuraOS</div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -903,7 +903,7 @@ async function loadShop(){
   S.tz=s.timezone||'America/Santo_Domingo';
   document.getElementById('shop-name').textContent=S.shopName;
   document.title=S.shopName+' — Sala de Espera';
-  document.getElementById('ft-ver').textContent=S.shopName+' · BarberOS v9';
+  document.getElementById('ft-ver').textContent=S.shopName+' · AuraOS v9';
   // Icono personalizado: cada tipo de negocio tiene su propio contenedor visual
   if(s.icono){
     const ICON_THEMES={
@@ -1493,7 +1493,7 @@ function setMode(m,barber){
   ['tv','shop','my','manana'].forEach(id=>{const btn=document.getElementById('mbtn-'+id);if(btn)btn.classList.remove('active','mode-barber-active','mode-manana-active');});
   const modeClass={tv:'active',shop:'active',my:'mode-barber-active',manana:'mode-manana-active'};
   const ab=document.getElementById('mbtn-'+(m==='my'?'my':m));if(ab)ab.classList.add(modeClass[m]||'active');
-  document.getElementById('brand-sub').textContent={tv:'Vista Global · TV',shop:'Vista Barbería',my:MY_BARBER?'✂ '+MY_BARBER:'Vista Personal',manana:'Citas para Mañana'}[m]||'Sistema de Turnos · BarberOS';
+  document.getElementById('brand-sub').textContent={tv:'Vista Global · TV',shop:'Vista Barbería',my:MY_BARBER?'✂ '+MY_BARBER:'Vista Personal',manana:'Citas para Mañana'}[m]||'Sistema de Turnos · AuraOS';
   document.getElementById('footer-msg').textContent={tv:'"Todos en la mira — vista global."',shop:'"El estilo es la firma del alma."',my:'"Tu turno, tu trabajo, tu orgullo."',manana:'"Mañana también hay estilo."'}[m]||'"El estilo es la firma del alma."';
   if(m==='manana')loadCitasMañana().catch(()=>{}).then(()=>render());
   document.getElementById('content').innerHTML='';render();
