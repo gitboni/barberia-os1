@@ -395,6 +395,8 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .done-pill-name{font-family:'Rajdhani',sans-serif;font-size:0.75rem;font-weight:600;color:rgba(0,255,120,0.45);letter-spacing:0.06em;text-transform:uppercase;white-space:nowrap;}
 .done-pill-check{font-size:0.55rem;color:rgba(0,255,120,0.4);}
 .done-strip-empty{font-family:'Share Tech Mono',monospace;font-size:0.44rem;color:rgba(0,255,120,0.18);letter-spacing:0.15em;text-transform:uppercase;}
+.btn-recuperar{flex-shrink:0;margin-left:auto;padding:2px 8px;border:1px solid rgba(0,255,120,0.25);background:transparent;color:rgba(0,255,120,0.55);font-family:'Share Tech Mono',monospace;font-size:0.65rem;cursor:pointer;transition:all 0.18s;line-height:1;}
+.btn-recuperar:hover{background:rgba(0,255,120,0.1);color:rgba(0,255,120,1);border-color:rgba(0,255,120,0.6);}
 .zone-a{display:flex;flex-direction:column;gap:3px;flex-shrink:0;}
 .q-col-header{display:grid;grid-template-columns:50px 1fr 96px 84px 96px;padding:0 10px 6px;font-family:'Share Tech Mono',monospace;font-size:0.4rem;letter-spacing:0.2em;color:rgba(0,245,255,0.35);text-transform:uppercase;border-bottom:1px solid rgba(0,245,255,0.1);font-weight:700;}
 .q-item{display:grid;grid-template-columns:50px 1fr 96px 84px 96px;align-items:center;padding:10px 12px;border:1px solid rgba(0,245,255,0.11);background:rgba(0,245,255,0.025);position:relative;overflow:hidden;transition:border-color 0.3s,background 0.3s;animation:item-in 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards;opacity:0;border-radius:3px;}
@@ -771,6 +773,18 @@ html.fs-sm{font-size:90%;}html.fs-md{font-size:112%;}html.fs-lg{font-size:130%;}
     <div class="action-acts">
       <button class="abtn abtn-cancel" onclick="closeModal('pause-modal')">CANCELAR</button>
       <button class="abtn abtn-gold" id="pause-confirm-btn" onclick="ejecutarPausarBarberia()">⏸ SÍ, PAUSAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- RECUPERAR CITA MODAL -->
+<div class="action-modal" id="recuperar-modal">
+  <div class="action-box">
+    <div class="action-title">↺ RECUPERAR CITA</div>
+    <div class="action-sub">Últimas citas completadas — selecciona la que deseas restaurar a pendiente</div>
+    <div id="recuperar-lista" style="display:flex;flex-direction:column;gap:6px;padding:12px 0;min-height:60px;"></div>
+    <div class="action-acts">
+      <button class="abtn abtn-cancel" onclick="closeModal('recuperar-modal')">CERRAR</button>
     </div>
   </div>
 </div>
@@ -1232,6 +1246,7 @@ function renderSolo(barber,layout){
           <div class="done-strip">
             <div class="done-strip-label">✓ LISTOS</div>
             <div class="done-pills">${done.length?done.slice(-3).map((c,i)=>`<div class="done-pill" style="animation-delay:${i*0.06}s"><div class="done-pill-num">${String(c.originalIdx+1).padStart(2,'0')}</div><div class="done-pill-name">${c.name}</div><div class="done-pill-check">✓</div></div>`).join(''):'<span class="done-strip-empty">— ninguno aún —</span>'}</div>
+            ${done.length?`<button type="button" class="btn-recuperar" onclick="openRecuperarModal('${barber.replace(/'/g,"\\'")}')">↺</button>`:''}
           </div>
           <div class="zone-a">
             <div class="q-col-header"><span>#</span><span>CLIENTE</span><span style="text-align:center">BARBERO</span><span style="text-align:center">HORA</span><span>ESTADO</span></div>
@@ -1339,6 +1354,7 @@ function renderMyTurn(c){
           <div class="done-strip" style="flex-shrink:0;">
             <div class="done-strip-label">✓ LISTOS</div>
             <div class="done-pills">${doneCitas.length?doneCitas.map((c,i)=>`<div class="done-pill" style="animation-delay:${i*0.06}s"><div class="done-pill-num">${String(allC.indexOf(c)+1).padStart(2,'0')}</div><div class="done-pill-name">${c.name}</div><div class="done-pill-check">✓</div></div>`).join(''):'<span class="done-strip-empty">— ninguno aún —</span>'}</div>
+            ${doneCitas.length?`<button type="button" class="btn-recuperar" onclick="openRecuperarModal('${barber.replace(/'/g,"\\'")}')">↺</button>`:''}
           </div>
           <div class="my-queue-list">
             ${(()=>{
@@ -1908,6 +1924,46 @@ async function confirmarTransferencia(){
 
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 
+// ── RECUPERAR CITA ──
+function openRecuperarModal(barber){
+  const q=S.queues[barber];
+  if(!q||q.currentTurn<=1){showToast('↺ No hay citas completadas aún','warn');return;}
+  // últimas 3 completadas (están antes de currentTurn en el array)
+  const completadas=q.citas.slice(0,q.currentTurn-1).slice(-3).reverse();
+  if(!completadas.length){showToast('↺ No hay citas completadas aún','warn');return;}
+  const lista=document.getElementById('recuperar-lista');
+  lista.innerHTML=completadas.map((c,i)=>{
+    const num=q.citas.indexOf(c)+1;
+    const esc=n=>n.replace(/'/g,"\\'");
+    return`<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid rgba(0,255,120,0.15);background:rgba(0,255,120,0.03);">
+      <div style="font-family:'Orbitron',monospace;font-size:0.7rem;font-weight:700;color:rgba(0,255,120,0.5);min-width:26px;">${String(num).padStart(2,'0')}</div>
+      <div style="flex:1;">
+        <div style="font-family:'Rajdhani',sans-serif;font-size:0.9rem;font-weight:700;color:rgba(255,255,255,0.85);text-transform:uppercase;">${c.name}</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:0.5rem;color:rgba(255,255,255,0.35);letter-spacing:0.1em;">${c.servicio} · ${fmt12(c.time)}</div>
+      </div>
+      <button onclick="deshacerCita('${c.id}','${esc(barber)}')" style="padding:6px 14px;border:1px solid rgba(0,255,120,0.4);background:rgba(0,255,120,0.07);color:rgba(0,255,120,0.9);font-family:'Share Tech Mono',monospace;font-size:0.55rem;letter-spacing:0.1em;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(0,255,120,0.18)'" onmouseout="this.style.background='rgba(0,255,120,0.07)'">↺ RECUPERAR</button>
+    </div>`;
+  }).join('');
+  document.getElementById('recuperar-modal').classList.add('open');
+}
+
+async function deshacerCita(citaId,barber){
+  const q=S.queues[barber];if(!q)return;
+  const btn=event.target;btn.textContent='⏳ ...';btn.style.pointerEvents='none';
+  try{
+    await retry(()=>sbPatch('citas','id=eq.'+citaId,{estado:'Confirmada'}),2);
+    q.currentTurn=Math.max(1,q.currentTurn-1);
+    saveTurns();
+    closeModal('recuperar-modal');
+    await loadCitas().catch(()=>{});
+    render();
+    showToast('↺ Cita restaurada a pendiente','ok');
+  }catch(e){
+    showToast('⚠ Error al recuperar cita','error');
+    btn.textContent='↺ RECUPERAR';btn.style.pointerEvents='';
+  }
+}
+
 // ── ZEN ──
 let ZEN=false;
 function toggleZen(){ZEN=!ZEN;document.body.classList.toggle('zen-mode',ZEN);const btn=document.getElementById('zen-btn');if(btn){btn.classList.toggle('active',ZEN);btn.textContent=ZEN?'☀ NORMAL (desactivar zen)':'☽ MODO ZEN (exterior / sol directo)';}try{localStorage.setItem('barberos_zen',ZEN?'1':'0');}catch(_){}}
@@ -2037,7 +2093,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='s'||e.key==='S')setMode('shop');
   if(e.key==='p'||e.key==='P')pausarBarberia();
   if(e.key==='m'||e.key==='M')setMode('manana');
-  if(e.key==='Escape'){['cfg-modal','walkin-modal','reag-modal','transfer-modal','pause-modal'].forEach(id=>closeModal(id));document.getElementById('barber-picker').classList.remove('open');}
+  if(e.key==='Escape'){['cfg-modal','walkin-modal','reag-modal','transfer-modal','pause-modal','recuperar-modal'].forEach(id=>closeModal(id));document.getElementById('barber-picker').classList.remove('open');}
   const nn=parseInt(e.key);if(nn>=1&&nn<=5&&MODE!=='tv'){const b=Object.keys(S.queues)[nn-1];if(b)siguienteTurno(b);}
   if(e.key==='ArrowRight'||e.key==='n'||e.key==='N'){if(MODE==='my'&&MY_BARBER)siguienteTurno(MY_BARBER,'btn-my');else{const b=Object.keys(S.queues)[0];if(b)siguienteTurno(b);}}
 });
