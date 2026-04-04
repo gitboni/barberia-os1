@@ -260,6 +260,35 @@ footer{padding:44px 52px 28px;border-top:1px solid var(--border);position:relati
 .footer-whatsapp{display:inline-flex;align-items:center;gap:8px;background:rgba(37,211,102,0.1);border:1px solid rgba(37,211,102,0.2);color:#25D366;padding:8px 16px;font-size:0.6rem;text-decoration:none;letter-spacing:0.1em;transition:all 0.2s;margin-top:14px;}
 .footer-whatsapp:hover{background:rgba(37,211,102,0.18);}
 
+/* ── Biz chips ── */
+.biz-chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:22px 0 10px;animation:slideUp 0.8s cubic-bezier(0.16,1,0.3,1) both 0.25s;position:relative;z-index:1;}
+.biz-chip{background:transparent;border:1px solid rgba(255,255,255,0.1);color:var(--muted2);padding:7px 16px;font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.1em;cursor:pointer;transition:all 0.2s;border-radius:2px;}
+.biz-chip:hover{border-color:rgba(201,168,76,0.4);color:var(--gold);}
+.biz-chip.active{border-color:var(--gold);background:rgba(201,168,76,0.1);color:var(--gold);}
+
+/* ── Biz types section ── */
+.biz-types-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:52px;}
+@media(max-width:900px){.biz-types-grid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:560px){.biz-types-grid{grid-template-columns:repeat(2,1fr);}}
+.biz-type-card{background:var(--surface);border:1px solid var(--border);padding:24px 16px;text-align:center;transition:all 0.25s;cursor:default;}
+.biz-type-card:hover{border-color:rgba(201,168,76,0.3);transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,0.35);}
+.biz-type-icon{font-size:2rem;margin-bottom:12px;}
+.biz-type-name{font-size:0.7rem;color:var(--text);margin-bottom:6px;letter-spacing:0.05em;}
+.biz-type-desc{font-size:0.55rem;color:var(--muted);line-height:1.6;}
+
+/* ── USD/DOP toggle ── */
+.price-toggle{display:flex;align-items:center;gap:12px;justify-content:center;margin-top:18px;}
+.price-toggle-label{font-size:0.58rem;color:var(--muted);letter-spacing:0.1em;}
+.toggle-switch{position:relative;width:42px;height:22px;cursor:pointer;}
+.toggle-switch input{opacity:0;width:0;height:0;}
+.toggle-track{position:absolute;inset:0;background:var(--surface);border:1px solid var(--border2);border-radius:22px;transition:all 0.25s;}
+.toggle-thumb{position:absolute;top:3px;left:3px;width:14px;height:14px;background:var(--gold);border-radius:50%;transition:transform 0.25s;}
+.toggle-switch input:checked~.toggle-track{background:rgba(201,168,76,0.12);border-color:rgba(201,168,76,0.4);}
+.toggle-switch input:checked~.toggle-thumb{transform:translateX(20px);}
+.price-cur-label{font-size:0.58rem;letter-spacing:0.1em;}
+.price-cur-label.active{color:var(--gold);}
+.price-cur-label.inactive{color:var(--muted);}
+
 .sticky-cta{display:none;position:fixed;bottom:0;left:0;right:0;z-index:90;padding:10px 14px;background:rgba(7,7,8,0.96);backdrop-filter:blur(14px);border-top:1px solid rgba(201,168,76,0.18);}
 .sticky-cta a{display:block;background:var(--gold);color:#000;text-align:center;padding:14px;font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.18em;text-transform:uppercase;text-decoration:none;}
 
@@ -472,10 +501,20 @@ footer{padding:44px 52px 28px;border-top:1px solid var(--border);position:relati
   <div class="hero-bg"></div>
   <div class="hero-badge">Hecho para negocios de belleza en RD y Latinoamérica</div>
   <h1 class="hero-title">Tu negocio<br><span class="accent">en piloto automático</span></h1>
-  <p class="hero-sub">Reservas por <strong>WhatsApp 24/7</strong>, recordatorios automáticos y panel de control — para barberías, salones, spas, estéticas y centros de uñas.</p>
+  <p class="hero-sub">Reservas por <strong>WhatsApp 24/7</strong>, recordatorios automáticos y panel de control — sin que tengas que contestar un solo mensaje.</p>
+
+  <!-- Selector tipo de negocio -->
+  <div class="biz-chips" id="bizChips">
+    <button type="button" class="biz-chip active" data-biz="barberia" onclick="selectBiz(this)">✂ Barbería</button>
+    <button type="button" class="biz-chip" data-biz="salon" onclick="selectBiz(this)">💇 Salón</button>
+    <button type="button" class="biz-chip" data-biz="unas" onclick="selectBiz(this)">💅 Uñas</button>
+    <button type="button" class="biz-chip" data-biz="spa" onclick="selectBiz(this)">💆 Spa</button>
+    <button type="button" class="biz-chip" data-biz="estetica" onclick="selectBiz(this)">💄 Estética</button>
+  </div>
+
   <div class="hero-actions">
     <a href="/registro" class="btn-hero btn-hero-primary">Prueba gratis 14 días</a>
-    <a href="/sala/elite-cuts" target="_blank" class="btn-hero btn-hero-ghost">Ver display en vivo ↗</a>
+    <a href="/sala/richar-stilo" target="_blank" class="btn-hero btn-hero-ghost">Ver demo en vivo ↗</a>
   </div>
   <div class="hero-stats">
     <div class="hero-stat"><div class="hero-stat-num" data-target="24" data-suffix="/7">0</div><div class="hero-stat-label">Disponible siempre</div></div>
@@ -521,6 +560,42 @@ footer{padding:44px 52px 28px;border-top:1px solid var(--border);position:relati
     <div class="how-card"><div class="how-num">01</div><div class="how-icon">📱</div><div class="how-title">Cliente escribe por WhatsApp</div><div class="how-desc">El cliente envía un mensaje a tu número. El bot responde al instante — a las 3am, en fin de semana, siempre.</div></div>
     <div class="how-card reveal reveal-delay-1"><div class="how-num">02</div><div class="how-icon">⚡</div><div class="how-title">El bot gestiona todo</div><div class="how-desc">Muestra horarios disponibles, profesionales y confirma la cita. Todo queda guardado en tu panel en tiempo real.</div></div>
     <div class="how-card reveal reveal-delay-2"><div class="how-num">03</div><div class="how-icon">🔔</div><div class="how-title">Recordatorios automáticos</div><div class="how-desc">El sistema envía un recordatorio 1 hora antes. Si el cliente no confirma, lo marca como No-Show automáticamente.</div></div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- TIPOS DE NEGOCIO -->
+<section id="negocios" style="text-align:center;">
+  <div class="section-label">Compatible con</div>
+  <div class="section-title">Un sistema para<br>cada tipo de negocio.</div>
+  <p class="section-sub" style="margin:0 auto 0;">Configurado para el sector belleza y bienestar — cada negocio con su propio icono, panel y número.</p>
+  <div class="biz-types-grid reveal">
+    <div class="biz-type-card">
+      <div class="biz-type-icon">✂</div>
+      <div class="biz-type-name">Barbería</div>
+      <div class="biz-type-desc">Cola de turnos, múltiples barberos, pantalla de sala de espera en tiempo real.</div>
+    </div>
+    <div class="biz-type-card">
+      <div class="biz-type-icon">💇</div>
+      <div class="biz-type-name">Salón de Belleza</div>
+      <div class="biz-type-desc">Agenda por estilista, servicios múltiples y recordatorios automáticos.</div>
+    </div>
+    <div class="biz-type-card">
+      <div class="biz-type-icon">💅</div>
+      <div class="biz-type-name">Centro de Uñas</div>
+      <div class="biz-type-desc">Turnos por técnica, historial de clientes y tiempos personalizados por servicio.</div>
+    </div>
+    <div class="biz-type-card">
+      <div class="biz-type-icon">💆</div>
+      <div class="biz-type-name">Spa & Masajes</div>
+      <div class="biz-type-desc">Reservas por tipo de tratamiento, bloqueo de horarios y gestión de agenda sin estrés.</div>
+    </div>
+    <div class="biz-type-card">
+      <div class="biz-type-icon">💄</div>
+      <div class="biz-type-name">Estética & Maquillaje</div>
+      <div class="biz-type-desc">Control de citas, recordatorios 1 hora antes y panel de reportes semanal.</div>
+    </div>
   </div>
 </section>
 
@@ -588,6 +663,15 @@ footer{padding:44px 52px 28px;border-top:1px solid var(--border);position:relati
   <div class="section-label">Planes y precios</div>
   <div class="section-title">Simple y transparente.</div>
   <p style="font-size:0.72rem;color:var(--muted);margin-top:12px;">Sin contratos. Cancela cuando quieras. 14 días de prueba gratis.</p>
+  <div class="price-toggle">
+    <span class="price-cur-label active" id="lblUSD">USD</span>
+    <label class="toggle-switch">
+      <input type="checkbox" id="dopToggle" aria-label="Cambiar moneda a pesos dominicanos" onchange="toggleMoneda(this.checked)">
+      <div class="toggle-track"></div>
+      <div class="toggle-thumb"></div>
+    </label>
+    <span class="price-cur-label inactive" id="lblDOP">DOP <span style="font-size:0.44rem;opacity:0.6;">≈ 1 USD = 60 DOP</span></span>
+  </div>
   <div class="pricing-grid reveal">
     <div class="price-card">
       <div class="price-plan">Gratis</div>
@@ -642,12 +726,14 @@ footer{padding:44px 52px 28px;border-top:1px solid var(--border);position:relati
   <div class="section-label">FAQ</div>
   <div class="section-title">Preguntas frecuentes.</div>
   <div class="faq-grid">
-    <div class="faq-item"><div class="faq-q">¿Necesito saber programar para usarlo? <span class="faq-icon">+</span></div><div class="faq-a">No. El sistema se configura en 2 minutos. Solo necesitas tu número de WhatsApp y los nombres de tus profesionales.</div></div>
-    <div class="faq-item"><div class="faq-q">¿Funciona con mi WhatsApp actual? <span class="faq-icon">+</span></div><div class="faq-a">El sistema usa un número de WhatsApp Business dedicado. No interfiere con tu WhatsApp personal.</div></div>
-    <div class="faq-item"><div class="faq-q">¿Qué pasa si hay un problema técnico? <span class="faq-icon">+</span></div><div class="faq-a">Tenemos soporte por WhatsApp directo con más del 99.9% de disponibilidad. Respondemos en menos de 2 horas.</div></div>
-    <div class="faq-item"><div class="faq-q">¿Puedo cancelar en cualquier momento? <span class="faq-icon">+</span></div><div class="faq-a">Sí, sin penalidades. El servicio permanece activo hasta el final del período pagado.</div></div>
-    <div class="faq-item"><div class="faq-q">¿Cómo se realiza el pago? <span class="faq-icon">+</span></div><div class="faq-a">Aceptamos tarjetas Visa y Mastercard via Stripe, PayPal y transferencia bancaria para clientes en RD.</div></div>
-    <div class="faq-item"><div class="faq-q">¿Cuántos mensajes puede manejar el bot? <span class="faq-icon">+</span></div><div class="faq-a">Sin límite práctico. El sistema maneja cientos de conversaciones simultáneas sin problemas.</div></div>
+    <div class="faq-item"><div class="faq-q">¿Necesito saber programar para usarlo? <span class="faq-icon">+</span></div><div class="faq-a">No. El sistema se configura en 2 minutos. Solo necesitas tu número de WhatsApp y los nombres de tus profesionales. Nosotros lo activamos contigo.</div></div>
+    <div class="faq-item"><div class="faq-q">¿Funciona para salones con varios servicios y precios? <span class="faq-icon">+</span></div><div class="faq-a">Sí. Puedes agregar todos tus servicios con duración y precio individual. El bot los muestra al cliente y agenda según disponibilidad real.</div></div>
+    <div class="faq-item"><div class="faq-q">¿Funciona con mi WhatsApp actual? <span class="faq-icon">+</span></div><div class="faq-a">El sistema usa un número de WhatsApp Business dedicado para tu negocio. No interfiere con tu WhatsApp personal.</div></div>
+    <div class="faq-item"><div class="faq-q">¿Qué pasa si mi cliente no tiene WhatsApp? <span class="faq-icon">+</span></div><div class="faq-a">Puedes agregar citas manualmente desde el panel de administración o la app. El bot es el canal principal pero no el único.</div></div>
+    <div class="faq-item"><div class="faq-q">¿Puedo poner el ícono de mi tipo de negocio? <span class="faq-icon">+</span></div><div class="faq-a">Sí. Desde el panel de configuración puedes elegir el ícono que aparece en tu sala de espera — tijeras para barberías, flor para spa, esmalte para uñas, y más.</div></div>
+    <div class="faq-item"><div class="faq-q">¿Puedo cancelar en cualquier momento? <span class="faq-icon">+</span></div><div class="faq-a">Sí, sin penalidades ni contratos. El servicio permanece activo hasta el final del período pagado.</div></div>
+    <div class="faq-item"><div class="faq-q">¿Cómo se realiza el pago? <span class="faq-icon">+</span></div><div class="faq-a">Aceptamos tarjetas Visa y Mastercard, PayPal y transferencia bancaria para clientes en RD. También puedes pagar en DOP.</div></div>
+    <div class="faq-item"><div class="faq-q">¿Cuántos mensajes puede manejar el bot? <span class="faq-icon">+</span></div><div class="faq-a">Sin límite práctico. El sistema maneja cientos de conversaciones simultáneas sin problemas ni demoras.</div></div>
   </div>
 </section>
 
@@ -841,37 +927,113 @@ if (sc && fe) {
   }, { threshold: 0.1 }).observe(fe);
 }
 
+// ── Biz content map ────────────────────────
+const BIZ_CONTENT = {
+  barberia: {
+    sub: 'Reservas por <strong>WhatsApp 24/7</strong>, recordatorios automáticos y panel de control — sin que tengas que contestar un solo mensaje.',
+    msgs: [
+      { dir:'out', text:'Hola, quiero un turno para hoy', time:'10:32' },
+      { dir:'in',  text:'El próximo turno disponible es:\nHoy · 11:15 hs\n\nBarberos:\n1. Matías\n2. Lucas\n3. Gonzalo\n\nResponde con el número.', time:'10:32 automático' },
+      { dir:'out', text:'1', time:'10:33' },
+      { dir:'in',  text:'¡Turno confirmado! ✅\nHoy · 11:15 hs · Matías\n\nTe recordamos 1 hora antes. 🔔', time:'10:33 automático' },
+    ],
+  },
+  salon: {
+    sub: 'Tu salón de belleza en <strong>piloto automático</strong>. Agenda servicios, profesionales y recordatorios — sin WhatsApp manual.',
+    msgs: [
+      { dir:'out', text:'Quiero agendar para color y corte', time:'14:05' },
+      { dir:'in',  text:'Servicios disponibles:\n1. Corte + color — 90 min\n2. Corte + tratamiento — 60 min\n\n¿Qué prefieres?', time:'14:05 automático' },
+      { dir:'out', text:'1', time:'14:06' },
+      { dir:'in',  text:'¡Reserva confirmada! ✅\nMañana · 10:00 hs · Valentina\n\nTe recordamos 1 hora antes. 🔔', time:'14:06 automático' },
+    ],
+  },
+  unas: {
+    sub: 'Gestiona tu centro de uñas sin esfuerzo. <strong>Turnos automáticos</strong> por WhatsApp, historial de clientes y tiempos por servicio.',
+    msgs: [
+      { dir:'out', text:'Hola, ¿tienen turno para gel hoy?', time:'11:20' },
+      { dir:'in',  text:'Servicios de uñas:\n1. Gel completo — 45 min\n2. Acrílicas — 60 min\n3. Diseño artístico — 90 min\n\nElige una opción.', time:'11:20 automático' },
+      { dir:'out', text:'1', time:'11:21' },
+      { dir:'in',  text:'¡Reserva lista! ✅\nHoy · 15:30 hs · Karina\n\nTe recordamos 1 hora antes. 💅', time:'11:21 automático' },
+    ],
+  },
+  spa: {
+    sub: 'Tu spa en <strong>modo automático</strong>. Reservas sin interrupciones, bloqueo de horarios y recordatorios para cada tratamiento.',
+    msgs: [
+      { dir:'out', text:'Quisiera un masaje relajante mañana', time:'09:15' },
+      { dir:'in',  text:'Disponibles mañana:\n1. Masaje relajante · 09:00\n2. Masaje relajante · 11:30\n3. Masaje relajante · 15:00\n\nElige horario:', time:'09:15 automático' },
+      { dir:'out', text:'2', time:'09:16' },
+      { dir:'in',  text:'¡Cita confirmada! ✅\nMañana · 11:30 hs · María\n\nTe esperamos. 🌿', time:'09:16 automático' },
+    ],
+  },
+  estetica: {
+    sub: 'Tu estética sin caos de mensajes. <strong>Reservas automáticas</strong> por WhatsApp, reportes semanales y control de citas.',
+    msgs: [
+      { dir:'out', text:'Hola, quiero turno para maquillaje', time:'16:40' },
+      { dir:'in',  text:'Servicios disponibles:\n1. Maquillaje social — 45 min\n2. Maquillaje de noche — 60 min\n3. Maquillaje artístico — 90 min\n\n¿Cuál prefieres?', time:'16:40 automático' },
+      { dir:'out', text:'1', time:'16:41' },
+      { dir:'in',  text:'¡Reserva confirmada! ✅\nMañana · 09:30 hs · Gabriela\n\nTe recordamos 1 hora antes. 💄', time:'16:41 automático' },
+    ],
+  },
+};
+
+function selectBiz(btn) {
+  const biz = btn.dataset.biz;
+  document.querySelectorAll('.biz-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  const content = BIZ_CONTENT[biz];
+  if (!content) return;
+  const sub = document.querySelector('.hero-sub');
+  if (sub) sub.innerHTML = content.sub;
+  chatMsgs = content.msgs;
+  chatRunning = true;
+  chatGen++;
+  playChat(chatGen);
+}
+
+// ── USD / DOP toggle ───────────────────────
+const PRICES_USD = ['$0', '$29', '$79'];
+const PRICES_DOP = ['RD$0', 'RD$1,740', 'RD$4,740'];
+function toggleMoneda(isDOP) {
+  const amounts = document.querySelectorAll('.price-amount');
+  const prices = isDOP ? PRICES_DOP : PRICES_USD;
+  const cur = isDOP ? 'DOP' : 'USD';
+  amounts.forEach((el, i) => { el.innerHTML = `${prices[i]} <span>${cur}</span>`; });
+  document.getElementById('lblUSD').className = 'price-cur-label ' + (isDOP ? 'inactive' : 'active');
+  document.getElementById('lblDOP').className = 'price-cur-label ' + (isDOP ? 'active' : 'inactive');
+}
+
 // ── Phone Chat Animation ───────────────────
-const chatMsgs = [
-  { dir:'out', text:'Hola, quiero un turno para hoy', time:'10:32' },
-  { dir:'in',  text:'El próximo turno disponible es:\nHoy · 11:15 hs\n\nBarberos:\n1. Matías\n2. Lucas\n3. Gonzalo\n\nResponde con el número.', time:'10:32 automático' },
-  { dir:'out', text:'1', time:'10:33' },
-  { dir:'in',  text:'¡Turno confirmado! ✅\nHoy · 11:15 hs · Matías\n\nTe recordamos 1 hora antes. 🔔', time:'10:33 automático' },
-];
+let chatMsgs = BIZ_CONTENT.barberia.msgs;
 const chatArea = document.getElementById('chatArea');
 const typingEl = document.getElementById('typingIndicator');
 let chatRunning = false;
+let chatGen = 0;
 const wait = ms => new Promise(r => setTimeout(r, ms));
-async function playChat() {
+async function playChat(gen) {
   chatArea.innerHTML = ''; typingEl.classList.remove('show');
-  for (let i = 0; i < chatMsgs.length; i++) {
+  const msgs = chatMsgs.slice();
+  for (let i = 0; i < msgs.length; i++) {
+    if (chatGen !== gen) return;
     await wait(i === 0 ? 600 : 900);
-    if (chatMsgs[i].dir === 'in') {
+    if (chatGen !== gen) return;
+    if (msgs[i].dir === 'in') {
       typingEl.classList.add('show');
-      await wait(Math.min(chatMsgs[i].text.length * 28, 2200));
+      await wait(Math.min(msgs[i].text.length * 28, 2200));
       typingEl.classList.remove('show');
     }
+    if (chatGen !== gen) return;
     const div = document.createElement('div');
-    div.className = `msg msg-${chatMsgs[i].dir}`;
-    div.innerHTML = `<div class="msg-bubble">${chatMsgs[i].text.replace(/\n/g,'<br>')}</div><div class="msg-time">${chatMsgs[i].time}</div>`;
+    div.className = `msg msg-${msgs[i].dir}`;
+    div.innerHTML = `<div class="msg-bubble">${msgs[i].text.replace(/\n/g,'<br>')}</div><div class="msg-time">${msgs[i].time}</div>`;
     chatArea.appendChild(div);
     await wait(30); div.classList.add('visible');
     chatArea.scrollTop = chatArea.scrollHeight;
   }
-  await wait(4000); if (chatRunning) playChat();
+  await wait(4000);
+  if (chatGen === gen && chatRunning) playChat(gen);
 }
 new IntersectionObserver(entries => {
-  if (entries[0].isIntersecting && !chatRunning) { chatRunning = true; playChat(); }
+  if (entries[0].isIntersecting && !chatRunning) { chatRunning = true; chatGen++; playChat(chatGen); }
 }, { threshold: 0.5 }).observe(document.querySelector('.phone-demo'));
 
 // ═══════════════════════════════════════════
