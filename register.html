@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Registra tu Barbería — BarberOS</title>
-<meta name="description" content="Crea tu cuenta de BarberOS en 2 minutos. 14 días gratis, sin tarjeta de crédito.">
+<title>Registra tu Negocio — AuraOS</title>
+<meta name="description" content="Crea tu cuenta de AuraOS en 2 minutos. 14 días gratis, sin tarjeta de crédito.">
 <meta name="robots" content="noindex">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✂</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -154,14 +154,14 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:18px 5
 <body>
 
 <nav>
-  <a href="/" class="nav-logo">BarberOS</a>
+  <a href="/" class="nav-logo">AuraOS</a>
   <a href="/" class="nav-back">← Volver al inicio</a>
 </nav>
 
 <div class="page">
   <!-- LEFT PANEL -->
   <div class="left-panel">
-    <div class="left-badge">Registro de Barbería</div>
+    <div class="left-badge">Registro de Negocio</div>
     <h1 class="left-title">Empieza hoy.<br><span class="accent">Sin costo.</span></h1>
     <p class="left-sub">Configura tu sistema de reservas por WhatsApp en menos de 2 minutos. Sin contratos, sin tarjeta de crédito.</p>
     <div class="benefits">
@@ -181,7 +181,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:18px 5
   <div class="form-panel">
     <!-- STEPS INDICATOR -->
     <div class="steps" id="stepsBar">
-      <div class="step active" id="step-ind-1"><span class="step-num">1</span>Barbería</div>
+      <div class="step active" id="step-ind-1"><span class="step-num">1</span>Negocio</div>
       <div class="step" id="step-ind-2"><span class="step-num">2</span>WhatsApp</div>
       <div class="step" id="step-ind-3"><span class="step-num">3</span>Cuenta</div>
     </div>
@@ -191,18 +191,18 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:18px 5
     <!-- STEP 1: DATOS BARBERÍA -->
     <div class="step-section active fade-up" id="step-1">
       <div class="form-title">Paso 1 de 3</div>
-      <div class="form-sub">Información de tu barbería</div>
+      <div class="form-sub">Información de tu negocio</div>
 
       <div class="field">
-        <label>Nombre de la barbería *</label>
+        <label>Nombre del negocio *</label>
         <input type="text" id="f-nombre" placeholder="Ej: Elite Cuts" autocomplete="organization">
-        <div class="err-msg" id="e-nombre">Por favor ingresa el nombre de tu barbería</div>
+        <div class="err-msg" id="e-nombre">Por favor ingresa el nombre de tu negocio</div>
       </div>
 
       <div class="field">
-        <label>URL de tu barbería (slug) *</label>
+        <label>URL de tu negocio (slug) *</label>
         <input type="text" id="f-slug" placeholder="elite-cuts" autocomplete="off">
-        <div class="slug-preview">Tu URL: barberia-os1.vercel.app/admin/<span id="slug-preview-val">tu-barberia</span></div>
+        <div class="slug-preview">Tu URL: auraos.vercel.app/admin/<span id="slug-preview-val">tu-barberia</span></div>
         <div class="err-msg" id="e-slug">Solo letras, números y guiones. Mínimo 3 caracteres.</div>
       </div>
 
@@ -368,11 +368,11 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:18px 5
 
       <div class="terms-check">
         <input type="checkbox" id="f-terms">
-        <label for="f-terms">Acepto los <a href="/terminos" target="_blank">Términos de uso</a> y la <a href="/privacidad" target="_blank">Política de privacidad</a> de BarberOS. Entiendo que tengo 14 días de prueba gratuita.</label>
+        <label for="f-terms">Acepto los <a href="/terminos" target="_blank">Términos de uso</a> y la <a href="/privacidad" target="_blank">Política de privacidad</a> de AuraOS. Entiendo que tengo 14 días de prueba gratuita.</label>
       </div>
 
       <div class="form-divider"></div>
-      <button class="btn-submit" id="submitBtn" onclick="submitForm()">✓ Crear mi barbería gratis</button>
+      <button class="btn-submit" id="submitBtn" onclick="submitForm()">✓ Crear mi negocio gratis</button>
       <button class="btn-ghost" onclick="goStep(2)">← Atrás</button>
 
       <div style="margin-top:20px;font-size:0.52rem;color:var(--muted);text-align:center;line-height:1.7;">
@@ -383,10 +383,10 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:18px 5
     <!-- SUCCESS SCREEN -->
     <div class="success-screen" id="successScreen">
       <div class="success-icon">✂️</div>
-      <div class="success-title">¡Barbería Creada!</div>
+      <div class="success-title">¡Negocio Creado!</div>
       <div class="success-sub" id="successMsg">
-        Tu barbería está lista. Tienes 14 días de prueba gratuita.<br>
-        Accede a tu panel de administración para configurar barberos y servicios.
+        Tu negocio está listo. Tienes 14 días de prueba gratuita.<br>
+        Accede a tu panel de administración para agregar profesionales y servicios.
       </div>
       <div class="success-links" id="successLinks">
         <a href="#" class="success-link primary" id="link-admin">Ir a mi panel de administración →</a>
@@ -549,7 +549,7 @@ async function submitForm() {
 
   const btn = document.getElementById('submitBtn');
   btn.disabled = true;
-  btn.textContent = '⏳ Creando tu barbería...';
+  btn.textContent = '⏳ Creando tu negocio...';
   btn.classList.add('loading');
   hideFormError();
 
@@ -560,7 +560,7 @@ async function submitForm() {
     if (!slugAvail) {
       showFormError('Ese nombre de URL ya está en uso. Por favor elige otro en el paso 1.');
       goStep(1);
-      btn.disabled = false; btn.textContent = '✓ Crear mi barbería gratis'; btn.classList.remove('loading');
+      btn.disabled = false; btn.textContent = '✓ Crear mi negocio gratis'; btn.classList.remove('loading');
       return;
     }
 
@@ -620,7 +620,7 @@ async function submitForm() {
       },
       body: JSON.stringify(shopData)
     });
-    if (!shopRes.ok) throw new Error('Error al crear la barbería en la base de datos');
+    if (!shopRes.ok) throw new Error('Error al crear el negocio en la base de datos');
     const shops = await shopRes.json();
     const shop = shops[0];
 
@@ -658,7 +658,7 @@ async function submitForm() {
   } catch(err) {
     showFormError('Error: ' + (err.message || 'Algo salió mal. Intenta de nuevo.'));
     btn.disabled = false;
-    btn.textContent = '✓ Crear mi barbería gratis';
+    btn.textContent = '✓ Crear mi negocio gratis';
     btn.classList.remove('loading');
   }
 }
@@ -671,7 +671,7 @@ function showSuccess(slug, name) {
   sc.classList.add('show');
   document.getElementById('successMsg').innerHTML =
     `<strong>${name.split(' ')[0]}</strong>, tu barbería está lista con 14 días de prueba gratuita.<br>
-    Accede a tu panel para agregar barberos, personalizar servicios y configurar tu bot de WhatsApp.`;
+    Accede a tu panel para agregar profesionales, personalizar servicios y configurar tu bot de WhatsApp.`;
   document.getElementById('link-admin').href = '/admin/' + slug;
   document.getElementById('link-display').href = '/sala/' + slug;
 }
