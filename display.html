@@ -879,7 +879,7 @@ const SLUG=resolveSlug();
 let DUR=45;
 
 // FIX BUG 6: guardar hora_inicio/hora_fin de la shop
-const S={shopId:null,shopName:'BARBEROS',barberos:[],citas:[],citasMañana:[],queues:{},lastUp:null,horaInicio:7,horaFin:22,tz:'America/Santo_Domingo'};
+const S={shopId:null,shopName:'BARBEROS',barberos:[],citas:[],citasMañana:[],queues:{},lastUp:null,horaInicio:7,horaFin:22,tz:'America/Santo_Domingo',recordatorioModo:'turnos',recordatorioTurnos:1};
 let MODE='shop';
 let MY_BARBER=null;
 
@@ -890,7 +890,7 @@ async function retry(fn,max=3){for(let i=0;i<=max;i++){try{return await fn();}ca
 
 async function loadShop(){
   // FIX BUG 6: cargar hora_inicio, hora_fin, timezone
-  const rows=await retry(()=>sbGet('shops','slug=eq.'+SLUG+'&select=id,nombre,duracion_turno,activo,hora_inicio,hora_fin,timezone,icono'));
+  const rows=await retry(()=>sbGet('shops','slug=eq.'+SLUG+'&select=id,nombre,duracion_turno,activo,hora_inicio,hora_fin,timezone,icono,recordatorio_modo,recordatorio_turnos'));
   if(!rows||!rows.length){setDb('err','NO ENCONTRADA');return false;}
   const s=rows[0];
   if(s.activo===false){showDisplaySuspended(s.nombre||SLUG);return false;}
@@ -901,6 +901,8 @@ async function loadShop(){
   S.horaInicio=s.hora_inicio??7;
   S.horaFin=s.hora_fin??22;
   S.tz=s.timezone||'America/Santo_Domingo';
+  S.recordatorioModo=s.recordatorio_modo||'turnos';
+  S.recordatorioTurnos=s.recordatorio_turnos||1;
   document.getElementById('shop-name').textContent=S.shopName;
   document.title=S.shopName+' — Sala de Espera';
   document.getElementById('ft-ver').textContent=S.shopName+' · AuraOS v9';
@@ -1086,6 +1088,18 @@ async function siguienteTurno(barber,btnId){
   q.currentTurn+=1;
   saveTurns();
   onTurnChanged(barber);
+  // Notificar por WA al próximo cliente si el modo es 'turnos'
+  if(S.shopId&&S.recordatorioModo==='turnos'){
+    const rt=S.recordatorioTurnos||1;
+    const targetCita=citas[(q.currentTurn-1)+rt];
+    if(targetCita?.id){
+      fetch(`${SB_URL}/functions/v1/trigger-recordatorios`,{
+        method:'POST',
+        headers:H_,
+        body:JSON.stringify({shop_id:S.shopId,cita_id:targetCita.id,turno_actual:q.currentTurn,turnos_restantes:rt})
+      }).catch(()=>{});
+    }
+  }
   ['hn-'+safeId(barber),'my-hn'].forEach(id=>{
     const el=document.getElementById(id);
     if(el){el.classList.remove('flip');void el.offsetWidth;el.classList.add('flip');}
