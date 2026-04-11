@@ -493,7 +493,7 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .my-queue-list::-webkit-scrollbar{width:3px;}
 .my-queue-list::-webkit-scrollbar-thumb{background:rgba(0,245,255,0.25);border-radius:2px;}
 .my-queue-list::-webkit-scrollbar-thumb:hover{background:rgba(0,245,255,0.4);}
-.my-q-item{display:grid;grid-template-columns:38px 1fr auto;align-items:center;gap:7px;padding:6px 10px;border:1px solid rgba(0,245,255,0.11);background:rgba(0,245,255,0.025);position:relative;overflow:hidden;animation:item-in 0.4s forwards;opacity:0;border-radius:3px;}
+.my-q-item{display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:7px;padding:6px 10px;border:1px solid rgba(0,245,255,0.11);background:rgba(0,245,255,0.025);position:relative;overflow:hidden;animation:item-in 0.4s forwards;opacity:0;border-radius:3px;}
 .my-q-item.mqi-active{border-left:3px solid var(--cyan);background:rgba(0,245,255,0.055);box-shadow:inset 0 0 20px rgba(0,245,255,0.04);padding:7px 10px;}
 .my-q-item.mqi-next{border-left:3px solid var(--gold);background:rgba(255,214,0,0.02);}
 .my-q-item.mqi-wait{border-left:3px solid rgba(0,245,255,0.1);}
@@ -525,7 +525,7 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .my-right .my-queue-section{gap:5px;}
 
 /* ── LISTA DE TURNOS — ALTA VISIBILIDAD ── */
-.my-q-item{grid-template-columns:56px 1fr auto;gap:10px;padding:13px 16px;}
+.my-q-item{grid-template-columns:56px minmax(0,1fr) auto;gap:10px;padding:13px 16px;}
 .my-q-item.mqi-active{padding:14px 16px;background:rgba(0,245,255,0.07);}
 .my-q-item.mqi-next{background:rgba(255,214,0,0.05);}
 .mqi-num{font-size:1.25rem;}
@@ -540,7 +540,7 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .mqi-tag{font-size:0.54rem;padding:4px 11px;letter-spacing:0.14em;}
 .mqi-tag.a{background:rgba(0,245,255,0.1);}
 .mqi-tag.n{background:rgba(255,214,0,0.08);}
-.mqi-right{min-width:92px;gap:5px;}
+.mqi-right{min-width:72px;flex-shrink:0;gap:5px;}
 .my-q-item.mqi-done{padding:6px 12px;opacity:0.4;}
 
 /* ── FOOTER ── */
@@ -1439,11 +1439,11 @@ function renderMyTurn(c){
                 const cls=isAct?'mqi-active':isNxt?'mqi-next':'mqi-wait';
                 const tag=isAct?'<span class="mqi-tag a">EN SILLA</span>':isNxt?'<span class="mqi-tag n">PRÓXIMO</span>':'<span class="mqi-tag w">ESPERA</span>';
                 const pos=i-(currentTurn-1);const eta=pos>0?calcLiveETA(pos,barber):null;const urgent=eta&&parseInt(eta)<=5;
-                const rBtn=c.id?`<button onclick="openReagendar('${c.id}','${c.name.replace(/'/g,"\\'")}','${c.time}','${barber.replace(/'/g,"\\'")}')" style="padding:7px 14px;border:1px solid rgba(176,110,255,0.3);background:rgba(176,110,255,0.05);color:rgba(176,110,255,0.7);font-family:'Share Tech Mono',monospace;font-size:0.58rem;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(176,110,255,0.15)';this.style.color='rgba(176,110,255,1)';" onmouseout="this.style.background='rgba(176,110,255,0.05)';this.style.color='rgba(176,110,255,0.7)';">↻</button>`:'';
-                const tBtn=c.id?`<button onclick="openTransferirCita('${c.id}','${c.name.replace(/'/g,"\\'")}','${c.time}','${barber.replace(/'/g,"\\'")}',${i+1})" style="padding:7px 14px;border:1px solid rgba(176,110,255,0.3);background:rgba(176,110,255,0.05);color:rgba(176,110,255,0.7);font-family:'Share Tech Mono',monospace;font-size:0.58rem;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(176,110,255,0.15)';this.style.color='rgba(176,110,255,1)';" onmouseout="this.style.background='rgba(176,110,255,0.05)';this.style.color='rgba(176,110,255,0.7)';">↔</button>`:'';
-                return`<div class="my-q-item ${cls}" style="animation-delay:${rowIdx*0.04}s;grid-template-columns:44px 1fr ${c.id?'auto auto ':''} auto;">
+                const rBtn=c.id?`<button onclick="openReagendar('${c.id}','${c.name.replace(/'/g,"\\'")}','${c.time}','${barber.replace(/'/g,"\\'")}')" style="padding:5px 8px;border:1px solid rgba(176,110,255,0.3);background:rgba(176,110,255,0.05);color:rgba(176,110,255,0.7);font-family:'Share Tech Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;flex-shrink:0;" onmouseover="this.style.background='rgba(176,110,255,0.15)';this.style.color='rgba(176,110,255,1)';" onmouseout="this.style.background='rgba(176,110,255,0.05)';this.style.color='rgba(176,110,255,0.7)';" title="Reagendar">↻</button>`:'';
+                const tBtn=c.id?`<button onclick="openTransferirCita('${c.id}','${c.name.replace(/'/g,"\\'")}','${c.time}','${barber.replace(/'/g,"\\'")}',${i+1})" style="padding:5px 8px;border:1px solid rgba(176,110,255,0.3);background:rgba(176,110,255,0.05);color:rgba(176,110,255,0.7);font-family:'Share Tech Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;flex-shrink:0;" onmouseover="this.style.background='rgba(176,110,255,0.15)';this.style.color='rgba(176,110,255,1)';" onmouseout="this.style.background='rgba(176,110,255,0.05)';this.style.color='rgba(176,110,255,0.7)';" title="Transferir">↔</button>`:'';
+                return`<div class="my-q-item ${cls}" style="animation-delay:${rowIdx*0.04}s;grid-template-columns:44px minmax(0,1fr) ${c.id?'auto auto ':''} auto;">
                   <div class="mqi-num">${String(i+1).padStart(2,'00')}</div>
-                  <div><div class="mqi-name">${c.name}</div><div class="mqi-svc">${c.servicio}</div>${eta?`<div class="eta-live${urgent?' urgent':''}">⏱ ${eta}</div>`:''}</div>
+                  <div style="min-width:0;overflow:hidden;"><div class="mqi-name">${c.name}</div><div class="mqi-svc">${c.servicio}</div>${eta?`<div class="eta-live${urgent?' urgent':''}">⏱ ${eta}</div>`:''}</div>
                   ${rBtn}${tBtn}
                   <div class="mqi-right"><div class="mqi-time">${fmt12(c.time)}</div>${tag}</div>
                 </div>`;
