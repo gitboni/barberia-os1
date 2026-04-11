@@ -470,10 +470,10 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .my-right::-webkit-scrollbar{width:3px;}
 .my-right::-webkit-scrollbar-thumb{background:rgba(0,245,255,0.25);border-radius:2px;}
 .my-right::-webkit-scrollbar-thumb:hover{background:rgba(0,245,255,0.4);}
-.my-silla-zone{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8px 18px 6px;position:relative;border-bottom:1px solid rgba(0,245,255,0.08);flex:1;min-height:160px;overflow:visible;}
+.my-silla-zone{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:22px 18px 6px;position:relative;border-bottom:1px solid rgba(0,245,255,0.08);flex:1;min-height:160px;overflow:visible;}
 .my-silla-zone::before,.my-silla-zone::after{content:'';position:absolute;width:36px;height:36px;border-style:solid;border-color:rgba(0,245,255,0.3);}
 .my-silla-zone::before{top:14px;left:14px;border-width:2px 0 0 2px;}.my-silla-zone::after{bottom:14px;right:14px;border-width:0 2px 2px 0;}
-.my-hero-num{font-family:'Orbitron',monospace;font-size:clamp(2.5rem,9vh,7rem);font-weight:900;color:var(--cyan);text-shadow:0 0 30px rgba(0,245,255,0.5),0 0 80px rgba(0,245,255,0.25);line-height:1;letter-spacing:0.06em;animation:hero-pulse 3s ease-in-out infinite;}
+.my-hero-num{font-family:'Orbitron',monospace;font-size:clamp(3.5rem,12vh,9rem);font-weight:900;color:var(--cyan);text-shadow:0 0 30px rgba(0,245,255,0.5),0 0 80px rgba(0,245,255,0.25);line-height:1;letter-spacing:0.06em;animation:hero-pulse 3s ease-in-out infinite;}
 .my-hero-num.flip{animation:flip-in 0.45s cubic-bezier(0.34,1.56,0.64,1);}
 .my-client-name{font-family:'Rajdhani',sans-serif;font-size:clamp(1rem,2.5vh,1.5rem);font-weight:700;color:#fff;letter-spacing:0.12em;text-transform:uppercase;text-align:center;margin-top:2px;}
 .my-service{margin-top:4px;padding:3px 12px;border:1px solid rgba(0,245,255,0.25);background:rgba(0,245,255,0.04);font-family:'Share Tech Mono',monospace;font-size:0.58rem;letter-spacing:0.2em;color:var(--cyan);text-transform:uppercase;}
@@ -638,7 +638,7 @@ html.fs-sm{font-size:90%;}html.fs-md{font-size:112%;}html.fs-lg{font-size:130%;}
 .action-box{padding:14px 12px!important;}
 .brand-name{font-size:0.82rem;}}
 @media(prefers-reduced-motion:reduce){@keyframes hero-pulse{0%,100%{text-shadow:none;}50%{text-shadow:none;}}@keyframes nebula-drift,@keyframes nebula-drift2,@keyframes nebula-drift3{0%,100%{transform:none;opacity:0.6;}}body.zen-mode *{animation:none!important;}.orb{animation:none!important;}.vignette{animation:none!important;}.blink,.tag-blink,.btn-pulse{animation:none!important;}}
-@media(min-width:1400px){.layout-solo .hero-num{font-size:11rem;}.layout-solo .silla-name{font-size:2rem;}.layout-multi .hero-num.n2{font-size:8rem;}.layout-multi .hero-num.n3{font-size:5.5rem;}.tv-cards.n1 .tv-num,.tv-cards.n2 .tv-num{font-size:13rem;}.tv-cards.n3 .tv-num{font-size:9rem;}.tv-cards.n4 .tv-num{font-size:7rem;}.my-hero-num{font-size:clamp(3.5rem,11vh,11rem);}}
+@media(min-width:1400px){.layout-solo .hero-num{font-size:11rem;}.layout-solo .silla-name{font-size:2rem;}.layout-multi .hero-num.n2{font-size:8rem;}.layout-multi .hero-num.n3{font-size:5.5rem;}.tv-cards.n1 .tv-num,.tv-cards.n2 .tv-num{font-size:13rem;}.tv-cards.n3 .tv-num{font-size:9rem;}.tv-cards.n4 .tv-num{font-size:7rem;}.my-hero-num{font-size:clamp(4.5rem,13vh,13rem);}}
 @media(min-width:1800px){.tv-cards.n1 .tv-num,.tv-cards.n2 .tv-num{font-size:18rem;}.tv-cards.n3 .tv-num{font-size:12rem;}}
 @media(prefers-contrast:more){.q-num{color:var(--cyan)!important;}.abtn-confirm{background:rgba(0,245,255,0.2);}.btn-siguiente{border-color:rgba(0,255,120,0.8);}.time-slot{color:var(--cyan);}}
 
@@ -1401,11 +1401,11 @@ function renderMyTurn(c){
     <div class="my-layout">
       <div class="my-left">
         ${isActive&&cur?`<div class="my-silla-zone">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-            <div style="width:44px;height:44px;border-radius:50%;border:2px solid rgba(0,245,255,0.5);background:rgba(0,245,255,0.1);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:900;color:var(--cyan);text-shadow:0 0 16px rgba(0,245,255,0.6);box-shadow:0 0 18px rgba(0,245,255,0.15);flex-shrink:0;">${barber.charAt(0)}</div>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
+            <div style="width:52px;height:52px;border-radius:50%;border:2px solid rgba(0,245,255,0.5);background:rgba(0,245,255,0.1);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:900;color:var(--cyan);text-shadow:0 0 16px rgba(0,245,255,0.6);box-shadow:0 0 18px rgba(0,245,255,0.15);flex-shrink:0;">${barber.charAt(0)}</div>
             <div style="display:flex;flex-direction:column;">
-              <div style="font-family:'Orbitron',monospace;font-size:0.7rem;font-weight:700;color:var(--cyan);letter-spacing:0.18em;text-shadow:0 0 10px rgba(0,245,255,0.5);">✂ ${barber}</div>
-              <div style="font-family:'Share Tech Mono',monospace;font-size:0.48rem;color:rgba(255,0,110,0.8);letter-spacing:0.3em;text-transform:uppercase;margin-top:2px;">● EN SILLA AHORA</div>
+              <div style="font-family:'Orbitron',monospace;font-size:0.82rem;font-weight:700;color:var(--cyan);letter-spacing:0.18em;text-shadow:0 0 10px rgba(0,245,255,0.5);">✂ ${barber}</div>
+              <div style="font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:rgba(255,0,110,0.9);letter-spacing:0.28em;text-transform:uppercase;margin-top:4px;text-shadow:0 0 8px rgba(255,0,110,0.5);">● EN SILLA AHORA</div>
             </div>
           </div>
           <div class="hero-num-wrap"><div class="hero-ghost">${String(currentTurn).padStart(2,'00')}</div><div class="my-hero-num" id="my-hn">${String(currentTurn).padStart(2,'00')}</div></div>
