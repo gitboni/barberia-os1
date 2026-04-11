@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>AuraOS — Sala de Espera</title>
+<title>BarberOS — Sala de Espera</title>
 <meta name="theme-color" content="#020408">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -29,15 +29,7 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--cyan);font-fam
 @keyframes line-pulse{0%,100%{opacity:0.3}50%{opacity:1}}
 @keyframes stripe-scroll{from{transform:translateY(0)}to{transform:translateY(-50%)}}
 @keyframes pole-glow{0%,100%{filter:drop-shadow(0 0 8px rgba(0,245,255,0.4))}50%{filter:drop-shadow(0 0 18px rgba(0,245,255,0.7))}}
-@keyframes glow-pink{0%,100%{filter:drop-shadow(0 0 8px rgba(255,105,170,0.45))}50%{filter:drop-shadow(0 0 20px rgba(255,105,170,0.8))}}
-@keyframes glow-teal{0%,100%{filter:drop-shadow(0 0 8px rgba(42,210,180,0.4))}50%{filter:drop-shadow(0 0 20px rgba(42,210,180,0.75))}}
-@keyframes glow-rose{0%,100%{filter:drop-shadow(0 0 8px rgba(220,100,130,0.4))}50%{filter:drop-shadow(0 0 20px rgba(220,100,130,0.75))}}
-@keyframes glow-green{0%,100%{filter:drop-shadow(0 0 8px rgba(60,200,90,0.4))}50%{filter:drop-shadow(0 0 20px rgba(60,200,90,0.75))}}
-@keyframes glow-blue{0%,100%{filter:drop-shadow(0 0 8px rgba(52,152,219,0.4))}50%{filter:drop-shadow(0 0 20px rgba(52,152,219,0.75))}}
-@keyframes glow-orange{0%,100%{filter:drop-shadow(0 0 8px rgba(230,120,40,0.4))}50%{filter:drop-shadow(0 0 20px rgba(230,120,40,0.75))}}
-@keyframes icon-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
-@keyframes icon-scan{0%{top:-40%}100%{top:130%}}
-@keyframes flip-in{0%{transform:scale(0.5) translateY(-30px);opacity:0;filter:blur(4px);}50%{transform:scale(1.12) translateY(4px);opacity:1;filter:blur(0);}75%{transform:scale(0.97) translateY(-2px);}100%{transform:scale(1) translateY(0);opacity:1;filter:blur(0);}}
+@keyframes flip-in{0%{transform:scale(0.6) translateY(-20px);opacity:0}60%{transform:scale(1.08)}100%{transform:scale(1) translateY(0);opacity:1}}
 @keyframes item-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes pill-in{from{opacity:0;transform:translateX(-8px) scale(0.9)}to{opacity:1;transform:translateX(0) scale(1)}}
 @keyframes mini-in{from{opacity:0;transform:scale(0.93)}to{opacity:1;transform:scale(1)}}
@@ -66,7 +58,7 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--cyan);font-fam
 /* ── MODALES ── */
 .action-modal{display:none;position:fixed;inset:0;z-index:300;background:rgba(2,4,8,0.94);backdrop-filter:blur(18px);align-items:center;justify-content:center;}
 .action-modal.open{display:flex;}
-.action-box{background:var(--bg2);border:1px solid rgba(0,245,255,0.15);padding:28px 32px;min-width:360px;max-width:500px;width:92%;position:relative;max-height:92vh;overflow-y:auto;}.action-box.reag-box{max-width:760px;padding:36px 40px;}
+.action-box{background:var(--bg2);border:1px solid rgba(0,245,255,0.15);padding:28px 32px;min-width:360px;max-width:500px;width:92%;position:relative;}.action-box.reag-box{max-width:760px;padding:36px 40px;}
 .action-box::before{content:'';position:absolute;top:0;left:10%;right:10%;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);}
 .action-box.gold-modal::before{background:linear-gradient(90deg,transparent,var(--gold),transparent);}
 .action-box.purple-modal::before{background:linear-gradient(90deg,transparent,var(--purple),transparent);}
@@ -164,63 +156,6 @@ header{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;paddin
 header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);animation:line-pulse 3s ease-in-out infinite;}
 .brand{display:flex;align-items:center;gap:12px;}
 .barber-pole-wrap{position:relative;width:28px;height:54px;flex-shrink:0;animation:pole-glow 3s ease-in-out infinite;}
-/* ══ BARBER POLE: solo para barbería (estructura original) ══ */
-/* .barber-pole-wrap ya definido arriba — sin cambios */
-
-/* ══ ICONO TEMÁTICO: para todos los demás negocios ══ */
-/* Contenedor circular con anillo de luz, sin tapas de poste */
-.shop-icon-circle{
-  position:relative;width:54px;height:54px;flex-shrink:0;
-  border-radius:50%;display:flex;align-items:center;justify-content:center;
-  overflow:hidden;
-}
-/* Anillo exterior animado */
-.shop-icon-circle::before{
-  content:'';position:absolute;inset:-2px;border-radius:50%;
-  background:conic-gradient(from 0deg,transparent 60%,var(--ic,#fff) 80%,transparent 100%);
-  animation:ring-spin 3s linear infinite;z-index:0;
-}
-/* Fondo interior */
-.shop-icon-circle::after{
-  content:'';position:absolute;inset:3px;border-radius:50%;
-  background:var(--ic-bg,#08081a);z-index:1;
-}
-@keyframes ring-spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-
-.shop-icon-circle .ic-emoji{
-  font-size:1.8rem;position:relative;z-index:2;
-  animation:icon-float 2.8s ease-in-out infinite;
-}
-/* Scan line suave encima del emoji */
-.shop-icon-circle .ic-scan{
-  position:absolute;left:0;width:100%;height:35%;border-radius:50%;
-  background:linear-gradient(180deg,transparent,rgba(255,255,255,0.06),transparent);
-  z-index:3;pointer-events:none;animation:icon-scan 2.4s linear infinite;
-}
-
-/* ── UÑAS / NAIL SALON ── anillo rosa, fondo rosa oscuro */
-.theme-nails{--ic:rgba(255,105,170,0.9);--ic-bg:radial-gradient(circle,#1a0510,#0d0208);
-  animation:glow-pink 3s ease-in-out infinite;}
-
-/* ── SPA / MASAJES ── anillo teal, fondo verde oscuro */
-.theme-spa{--ic:rgba(42,210,180,0.9);--ic-bg:radial-gradient(circle,#021a16,#020d0b);
-  animation:glow-teal 3.2s ease-in-out infinite;}
-
-/* ── BEAUTY / MAQUILLAJE / ESTÉTICA ── anillo rosa-dorado */
-.theme-beauty{--ic:rgba(220,130,160,0.9);--ic-bg:radial-gradient(circle,#180810,#0d020a);
-  animation:glow-rose 3s ease-in-out infinite;}
-
-/* ── WELLNESS / NATURAL / HOLÍSTICO ── anillo verde */
-.theme-wellness{--ic:rgba(60,200,90,0.9);--ic-bg:radial-gradient(circle,#021408,#020d04);
-  animation:glow-green 3.4s ease-in-out infinite;}
-
-/* ── MÉDICO / CLÍNICA ── anillo azul, fondo azul oscuro */
-.theme-medical{--ic:rgba(52,152,219,0.9);--ic-bg:radial-gradient(circle,#020c1a,#020810);
-  animation:glow-blue 2.9s ease-in-out infinite;}
-
-/* ── MASCOTAS / GROOMING ── anillo naranja */
-.theme-pets{--ic:rgba(230,120,40,0.9);--ic-bg:radial-gradient(circle,#180b02,#0d0602);
-  animation:glow-orange 2.5s ease-in-out infinite;}
 .pole-cap{position:absolute;left:0;width:28px;height:8px;background:linear-gradient(180deg,#1c1c3a,#0d0d20);border:1px solid rgba(0,245,255,0.4);box-shadow:0 0 10px rgba(0,245,255,0.3);z-index:10;}
 .pole-cap-top{top:0;border-radius:5px 5px 2px 2px;}.pole-cap-bot{bottom:0;border-radius:2px 2px 5px 5px;}
 .pole-body{position:absolute;top:7px;left:4px;width:20px;height:40px;border-radius:3px;overflow:hidden;background:#020510;border:1px solid rgba(0,245,255,0.15);z-index:5;}
@@ -324,7 +259,7 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .silla-zone::before,.silla-zone::after{content:'';position:absolute;width:36px;height:36px;border-style:solid;border-color:var(--bc,rgba(0,245,255,0.2));}
 .silla-zone::before{top:14px;left:14px;border-width:2px 0 0 2px;}
 .silla-zone::after{bottom:14px;right:14px;border-width:0 2px 2px 0;}
-.now-label{font-family:'Share Tech Mono',monospace;font-size:0.72rem;letter-spacing:0.5em;color:var(--magenta);text-transform:uppercase;margin-bottom:6px;text-shadow:0 0 20px var(--glow-m),0 0 40px rgba(255,0,110,0.3);animation:lbl-glow 2s ease-in-out infinite;padding:4px 0;border:1px solid rgba(255,0,110,0.2);background:rgba(255,0,110,0.04);text-align:center;}
+.now-label{font-family:'Share Tech Mono',monospace;font-size:0.8rem;letter-spacing:0.5em;color:var(--magenta);text-transform:uppercase;margin-bottom:12px;text-shadow:0 0 20px var(--glow-m),0 0 40px rgba(255,0,110,0.3);animation:lbl-glow 2s ease-in-out infinite;padding:6px 0;border:1px solid rgba(255,0,110,0.2);background:rgba(255,0,110,0.04);text-align:center;}
 .hero-num-wrap{position:relative;margin-bottom:2px;}
 .hero-ghost{font-family:'Orbitron',monospace;font-weight:900;color:transparent;-webkit-text-stroke:1px rgba(0,245,255,0.05);position:absolute;top:50%;left:50%;transform:translate(-50%,-52%);user-select:none;white-space:nowrap;}
 .hero-num{font-family:'Orbitron',monospace;font-weight:900;color:var(--bc,var(--cyan));text-shadow:0 0 30px var(--bc-glow,var(--glow-c)),0 0 80px var(--bc-glow,rgba(0,245,255,0.25));line-height:1;letter-spacing:0.06em;position:relative;z-index:1;transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);animation:hero-pulse 3s ease-in-out infinite;}
@@ -395,10 +330,8 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .done-pill-name{font-family:'Rajdhani',sans-serif;font-size:0.75rem;font-weight:600;color:rgba(0,255,120,0.45);letter-spacing:0.06em;text-transform:uppercase;white-space:nowrap;}
 .done-pill-check{font-size:0.55rem;color:rgba(0,255,120,0.4);}
 .done-strip-empty{font-family:'Share Tech Mono',monospace;font-size:0.44rem;color:rgba(0,255,120,0.18);letter-spacing:0.15em;text-transform:uppercase;}
-.btn-recuperar{flex-shrink:0;margin-left:auto;padding:6px 16px;border:1px solid rgba(0,255,120,0.4);background:rgba(0,255,120,0.06);color:rgba(0,255,120,0.85);font-family:'Share Tech Mono',monospace;font-size:0.8rem;cursor:pointer;transition:all 0.18s;line-height:1;letter-spacing:0.08em;}
-.btn-recuperar:hover{background:rgba(0,255,120,0.15);color:rgba(0,255,120,1);border-color:rgba(0,255,120,0.8);box-shadow:0 0 10px rgba(0,255,120,0.2);}
 .zone-a{display:flex;flex-direction:column;gap:3px;flex-shrink:0;}
-.q-col-header{display:grid;grid-template-columns:50px 1fr 96px 84px 96px;padding:0 12px 8px;font-family:'Share Tech Mono',monospace;font-size:0.54rem;letter-spacing:0.2em;color:rgba(0,245,255,0.72);text-transform:uppercase;border-bottom:1px solid rgba(0,245,255,0.22);font-weight:700;}
+.q-col-header{display:grid;grid-template-columns:50px 1fr 96px 84px 96px;padding:0 10px 6px;font-family:'Share Tech Mono',monospace;font-size:0.4rem;letter-spacing:0.2em;color:rgba(0,245,255,0.35);text-transform:uppercase;border-bottom:1px solid rgba(0,245,255,0.1);font-weight:700;}
 .q-item{display:grid;grid-template-columns:50px 1fr 96px 84px 96px;align-items:center;padding:10px 12px;border:1px solid rgba(0,245,255,0.11);background:rgba(0,245,255,0.025);position:relative;overflow:hidden;transition:border-color 0.3s,background 0.3s;animation:item-in 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards;opacity:0;border-radius:3px;}
 .q-item.s-active{border-left:3px solid var(--cyan);background:rgba(0,245,255,0.045);}
 .q-item.s-next{border-left:3px solid var(--gold);background:rgba(255,214,0,0.022);}
@@ -464,20 +397,19 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .my-barber-name{font-family:'Orbitron',monospace;font-size:0.9rem;font-weight:700;letter-spacing:0.18em;color:var(--cyan);text-shadow:0 0 12px rgba(0,245,255,0.5);}
 .my-sub{font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:rgba(0,245,255,0.75);letter-spacing:0.2em;text-transform:uppercase;margin-top:2px;}
 .my-layout{flex:1;display:flex;flex-direction:row;overflow:hidden;min-height:0;}
-.my-left{flex:0 0 360px;display:flex;flex-direction:column;border-right:1px solid rgba(0,245,255,0.08);background:rgba(0,245,255,0.012);overflow-y:auto;min-height:0;}
-.my-left::-webkit-scrollbar{width:2px;}.my-left::-webkit-scrollbar-thumb{background:rgba(0,245,255,0.15);border-radius:2px;}
-.my-right{flex:1;display:flex;flex-direction:column;padding:4px 16px 8px;overflow-y:auto;gap:4px;min-height:0;padding-right:14px;}
+.my-left{flex:0 0 360px;display:flex;flex-direction:column;border-right:1px solid rgba(0,245,255,0.08);background:rgba(0,245,255,0.012);overflow:hidden;min-height:0;}
+.my-right{flex:1;display:flex;flex-direction:column;padding:14px 20px 10px;overflow-y:auto;gap:8px;min-height:0;padding-right:16px;}
 .my-right::-webkit-scrollbar{width:3px;}
 .my-right::-webkit-scrollbar-thumb{background:rgba(0,245,255,0.25);border-radius:2px;}
 .my-right::-webkit-scrollbar-thumb:hover{background:rgba(0,245,255,0.4);}
-.my-silla-zone{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8px 18px 6px;position:relative;border-bottom:1px solid rgba(0,245,255,0.08);flex:1;min-height:160px;overflow:visible;}
+.my-silla-zone{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:20px 24px 14px;position:relative;border-bottom:1px solid rgba(0,245,255,0.08);flex:1;}
 .my-silla-zone::before,.my-silla-zone::after{content:'';position:absolute;width:36px;height:36px;border-style:solid;border-color:rgba(0,245,255,0.3);}
 .my-silla-zone::before{top:14px;left:14px;border-width:2px 0 0 2px;}.my-silla-zone::after{bottom:14px;right:14px;border-width:0 2px 2px 0;}
-.my-hero-num{font-family:'Orbitron',monospace;font-size:clamp(2.5rem,9vh,7rem);font-weight:900;color:var(--cyan);text-shadow:0 0 30px rgba(0,245,255,0.5),0 0 80px rgba(0,245,255,0.25);line-height:1;letter-spacing:0.06em;animation:hero-pulse 3s ease-in-out infinite;}
+.my-hero-num{font-family:'Orbitron',monospace;font-size:7rem;font-weight:900;color:var(--cyan);text-shadow:0 0 30px rgba(0,245,255,0.5),0 0 80px rgba(0,245,255,0.25);line-height:1;letter-spacing:0.06em;animation:hero-pulse 3s ease-in-out infinite;}
 .my-hero-num.flip{animation:flip-in 0.45s cubic-bezier(0.34,1.56,0.64,1);}
-.my-client-name{font-family:'Rajdhani',sans-serif;font-size:clamp(1rem,2.5vh,1.5rem);font-weight:700;color:#fff;letter-spacing:0.12em;text-transform:uppercase;text-align:center;margin-top:2px;}
-.my-service{margin-top:4px;padding:3px 12px;border:1px solid rgba(0,245,255,0.25);background:rgba(0,245,255,0.04);font-family:'Share Tech Mono',monospace;font-size:0.58rem;letter-spacing:0.2em;color:var(--cyan);text-transform:uppercase;}
-.my-bottom{padding:8px 14px 10px;display:flex;flex-direction:column;gap:6px;flex-shrink:0;position:sticky;bottom:0;background:rgba(2,4,8,0.97);backdrop-filter:blur(8px);z-index:5;border-top:1px solid rgba(0,245,255,0.06);}
+.my-client-name{font-family:'Rajdhani',sans-serif;font-size:1.5rem;font-weight:700;color:#fff;letter-spacing:0.12em;text-transform:uppercase;text-align:center;margin-top:2px;}
+.my-service{margin-top:6px;padding:4px 16px;border:1px solid rgba(0,245,255,0.25);background:rgba(0,245,255,0.04);font-family:'Share Tech Mono',monospace;font-size:0.62rem;letter-spacing:0.2em;color:var(--cyan);text-transform:uppercase;}
+.my-bottom{padding:12px 18px 14px;display:flex;flex-direction:column;gap:8px;flex-shrink:0;}
 .btn-my-sig{width:100%;padding:11px 0;background:linear-gradient(135deg,rgba(0,245,255,0.1),rgba(0,245,255,0.04));border:1px solid rgba(0,245,255,0.5);color:var(--cyan);font-family:'Orbitron',monospace;font-size:0.72rem;font-weight:700;letter-spacing:0.26em;text-transform:uppercase;cursor:pointer;position:relative;overflow:hidden;transition:all 0.2s;text-shadow:0 0 12px rgba(0,245,255,0.5);box-shadow:0 0 16px rgba(0,245,255,0.12);flex-shrink:0;-webkit-tap-highlight-color:transparent;}
 .btn-my-sig::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(0,245,255,0.2),transparent);transition:left 0.45s;}
 .btn-my-sig:hover::before{left:100%;}
@@ -493,55 +425,27 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .my-queue-list::-webkit-scrollbar{width:3px;}
 .my-queue-list::-webkit-scrollbar-thumb{background:rgba(0,245,255,0.25);border-radius:2px;}
 .my-queue-list::-webkit-scrollbar-thumb:hover{background:rgba(0,245,255,0.4);}
-.my-q-item{display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:7px;padding:6px 10px;border:1px solid rgba(0,245,255,0.11);background:rgba(0,245,255,0.025);position:relative;overflow:hidden;animation:item-in 0.4s forwards;opacity:0;border-radius:3px;}
-.my-q-item.mqi-active{border-left:3px solid var(--cyan);background:rgba(0,245,255,0.055);box-shadow:inset 0 0 20px rgba(0,245,255,0.04);padding:7px 10px;}
+.my-q-item{display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:8px;padding:10px 14px;border:1px solid rgba(0,245,255,0.11);background:rgba(0,245,255,0.025);position:relative;overflow:hidden;animation:item-in 0.4s forwards;opacity:0;border-radius:3px;}
+.my-q-item.mqi-active{border-left:3px solid var(--cyan);background:rgba(0,245,255,0.045);padding:11px 14px;}
 .my-q-item.mqi-next{border-left:3px solid var(--gold);background:rgba(255,214,0,0.02);}
 .my-q-item.mqi-wait{border-left:3px solid rgba(0,245,255,0.1);}
 .my-q-item.mqi-done{opacity:0.35;border-left:3px solid rgba(0,255,120,0.25);}
 .my-q-item.mqi-active::after{content:'';position:absolute;top:0;left:-80%;width:55%;height:100%;background:linear-gradient(90deg,transparent,rgba(0,245,255,0.07),transparent);animation:scan 3s linear infinite;}
-.mqi-num{font-family:'Orbitron',monospace;font-size:0.88rem;font-weight:700;color:rgba(0,245,255,0.28);}
-.my-q-item.mqi-active .mqi-num{font-size:1.25rem;color:var(--cyan);text-shadow:0 0 10px rgba(0,245,255,0.5);}
-.my-q-item.mqi-next .mqi-num{color:var(--gold);font-size:1rem;}
+.mqi-num{font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;color:rgba(0,245,255,0.28);}
+.my-q-item.mqi-active .mqi-num{font-size:1.5rem;color:var(--cyan);text-shadow:0 0 10px rgba(0,245,255,0.5);}
+.my-q-item.mqi-next .mqi-num{color:var(--gold);font-size:1.1rem;}
 .my-q-item.mqi-done .mqi-num{color:rgba(0,255,120,0.4);}
 .mqi-name{font-family:'Rajdhani',sans-serif;font-size:0.88rem;font-weight:600;color:rgba(255,255,255,0.8);letter-spacing:0.08em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .my-q-item.mqi-active .mqi-name{font-size:1.1rem;color:#fff;}
 .my-q-item.mqi-next .mqi-name{font-size:0.95rem;}
 .mqi-svc{font-family:'Share Tech Mono',monospace;font-size:0.52rem;color:rgba(255,245,200,0.75);margin-top:1px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;}
 .my-q-item.mqi-active .mqi-svc{font-size:0.58rem;color:rgba(255,250,220,0.9);font-weight:600;}
-.mqi-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;min-width:68px;}
-.mqi-time{font-family:'Orbitron',monospace;font-size:0.82rem;font-weight:700;color:var(--gold);text-shadow:0 0 8px rgba(255,214,0,0.35);text-align:center;}
-.mqi-tag{font-family:'Share Tech Mono',monospace;font-size:0.4rem;padding:2px 6px;border:1px solid;letter-spacing:0.1em;text-transform:uppercase;text-align:center;}
-.mqi-tag.a{color:var(--cyan);border-color:rgba(0,245,255,0.3);background:rgba(0,245,255,0.06);}.mqi-tag.n{color:var(--gold);border-color:rgba(255,214,0,0.25);background:rgba(255,214,0,0.04);}.mqi-tag.w{color:rgba(255,255,255,0.18);border-color:rgba(255,255,255,0.05);}.mqi-tag.d{color:rgba(0,255,120,0.4);border-color:rgba(0,255,120,0.15);}
+.mqi-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;min-width:80px;}
+.mqi-time{font-family:'Orbitron',monospace;font-size:0.92rem;font-weight:700;color:var(--gold);text-shadow:0 0 10px rgba(255,214,0,0.4);text-align:center;}
+.mqi-tag{font-family:'Share Tech Mono',monospace;font-size:0.44rem;padding:3px 8px;border:1px solid;letter-spacing:0.1em;text-transform:uppercase;text-align:center;}
+.mqi-tag.a{color:var(--cyan);border-color:rgba(0,245,255,0.3);}.mqi-tag.n{color:var(--gold);border-color:rgba(255,214,0,0.25);}.mqi-tag.w{color:rgba(255,255,255,0.2);border-color:rgba(255,255,255,0.06);}.mqi-tag.d{color:rgba(0,255,120,0.4);border-color:rgba(0,255,120,0.15);}
 .libre-banner{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;flex:1;padding:24px;}
 .libre-icon{font-size:3rem;opacity:0.2;}.libre-txt{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:700;color:rgba(0,245,255,0.3);letter-spacing:0.22em;text-transform:uppercase;}.libre-sub{font-family:'Share Tech Mono',monospace;font-size:0.5rem;color:rgba(0,245,255,0.2);letter-spacing:0.2em;text-transform:uppercase;margin-top:4px;}
-
-/* ── MI TURNO — PANEL DERECHO COMPACTO ── */
-.my-right .stat-card{padding:5px 10px;}
-.my-right .stat-val{font-size:1.05rem;}
-.my-right .stat-lbl{font-size:0.52rem;margin-top:2px;letter-spacing:0.16em;}
-.my-right .day-progress{padding:4px 10px;}
-.my-right .my-queue-title{padding-bottom:4px;font-size:0.68rem;}
-.my-right .done-strip{min-height:24px;padding:3px 7px;}
-.my-right .my-queue-section{gap:5px;}
-
-/* ── LISTA DE TURNOS — ALTA VISIBILIDAD ── */
-.my-q-item{grid-template-columns:56px minmax(0,1fr) auto;gap:10px;padding:13px 16px;}
-.my-q-item.mqi-active{padding:14px 16px;background:rgba(0,245,255,0.07);}
-.my-q-item.mqi-next{background:rgba(255,214,0,0.05);}
-.mqi-num{font-size:1.25rem;}
-.my-q-item.mqi-active .mqi-num{font-size:1.75rem;}
-.my-q-item.mqi-next .mqi-num{font-size:1.4rem;}
-.mqi-name{font-size:1.1rem;color:#fff;}
-.my-q-item.mqi-active .mqi-name{font-size:1.25rem;letter-spacing:0.1em;}
-.my-q-item.mqi-next .mqi-name{font-size:1.12rem;}
-.mqi-svc{font-size:0.7rem;color:rgba(255,245,200,0.92);}
-.my-q-item.mqi-active .mqi-svc{font-size:0.72rem;color:rgba(255,250,220,0.96);}
-.mqi-time{font-size:1.08rem;text-shadow:0 0 14px rgba(255,214,0,0.55);}
-.mqi-tag{font-size:0.54rem;padding:4px 11px;letter-spacing:0.14em;}
-.mqi-tag.a{background:rgba(0,245,255,0.1);}
-.mqi-tag.n{background:rgba(255,214,0,0.08);}
-.mqi-right{min-width:72px;flex-shrink:0;gap:5px;}
-.my-q-item.mqi-done{padding:6px 12px;opacity:0.4;}
 
 /* ── FOOTER ── */
 footer{border-top:1px solid rgba(0,245,255,0.08);padding:7px 32px;display:flex;align-items:center;justify-content:space-between;background:rgba(2,4,8,0.7);backdrop-filter:blur(12px);flex-shrink:0;}
@@ -560,8 +464,8 @@ footer{border-top:1px solid rgba(0,245,255,0.08);padding:7px 32px;display:flex;a
 .day-prog-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--purple));box-shadow:0 0 8px rgba(0,245,255,0.4);transition:width 0.8s ease;}
 .day-prog-pct{font-family:'Orbitron',monospace;font-size:0.72rem;font-weight:700;color:rgba(0,245,255,0.8);white-space:nowrap;}
 .day-prog-avg{font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:rgba(176,110,255,0.8);white-space:nowrap;padding-left:10px;border-left:1px solid rgba(0,245,255,0.15);}
-.eta-live{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border:1px solid rgba(255,214,0,0.5);background:rgba(255,214,0,0.07);font-family:'Orbitron',monospace;font-size:0.65rem;font-weight:700;color:rgba(255,214,0,0.96);letter-spacing:0.06em;}
-.eta-live.urgent{border-color:rgba(255,0,110,0.65);background:rgba(255,0,110,0.1);color:rgba(255,50,80,1);animation:blink 1.5s ease-in-out infinite;}
+.eta-live{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border:1px solid rgba(255,214,0,0.35);background:rgba(255,214,0,0.05);font-family:'Orbitron',monospace;font-size:0.44rem;color:rgba(255,214,0,0.8);letter-spacing:0.06em;}
+.eta-live.urgent{border-color:rgba(255,0,110,0.45);color:rgba(255,0,110,0.8);animation:blink 1.5s ease-in-out infinite;}
 
 /* ── MISC ── */
 body.zen-mode .orb,body.zen-mode #hex-canvas,body.zen-mode #grain-canvas,body.zen-mode #star-canvas,body.zen-mode .scanline,body.zen-mode .vignette,body.zen-mode .corner-frame{opacity:0!important;}
@@ -600,37 +504,12 @@ html.fs-sm{font-size:90%;}html.fs-md{font-size:112%;}html.fs-lg{font-size:130%;}
 .mbtn-cancel{background:transparent;border-color:rgba(255,255,255,0.08);color:rgba(255,255,255,0.2);}
 
 @media(max-width:1024px){.layout-solo .barber-col{grid-template-columns:300px 1fr;}.my-layout .my-left{flex:0 0 300px;}}
-/* ── Laptop 13"-15" sin cobertura previa ── */
-@media(min-width:1025px) and (max-width:1399px){.layout-solo .hero-num{font-size:9rem;}.layout-multi .hero-num.n2{font-size:6.5rem;}.layout-multi .hero-num.n3{font-size:4.8rem;}.tv-cards.n1 .tv-num,.tv-cards.n2 .tv-num{font-size:11rem;}.tv-cards.n3 .tv-num{font-size:8rem;}.tv-cards.n4 .tv-num{font-size:6rem;}}
-@media(max-width:860px){header{grid-template-columns:1fr 1fr;padding:8px 16px;}.clock-block{display:none;}.tv-cards.n3,.tv-cards.n4,.tv-cards.n5{grid-template-columns:repeat(2,1fr);}
-/* Tablet portrait — panel izquierdo más angosto */
-.layout-solo .barber-col{grid-template-columns:240px 1fr;}.my-layout .my-left{flex:0 0 240px;}}
-@media(max-width:600px){.tv-cards.n2,.tv-cards.n3,.tv-cards.n4,.tv-cards.n5{grid-template-columns:1fr;}
-/* Mi Turno: columna vertical, my-right como sección compacta debajo */
-.my-layout{flex-direction:column;overflow-y:auto;}
-.my-left{flex:0 0 auto;min-height:300px;border-right:none;border-bottom:1px solid rgba(0,245,255,0.08);overflow-y:auto;}
-.my-right{display:flex;flex:0 0 auto;flex-direction:column;padding:8px 12px;gap:6px;max-height:220px;overflow-y:auto;}
-.my-right .stats-bar{grid-template-columns:repeat(2,1fr);}
-.my-right .my-queue-section{display:none;}
-.tv-wrap{padding:8px 12px 6px;gap:8px;}.tv-card-head{padding:6px 10px;}.tv-barber-name{font-size:0.6rem;}.tv-num{font-size:2.5rem;}.tv-name{font-size:0.8rem;}.tv-service{font-size:0.48rem;}.tv-btn{font-size:0.58rem;padding:8px 0;}.content{flex-direction:column;}.layout-multi .barber-col{border-right:none;border-bottom:1px solid rgba(0,245,255,0.08);}.layout-solo .col-left{display:none;}}
-@media(max-width:480px){html{font-size:85%;}
-/* Ocultar elementos decorativos para liberar espacio */
-.hpill-sys,.hpill-rt,.hpill-db{display:none;}
-.walkin-fab{right:8px;bottom:72px;padding:6px 10px;}
-.mode-bar{left:50%;transform:translateX(-50%);}
-.tv-cards{gap:8px;}.brand-name{font-size:1rem;}.clock-time{font-size:1.2rem;}.fs-btn{font-size:0.42rem;}.tv-card{border-width:1px;}.layout-multi .barber-col.libre{flex:1;opacity:0.4;}
-.footer-msg{font-size:0.85rem;}
-/* Modales en móvil */
-.action-box{min-width:unset!important;width:97%!important;padding:18px 16px!important;}
-.action-box.reag-box{padding:20px 16px!important;}
-.time-slots{grid-template-columns:repeat(3,1fr);}
-.action-acts{flex-direction:column;}
-.abtn{padding:12px;font-size:0.55rem;}}
-@media(max-width:320px){.tv-barber-name{font-size:0.5rem;}.tv-num{font-size:1.8rem;}.tv-name{font-size:0.68rem;}.layout-multi .silla-name{font-size:0.65rem;}.btn-siguiente{font-size:0.52rem;padding:7px 0;}
-.action-box{padding:14px 12px!important;}
-.brand-name{font-size:0.82rem;}}
+@media(max-width:860px){header{grid-template-columns:1fr 1fr;padding:8px 16px;}.clock-block{display:none;}.tv-cards.n3,.tv-cards.n4,.tv-cards.n5{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:600px){.tv-cards.n2,.tv-cards.n3,.tv-cards.n4,.tv-cards.n5{grid-template-columns:1fr;}.my-layout{grid-template-columns:1fr;}.my-right{display:none;}.tv-wrap{padding:8px 12px 6px;gap:8px;}.tv-card-head{padding:6px 10px;}.tv-barber-name{font-size:0.6rem;}.tv-num{font-size:2.5rem;}.tv-name{font-size:0.8rem;}.tv-service{font-size:0.48rem;}.tv-btn{font-size:0.58rem;padding:8px 0;}.content{flex-direction:column;}.layout-multi .barber-col{border-right:none;border-bottom:1px solid rgba(0,245,255,0.08);}.layout-solo .col-left{display:none;}}
+@media(max-width:480px){html{font-size:85%;}.tv-cards{gap:8px;}.brand-name{font-size:1rem;}.clock-time{font-size:1.2rem;}.hpill{font-size:0.42rem;padding:4px 8px;}.fs-btn{font-size:0.42rem;}.tv-card{border-width:1px;}.layout-multi .barber-col.libre{flex:1;opacity:0.4;}.footer-msg{font-size:0.85rem;}}
+@media(max-width:320px){.tv-barber-name{font-size:0.5rem;}.tv-num{font-size:1.8rem;}.tv-name{font-size:0.68rem;}.layout-multi .silla-name{font-size:0.65rem;}.btn-siguiente{font-size:0.52rem;padding:7px 0;}}
 @media(prefers-reduced-motion:reduce){@keyframes hero-pulse{0%,100%{text-shadow:none;}50%{text-shadow:none;}}@keyframes nebula-drift,@keyframes nebula-drift2,@keyframes nebula-drift3{0%,100%{transform:none;opacity:0.6;}}body.zen-mode *{animation:none!important;}.orb{animation:none!important;}.vignette{animation:none!important;}.blink,.tag-blink,.btn-pulse{animation:none!important;}}
-@media(min-width:1400px){.layout-solo .hero-num{font-size:11rem;}.layout-solo .silla-name{font-size:2rem;}.layout-multi .hero-num.n2{font-size:8rem;}.layout-multi .hero-num.n3{font-size:5.5rem;}.tv-cards.n1 .tv-num,.tv-cards.n2 .tv-num{font-size:13rem;}.tv-cards.n3 .tv-num{font-size:9rem;}.tv-cards.n4 .tv-num{font-size:7rem;}.my-hero-num{font-size:clamp(3.5rem,11vh,11rem);}}
+@media(min-width:1400px){.layout-solo .hero-num{font-size:11rem;}.layout-solo .silla-name{font-size:2rem;}.layout-multi .hero-num.n2{font-size:8rem;}.layout-multi .hero-num.n3{font-size:5.5rem;}.tv-cards.n1 .tv-num,.tv-cards.n2 .tv-num{font-size:13rem;}.tv-cards.n3 .tv-num{font-size:9rem;}.tv-cards.n4 .tv-num{font-size:7rem;}.my-hero-num{font-size:11rem;}}
 @media(min-width:1800px){.tv-cards.n1 .tv-num,.tv-cards.n2 .tv-num{font-size:18rem;}.tv-cards.n3 .tv-num{font-size:12rem;}}
 @media(prefers-contrast:more){.q-num{color:var(--cyan)!important;}.abtn-confirm{background:rgba(0,245,255,0.2);}.btn-siguiente{border-color:rgba(0,255,120,0.8);}.time-slot{color:var(--cyan);}}
 
@@ -693,7 +572,7 @@ html.fs-sm{font-size:90%;}html.fs-md{font-size:112%;}html.fs-lg{font-size:130%;}
       </div>
       <div>
         <div class="brand-name" id="shop-name">BARBEROS</div>
-        <div class="brand-sub" id="brand-sub">Sistema de Turnos · AuraOS</div>
+        <div class="brand-sub" id="brand-sub">Sistema de Turnos · BarberOS</div>
       </div>
     </div>
     <div class="clock-block">
@@ -715,7 +594,7 @@ html.fs-sm{font-size:90%;}html.fs-md{font-size:112%;}html.fs-lg{font-size:130%;}
   <footer>
     <div class="footer-msg" id="footer-msg">"El estilo es la firma del alma."</div>
     <div class="barberos-bar" id="barberos-bar"></div>
-    <div class="footer-version" id="ft-ver">AuraOS v9 · 2026</div>
+    <div class="footer-version" id="ft-ver">BarberOS v8 · 2025</div>
   </footer>
 </div>
 
@@ -738,7 +617,7 @@ html.fs-sm{font-size:90%;}html.fs-md{font-size:112%;}html.fs-lg{font-size:130%;}
 <div id="qr-panel" style="display:none;position:fixed;bottom:80px;right:20px;z-index:60;background:rgba(2,4,8,0.92);border:1px solid rgba(0,245,255,0.25);padding:14px 14px 10px;border-radius:6px;text-align:center;backdrop-filter:blur(12px);box-shadow:0 0 30px rgba(0,245,255,0.1);">
   <canvas id="qr-canvas"></canvas>
   <div style="font-family:'Share Tech Mono',monospace;font-size:0.52rem;color:rgba(0,245,255,0.6);letter-spacing:0.12em;text-transform:uppercase;margin-top:8px;">📱 RESERVAR TURNO</div>
-  <div style="font-family:'Rajdhani',sans-serif;font-size:0.6rem;font-weight:600;color:rgba(255,255,255,0.35);margin-top:2px;">Escanea con AuraOS</div>
+  <div style="font-family:'Rajdhani',sans-serif;font-size:0.6rem;font-weight:600;color:rgba(255,255,255,0.35);margin-top:2px;">Escanea con BarberOS</div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -827,18 +706,6 @@ html.fs-sm{font-size:90%;}html.fs-md{font-size:112%;}html.fs-lg{font-size:130%;}
     <div class="action-acts">
       <button class="abtn abtn-cancel" onclick="closeModal('pause-modal')">CANCELAR</button>
       <button class="abtn abtn-gold" id="pause-confirm-btn" onclick="ejecutarPausarBarberia()">⏸ SÍ, PAUSAR</button>
-    </div>
-  </div>
-</div>
-
-<!-- RECUPERAR CITA MODAL -->
-<div class="action-modal" id="recuperar-modal">
-  <div class="action-box">
-    <div class="action-title">↺ RECUPERAR CITA</div>
-    <div class="action-sub">Últimas citas completadas — selecciona la que deseas restaurar a pendiente</div>
-    <div id="recuperar-lista" style="display:flex;flex-direction:column;gap:6px;padding:12px 0;min-height:60px;"></div>
-    <div class="action-acts">
-      <button class="abtn abtn-cancel" onclick="closeModal('recuperar-modal')">CERRAR</button>
     </div>
   </div>
 </div>
@@ -933,7 +800,7 @@ const SLUG=resolveSlug();
 let DUR=45;
 
 // FIX BUG 6: guardar hora_inicio/hora_fin de la shop
-const S={shopId:null,shopName:'BARBEROS',barberos:[],citas:[],citasMañana:[],queues:{},lastUp:null,horaInicio:7,horaFin:22,tz:'America/Santo_Domingo',recordatorioModo:'turnos',recordatorioTurnos:1};
+const S={shopId:null,shopName:'BARBEROS',barberos:[],citas:[],citasMañana:[],queues:{},lastUp:null,horaInicio:7,horaFin:22,tz:'America/Santo_Domingo'};
 let MODE='shop';
 let MY_BARBER=null;
 
@@ -944,7 +811,7 @@ async function retry(fn,max=3){for(let i=0;i<=max;i++){try{return await fn();}ca
 
 async function loadShop(){
   // FIX BUG 6: cargar hora_inicio, hora_fin, timezone
-  const rows=await retry(()=>sbGet('shops','slug=eq.'+SLUG+'&select=id,nombre,duracion_turno,activo,hora_inicio,hora_fin,timezone,icono,recordatorio_modo,recordatorio_turnos'));
+  const rows=await retry(()=>sbGet('shops','slug=eq.'+SLUG+'&select=id,nombre,duracion_turno,activo,hora_inicio,hora_fin,timezone'));
   if(!rows||!rows.length){setDb('err','NO ENCONTRADA');return false;}
   const s=rows[0];
   if(s.activo===false){showDisplaySuspended(s.nombre||SLUG);return false;}
@@ -955,38 +822,9 @@ async function loadShop(){
   S.horaInicio=s.hora_inicio??7;
   S.horaFin=s.hora_fin??22;
   S.tz=s.timezone||'America/Santo_Domingo';
-  S.recordatorioModo=s.recordatorio_modo||'turnos';
-  S.recordatorioTurnos=s.recordatorio_turnos||1;
   document.getElementById('shop-name').textContent=S.shopName;
   document.title=S.shopName+' — Sala de Espera';
-  document.getElementById('ft-ver').textContent=S.shopName+' · AuraOS v9';
-  // Icono personalizado: cada tipo de negocio tiene su propio contenedor visual
-  if(s.icono){
-    const ICON_THEMES={
-      '✂️':'barber','💈':'barber','💇':'barber','🪒':'barber',
-      '💅':'nails','👄':'nails',
-      '💆':'spa','🧖':'spa',
-      '💄':'beauty','🧴':'beauty','🌸':'beauty',
-      '🌿':'wellness','🧠':'wellness',
-      '🏥':'medical','💉':'medical',
-      '🐾':'pets',
-    };
-    const theme=ICON_THEMES[s.icono]||'nails';
-    const wrap=document.querySelector('.barber-pole-wrap');
-    if(wrap){
-      if(theme==='barber'){
-        // Barbería: mantiene el barber pole original con rayas animadas
-        wrap.className='barber-pole-wrap';
-        // El HTML original del barber pole ya está en el DOM — no tocar
-      } else {
-        // Otros negocios: círculo con anillo de luz temático
-        wrap.className='shop-icon-circle theme-'+theme;
-        wrap.innerHTML=
-          '<span class="ic-emoji">'+s.icono+'</span>'+
-          '<div class="ic-scan"></div>';
-      }
-    }
-  }
+  document.getElementById('ft-ver').textContent=S.shopName+' · BarberOS v9';
   // Generar QR de reserva
   generarQR(s.id);
   // Verificar si está pausada
@@ -1071,15 +909,11 @@ async function loadCitas(){
   setOffline(false);
 }
 
-function getTodayKey(){
-  const ahora=new Date(new Date().toLocaleString('en-US',{timeZone:S.tz||'America/Santo_Domingo'}));
-  return ahora.getFullYear()+'-'+String(ahora.getMonth()+1).padStart(2,'0')+'-'+String(ahora.getDate()).padStart(2,'0');
-}
 function saveTurns(){
   const t={};Object.keys(S.queues).forEach(n=>{t[n]=S.queues[n].currentTurn;});
-  try{localStorage.setItem('barberos_turns_'+SLUG+'_'+getTodayKey(),JSON.stringify(t));}catch(_){}
+  try{localStorage.setItem('barberos_turns_'+SLUG,JSON.stringify(t));}catch(_){}
 }
-function loadTurns(){try{return JSON.parse(localStorage.getItem('barberos_turns_'+SLUG+'_'+getTodayKey())||'{}');}catch(_){return {};}}
+function loadTurns(){try{return JSON.parse(localStorage.getItem('barberos_turns_'+SLUG)||'{}');}catch(_){return {};}}
 
 // FIX BUG 2: sync correcto con BD (completadas reales + in-memory)
 function rebuildQueues(){
@@ -1095,7 +929,7 @@ function rebuildQueues(){
     if(prev){
       // In-memory siempre tiene prioridad
       ct=prev.currentTurn;
-    } else if(saved[name]&&saved[name]>0&&saved[name]<=mine.length+1){
+    } else if(saved[name]&&saved[name]>0){
       ct=saved[name];
     } else {
       // FIX BUG 2: detectar desde citas completadas en BD
@@ -1142,28 +976,11 @@ async function siguienteTurno(barber,btnId){
   q.currentTurn+=1;
   saveTurns();
   onTurnChanged(barber);
-  // Notificar por WA al próximo cliente si el modo es 'turnos'
-  if(S.shopId&&S.recordatorioModo==='turnos'){
-    const rt=S.recordatorioTurnos||1;
-    const targetCita=citas[(q.currentTurn-1)+rt];
-    if(targetCita?.id){
-      fetch(`${SB_URL}/functions/v1/trigger-recordatorios`,{
-        method:'POST',
-        headers:H_,
-        body:JSON.stringify({shop_id:S.shopId,cita_id:targetCita.id,turno_actual:q.currentTurn,turnos_restantes:rt})
-      }).catch(()=>{});
-    }
-  }
-  function applyFlip(){
-    requestAnimationFrame(()=>{
-      ['hn-'+safeId(barber),'my-hn'].forEach(id=>{
-        const el=document.getElementById(id);
-        if(el){el.classList.remove('flip');void el.offsetWidth;el.classList.add('flip');}
-      });
-    });
-  }
+  ['hn-'+safeId(barber),'my-hn'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.classList.remove('flip');void el.offsetWidth;el.classList.add('flip');}
+  });
   render();
-  applyFlip();
   showToast('✓ '+barber.split(' ')[0]+': turno avanzado','ok');
   if(btn){
     btn.classList.remove('loading');btn.classList.add('success');
@@ -1171,7 +988,7 @@ async function siguienteTurno(barber,btnId){
     setTimeout(()=>{btn.classList.remove('success');btn.innerHTML=scHtml()+'▶ SIGUIENTE TURNO';},2000);
   }
   _turnoInProgress[barber]=false;
-  loadCitas().catch(()=>{}).then(()=>{render();applyFlip();});
+  loadCitas().catch(()=>{}).then(render);
 }
 
 async function toggleBarberoActivo(barberoId,nombre,activo){
@@ -1319,7 +1136,6 @@ function renderSolo(barber,layout){
           <div class="done-strip">
             <div class="done-strip-label">✓ LISTOS</div>
             <div class="done-pills">${done.length?done.slice(-3).map((c,i)=>`<div class="done-pill" style="animation-delay:${i*0.06}s"><div class="done-pill-num">${String(c.originalIdx+1).padStart(2,'0')}</div><div class="done-pill-name">${c.name}</div><div class="done-pill-check">✓</div></div>`).join(''):'<span class="done-strip-empty">— ninguno aún —</span>'}</div>
-            ${done.length?`<button type="button" class="btn-recuperar" onclick="openRecuperarModal('${barber.replace(/'/g,"\\'")}')">↺</button>`:''}
           </div>
           <div class="zone-a">
             <div class="q-col-header"><span>#</span><span>CLIENTE</span><span style="text-align:center">BARBERO</span><span style="text-align:center">HORA</span><span>ESTADO</span></div>
@@ -1427,10 +1243,6 @@ function renderMyTurn(c){
           <div class="done-strip" style="flex-shrink:0;">
             <div class="done-strip-label">✓ LISTOS</div>
             <div class="done-pills">${doneCitas.length?doneCitas.map((c,i)=>`<div class="done-pill" style="animation-delay:${i*0.06}s"><div class="done-pill-num">${String(allC.indexOf(c)+1).padStart(2,'0')}</div><div class="done-pill-name">${c.name}</div><div class="done-pill-check">✓</div></div>`).join(''):'<span class="done-strip-empty">— ninguno aún —</span>'}</div>
-            ${doneCitas.length?`<button type="button" class="btn-recuperar" onclick="openRecuperarModal('${barber.replace(/'/g,"\\'")}')">↺</button>`:''}
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 16px;font-family:'Share Tech Mono',monospace;font-size:0.54rem;letter-spacing:0.2em;color:rgba(0,245,255,0.72);text-transform:uppercase;border-top:1px solid rgba(0,245,255,0.1);border-bottom:1px solid rgba(0,245,255,0.22);font-weight:700;flex-shrink:0;">
-            <span>✦ TURNO · CLIENTE</span><span>HORA · ESTADO</span>
           </div>
           <div class="my-queue-list">
             ${(()=>{
@@ -1444,11 +1256,11 @@ function renderMyTurn(c){
                 const cls=isAct?'mqi-active':isNxt?'mqi-next':'mqi-wait';
                 const tag=isAct?'<span class="mqi-tag a">EN SILLA</span>':isNxt?'<span class="mqi-tag n">PRÓXIMO</span>':'<span class="mqi-tag w">ESPERA</span>';
                 const pos=i-(currentTurn-1);const eta=pos>0?calcLiveETA(pos,barber):null;const urgent=eta&&parseInt(eta)<=5;
-                const rBtn=c.id?`<button onclick="openReagendar('${c.id}','${c.name.replace(/'/g,"\\'")}','${c.time}','${barber.replace(/'/g,"\\'")}')" style="padding:5px 8px;border:1px solid rgba(176,110,255,0.3);background:rgba(176,110,255,0.05);color:rgba(176,110,255,0.7);font-family:'Share Tech Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;flex-shrink:0;" onmouseover="this.style.background='rgba(176,110,255,0.15)';this.style.color='rgba(176,110,255,1)';" onmouseout="this.style.background='rgba(176,110,255,0.05)';this.style.color='rgba(176,110,255,0.7)';" title="Reagendar">↻</button>`:'';
-                const tBtn=c.id?`<button onclick="openTransferirCita('${c.id}','${c.name.replace(/'/g,"\\'")}','${c.time}','${barber.replace(/'/g,"\\'")}',${i+1})" style="padding:5px 8px;border:1px solid rgba(176,110,255,0.3);background:rgba(176,110,255,0.05);color:rgba(176,110,255,0.7);font-family:'Share Tech Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;flex-shrink:0;" onmouseover="this.style.background='rgba(176,110,255,0.15)';this.style.color='rgba(176,110,255,1)';" onmouseout="this.style.background='rgba(176,110,255,0.05)';this.style.color='rgba(176,110,255,0.7)';" title="Transferir">↔</button>`:'';
-                return`<div class="my-q-item ${cls}" style="animation-delay:${rowIdx*0.04}s;grid-template-columns:44px minmax(0,1fr) ${c.id?'auto auto ':''} auto;">
+                const rBtn=c.id?`<button onclick="openReagendar('${c.id}','${c.name.replace(/'/g,"\\'")}','${c.time}','${barber.replace(/'/g,"\\'")}')" style="padding:7px 14px;border:1px solid rgba(176,110,255,0.3);background:rgba(176,110,255,0.05);color:rgba(176,110,255,0.7);font-family:'Share Tech Mono',monospace;font-size:0.58rem;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(176,110,255,0.15)';this.style.color='rgba(176,110,255,1)';" onmouseout="this.style.background='rgba(176,110,255,0.05)';this.style.color='rgba(176,110,255,0.7)';">↻</button>`:'';
+                const tBtn=c.id?`<button onclick="openTransferirCita('${c.id}','${c.name.replace(/'/g,"\\'")}','${c.time}','${barber.replace(/'/g,"\\'")}',${i+1})" style="padding:7px 14px;border:1px solid rgba(176,110,255,0.3);background:rgba(176,110,255,0.05);color:rgba(176,110,255,0.7);font-family:'Share Tech Mono',monospace;font-size:0.58rem;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(176,110,255,0.15)';this.style.color='rgba(176,110,255,1)';" onmouseout="this.style.background='rgba(176,110,255,0.05)';this.style.color='rgba(176,110,255,0.7)';">↔</button>`:'';
+                return`<div class="my-q-item ${cls}" style="animation-delay:${rowIdx*0.04}s;grid-template-columns:44px 1fr ${c.id?'auto auto ':''} auto;">
                   <div class="mqi-num">${String(i+1).padStart(2,'00')}</div>
-                  <div style="min-width:0;overflow:hidden;"><div class="mqi-name">${c.name}</div><div class="mqi-svc">${c.servicio}</div>${eta?`<div class="eta-live${urgent?' urgent':''}">⏱ ${eta}</div>`:''}</div>
+                  <div><div class="mqi-name">${c.name}</div><div class="mqi-svc">${c.servicio}</div>${eta?`<div class="eta-live${urgent?' urgent':''}">⏱ ${eta}</div>`:''}</div>
                   ${rBtn}${tBtn}
                   <div class="mqi-right"><div class="mqi-time">${fmt12(c.time)}</div>${tag}</div>
                 </div>`;
@@ -1569,7 +1381,7 @@ function setMode(m,barber){
   ['tv','shop','my','manana'].forEach(id=>{const btn=document.getElementById('mbtn-'+id);if(btn)btn.classList.remove('active','mode-barber-active','mode-manana-active');});
   const modeClass={tv:'active',shop:'active',my:'mode-barber-active',manana:'mode-manana-active'};
   const ab=document.getElementById('mbtn-'+(m==='my'?'my':m));if(ab)ab.classList.add(modeClass[m]||'active');
-  document.getElementById('brand-sub').textContent={tv:'Vista Global · TV',shop:'Vista Barbería',my:MY_BARBER?'✂ '+MY_BARBER:'Vista Personal',manana:'Citas para Mañana'}[m]||'Sistema de Turnos · AuraOS';
+  document.getElementById('brand-sub').textContent={tv:'Vista Global · TV',shop:'Vista Barbería',my:MY_BARBER?'✂ '+MY_BARBER:'Vista Personal',manana:'Citas para Mañana'}[m]||'Sistema de Turnos · BarberOS';
   document.getElementById('footer-msg').textContent={tv:'"Todos en la mira — vista global."',shop:'"El estilo es la firma del alma."',my:'"Tu turno, tu trabajo, tu orgullo."',manana:'"Mañana también hay estilo."'}[m]||'"El estilo es la firma del alma."';
   if(m==='manana')loadCitasMañana().catch(()=>{}).then(()=>render());
   document.getElementById('content').innerHTML='';render();
@@ -1754,7 +1566,7 @@ async function confirmWalkIn(){
 // FIX BUG 6: REAGENDAR — usa hora_inicio/hora_fin reales de la shop
 let REAG_ID=null,REAG_HORA=null,REAG_BARBER=null;
 
-async function openReagendar(citaId,nombre,horaActual,barber){
+function openReagendar(citaId,nombre,horaActual,barber){
   REAG_ID=citaId;REAG_HORA=horaActual;REAG_BARBER=barber.toUpperCase();  const barbNotm=REAG_BARBER;
   const inicio=S.horaInicio||9;const fin=S.horaFin||18;
 
@@ -1776,31 +1588,9 @@ function normalizarHora(t){
   if(m>=60){m=0;h+=1;}
   return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
 }
-let takenHoy=S.citas
+const takenHoy=S.citas
   .filter(c=>c.barbero.toUpperCase()===barbNotm&&c.id!=citaId&&c.estado!=='Completada')
-  .map(c=>normalizarHora(c.time));
-
-  // Agregar horarios bloqueados (descanso/almuerzo) del barbero hoy
-  const barbObj=S.barberos.find(b=>b.nombre===barbNotm);
-  if(barbObj?.id){
-    const ahoraRef=new Date(new Date().toLocaleString('en-US',{timeZone:S.tz||'America/Santo_Domingo'}));
-    const hoyStr=ahoraRef.getFullYear()+'-'+String(ahoraRef.getMonth()+1).padStart(2,'0')+'-'+String(ahoraRef.getDate()).padStart(2,'0');
-    try{
-      const bloqueos=await sbGet('horarios_bloqueados','barbero_id=eq.'+barbObj.id+'&fecha=eq.'+hoyStr);
-      bloqueos.forEach(b=>{
-        const [bhi,bhim]=(b.hora_inicio||'00:00').split(':').map(Number);
-        const [bhf,bhfm]=(b.hora_fin||'00:00').split(':').map(Number);
-        const minIni=bhi*60+bhim;const minFin=bhf*60+bhfm;
-        generarSlots().forEach(t=>{
-          const[th,tm]=t.split(':').map(Number);
-          const minT=th*60+tm;
-          if(minT>=minIni&&minT<minFin&&!takenHoy.includes(t))takenHoy.push(t);
-        });
-      });
-    }catch(_){}
-  }
-
-  const slots=generarSlots();
+  .map(c=>normalizarHora(c.time));  const slots=generarSlots();
   const libresHoy=slots.filter(t=>t!==horaActual&&!takenHoy.includes(t));
 
   // Si no hay libres hoy → usar mañana
@@ -1814,25 +1604,6 @@ let takenHoy=S.citas
     takenDisplay=S.citasMañana
       .filter(c=>c.barbero.toUpperCase()===barbNotm&&c.id!=citaId&&c.estado!=='Completada')
       .map(c=>normalizarHora(c.time));
-    // Agregar bloqueos de mañana
-    if(barbObj?.id){
-      const ahoraRef2=new Date(new Date().toLocaleString('en-US',{timeZone:S.tz||'America/Santo_Domingo'}));
-      ahoraRef2.setDate(ahoraRef2.getDate()+1);
-      const mananaStr=ahoraRef2.getFullYear()+'-'+String(ahoraRef2.getMonth()+1).padStart(2,'0')+'-'+String(ahoraRef2.getDate()).padStart(2,'0');
-      try{
-        const bloqueosMañana=await sbGet('horarios_bloqueados','barbero_id=eq.'+barbObj.id+'&fecha=eq.'+mananaStr);
-        bloqueosMañana.forEach(b=>{
-          const[bhi,bhim]=(b.hora_inicio||'00:00').split(':').map(Number);
-          const[bhf,bhfm]=(b.hora_fin||'00:00').split(':').map(Number);
-          const minIni=bhi*60+bhim;const minFin=bhf*60+bhfm;
-          generarSlots().forEach(t=>{
-            const[th,tm]=t.split(':').map(Number);
-            const minT=th*60+tm;
-            if(minT>=minIni&&minT<minFin&&!takenDisplay.includes(t))takenDisplay.push(t);
-          });
-        });
-      }catch(_){}
-    }
     diaLabel='mañana';
     REAG_HORA=null;
   }
@@ -2000,46 +1771,6 @@ async function confirmarTransferencia(){
 
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 
-// ── RECUPERAR CITA ──
-function openRecuperarModal(barber){
-  const q=S.queues[barber];
-  if(!q||q.currentTurn<=1){showToast('↺ No hay citas completadas aún','warn');return;}
-  // últimas 3 completadas (están antes de currentTurn en el array)
-  const completadas=q.citas.slice(0,q.currentTurn-1).slice(-3).reverse();
-  if(!completadas.length){showToast('↺ No hay citas completadas aún','warn');return;}
-  const lista=document.getElementById('recuperar-lista');
-  lista.innerHTML=completadas.map((c,i)=>{
-    const num=q.citas.indexOf(c)+1;
-    const esc=n=>n.replace(/'/g,"\\'");
-    return`<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid rgba(0,255,120,0.15);background:rgba(0,255,120,0.03);">
-      <div style="font-family:'Orbitron',monospace;font-size:0.7rem;font-weight:700;color:rgba(0,255,120,0.5);min-width:26px;">${String(num).padStart(2,'0')}</div>
-      <div style="flex:1;">
-        <div style="font-family:'Rajdhani',sans-serif;font-size:0.9rem;font-weight:700;color:rgba(255,255,255,0.85);text-transform:uppercase;">${c.name}</div>
-        <div style="font-family:'Share Tech Mono',monospace;font-size:0.5rem;color:rgba(255,255,255,0.35);letter-spacing:0.1em;">${c.servicio} · ${fmt12(c.time)}</div>
-      </div>
-      <button onclick="deshacerCita('${c.id}','${esc(barber)}')" style="padding:6px 14px;border:1px solid rgba(0,255,120,0.4);background:rgba(0,255,120,0.07);color:rgba(0,255,120,0.9);font-family:'Share Tech Mono',monospace;font-size:0.55rem;letter-spacing:0.1em;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(0,255,120,0.18)'" onmouseout="this.style.background='rgba(0,255,120,0.07)'">↺ RECUPERAR</button>
-    </div>`;
-  }).join('');
-  document.getElementById('recuperar-modal').classList.add('open');
-}
-
-async function deshacerCita(citaId,barber){
-  const q=S.queues[barber];if(!q)return;
-  const btn=event.target;btn.textContent='⏳ ...';btn.style.pointerEvents='none';
-  try{
-    await retry(()=>sbPatch('citas','id=eq.'+citaId,{estado:'Confirmada'}),2);
-    q.currentTurn=Math.max(1,q.currentTurn-1);
-    saveTurns();
-    closeModal('recuperar-modal');
-    await loadCitas().catch(()=>{});
-    render();
-    showToast('↺ Cita restaurada a pendiente','ok');
-  }catch(e){
-    showToast('⚠ Error al recuperar cita','error');
-    btn.textContent='↺ RECUPERAR';btn.style.pointerEvents='';
-  }
-}
-
 // ── ZEN ──
 let ZEN=false;
 function toggleZen(){ZEN=!ZEN;document.body.classList.toggle('zen-mode',ZEN);const btn=document.getElementById('zen-btn');if(btn){btn.classList.toggle('active',ZEN);btn.textContent=ZEN?'☀ NORMAL (desactivar zen)':'☽ MODO ZEN (exterior / sol directo)';}try{localStorage.setItem('barberos_zen',ZEN?'1':'0');}catch(_){}}
@@ -2169,7 +1900,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='s'||e.key==='S')setMode('shop');
   if(e.key==='p'||e.key==='P')pausarBarberia();
   if(e.key==='m'||e.key==='M')setMode('manana');
-  if(e.key==='Escape'){['cfg-modal','walkin-modal','reag-modal','transfer-modal','pause-modal','recuperar-modal'].forEach(id=>closeModal(id));document.getElementById('barber-picker').classList.remove('open');}
+  if(e.key==='Escape'){['cfg-modal','walkin-modal','reag-modal','transfer-modal','pause-modal'].forEach(id=>closeModal(id));document.getElementById('barber-picker').classList.remove('open');}
   const nn=parseInt(e.key);if(nn>=1&&nn<=5&&MODE!=='tv'){const b=Object.keys(S.queues)[nn-1];if(b)siguienteTurno(b);}
   if(e.key==='ArrowRight'||e.key==='n'||e.key==='N'){if(MODE==='my'&&MY_BARBER)siguienteTurno(MY_BARBER,'btn-my');else{const b=Object.keys(S.queues)[0];if(b)siguienteTurno(b);}}
 });
