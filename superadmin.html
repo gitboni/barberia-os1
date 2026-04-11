@@ -1919,6 +1919,7 @@ function _renderShopsTable(shops, barberos=[]) {
         <button class="action-btn" onclick="openEditPlan('${s.id}','${s.nombre}','${s.plan}')">Plan</button><button class="action-btn" onclick="openPinModal('${s.id}','${s.nombre}')" style="background:rgba(201,168,76,0.07);border-color:rgba(201,168,76,0.3);color:var(--gold);">🔑 PIN</button>
         <button class="action-btn" onclick="openTrialModal('${s.id}','${s.nombre}','${s.plan}',${s.trial_activo},'${s.trial_ends_at||''}')" style="background:rgba(0,255,120,0.07);border-color:rgba(0,255,120,0.25);color:var(--green);">⏱ Trial</button>
         <button class="action-btn" onclick="openFeaturesModal('${s.id}','${s.nombre}')" style="background:rgba(176,110,255,0.1);border-color:rgba(176,110,255,0.3);color:var(--purple);">⚡ Features</button>
+        <button class="action-btn" onclick="openClonarModal('${s.id}')" style="background:rgba(201,168,76,0.05);border-color:rgba(201,168,76,0.25);color:var(--gold);">🔁 Clonar</button>
         <button class="action-btn ${s.activo?'danger':'success'}" onclick="confirmToggleShop('${s.id}',${s.activo},'${s.nombre}')">${s.activo?'Desactivar':'Activar'}</button>
       </div></td>
     </tr>`;
@@ -3723,6 +3724,122 @@ function exportUsuariosCSV() {
 // ════════════════════════════════════════════════════════
 //  FEATURES CONTROL
 // ════════════════════════════════════════════════════════
+// ════════════════════════════════════════════
+//  CLONAR BARBERÍA
+// ════════════════════════════════════════════
+var _cloneSource = null;
+
+async function openClonarModal(shopId) {
+  const shop = _shops.find(s => s.id === shopId);
+  if (!shop) { showToast('Shop no encontrada', 'error'); return; }
+
+  // Fetch servicios y features en paralelo
+  const btn = document.querySelector(`button[onclick="openClonarModal('${shopId}')"]`);
+  if (btn) { btn.textContent = '⏳'; btn.disabled = true; }
+  try {
+    const [svcs, featRows] = await Promise.all([
+      usingDemo ? [] : sbGet('servicios', `shop_id=eq.${shopId}&select=nombre,precio,duracion_min`).catch(() => []),
+      usingDemo ? [shop] : sbGet('shops', `id=eq.${shopId}&select=id,hora_inicio,hora_fin,duracion_turno,${FEATURES_DEF.map(f=>f.key).join(',')}`).catch(() => [shop]),
+    ]);
+    const featData = featRows[0] || shop;
+    const features = {};
+    FEATURES_DEF.forEach(f => { features[f.key] = !!featData[f.key]; });
+
+    _cloneSource = {
+      id:             shop.id,
+      nombre:         shop.nombre,
+      hora_inicio:    featData.hora_inicio  ?? 9,
+      hora_fin:       featData.hora_fin     ?? 21,
+      duracion_turno: featData.duracion_turno ?? 30,
+      timezone:       shop.timezone || 'America/Santo_Domingo',
+      features,
+      servicios: svcs.map(s => ({ nombre: s.nombre, precio: parseFloat(s.precio)||0, duracion_min: s.duracion_min||30 })),
+    };
+  } finally {
+    if (btn) { btn.textContent = '🔁 Clonar'; btn.disabled = false; }
+  }
+
+  // Rellenar modal
+  document.getElementById('clonarSourceNombre').textContent = shop.nombre;
+  document.getElementById('clonarSourceInfo').textContent =
+    `Horario ${_cloneSource.hora_inicio}h–${_cloneSource.hora_fin}h · ${_cloneSource.duracion_turno} min/turno · ${_cloneSource.servicios.length} servicio${_cloneSource.servicios.length!==1?'s':''}`;
+  document.getElementById('clonarNombre').value = '';
+  document.getElementById('clonarSlug').value = '';
+  openModal('modalClonarShop');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const elN = document.getElementById('clonarNombre');
+  const elS = document.getElementById('clonarSlug');
+  if (elN) elN.addEventListener('input', e => {
+    elS.value = e.target.value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+  });
+});
+
+async function crearClon() {
+  if (!_cloneSource) return;
+  const nombre = document.getElementById('clonarNombre').value.trim();
+  const slug   = document.getElementById('clonarSlug').value.trim().replace(/[^a-z0-9-]/g,'');
+  if (!nombre || !slug) { showToast('Nombre y slug requeridos', 'error'); return; }
+  if (_shops.some(s => s.slug === slug)) { showToast('El slug ya existe', 'error'); return; }
+
+  const btn = document.getElementById('crearClonBtn');
+  btn.textContent = '⏳ Creando...'; btn.disabled = true;
+  try {
+    let newShopId = null;
+    if (!usingDemo) {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/rpc/create_shop`, {
+        method: 'POST',
+        headers: {'apikey':SUPABASE_KEY,'Authorization':`Bearer ${_accessToken||SUPABASE_KEY}`,'Content-Type':'application/json'},
+        body: JSON.stringify({
+          p_nombre: nombre, p_slug: slug, p_plan: 'free',
+          p_duracion_turno: _cloneSource.duracion_turno,
+          p_hora_inicio: _cloneSource.hora_inicio,
+          p_hora_fin: _cloneSource.hora_fin,
+          p_timezone: _cloneSource.timezone,
+          p_whatsapp_dueno: null,
+          p_whatsapp_provider: 'meta',
+          p_twilio_number: null,
+          p_meta_phone_number_id: null,
+          p_meta_access_token: null,
+          p_activo: false,
+        })
+      });
+      const data = await r.json();
+      if (data && data.error) throw new Error(data.error);
+      // Obtener el id de la nueva shop
+      const rows = await sbGet('shops', `slug=eq.${slug}&select=id`);
+      newShopId = rows[0]?.id;
+
+      // Copiar features
+      if (newShopId) {
+        const featUpdates = {};
+        FEATURES_DEF.forEach(f => { featUpdates[f.key] = _cloneSource.features[f.key] || false; });
+        await sbPatch('shops', `id=eq.${newShopId}`, featUpdates).catch(() => {});
+      }
+
+      // Copiar servicios
+      if (newShopId && _cloneSource.servicios.length > 0) {
+        const svcs = _cloneSource.servicios.map(s => ({ shop_id: newShopId, nombre: s.nombre, precio: s.precio, duracion_min: s.duracion_min }));
+        await sbPost('servicios', svcs).catch(() => {});
+      }
+    } else {
+      // Demo mode
+      _shops.push({ id:'s'+Date.now(), nombre, slug, plan:'free', activo:false, created_at:new Date().toISOString() });
+    }
+
+    showToast(`"${nombre}" creada (clon de "${_cloneSource.nombre}") ✓`, 'success');
+    addLog('OK', `Clon de ${_cloneSource.nombre}: ${nombre}`);
+    closeModal('modalClonarShop');
+    _cloneSource = null;
+    await fetchAll(); loadShops(); renderDashboard();
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
+  } finally {
+    btn.textContent = '🔁 CREAR CLON'; btn.disabled = false;
+  }
+}
+
 const FEATURES_DEF = [
   { key:'feature_reportes',     label:'📊 Reportes',          desc:'Estadísticas, gráficas y exportar PDF' },
   { key:'feature_config',       label:'⚙ Configuración',      desc:'Editar nombre, horario, duración, timezone' },
@@ -3885,6 +4002,31 @@ async function guardarEditShop(){
 }
 
 </script>
+<!-- ══ MODAL CLONAR BARBERÍA ════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modalClonarShop">
+  <div class="modal">
+    <div class="modal-title">🔁 Clonar Barbería</div>
+    <div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.25);border-radius:8px;padding:12px 14px;margin-bottom:18px;">
+      <div style="font-size:0.7rem;color:var(--muted);letter-spacing:.06em;margin-bottom:4px;">ORIGEN</div>
+      <div id="clonarSourceNombre" style="font-size:0.9rem;font-weight:700;color:var(--gold);"></div>
+      <div id="clonarSourceInfo" style="font-size:0.6rem;color:var(--muted);margin-top:3px;"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nombre de la nueva barbería *</label>
+      <input class="form-input" id="clonarNombre" placeholder="ej: King Cuts 2" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Slug (URL) *</label>
+      <input class="form-input" id="clonarSlug" placeholder="ej: king-cuts-2" autocomplete="off">
+      <div class="form-hint">Se copiará: horario, duración, features y servicios. Plan → Free, estado → inactiva.</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modalClonarShop')">CANCELAR</button>
+      <button class="btn btn-primary" id="crearClonBtn" onclick="crearClon()">🔁 CREAR CLON</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ MODAL FEATURES ══════════════════════════════════════════════════ -->
 <div class="modal-overlay" id="modalFeatures">
   <div class="modal">
