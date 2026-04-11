@@ -1401,8 +1401,13 @@ function renderMyTurn(c){
     <div class="my-layout">
       <div class="my-left">
         ${isActive&&cur?`<div class="my-silla-zone">
-          <div class="now-label">◆ EN SILLA AHORA ◆</div>
-          <div style="width:52px;height:52px;border-radius:50%;border:2px solid rgba(0,245,255,0.5);background:rgba(0,245,255,0.1);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:900;color:var(--cyan);text-shadow:0 0 16px rgba(0,245,255,0.6);margin-bottom:4px;box-shadow:0 0 18px rgba(0,245,255,0.15);">${barber.charAt(0)}</div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+            <div style="width:44px;height:44px;border-radius:50%;border:2px solid rgba(0,245,255,0.5);background:rgba(0,245,255,0.1);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:900;color:var(--cyan);text-shadow:0 0 16px rgba(0,245,255,0.6);box-shadow:0 0 18px rgba(0,245,255,0.15);flex-shrink:0;">${barber.charAt(0)}</div>
+            <div style="display:flex;flex-direction:column;">
+              <div style="font-family:'Orbitron',monospace;font-size:0.7rem;font-weight:700;color:var(--cyan);letter-spacing:0.18em;text-shadow:0 0 10px rgba(0,245,255,0.5);">✂ ${barber}</div>
+              <div style="font-family:'Share Tech Mono',monospace;font-size:0.48rem;color:rgba(255,0,110,0.8);letter-spacing:0.3em;text-transform:uppercase;margin-top:2px;">● EN SILLA AHORA</div>
+            </div>
+          </div>
           <div class="hero-num-wrap"><div class="hero-ghost">${String(currentTurn).padStart(2,'00')}</div><div class="my-hero-num" id="my-hn">${String(currentTurn).padStart(2,'00')}</div></div>
           <div class="my-client-name typing" id="my-cn">${cur.name}</div>
           <div class="my-service">${cur.servicio}</div>
