@@ -11,7 +11,7 @@
   --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.1);
   --text:#EAE8E2;--muted:#52504E;--muted2:#7A7875;
   --gold:#C9A84C;--gold2:#E8C96A;--gold3:rgba(201,168,76,0.12);
-  --green:#2ECC71;--red:#E74C3C;--blue:#3498DB;--orange:#E67E22;
+  --green:#2ECC71;--red:#E74C3C;--blue:#3498DB;--orange:#E67E22;--purple:#B06EFF;
   --sidebar-w:245px;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -1805,7 +1805,6 @@ function calcAgo(d) {
   if(m<1)return 'ahora';if(m<60)return `hace ${m}m`;return `hace ${Math.round(m/60)}h`;
 }
 function fmt12rpt(h){if(!h)return'—';const[hh,mm]=(h+':00').split(':').map(Number),ap=hh>=12?'PM':'AM',h12=hh===0?12:hh>12?hh-12:hh;return h12+':'+(mm<10?'0':'')+mm+' '+ap;}
-function fmt12rpt(h){ if(!h)return'—'; const[hh,mm]=(h+':00').split(':').map(Number),ap=hh>=12?'PM':'AM',h12=hh===0?12:hh>12?hh-12:hh; return h12+':'+(mm<10?'0':'')+mm+' '+ap; }
 
 function renderBarChart(citas) {
   const days=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
@@ -1974,7 +1973,7 @@ function _getTrialInfo(s) {
 
 function _renderShopsTable(shops, barberos=[]) {
   if(!shops.length){
-    document.getElementById('shopsTable').innerHTML='<tr><td colspan="9" style="color:var(--muted);text-align:center;padding:24px;">Sin barberías</td></tr>';
+    document.getElementById('shopsTable').innerHTML='<tr><td colspan="10" style="color:var(--muted);text-align:center;padding:24px;">Sin barberías</td></tr>';
     return;
   }
   document.getElementById('shopsTable').innerHTML=shops.map(s=>{
@@ -3353,7 +3352,7 @@ async function loadResumenGlobal() {
     const f30 = hace30.toLocaleDateString('en-CA', {timeZone:'America/Santo_Domingo'});
     const citas30 = await sbFetch('citas', `fecha=gte.${f30}&fecha=lte.${hoje}&select=shop_id,estado,servicio`);
     const completadas30 = citas30.filter(c => c.estado === 'Completada').length;
-    const totalClientes = await sbFetch('clientes', 'select=shop_id');
+    const totalClientes = await sbFetch('usuarios_app', 'select=id&rol=eq.cliente').catch(()=>[]);
     // Agrupar por shop
     const shopCitas = {};
     citas30.forEach(c => { shopCitas[c.shop_id] = (shopCitas[c.shop_id]||0)+1; });
@@ -3829,7 +3828,7 @@ async function loadEstado() {
         <div style="font-size:0.65rem;font-weight:700;color:var(--text);">${c.label}</div>
         <div style="font-size:0.58rem;color:var(--muted);">Verificando…</div>
       </div>
-      <div style="width:12px;height:12px;border-radius:50%;background:var(--muted);flex-shrink:0;animation:pulse 1s infinite;"></div>
+      <div style="width:12px;height:12px;border-radius:50%;background:var(--muted);flex-shrink:0;animation:glow-pulse 1.2s infinite;"></div>
     </div>`).join('');
 
   const ts = new Date().toLocaleTimeString('es');
@@ -3994,7 +3993,7 @@ async function testWhatsApp(shopId, nombre, waNum, metaPhoneId, metaToken) {
     const data = await r.json();
     if (r.ok && data.messages) {
       showToast(`✅ Mensaje enviado a ${waNum}`, 'success');
-      addLog('info', `Test WA enviado a ${nombre} (${waNum})`);
+      addLog('INFO', `Test WA enviado a ${nombre} (${waNum})`);
     } else {
       showToast(`Error Meta: ${data.error?.message || r.status}`, 'error');
     }
@@ -4077,7 +4076,7 @@ async function enviarBroadcast() {
   const summary = `✅ ${ok} enviados, ❌ ${fail} fallidos — "${msg.slice(0,40)}…"`;
   status.textContent = summary;
   showToast(summary, ok > 0 ? 'success' : 'error');
-  addLog('info', `Broadcast: ${summary}`);
+  addLog('INFO', `Broadcast: ${summary}`);
 
   // Save to history
   const hist = JSON.parse(localStorage.getItem('broadcastHistory')||'[]');
