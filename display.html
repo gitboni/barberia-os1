@@ -66,7 +66,7 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--cyan);font-fam
 /* ── MODALES ── */
 .action-modal{display:none;position:fixed;inset:0;z-index:300;background:rgba(2,4,8,0.94);backdrop-filter:blur(18px);align-items:center;justify-content:center;}
 .action-modal.open{display:flex;}
-.action-box{background:var(--bg2);border:1px solid rgba(0,245,255,0.15);padding:28px 32px;min-width:360px;max-width:500px;width:92%;position:relative;}.action-box.reag-box{max-width:760px;padding:36px 40px;}
+.action-box{background:var(--bg2);border:1px solid rgba(0,245,255,0.15);padding:28px 32px;min-width:360px;max-width:500px;width:92%;position:relative;max-height:92vh;overflow-y:auto;}.action-box.reag-box{max-width:760px;padding:36px 40px;}
 .action-box::before{content:'';position:absolute;top:0;left:10%;right:10%;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);}
 .action-box.gold-modal::before{background:linear-gradient(90deg,transparent,var(--gold),transparent);}
 .action-box.purple-modal::before{background:linear-gradient(90deg,transparent,var(--purple),transparent);}
@@ -464,12 +464,13 @@ header::after{content:'';position:absolute;bottom:-1px;left:8%;right:8%;height:1
 .my-barber-name{font-family:'Orbitron',monospace;font-size:0.9rem;font-weight:700;letter-spacing:0.18em;color:var(--cyan);text-shadow:0 0 12px rgba(0,245,255,0.5);}
 .my-sub{font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:rgba(0,245,255,0.75);letter-spacing:0.2em;text-transform:uppercase;margin-top:2px;}
 .my-layout{flex:1;display:flex;flex-direction:row;overflow:hidden;min-height:0;}
-.my-left{flex:0 0 360px;display:flex;flex-direction:column;border-right:1px solid rgba(0,245,255,0.08);background:rgba(0,245,255,0.012);overflow:hidden;min-height:0;}
+.my-left{flex:0 0 360px;display:flex;flex-direction:column;border-right:1px solid rgba(0,245,255,0.08);background:rgba(0,245,255,0.012);overflow-y:auto;min-height:0;}
+.my-left::-webkit-scrollbar{width:2px;}.my-left::-webkit-scrollbar-thumb{background:rgba(0,245,255,0.15);border-radius:2px;}
 .my-right{flex:1;display:flex;flex-direction:column;padding:4px 16px 8px;overflow-y:auto;gap:4px;min-height:0;padding-right:14px;}
 .my-right::-webkit-scrollbar{width:3px;}
 .my-right::-webkit-scrollbar-thumb{background:rgba(0,245,255,0.25);border-radius:2px;}
 .my-right::-webkit-scrollbar-thumb:hover{background:rgba(0,245,255,0.4);}
-.my-silla-zone{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8px 18px 6px;position:relative;border-bottom:1px solid rgba(0,245,255,0.08);flex:1;min-height:0;overflow:hidden;}
+.my-silla-zone{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:8px 18px 6px;position:relative;border-bottom:1px solid rgba(0,245,255,0.08);flex:1;min-height:160px;overflow:visible;}
 .my-silla-zone::before,.my-silla-zone::after{content:'';position:absolute;width:36px;height:36px;border-style:solid;border-color:rgba(0,245,255,0.3);}
 .my-silla-zone::before{top:14px;left:14px;border-width:2px 0 0 2px;}.my-silla-zone::after{bottom:14px;right:14px;border-width:0 2px 2px 0;}
 .my-hero-num{font-family:'Orbitron',monospace;font-size:clamp(2.5rem,9vh,7rem);font-weight:900;color:var(--cyan);text-shadow:0 0 30px rgba(0,245,255,0.5),0 0 80px rgba(0,245,255,0.25);line-height:1;letter-spacing:0.06em;animation:hero-pulse 3s ease-in-out infinite;}
@@ -599,10 +600,35 @@ html.fs-sm{font-size:90%;}html.fs-md{font-size:112%;}html.fs-lg{font-size:130%;}
 .mbtn-cancel{background:transparent;border-color:rgba(255,255,255,0.08);color:rgba(255,255,255,0.2);}
 
 @media(max-width:1024px){.layout-solo .barber-col{grid-template-columns:300px 1fr;}.my-layout .my-left{flex:0 0 300px;}}
-@media(max-width:860px){header{grid-template-columns:1fr 1fr;padding:8px 16px;}.clock-block{display:none;}.tv-cards.n3,.tv-cards.n4,.tv-cards.n5{grid-template-columns:repeat(2,1fr);}}
-@media(max-width:600px){.tv-cards.n2,.tv-cards.n3,.tv-cards.n4,.tv-cards.n5{grid-template-columns:1fr;}.my-layout{grid-template-columns:1fr;}.my-right{display:none;}.tv-wrap{padding:8px 12px 6px;gap:8px;}.tv-card-head{padding:6px 10px;}.tv-barber-name{font-size:0.6rem;}.tv-num{font-size:2.5rem;}.tv-name{font-size:0.8rem;}.tv-service{font-size:0.48rem;}.tv-btn{font-size:0.58rem;padding:8px 0;}.content{flex-direction:column;}.layout-multi .barber-col{border-right:none;border-bottom:1px solid rgba(0,245,255,0.08);}.layout-solo .col-left{display:none;}}
-@media(max-width:480px){html{font-size:85%;}.tv-cards{gap:8px;}.brand-name{font-size:1rem;}.clock-time{font-size:1.2rem;}.hpill{font-size:0.42rem;padding:4px 8px;}.fs-btn{font-size:0.42rem;}.tv-card{border-width:1px;}.layout-multi .barber-col.libre{flex:1;opacity:0.4;}.footer-msg{font-size:0.85rem;}}
-@media(max-width:320px){.tv-barber-name{font-size:0.5rem;}.tv-num{font-size:1.8rem;}.tv-name{font-size:0.68rem;}.layout-multi .silla-name{font-size:0.65rem;}.btn-siguiente{font-size:0.52rem;padding:7px 0;}}
+/* ── Laptop 13"-15" sin cobertura previa ── */
+@media(min-width:1025px) and (max-width:1399px){.layout-solo .hero-num{font-size:9rem;}.layout-multi .hero-num.n2{font-size:6.5rem;}.layout-multi .hero-num.n3{font-size:4.8rem;}.tv-cards.n1 .tv-num,.tv-cards.n2 .tv-num{font-size:11rem;}.tv-cards.n3 .tv-num{font-size:8rem;}.tv-cards.n4 .tv-num{font-size:6rem;}}
+@media(max-width:860px){header{grid-template-columns:1fr 1fr;padding:8px 16px;}.clock-block{display:none;}.tv-cards.n3,.tv-cards.n4,.tv-cards.n5{grid-template-columns:repeat(2,1fr);}
+/* Tablet portrait — panel izquierdo más angosto */
+.layout-solo .barber-col{grid-template-columns:240px 1fr;}.my-layout .my-left{flex:0 0 240px;}}
+@media(max-width:600px){.tv-cards.n2,.tv-cards.n3,.tv-cards.n4,.tv-cards.n5{grid-template-columns:1fr;}
+/* Mi Turno: columna vertical, my-right como sección compacta debajo */
+.my-layout{flex-direction:column;overflow-y:auto;}
+.my-left{flex:0 0 auto;min-height:300px;border-right:none;border-bottom:1px solid rgba(0,245,255,0.08);overflow-y:auto;}
+.my-right{display:flex;flex:0 0 auto;flex-direction:column;padding:8px 12px;gap:6px;max-height:220px;overflow-y:auto;}
+.my-right .stats-bar{grid-template-columns:repeat(2,1fr);}
+.my-right .my-queue-section{display:none;}
+.tv-wrap{padding:8px 12px 6px;gap:8px;}.tv-card-head{padding:6px 10px;}.tv-barber-name{font-size:0.6rem;}.tv-num{font-size:2.5rem;}.tv-name{font-size:0.8rem;}.tv-service{font-size:0.48rem;}.tv-btn{font-size:0.58rem;padding:8px 0;}.content{flex-direction:column;}.layout-multi .barber-col{border-right:none;border-bottom:1px solid rgba(0,245,255,0.08);}.layout-solo .col-left{display:none;}}
+@media(max-width:480px){html{font-size:85%;}
+/* Ocultar elementos decorativos para liberar espacio */
+.hpill-sys,.hpill-rt,.hpill-db{display:none;}
+.walkin-fab{right:8px;bottom:72px;padding:6px 10px;}
+.mode-bar{left:50%;transform:translateX(-50%);}
+.tv-cards{gap:8px;}.brand-name{font-size:1rem;}.clock-time{font-size:1.2rem;}.fs-btn{font-size:0.42rem;}.tv-card{border-width:1px;}.layout-multi .barber-col.libre{flex:1;opacity:0.4;}
+.footer-msg{font-size:0.85rem;}
+/* Modales en móvil */
+.action-box{min-width:unset!important;width:97%!important;padding:18px 16px!important;}
+.action-box.reag-box{padding:20px 16px!important;}
+.time-slots{grid-template-columns:repeat(3,1fr);}
+.action-acts{flex-direction:column;}
+.abtn{padding:12px;font-size:0.55rem;}}
+@media(max-width:320px){.tv-barber-name{font-size:0.5rem;}.tv-num{font-size:1.8rem;}.tv-name{font-size:0.68rem;}.layout-multi .silla-name{font-size:0.65rem;}.btn-siguiente{font-size:0.52rem;padding:7px 0;}
+.action-box{padding:14px 12px!important;}
+.brand-name{font-size:0.82rem;}}
 @media(prefers-reduced-motion:reduce){@keyframes hero-pulse{0%,100%{text-shadow:none;}50%{text-shadow:none;}}@keyframes nebula-drift,@keyframes nebula-drift2,@keyframes nebula-drift3{0%,100%{transform:none;opacity:0.6;}}body.zen-mode *{animation:none!important;}.orb{animation:none!important;}.vignette{animation:none!important;}.blink,.tag-blink,.btn-pulse{animation:none!important;}}
 @media(min-width:1400px){.layout-solo .hero-num{font-size:11rem;}.layout-solo .silla-name{font-size:2rem;}.layout-multi .hero-num.n2{font-size:8rem;}.layout-multi .hero-num.n3{font-size:5.5rem;}.tv-cards.n1 .tv-num,.tv-cards.n2 .tv-num{font-size:13rem;}.tv-cards.n3 .tv-num{font-size:9rem;}.tv-cards.n4 .tv-num{font-size:7rem;}.my-hero-num{font-size:clamp(3.5rem,11vh,11rem);}}
 @media(min-width:1800px){.tv-cards.n1 .tv-num,.tv-cards.n2 .tv-num{font-size:18rem;}.tv-cards.n3 .tv-num{font-size:12rem;}}
