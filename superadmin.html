@@ -442,6 +442,8 @@ tr:hover td{background:rgba(255,255,255,0.016);}
   <div class="nav-item" data-page="seguridad"><span class="icon">🔒</span><span class="sidebar-text">Seguridad</span></div>
   <div class="nav-item" data-page="logs"><span class="icon">▸</span><span class="sidebar-text">Logs</span></div>
   <div class="nav-item" data-page="config"><span class="icon">⊙</span><span class="sidebar-text">Configuración</span></div>
+  <div class="nav-item" data-page="estado"><span class="icon">🛰</span><span class="sidebar-text">Estado Sistema</span></div>
+  <div class="nav-item" data-page="broadcast"><span class="icon">📣</span><span class="sidebar-text">Broadcast</span></div>
   <div class="sidebar-footer">
     <div class="admin-avatar sidebar-text" id="adminAvatar">S</div>
     <div class="admin-info sidebar-text">Sesión activa</div>
@@ -582,7 +584,7 @@ tr:hover td{background:rgba(255,255,255,0.016);}
           <div class="activity-feed" id="activityFeed"></div>
         </div>
       </div>
-      <!-- Mejora #3: Rankings reales por shop -->
+      <!-- Rankings -->
       <div>
         <div class="section-header">
           <div class="section-title">⚡ Ranking de Barberías — Este Mes</div>
@@ -593,6 +595,20 @@ tr:hover td{background:rgba(255,255,255,0.016);}
             <thead><tr><th>#</th><th>Barbería</th><th>Plan</th><th>Citas/mes</th><th>Tasa completadas</th><th>Barbero Top</th></tr></thead>
             <tbody id="shopRankingsTable"><tr><td colspan="6" style="color:var(--muted);text-align:center;padding:16px;font-size:0.62rem;">Cargando rankings...</td></tr></tbody>
           </table>
+        </div>
+      </div>
+      <!-- MRR histórico + Trials por vencer -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;">
+        <div class="chart-card">
+          <div class="chart-title">📈 MRR Histórico (últimos 6 meses)</div>
+          <div class="bar-chart" id="mrrHistChart" style="height:80px;align-items:flex-end;"></div>
+          <div id="mrrHistLabels" style="display:flex;justify-content:space-between;margin-top:4px;font-size:0.48rem;color:var(--muted);"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">⏰ Trials por vencer</div>
+          <div id="trialsVencerList" style="display:flex;flex-direction:column;gap:6px;max-height:120px;overflow-y:auto;">
+            <div style="color:var(--muted);font-size:0.6rem;">Cargando...</div>
+          </div>
         </div>
       </div>
     </div>
@@ -620,7 +636,7 @@ tr:hover td{background:rgba(255,255,255,0.016);}
         <button class="btn btn-ghost" id="refreshShopsBtn">↻</button>
       </div>
       <div class="table-wrap">
-        <table><thead><tr><th>Barbería</th><th class="col-hide-xs">Slug</th><th>WhatsApp</th><th>Plan</th><th>Trial</th><th class="col-hide-xs">Barberos</th><th>Estado</th><th class="col-hide-xs">Creado</th><th>Acciones</th></tr></thead><tbody id="shopsTable"></tbody></table>
+        <table><thead><tr><th>Barbería</th><th class="col-hide-xs">Slug</th><th>WhatsApp</th><th>Plan</th><th>Trial</th><th class="col-hide-xs">Barberos</th><th>Estado</th><th>Health</th><th class="col-hide-xs">Creado</th><th>Acciones</th></tr></thead><tbody id="shopsTable"></tbody></table>
       </div>
     </div>
 
@@ -963,6 +979,60 @@ tr:hover td{background:rgba(255,255,255,0.016);}
           </div>
           <button class="btn btn-primary" id="saveRefreshBtn">GUARDAR</button>
         </div>
+      </div>
+    </div>
+
+    <!-- ESTADO SISTEMA -->
+    <div class="page" id="page-estado">
+      <div class="section-header">
+        <div class="section-title">Estado del Sistema</div>
+        <button class="btn btn-ghost" onclick="loadEstado()">↻ Verificar ahora</button>
+      </div>
+      <div id="estadoGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:20px;"></div>
+      <div class="section-header" style="margin-top:6px;"><div class="section-title" style="font-size:0.62rem;">Historial de verificaciones</div></div>
+      <div id="estadoLog" style="font-size:0.55rem;font-family:'DM Mono',monospace;color:var(--muted);background:var(--surface2);padding:14px;border:1px solid var(--border);max-height:220px;overflow-y:auto;white-space:pre;line-height:1.6;">— Sin registros aún —</div>
+    </div>
+
+    <!-- BROADCAST -->
+    <div class="page" id="page-broadcast">
+      <div class="section-header">
+        <div class="section-title">Broadcast WhatsApp</div>
+      </div>
+      <div class="config-card" style="max-width:600px;">
+        <div class="config-section-title">ENVIAR MENSAJE A TODOS LOS DUEÑOS</div>
+        <div class="security-box" style="margin-bottom:14px;">⚠ Este mensaje se enviará via WhatsApp al número registrado de cada barbería activa. Úsalo solo para avisos importantes.</div>
+        <div class="form-group">
+          <label class="form-label">Tipo de aviso</label>
+          <select class="form-select" id="broadcastTipo">
+            <option value="aviso">📢 Aviso general</option>
+            <option value="mantenimiento">🔧 Mantenimiento</option>
+            <option value="feature">✨ Nueva funcionalidad</option>
+            <option value="urgente">🚨 Urgente</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mensaje</label>
+          <textarea class="form-input" id="broadcastMsg" rows="5" placeholder="Escribe el mensaje aquí..." style="resize:vertical;font-family:'DM Mono',monospace;"></textarea>
+          <div class="form-hint">Tip: usa emojis para más visibilidad. El mensaje irá precedido del tipo de aviso.</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Destinatarios</label>
+          <select class="form-select" id="broadcastTarget">
+            <option value="all">Todas las barberías activas</option>
+            <option value="pro">Solo Plan Pro + Elite</option>
+            <option value="trial">Solo en Trial</option>
+          </select>
+        </div>
+        <div id="broadcastPreview" style="margin-bottom:12px;padding:10px;background:var(--surface2);border:1px solid var(--border);font-size:0.6rem;color:var(--muted);display:none;"></div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn btn-ghost" onclick="previewBroadcast()">👁 Preview</button>
+          <button class="btn btn-primary" onclick="enviarBroadcast()">📣 Enviar Broadcast</button>
+          <span id="broadcastStatus" style="font-size:0.58rem;color:var(--muted);"></span>
+        </div>
+      </div>
+      <div style="margin-top:20px;">
+        <div class="section-header"><div class="section-title" style="font-size:0.62rem;">Historial de broadcasts</div></div>
+        <div id="broadcastLog" style="font-size:0.55rem;font-family:'DM Mono',monospace;color:var(--muted);background:var(--surface2);padding:14px;border:1px solid var(--border);max-height:200px;overflow-y:auto;white-space:pre;line-height:1.6;">— Sin envíos —</div>
       </div>
     </div>
 
@@ -1451,7 +1521,8 @@ const PAGE_TITLES = {
   usuarios:'Usuarios & Accesos', barberos:'Gestión de Barberos', pagos:'Pagos & Suscripciones',
   'clientes-app':'Clientes en la App',
   facturacion:'Facturación', citas:'Citas Global', simulador:'Simulador de Chat WhatsApp', whatsapp:'WhatsApp',
-  leads:'Leads del Landing', reportes:'Reportes por Barbería', seguridad:'Centro de Seguridad', logs:'Logs del Sistema', config:'Configuración Global'
+  leads:'Leads del Landing', reportes:'Reportes por Barbería', seguridad:'Centro de Seguridad', logs:'Logs del Sistema', config:'Configuración Global',
+  estado:'Estado del Sistema', broadcast:'Broadcast WhatsApp'
 };
 document.querySelectorAll('.nav-item[data-page]').forEach(el => {
   el.addEventListener('click', () => showPage(el.dataset.page, el));
@@ -1475,7 +1546,9 @@ function showPage(id, el) {
     pagos:loadPayments, facturacion:loadFacturacion, whatsapp:loadWebhooks,
     logs:loadLogs, solicitudes:loadSolicitudes, seguridad:loadSeguridad,
     leads:loadLeads, reportes:loadReportesPage,
-    citas:() => { document.getElementById('citasFecha').value=new Date().toISOString().split('T')[0]; loadCitas(); }
+    citas:() => { document.getElementById('citasFecha').value=new Date().toISOString().split('T')[0]; loadCitas(); },
+    estado:loadEstado,
+    broadcast:loadBroadcast
   };
   if(loaders[id]) loaders[id]();
 }
@@ -1652,6 +1725,8 @@ function renderDashboard() {
   renderBarChart(citas);
   renderPlanDonut(shops);
   renderShopRankings();
+  renderMrrHistorico(shops);
+  renderTrialsPorVencer(shops);
 }
 
 function renderShopRankings() {
@@ -1905,6 +1980,9 @@ function _renderShopsTable(shops, barberos=[]) {
   document.getElementById('shopsTable').innerHTML=shops.map(s=>{
     const barbs=barberos.filter(b=>b.shop_id===s.id).length;
     const trial=_getTrialInfo(s);
+    const health=_getHealthScore(s);
+    const nota=localStorage.getItem('nota_'+s.id)||'';
+    const notaIcon=nota?'📝':'📄';
     return `<tr>
       <td style="color:var(--text);font-weight:500"><span style="margin-right:6px;font-size:1rem;">${s.icono||'✂️'}</span>${s.nombre}</td>
       <td style="color:var(--muted);font-size:0.58rem">${s.slug}</td>
@@ -1913,13 +1991,17 @@ function _renderShopsTable(shops, barberos=[]) {
       <td><span style="font-size:0.52rem;color:${trial.color};letter-spacing:0.08em;font-weight:500;">${trial.label}</span></td>
       <td style="color:var(--gold);text-align:center">${barbs}</td>
       <td class="${s.activo?'status-active':'status-pending'}">${s.activo?'● Activa':'○ Pendiente'}</td>
+      <td style="text-align:center;font-size:1rem;" title="${health.label}">${health.dot}</td>
       <td style="color:var(--muted)">${s.created_at?new Date(s.created_at).toLocaleDateString('es'):'—'}</td>
       <td><div class="action-btns">
         <button class="action-btn" onclick="abrirEditShop('${s.id}')" style="background:rgba(201,168,76,0.07);border-color:rgba(201,168,76,0.3);color:var(--gold);">✏️ Editar</button>
-        <button class="action-btn" onclick="openEditPlan('${s.id}','${s.nombre}','${s.plan}')">Plan</button><button class="action-btn" onclick="openPinModal('${s.id}','${s.nombre}')" style="background:rgba(201,168,76,0.07);border-color:rgba(201,168,76,0.3);color:var(--gold);">🔑 PIN</button>
+        <button class="action-btn" onclick="openEditPlan('${s.id}','${s.nombre}','${s.plan}')">Plan</button>
+        <button class="action-btn" onclick="openPinModal('${s.id}','${s.nombre}')" style="background:rgba(201,168,76,0.07);border-color:rgba(201,168,76,0.3);color:var(--gold);">🔑 PIN</button>
         <button class="action-btn" onclick="openTrialModal('${s.id}','${s.nombre}','${s.plan}',${s.trial_activo},'${s.trial_ends_at||''}')" style="background:rgba(0,255,120,0.07);border-color:rgba(0,255,120,0.25);color:var(--green);">⏱ Trial</button>
         <button class="action-btn" onclick="openFeaturesModal('${s.id}','${s.nombre}')" style="background:rgba(176,110,255,0.1);border-color:rgba(176,110,255,0.3);color:var(--purple);">⚡ Features</button>
         <button class="action-btn" onclick="openClonarModal('${s.id}')" style="background:rgba(201,168,76,0.05);border-color:rgba(201,168,76,0.25);color:var(--gold);">🔁 Clonar</button>
+        <button class="action-btn" onclick="testWhatsApp('${s.id}','${s.nombre}','${(s.whatsapp_dueño||'').replace(/'/g,'')}','${(s.meta_phone_number_id||'').replace(/'/g,'')}','${(s.meta_access_token||'').replace(/'/g,'')}')" style="background:rgba(0,255,120,0.07);border-color:rgba(0,255,120,0.25);color:var(--green);" title="Enviar mensaje de prueba">💬 Test WA</button>
+        <button class="action-btn" onclick="abrirNotas('${s.id}','${s.nombre.replace(/'/g,"\\'")}',\`${nota.replace(/`/g,'\\`')}\`)" title="${nota?'Editar nota':'Agregar nota'}">${notaIcon} Nota</button>
         <button class="action-btn ${s.activo?'danger':'success'}" onclick="confirmToggleShop('${s.id}',${s.activo},'${s.nombre}')">${s.activo?'Desactivar':'Activar'}</button>
       </div></td>
     </tr>`;
@@ -3725,6 +3807,357 @@ function exportUsuariosCSV() {
 //  FEATURES CONTROL
 // ════════════════════════════════════════════════════════
 // ════════════════════════════════════════════
+//  ESTADO DEL SISTEMA
+// ════════════════════════════════════════════
+async function loadEstado() {
+  const grid = document.getElementById('estadoGrid');
+  const log  = document.getElementById('estadoLog');
+  if (!grid) return;
+
+  const checks = [
+    { id:'supabase', label:'Supabase DB',            icon:'🗄', fn: checkSupabaseStatus },
+    { id:'auth',     label:'Supabase Auth',           icon:'🔑', fn: checkAuthStatus },
+    { id:'fn-bot',   label:'Edge Fn: chat-simulator', icon:'🤖', fn: () => checkEdgeFnStatus('chat-simulator') },
+    { id:'fn-crear', label:'Edge Fn: crear-usuario',  icon:'👤', fn: () => checkEdgeFnStatus('crear-usuario-app') },
+    { id:'wabot',    label:'WhatsApp Bot',             icon:'💬', fn: checkWaBotStatus },
+  ];
+
+  grid.innerHTML = checks.map(c => `
+    <div class="config-card" id="ecard-${c.id}" style="display:flex;align-items:center;gap:12px;">
+      <div style="font-size:1.8rem">${c.icon}</div>
+      <div style="flex:1">
+        <div style="font-size:0.65rem;font-weight:700;color:var(--text);">${c.label}</div>
+        <div style="font-size:0.58rem;color:var(--muted);">Verificando…</div>
+      </div>
+      <div style="width:12px;height:12px;border-radius:50%;background:var(--muted);flex-shrink:0;animation:pulse 1s infinite;"></div>
+    </div>`).join('');
+
+  const ts = new Date().toLocaleTimeString('es');
+  if (log.textContent === '— Sin registros aún —') log.textContent = '';
+  log.textContent += `\n[${ts}] ── Iniciando verificación ──`;
+
+  for (const c of checks) {
+    try {
+      const r = await c.fn();
+      const color  = r.ok ? 'var(--green)' : 'var(--red)';
+      const dot    = r.ok ? '#00ff78'       : '#ff4444';
+      const detail = r.ok ? (r.detail || 'Operativo') : (r.error || 'Error');
+      document.getElementById(`ecard-${c.id}`).innerHTML = `
+        <div style="font-size:1.8rem">${c.icon}</div>
+        <div style="flex:1">
+          <div style="font-size:0.65rem;font-weight:700;color:var(--text);">${c.label}</div>
+          <div style="font-size:0.58rem;color:${color};">${detail}</div>
+        </div>
+        <div style="width:12px;height:12px;border-radius:50%;background:${dot};flex-shrink:0;"></div>`;
+      log.textContent += `\n[${ts}] ${r.ok?'✅':'❌'} ${c.label}: ${detail}`;
+    } catch(e) {
+      const card = document.getElementById(`ecard-${c.id}`);
+      if (card) card.querySelector('div:last-child').style.background='var(--red)';
+      log.textContent += `\n[${ts}] ❌ ${c.label}: excepción`;
+    }
+  }
+  log.textContent += `\n[${ts}] ── Verificación completada ──`;
+  log.scrollTop = log.scrollHeight;
+}
+
+async function checkSupabaseStatus() {
+  const t = Date.now();
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/shops?select=id&limit=1`, {
+      headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${_accessToken||SUPABASE_KEY}`}
+    });
+    const ms = Date.now() - t;
+    return { ok: r.ok, detail: r.ok ? `OK · ${ms}ms` : `HTTP ${r.status}`, error: r.ok?null:`HTTP ${r.status}` };
+  } catch(e) { return { ok:false, error:'Sin conexión' }; }
+}
+
+async function checkAuthStatus() {
+  const t = Date.now();
+  try {
+    const r = await fetch(`${SUPABASE_URL}/auth/v1/settings`, { headers:{'apikey':SUPABASE_KEY} });
+    const ms = Date.now() - t;
+    return { ok: r.ok, detail: r.ok ? `OK · ${ms}ms` : `HTTP ${r.status}`, error: r.ok?null:`HTTP ${r.status}` };
+  } catch(e) { return { ok:false, error:'Sin conexión' }; }
+}
+
+async function checkEdgeFnStatus(fnName) {
+  const t = Date.now();
+  try {
+    const ctrl = new AbortController();
+    const tid = setTimeout(() => ctrl.abort(), 6000);
+    const r = await fetch(`${SB_FUNC_URL}/${fnName}`, {
+      method:'POST',
+      headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${_accessToken||SUPABASE_KEY}`,'Content-Type':'application/json'},
+      body: JSON.stringify({_ping:true}),
+      signal: ctrl.signal
+    });
+    clearTimeout(tid);
+    const ms = Date.now() - t;
+    const ok = r.status < 500; // 4xx = function alive but rejected bad params
+    return { ok, detail: ok ? `Activa · ${ms}ms` : `HTTP ${r.status}`, error: ok?null:`HTTP ${r.status}` };
+  } catch(e) {
+    return { ok:false, error: e.name==='AbortError'?'Timeout (6s)':'Inalcanzable' };
+  }
+}
+
+async function checkWaBotStatus() {
+  if (usingDemo) return { ok:true, detail:'Demo mode' };
+  try {
+    const r = await sbGet('conversaciones','select=ultima_actualizacion&order=ultima_actualizacion.desc&limit=1');
+    if (!r || r.error) return { ok:false, error:'Sin datos' };
+    if (!r.length) return { ok:true, detail:'Sin conv. aún' };
+    const last = new Date(r[0].ultima_actualizacion);
+    const minAgo = Math.round((Date.now() - last) / 60000);
+    const ok = minAgo < 120;
+    return { ok, detail: ok ? `Última act. hace ${minAgo}m` : `Inactivo hace ${minAgo}m`, error: ok?null:`Inactivo ${minAgo}m` };
+  } catch(e) { return { ok:false, error:'Error al consultar' }; }
+}
+
+// ════════════════════════════════════════════
+//  HEALTH SCORE POR SHOP
+// ════════════════════════════════════════════
+function _getHealthScore(shop) {
+  if (!shop.activo) return { dot:'🔴', label:'Inactiva' };
+  // Check recent citas from _citas (loaded today) as a rough proxy
+  const hasCitasHoy = _citas.some(c => c.shop_id === shop.id);
+  // Check if shop was created more than 7 days ago
+  const diasDesdeCreado = shop.created_at
+    ? Math.floor((Date.now() - new Date(shop.created_at)) / 86400000) : 99;
+  if (diasDesdeCreado < 3) return { dot:'🟡', label:'Recién creada' };
+  if (hasCitasHoy) return { dot:'🟢', label:'Activa hoy' };
+  // Check if any barbero assigned
+  const tieneBarb = _barberos.some(b => b.shop_id === shop.id && b.activo);
+  if (!tieneBarb) return { dot:'🔴', label:'Sin barberos' };
+  return { dot:'🟡', label:'Sin citas hoy' };
+}
+
+// ════════════════════════════════════════════
+//  NOTAS INTERNAS POR SHOP
+// ════════════════════════════════════════════
+let _notasShopId = null;
+
+function abrirNotas(shopId, nombre, textoActual) {
+  _notasShopId = shopId;
+  document.getElementById('notasShopName').textContent = nombre;
+  document.getElementById('notasTexto').value = textoActual || '';
+  openModal('modalNotas');
+}
+
+function guardarNota() {
+  if (!_notasShopId) return;
+  const texto = document.getElementById('notasTexto').value.trim();
+  if (texto) {
+    localStorage.setItem('nota_' + _notasShopId, texto);
+    showToast('Nota guardada', 'success');
+  } else {
+    localStorage.removeItem('nota_' + _notasShopId);
+    showToast('Nota borrada', 'info');
+  }
+  closeModal('modalNotas');
+  _renderShopsTable(_shops.filter(s => {
+    const q = document.getElementById('shopSearch').value.toLowerCase();
+    const pf = document.getElementById('planFilter').value;
+    const sf = document.getElementById('statusFilter').value;
+    if (q && !s.nombre.toLowerCase().includes(q) && !s.slug.includes(q)) return false;
+    if (pf && s.plan !== pf) return false;
+    if (sf !== '' && String(s.activo) !== sf) return false;
+    return true;
+  }), _barberos);
+}
+
+function borrarNota() {
+  if (!_notasShopId) return;
+  localStorage.removeItem('nota_' + _notasShopId);
+  document.getElementById('notasTexto').value = '';
+  showToast('Nota borrada', 'info');
+  closeModal('modalNotas');
+  _renderShopsTable(_shops, _barberos);
+}
+
+// ════════════════════════════════════════════
+//  TEST WHATSAPP EN 1 CLIC
+// ════════════════════════════════════════════
+async function testWhatsApp(shopId, nombre, waNum, metaPhoneId, metaToken) {
+  if (!waNum) { showToast('Esta barbería no tiene número WhatsApp', 'error'); return; }
+  if (!metaPhoneId || !metaToken) { showToast('Faltan credenciales Meta para esta shop', 'error'); return; }
+  const msg = `🧪 *Test BarberOS*\n\nHola, este es un mensaje de prueba del panel de administración.\n\nSi recibes esto, el bot de *${nombre}* está correctamente configurado. ✅`;
+  try {
+    showToast(`Enviando test a ${waNum}…`, 'info');
+    const r = await fetch(`https://graph.facebook.com/v19.0/${metaPhoneId}/messages`, {
+      method:'POST',
+      headers:{'Authorization':`Bearer ${metaToken}`,'Content-Type':'application/json'},
+      body: JSON.stringify({
+        messaging_product:'whatsapp', to: waNum,
+        type:'text', text:{ body: msg }
+      })
+    });
+    const data = await r.json();
+    if (r.ok && data.messages) {
+      showToast(`✅ Mensaje enviado a ${waNum}`, 'success');
+      addLog('info', `Test WA enviado a ${nombre} (${waNum})`);
+    } else {
+      showToast(`Error Meta: ${data.error?.message || r.status}`, 'error');
+    }
+  } catch(e) { showToast('Error de red al enviar test', 'error'); }
+}
+
+// ════════════════════════════════════════════
+//  BROADCAST WHATSAPP
+// ════════════════════════════════════════════
+function loadBroadcast() {
+  const log = document.getElementById('broadcastLog');
+  const stored = JSON.parse(localStorage.getItem('broadcastHistory')||'[]');
+  if (stored.length) {
+    log.textContent = stored.slice(-20).map(e=>`[${e.ts}] ${e.msg}`).join('\n');
+  }
+}
+
+function previewBroadcast() {
+  const tipo   = document.getElementById('broadcastTipo').value;
+  const msg    = document.getElementById('broadcastMsg').value.trim();
+  const target = document.getElementById('broadcastTarget').value;
+  if (!msg) { showToast('Escribe un mensaje primero', 'error'); return; }
+  const tipoEmoji = {aviso:'📢',mantenimiento:'🔧',feature:'✨',urgente:'🚨'}[tipo]||'📢';
+  const dest = _getbroadcastDest(target);
+  const preview = document.getElementById('broadcastPreview');
+  preview.style.display = 'block';
+  preview.innerHTML = `<div style="color:var(--gold);font-weight:700;margin-bottom:6px;">${tipoEmoji} Vista previa — ${dest.length} destinatario(s):</div>
+    <div style="white-space:pre-wrap;color:var(--text);">${tipoEmoji} *BarberOS*\n\n${msg}</div>
+    <div style="margin-top:8px;color:var(--muted);">Destinos: ${dest.map(s=>s.nombre).join(', ')||'—'}</div>`;
+}
+
+function _getbroadcastDest(target) {
+  return _shops.filter(s => {
+    if (!s.activo || !s.whatsapp_dueño) return false;
+    if (target === 'pro') return s.plan === 'pro' || s.plan === 'elite';
+    if (target === 'trial') return s.trial_activo;
+    return true;
+  });
+}
+
+async function enviarBroadcast() {
+  const tipo   = document.getElementById('broadcastTipo').value;
+  const msg    = document.getElementById('broadcastMsg').value.trim();
+  const target = document.getElementById('broadcastTarget').value;
+  if (!msg) { showToast('Escribe un mensaje primero', 'error'); return; }
+  const dest = _getbroadcastDest(target);
+  if (!dest.length) { showToast('No hay destinatarios con número WA para ese filtro', 'error'); return; }
+  if (!confirm(`¿Enviar broadcast a ${dest.length} barberías?`)) return;
+
+  const tipoEmoji = {aviso:'📢',mantenimiento:'🔧',feature:'✨',urgente:'🚨'}[tipo]||'📢';
+  const fullMsg = `${tipoEmoji} *BarberOS*\n\n${msg}`;
+  const status = document.getElementById('broadcastStatus');
+  let ok=0, fail=0;
+
+  for (const shop of dest) {
+    status.textContent = `Enviando a ${shop.nombre}…`;
+    try {
+      // If shop has Meta credentials, use Meta API directly
+      if (shop.meta_phone_number_id && shop.meta_access_token) {
+        const r = await fetch(`https://graph.facebook.com/v19.0/${shop.meta_phone_number_id}/messages`, {
+          method:'POST',
+          headers:{'Authorization':`Bearer ${shop.meta_access_token}`,'Content-Type':'application/json'},
+          body: JSON.stringify({ messaging_product:'whatsapp', to:shop.whatsapp_dueño, type:'text', text:{body:fullMsg} })
+        });
+        r.ok ? ok++ : fail++;
+      } else {
+        // Fallback: try send-report edge function
+        await fetch(`${SB_FUNC_URL}/send-report`, {
+          method:'POST',
+          headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${_accessToken||SUPABASE_KEY}`,'Content-Type':'application/json'},
+          body: JSON.stringify({ shop_id: shop.id, message: fullMsg })
+        });
+        ok++;
+      }
+    } catch(e) { fail++; }
+    await new Promise(r=>setTimeout(r,300)); // rate limit
+  }
+
+  const ts = new Date().toLocaleString('es');
+  const summary = `✅ ${ok} enviados, ❌ ${fail} fallidos — "${msg.slice(0,40)}…"`;
+  status.textContent = summary;
+  showToast(summary, ok > 0 ? 'success' : 'error');
+  addLog('info', `Broadcast: ${summary}`);
+
+  // Save to history
+  const hist = JSON.parse(localStorage.getItem('broadcastHistory')||'[]');
+  hist.push({ ts, msg: summary });
+  localStorage.setItem('broadcastHistory', JSON.stringify(hist.slice(-50)));
+  const log = document.getElementById('broadcastLog');
+  if (log) { log.textContent += `\n[${ts}] ${summary}`; log.scrollTop=log.scrollHeight; }
+}
+
+// ════════════════════════════════════════════
+//  MRR HISTÓRICO + TRIALS POR VENCER
+// ════════════════════════════════════════════
+function renderMrrHistorico(shops) {
+  const el = document.getElementById('mrrHistChart');
+  const lblEl = document.getElementById('mrrHistLabels');
+  if (!el) return;
+
+  // Build MRR history from localStorage snapshots + current value
+  const prices = {
+    free:  parseFloat(localStorage.getItem('priceFree'))||0,
+    pro:   parseFloat(localStorage.getItem('pricePro'))||29,
+    elite: parseFloat(localStorage.getItem('priceElite'))||79,
+  };
+  const currentMrr = shops.filter(s=>s.activo).reduce((a,s)=>a+(prices[s.plan]||0),0);
+
+  // Store today's MRR in localStorage
+  const todayKey = new Date().toISOString().slice(0,7); // YYYY-MM
+  const hist = JSON.parse(localStorage.getItem('mrrHistory')||'{}');
+  hist[todayKey] = currentMrr;
+  localStorage.setItem('mrrHistory', JSON.stringify(hist));
+
+  // Get last 6 months
+  const months = [];
+  for (let i=5; i>=0; i--) {
+    const d = new Date(); d.setMonth(d.getMonth()-i);
+    months.push(d.toISOString().slice(0,7));
+  }
+  const values = months.map(m => hist[m] || 0);
+  const max = Math.max(...values, 1);
+
+  el.innerHTML = values.map((v,i) => {
+    const pct = Math.round((v/max)*100);
+    const isLast = i === values.length-1;
+    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;">
+      <div style="font-size:0.44rem;color:var(--gold);">$${v}</div>
+      <div style="width:100%;height:${Math.max(pct,4)}%;background:${isLast?'var(--gold)':'rgba(201,168,76,0.35)'};border-radius:2px 2px 0 0;transition:height 0.6s ease;"></div>
+    </div>`;
+  }).join('');
+  lblEl.innerHTML = months.map(m=>m.slice(5)).join('</span><span>');
+  lblEl.innerHTML = '<span>' + lblEl.innerHTML + '</span>';
+}
+
+function renderTrialsPorVencer(shops) {
+  const el = document.getElementById('trialsVencerList');
+  if (!el) return;
+  const hoy = new Date();
+  const trials = shops.filter(s => s.trial_activo && s.trial_ends_at).map(s => {
+    const ends = new Date(s.trial_ends_at);
+    const dias = Math.ceil((ends - hoy) / 86400000);
+    return { ...s, diasRestantes: dias };
+  }).filter(s => s.diasRestantes <= 14).sort((a,b)=>a.diasRestantes-b.diasRestantes);
+
+  if (!trials.length) {
+    el.innerHTML='<div style="color:var(--muted);font-size:0.6rem;padding:8px 0;">Sin trials próximos a vencer ✅</div>';
+    return;
+  }
+  el.innerHTML = trials.map(s => {
+    const color = s.diasRestantes <= 3 ? 'var(--red)' : s.diasRestantes <= 7 ? 'var(--orange)' : 'var(--gold)';
+    const label = s.diasRestantes <= 0 ? 'Vencido' : `${s.diasRestantes}d`;
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:var(--surface2);border-radius:4px;border-left:3px solid ${color};">
+      <div>
+        <div style="font-size:0.62rem;font-weight:600;color:var(--text);">${s.nombre}</div>
+        <div style="font-size:0.52rem;color:var(--muted);">${s.plan} · ${s.whatsapp_dueño||'sin WA'}</div>
+      </div>
+      <div style="font-size:0.72rem;font-weight:800;color:${color};">${label}</div>
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════
 //  CLONAR BARBERÍA
 // ════════════════════════════════════════════
 var _cloneSource = null;
@@ -4023,6 +4456,24 @@ async function guardarEditShop(){
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('modalClonarShop')">CANCELAR</button>
       <button class="btn btn-primary" id="crearClonBtn" onclick="crearClon()">🔁 CREAR CLON</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL NOTAS ══ -->
+<div class="modal-overlay" id="modalNotas">
+  <div class="modal">
+    <div class="modal-title">📝 Notas internas</div>
+    <div id="notasShopName" style="font-size:0.62rem;color:var(--muted);margin-bottom:12px;"></div>
+    <div class="form-group">
+      <label class="form-label">Nota (solo visible en el panel)</label>
+      <textarea class="form-input" id="notasTexto" rows="6" placeholder="Ej: Cliente VIP, pendiente factura de marzo, hablar sobre upgrade a Elite..." style="resize:vertical;font-family:'DM Mono',monospace;font-size:0.62rem;"></textarea>
+    </div>
+    <div style="font-size:0.52rem;color:var(--muted);margin-bottom:10px;">💾 Guardado en localStorage del navegador</div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modalNotas')">CANCELAR</button>
+      <button class="btn btn-ghost danger" onclick="borrarNota()">🗑 Borrar</button>
+      <button class="btn btn-primary" onclick="guardarNota()">GUARDAR NOTA</button>
     </div>
   </div>
 </div>
