@@ -294,6 +294,13 @@ tr:hover td{background:rgba(255,255,255,0.016);}
 .lead-tel{font-size:0.8rem;color:var(--text);}
 .lead-meta{font-size:0.55rem;color:var(--muted);margin-top:3px;}
 
+/* REPORT CARDS */
+.card{background:var(--surface);border:1px solid var(--border);padding:18px 20px;margin-bottom:14px;position:relative;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),transparent);}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.card-title{font-size:0.58rem;color:var(--gold);letter-spacing:0.18em;text-transform:uppercase;font-weight:600;}
+.card-meta{font-size:0.52rem;color:var(--muted);margin-top:4px;}
+
 /* ── RESPONSIVE ─────────────────────────────────── */
 
 /* Desktop compacto <= 1280px */
@@ -2165,7 +2172,7 @@ document.getElementById('vencerTrialBtn').addEventListener('click', () => {
         closeModal('modalTrial');
         loadShops();
       } catch(e) { showToast('Error: ' + e.message, 'error'); }
-    }, 'Vencer Trial', true
+    }, 'Vencer Trial', '⚠ Vencer Trial'
   );
 });
 
@@ -3713,6 +3720,9 @@ document.getElementById('savePricesBtn').addEventListener('click',()=>{
   PLAN_PRICES.free=Math.max(0,parseInt(document.getElementById('priceFree').value)||0);
   PLAN_PRICES.pro=Math.max(0,parseInt(document.getElementById('pricePro').value)||29);
   PLAN_PRICES.elite=Math.max(0,parseInt(document.getElementById('priceElite').value)||79);
+  localStorage.setItem('priceFree', PLAN_PRICES.free);
+  localStorage.setItem('pricePro', PLAN_PRICES.pro);
+  localStorage.setItem('priceElite', PLAN_PRICES.elite);
   showToast('Precios guardados ✓','success');
 });
 document.getElementById('saveRefreshBtn').addEventListener('click',()=>{
@@ -4117,12 +4127,13 @@ function renderMrrHistorico(shops) {
   const values = months.map(m => hist[m] || 0);
   const max = Math.max(...values, 1);
 
+  const chartH = 64; // px, leaves room for labels
   el.innerHTML = values.map((v,i) => {
-    const pct = Math.round((v/max)*100);
+    const barH = Math.max(Math.round((v/max)*chartH), 3);
     const isLast = i === values.length-1;
-    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;">
+    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;">
       <div style="font-size:0.44rem;color:var(--gold);">$${v}</div>
-      <div style="width:100%;height:${Math.max(pct,4)}%;background:${isLast?'var(--gold)':'rgba(201,168,76,0.35)'};border-radius:2px 2px 0 0;transition:height 0.6s ease;"></div>
+      <div style="width:80%;height:${barH}px;background:${isLast?'var(--gold)':'rgba(201,168,76,0.35)'};border-radius:2px 2px 0 0;transition:height 0.6s ease;"></div>
     </div>`;
   }).join('');
   lblEl.innerHTML = months.map(m=>m.slice(5)).join('</span><span>');
