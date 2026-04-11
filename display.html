@@ -1402,6 +1402,7 @@ function renderMyTurn(c){
       <div class="my-left">
         ${isActive&&cur?`<div class="my-silla-zone">
           <div class="now-label">◆ EN SILLA AHORA ◆</div>
+          <div style="width:52px;height:52px;border-radius:50%;border:2px solid rgba(0,245,255,0.5);background:rgba(0,245,255,0.1);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:900;color:var(--cyan);text-shadow:0 0 16px rgba(0,245,255,0.6);margin-bottom:4px;box-shadow:0 0 18px rgba(0,245,255,0.15);">${barber.charAt(0)}</div>
           <div class="hero-num-wrap"><div class="hero-ghost">${String(currentTurn).padStart(2,'00')}</div><div class="my-hero-num" id="my-hn">${String(currentTurn).padStart(2,'00')}</div></div>
           <div class="my-client-name typing" id="my-cn">${cur.name}</div>
           <div class="my-service">${cur.servicio}</div>
@@ -1425,10 +1426,10 @@ function renderMyTurn(c){
           <div class="my-queue-title">
             ⬡ MIS TURNOS HOY
             <span class="my-queue-meta">${allC.length} REGISTRADOS · ${remaining} EN ESPERA</span>
-            <span style="margin-left:auto;display:flex;gap:14px;align-items:center;font-family:'Share Tech Mono',monospace;font-size:0.52rem;color:rgba(0,245,255,0.5);letter-spacing:0.1em;">
-              <span><span style="color:var(--gold);font-weight:700;">${remaining}</span> RESTANTES</span>
-              <span><span style="color:rgba(62,207,142,0.9);font-weight:700;">${remaining>0?(calcLiveETA(remaining,barber)||remaining*getAvgTime(barber)+'m'):'0m'}</span> ESPERA</span>
-              <span><span style="color:rgba(176,110,255,0.9);font-weight:700;">${getAvgTime(barber)}m</span> PROM.</span>
+            <span style="margin-left:auto;display:flex;gap:16px;align-items:center;">
+              <span style="display:flex;flex-direction:column;align-items:center;"><span style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:800;color:var(--gold);line-height:1;">${remaining}</span><span style="font-family:'Share Tech Mono',monospace;font-size:0.44rem;color:rgba(255,214,0,0.6);letter-spacing:0.14em;margin-top:2px;">RESTANTES</span></span>
+              <span style="display:flex;flex-direction:column;align-items:center;"><span style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:800;color:rgba(62,207,142,0.95);line-height:1;">${remaining>0?(calcLiveETA(remaining,barber)||remaining*getAvgTime(barber)+'m'):'0m'}</span><span style="font-family:'Share Tech Mono',monospace;font-size:0.44rem;color:rgba(62,207,142,0.55);letter-spacing:0.14em;margin-top:2px;">ESPERA</span></span>
+              <span style="display:flex;flex-direction:column;align-items:center;"><span style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:800;color:rgba(176,110,255,0.95);line-height:1;">${getAvgTime(barber)}m</span><span style="font-family:'Share Tech Mono',monospace;font-size:0.44rem;color:rgba(176,110,255,0.55);letter-spacing:0.14em;margin-top:2px;">PROM.</span></span>
             </span>
           </div>
           <div class="done-strip" style="flex-shrink:0;">
