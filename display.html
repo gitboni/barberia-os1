@@ -5050,16 +5050,7 @@
   </div>
 
   <!-- QR código para reservar desde la app -->
-  <div id="qr-panel"
-    style="display:none;position:fixed;bottom:80px;right:20px;z-index:60;background:rgba(2,4,8,0.92);border:1px solid rgba(0,245,255,0.25);padding:14px 14px 10px;border-radius:6px;text-align:center;backdrop-filter:blur(12px);box-shadow:0 0 30px rgba(0,245,255,0.1);">
-    <canvas id="qr-canvas"></canvas>
-    <div
-      style="font-family:'Share Tech Mono',monospace;font-size:0.52rem;color:rgba(0,245,255,0.6);letter-spacing:0.12em;text-transform:uppercase;margin-top:8px;">
-      📱 RESERVAR TURNO</div>
-    <div
-      style="font-family:'Rajdhani',sans-serif;font-size:0.6rem;font-weight:600;color:rgba(255,255,255,0.35);margin-top:2px;">
-      Escanea con AuraOS</div>
-  </div>
+  <div id="qr-panel" style="display:none;"></div>
 
   <div class="toast" id="toast"></div>
   <button class="cfg-btn" id="cfg-open">⚙</button>
@@ -5327,27 +5318,14 @@
           }
         }
       }
-      // Generar QR de reserva
-      generarQR(s.id);
+      // El QR ya no se genera globalmente en panel flotante
+
       // Verificar si está pausada
       checkBarberiaPausada();
       return true;
     }
 
-    function generarQR(shopId) {
-      if (!shopId || typeof QRCode === 'undefined') return;
-      const deepLink = 'barberos:///reservar?shop_id=' + shopId;
-      const canvas = document.getElementById('qr-canvas');
-      if (!canvas) return;
-      QRCode.toCanvas(canvas, deepLink, {
-        width: 120,
-        margin: 1,
-        color: { dark: '#FFFFFF', light: '#020408' },
-        errorCorrectionLevel: 'M'
-      }, function (err) {
-        if (!err) document.getElementById('qr-panel').style.display = 'block';
-      });
-    }
+
 
     function showDisplaySuspended(nombre) {
       setDb('err', 'SUSPENDIDA'); setRt('error', 'INACTIVA');
@@ -5620,10 +5598,7 @@
   <div class="barber-col bc-0" id="col-${bid}">
     <div class="col-left">
       <div class="silla-zone">
-        ${cur ? `<div style="margin-bottom: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,245,255,0.02); border: 1px solid rgba(0,245,255,0.15); padding: 8px; border-radius: 6px; z-index: 10;">
-          ${window._qrcData ? `<img src="${window._qrcData}" width="90" height="90" style="display:block; border-radius:4px;">` : `<div style="width:90px;height:90px;"></div>`}
-          <div style="font-family:'Share Tech Mono',monospace;font-size:0.42rem;color:rgba(0,245,255,0.5);letter-spacing:0.15em;margin-top:5px;text-transform:uppercase;">QR APP</div>
-        </div>`: ''}
+
         <div class="now-label">◆ EN SILLA AHORA ◆</div>
         <div class="hero-num-wrap">
           <div class="hero-ghost">${cur ? String(currentTurn).padStart(2, '0') : '—'}</div>
