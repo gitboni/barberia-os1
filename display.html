@@ -5771,25 +5771,6 @@
       const withStatus = allC.map((c, oi) => { const pos = oi - (currentTurn - 1); let st = 'wait'; if (pos < 0) st = 'done'; else if (pos === 0) st = 'active'; else if (pos === 1) st = 'next'; else if (pos === 2) st = 'alert'; return { ...c, status: st, pos, originalIdx: oi }; });
       const remaining = Math.max(0, allC.length - currentTurn + 1);
 
-      // ── PANTALLA IDLE: sin turnos disponibles ──
-      if (remaining === 0 && !cur) {
-        const dots = Array.from({length: 8}, (_, i) => `<div class="idle-dot" style="left:${10+i*11}%;top:${20+((i*37)%60)}%;--dur:${3.2+i*0.4}s;--delay:${i*0.35}s;"></div>`).join('');
-        layout.innerHTML = `<div class="barber-col bc-0" id="col-${bid}">
-          <div class="idle-screen">
-            <div class="idle-dots">${dots}</div>
-            <div class="idle-scissors-icon">✂</div>
-            <div class="idle-title">LISTO PARA ATENDER</div>
-            <div class="idle-sub-txt">${allC.length > 0 ? 'Todos los turnos completados' : 'Sin clientes registrados hoy'}</div>
-            <div class="idle-qr-wrap">
-              <div class="idle-qr-box">
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent('barberos://registro?shop='+SLUG)}&bgcolor=060C14&color=FFFFFF&margin=8" width="110" height="110" style="display:block;border-radius:4px;opacity:0.92;" onerror="this.style.display='none'">
-              </div>
-              <div class="idle-qr-label">✂ ${barber} &nbsp;·&nbsp; ESCANEA PARA RESERVAR</div>
-            </div>
-          </div>
-        </div>`;
-        return;
-      }
       const done = withStatus.filter(c => c.status === 'done');
       const active = withStatus.filter(c => c.status !== 'done');
       const zoneA = active.slice(0, 5); const zoneB = active.slice(5);
@@ -5826,7 +5807,21 @@
       </div>
     </div>
     <div class="col-right">
-      <div class="queue-section">
+      ${remaining === 0 && !cur ? (() => {
+        const dots = Array.from({length: 10}, (_, i) => `<div class="idle-dot" style="left:${8+i*9}%;top:${15+((i*43)%68)}%;--dur:${3+i*0.38}s;--delay:${i*0.3}s;"></div>`).join('');
+        return `<div class="idle-screen">
+          <div class="idle-dots">${dots}</div>
+          <div class="idle-scissors-icon">✂</div>
+          <div class="idle-title">LISTO PARA ATENDER</div>
+          <div class="idle-sub-txt">${allC.length > 0 ? 'Todos los turnos completados · ✓' : 'Sin clientes registrados hoy'}</div>
+          <div class="idle-qr-wrap">
+            <div class="idle-qr-box">
+              <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent('barberos://registro?shop='+SLUG)}&bgcolor=060C14&color=FFFFFF&margin=8" width="130" height="130" style="display:block;border-radius:4px;opacity:0.92;" onerror="this.style.display='none'">
+            </div>
+            <div class="idle-qr-label">ESCANEA PARA RESERVAR TU TURNO</div>
+          </div>
+        </div>`;
+      })() : `<div class="queue-section">
         <div class="queue-header">
           <div class="queue-title">⬡ TURNOS DEL DÍA</div>
           <div class="queue-meta">${allC.length} REGISTRADOS · ${remaining} EN ESPERA${conflicts.length ? ' · ⚠ ' + conflicts.length + ' CONFLICTO' : ' · OK ✓'}</div>
@@ -5858,7 +5853,7 @@
         return `<div class="q-mini ${c.status === 'alert' ? 'ms-alert' : 'ms-wait'}" style="animation-delay:${idx * 0.025}s">${conflictIdx.has(c.originalIdx) ? '<div style="position:absolute;top:2px;right:3px;width:4px;height:4px;border-radius:50%;background:var(--magenta);box-shadow:0 0 4px var(--magenta);"></div>' : ''}<div class="q-mini-num">${String(num).padStart(2, '0')}</div><div class="q-mini-name">${c.name}</div><div class="q-mini-meta"><div class="q-mini-time">${eta || fmt12(c.time)}</div><div class="q-mini-barb">${barber}</div></div></div>`;
       }).join('')}</div>` : ''}
         </div>
-      </div>
+      </div>`}
     </div>
   </div>`;
     }
