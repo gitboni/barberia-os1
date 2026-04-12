@@ -5111,6 +5111,67 @@
       border-color: rgba(255, 214, 0, 0.4);
       background: rgba(255, 214, 0, 0.07);
     }
+
+    /* ── Cierre del día ── */
+    @keyframes cierre-fade-in {
+      from { opacity: 0; transform: scale(0.96); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    .cierre-overlay {
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(6,12,20,0.97);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 28px; animation: cierre-fade-in 0.8s ease;
+    }
+    .cierre-title {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(1.2rem, 3.5vw, 2.6rem);
+      font-weight: 900; color: var(--gold);
+      letter-spacing: 0.22em; text-transform: uppercase;
+      text-shadow: 0 0 40px rgba(255,214,0,0.5);
+    }
+    .cierre-sub {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: clamp(0.55rem, 1.8vw, 0.9rem);
+      color: rgba(255,255,255,0.45); letter-spacing: 0.2em; text-transform: uppercase;
+    }
+    .cierre-stats { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
+    .cierre-stat {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      background: rgba(255,214,0,0.04); border: 1px solid rgba(255,214,0,0.18);
+      padding: 18px 28px; border-radius: 8px; min-width: 110px;
+    }
+    .cierre-stat-val {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(1.4rem, 3.5vw, 2.4rem);
+      font-weight: 900; color: var(--gold);
+      text-shadow: 0 0 20px rgba(255,214,0,0.5);
+    }
+    .cierre-stat-lbl {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.48rem; color: rgba(255,214,0,0.5);
+      letter-spacing: 0.16em; text-transform: uppercase;
+    }
+    .cierre-dismiss {
+      font-family: 'Share Tech Mono', monospace; font-size: 0.48rem;
+      color: rgba(255,255,255,0.25); letter-spacing: 0.2em; text-transform: uppercase;
+      cursor: pointer; padding: 8px 22px;
+      border: 1px solid rgba(255,255,255,0.1); background: transparent;
+      transition: all 0.2s;
+    }
+    .cierre-dismiss:hover { color: rgba(255,255,255,0.6); border-color: rgba(255,255,255,0.3); }
+
+    /* ── Footer phrase fade ── */
+    .footer-msg { transition: opacity 0.6s ease; }
+
+    /* ── TV background media ── */
+    .tv-bg-media {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; z-index: 0; opacity: 0.18; filter: blur(3px);
+      pointer-events: none;
+    }
+    .tv-wrap { position: relative; }
+    .tv-wrap > .tv-cards, .tv-wrap > .tv-ticker { position: relative; z-index: 1; }
   </style>
 </head>
 
@@ -5327,6 +5388,10 @@
         </div>
       </div>
       <div class="modal-field">
+        <label class="modal-lbl">Fondo TV (URL imagen/video)</label>
+        <input class="modal-inp" id="cfg-tvbg" placeholder="https://... .jpg o .mp4" style="font-size:0.55rem;">
+      </div>
+      <div class="modal-field">
         <label class="modal-lbl">Modo pantalla</label>
         <button class="util-btn" id="zen-btn" onclick="toggleZen()" style="margin-top:4px;width:100%;padding:8px;">☽
           MODO ZEN (exterior / sol directo)</button>
@@ -5400,6 +5465,8 @@
     }
     const SLUG = resolveSlug();
     let DUR = 45;
+    let TV_BG = '';
+    try { TV_BG = localStorage.getItem('barberos_tv_bg') || ''; } catch(_) {}
 
     // FIX BUG 6: guardar hora_inicio/hora_fin de la shop
     const S = { shopId: null, shopName: 'BARBEROS', barberos: [], citas: [], citasMañana: [], queues: {}, lastUp: null, horaInicio: 7, horaFin: 22, tz: 'America/Santo_Domingo', recordatorioModo: 'turnos', recordatorioTurnos: 1 };
@@ -5505,6 +5572,81 @@
       const rows = await sbGet('barberos', 'shop_id=eq.' + S.shopId + '&order=orden.asc');
       S.barberos = rows.map(b => ({ ...b, nombre: b.nombre.toUpperCase() }));
       renderBarberosBar();
+    }
+
+    // ── Avatar del barbero: foto si existe, inicial si no ──
+    function barbAvatar(nombre, sizePx) {
+      const b = S.barberos.find(x => x.nombre === nombre);
+      const foto = b && (b.foto_url || b.foto || b.avatar_url);
+      const fs = Math.round(sizePx * 0.38);
+      if (foto) {
+        return `<img src="${foto}" width="${sizePx}" height="${sizePx}"
+          style="width:${sizePx}px;height:${sizePx}px;border-radius:50%;object-fit:cover;
+                 border:2px solid rgba(0,245,255,0.4);flex-shrink:0;"
+          onerror="this.outerHTML='<div style=\\'width:${sizePx}px;height:${sizePx}px;border-radius:50%;border:2px solid rgba(0,245,255,0.4);background:rgba(0,245,255,0.08);display:flex;align-items:center;justify-content:center;font-family:Orbitron,monospace;font-size:${fs}px;font-weight:700;color:var(--cyan);flex-shrink:0;\\'>${nombre.charAt(0)}</div>'">`;
+      }
+      return `<div style="width:${sizePx}px;height:${sizePx}px;border-radius:50%;border:2px solid rgba(0,245,255,0.4);background:rgba(0,245,255,0.08);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:${fs}px;font-weight:700;color:var(--cyan);flex-shrink:0;">${nombre.charAt(0)}</div>`;
+    }
+
+    // ── Frases rotativas en el footer ──
+    const FRASES = [
+      '"El estilo es la firma del alma."',
+      '"Cada corte, una obra de arte."',
+      '"Tu imagen habla antes que tú."',
+      '"La precisión es nuestro arte."',
+      '"Confianza que se lleva puesta."',
+      '"El buen corte transforma el día."',
+      '"Barbería: donde el estilo nace."',
+      '"Detalles que marcan la diferencia."',
+      '"Tu turno, nuestro compromiso."',
+      '"Arte en cada hoja de la navaja."',
+    ];
+    let _fraseIdx = 0;
+    function startPhraseCycle() {
+      const el = document.getElementById('footer-msg');
+      if (!el) return;
+      setInterval(() => {
+        el.style.opacity = '0';
+        setTimeout(() => {
+          _fraseIdx = (_fraseIdx + 1) % FRASES.length;
+          el.textContent = FRASES[_fraseIdx];
+          el.style.opacity = '1';
+        }, 650);
+      }, 12000);
+    }
+
+    // ── Resumen al cierre del día ──
+    let _cierreMostrado = false;
+    function checkCierre() {
+      if (_cierreMostrado) return;
+      const hh = new Date().getHours();
+      if (hh < S.horaFin || S.horaFin === 0) return;
+      _cierreMostrado = true;
+      showCierreOverlay();
+    }
+    function showCierreOverlay() {
+      let totalClientes = 0;
+      const bnames = Object.keys(S.queues);
+      bnames.forEach(b => {
+        const q = S.queues[b]; if (!q) return;
+        totalClientes += Math.max(0, q.currentTurn - 1);
+      });
+      const jornada = Math.max(1, S.horaFin - S.horaInicio);
+      let avgSum = 0, avgCount = 0;
+      bnames.forEach(b => { const a = getAvgTime(b); if (a > 0) { avgSum += a; avgCount++; } });
+      const avgMin = avgCount > 0 ? Math.round(avgSum / avgCount) : DUR;
+      const fecha = new Date().toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
+      const el = document.createElement('div');
+      el.className = 'cierre-overlay'; el.id = 'cierre-overlay';
+      el.innerHTML = `<div class="cierre-title">✓ JORNADA COMPLETADA</div>
+        <div class="cierre-sub">${S.shopName || 'BARBERÍA'} · ${fecha}</div>
+        <div class="cierre-stats">
+          <div class="cierre-stat"><div class="cierre-stat-val">${totalClientes}</div><div class="cierre-stat-lbl">Clientes atendidos</div></div>
+          <div class="cierre-stat"><div class="cierre-stat-val">${jornada}h</div><div class="cierre-stat-lbl">Horas trabajadas</div></div>
+          <div class="cierre-stat"><div class="cierre-stat-val">${avgMin}m</div><div class="cierre-stat-lbl">Promedio por turno</div></div>
+        </div>
+        <button class="cierre-dismiss" onclick="document.getElementById('cierre-overlay').remove()">✕ CERRAR</button>`;
+      document.body.appendChild(el);
     }
 
     // FIX BUG 1: conversión de timezone robusta
@@ -5697,7 +5839,7 @@
           const remaining = Math.max(0, citas.length - currentTurn + 1);
           const color = BC[idx % BC.length]; const bid = safeId(name);
           cardsHtml += `<div class="tv-card bc-${idx % 5}${remaining === 0 ? ' libre' : ''}" style="--bc:${color};--bc-glow:${hexGlow(color)};">
-        <div class="tv-card-head"><div class="tv-barber-name">✂ ${name}</div><div class="tv-status-badge ${remaining > 0 ? 'activo' : 'libre'}">${remaining > 0 ? remaining + ' en espera' : 'LIBRE'}</div></div>
+        <div class="tv-card-head"><div class="tv-barber-name" style="display:flex;align-items:center;gap:7px;">${barbAvatar(name, 26)}✂ ${name}</div><div class="tv-status-badge ${remaining > 0 ? 'activo' : 'libre'}">${remaining > 0 ? remaining + ' en espera' : 'LIBRE'}</div></div>
         <div class="tv-card-body">
           <div class="tv-num" id="hn-${bid}">${cur ? String(currentTurn).padStart(2, '0') : '—'}</div>
           <div class="tv-name">${cur ? cur.name : 'SIN CLIENTE'}</div>
@@ -5712,7 +5854,10 @@
       </div>`;
         });
       }
-      c.innerHTML = `<div class="tv-wrap"><div class="tv-cards n${nc}">${cardsHtml}</div><div class="tv-ticker"><div class="tv-ticker-label">◈ HOY</div><div class="tv-ticker-track"><div class="tv-ticker-inner" style="animation-duration:${tickerDur}s;">${tickerHtml + tickerHtml}</div></div></div></div>`;
+      const tvBgEl = TV_BG ? (TV_BG.match(/\.(mp4|webm|ogg)$/i)
+        ? `<video class="tv-bg-media" src="${TV_BG}" autoplay loop muted playsinline></video>`
+        : `<img class="tv-bg-media" src="${TV_BG}" alt="">`) : '';
+      c.innerHTML = `<div class="tv-wrap">${tvBgEl}<div class="tv-cards n${nc}">${cardsHtml}</div><div class="tv-ticker"><div class="tv-ticker-label">◈ HOY</div><div class="tv-ticker-track"><div class="tv-ticker-inner" style="animation-duration:${tickerDur}s;">${tickerHtml + tickerHtml}</div></div></div></div>`;
     }
 
     function renderShop(c) {
@@ -5917,7 +6062,7 @@
             <div style="font-family:'Share Tech Mono',monospace;font-size:0.42rem;color:rgba(0,245,255,0.5);letter-spacing:0.15em;margin-top:5px;text-transform:uppercase;">QR APP</div>
           </div>
           <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
-            <div style="width:52px;height:52px;border-radius:50%;border:2px solid rgba(0,245,255,0.5);background:rgba(0,245,255,0.1);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:900;color:var(--cyan);text-shadow:0 0 16px rgba(0,245,255,0.6);box-shadow:0 0 18px rgba(0,245,255,0.15);flex-shrink:0;">${barber.charAt(0)}</div>
+            ${barbAvatar(barber, 52)}
             <div style="display:flex;flex-direction:column;">
               <div style="font-family:'Orbitron',monospace;font-size:0.82rem;font-weight:700;color:var(--cyan);letter-spacing:0.18em;text-shadow:0 0 10px rgba(0,245,255,0.5);">✂ ${barber}</div>
               <div style="font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:rgba(255,0,110,0.9);letter-spacing:0.28em;text-transform:uppercase;margin-top:4px;text-shadow:0 0 8px rgba(255,0,110,0.5);">● EN SILLA AHORA</div>
@@ -6111,7 +6256,6 @@
       const modeClass = { tv: 'active', shop: 'active', my: 'mode-barber-active', manana: 'mode-manana-active' };
       const ab = document.getElementById('mbtn-' + (m === 'my' ? 'my' : m)); if (ab) ab.classList.add(modeClass[m] || 'active');
       document.getElementById('brand-sub').textContent = { tv: 'Vista Global · TV', shop: 'Vista Barbería', my: MY_BARBER ? '✂ ' + MY_BARBER : 'Vista Personal', manana: 'Citas para Mañana' }[m] || 'Sistema de Turnos · AuraOS';
-      document.getElementById('footer-msg').textContent = { tv: '"Todos en la mira — vista global."', shop: '"El estilo es la firma del alma."', my: '"Tu turno, tu trabajo, tu orgullo."', manana: '"Mañana también hay estilo."' }[m] || '"El estilo es la firma del alma."';
       if (m === 'manana') loadCitasMañana().catch(() => { }).then(() => render());
       document.getElementById('content').innerHTML = ''; render();
     }
@@ -6123,7 +6267,7 @@
       barberos.forEach(b => {
         const item = document.createElement('div'); item.className = 'bp-item' + (b.nombre === MY_BARBER ? ' selected' : '');
         item.innerHTML = `<div onclick="selectBarberMode('${b.nombre}')" style="flex:1;display:flex;align-items:center;gap:10px;cursor:pointer;">
-      <div style="width:30px;height:30px;border-radius:50%;border:1px solid rgba(0,245,255,0.3);background:rgba(0,245,255,0.07);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:0.8rem;font-weight:700;color:var(--cyan);">${b.nombre.charAt(0)}</div>
+      ${barbAvatar(b.nombre, 30)}
       <div><div class="bp-name">${b.nombre}</div><div class="bp-status ${b.activo ? '' : 'off'}">${b.activo ? '● ACTIVO' : '○ INACTIVO'}</div></div>
     </div>
     ${b.id ? `<button class="bp-toggle ${b.activo ? 'on' : 'off'}" onclick="toggleBarberoActivo('${b.id}','${b.nombre}',${b.activo})">${b.activo ? 'DESACTIVAR' : 'ACTIVAR'}</button>` : ''}`;
@@ -6523,7 +6667,7 @@
         const btn = document.createElement('div');
         btn.className = 'barber-transfer-btn' + (esMismo ? ' disabled' : '');
         btn.dataset.barber = b.nombre;
-        btn.innerHTML = `<div class="btb-avatar">${b.nombre.charAt(0)}</div>
+        btn.innerHTML = `${barbAvatar(b.nombre, 28)}
       <div><div class="btb-name">${b.nombre}</div><div class="btb-citas">${pendientes} turnos pendientes</div></div>
       ${esMismo ? '<span class="btb-badge current">ACTUAL</span>' : pendientes === 0 ? '<span class="btb-badge free">LIBRE</span>' : '<span class="btb-badge busy">' + pendientes + ' EN ESPERA</span>'}`;
         if (!esMismo) {
@@ -6664,7 +6808,7 @@
       if (ok) { await loadBarberos().catch(() => { }); await loadCitas().catch(() => { }); loadCitasMañana().catch(() => { }); subscribeRT(); }
       else loadDemo();
       Object.keys(S.queues).forEach(b => { if (!SILLA_TIMES[b]) SILLA_TIMES[b] = Date.now(); });
-      render(); updateTimers();
+      render(); updateTimers(); startPhraseCycle();
       // FIX BUG 5: guardar referencias para limpiar si es necesario
       _timerInterval = setInterval(updateTimers, 30000);
       _etaInterval = setInterval(() => { if (MODE !== 'tv') render(); }, 60000);
@@ -6700,9 +6844,9 @@
     function toggleFS() { const el = document.documentElement; if (!document.fullscreenElement) { (el.requestFullscreen || el.webkitRequestFullscreen || function () { }).call(el); document.getElementById('fs-btn').textContent = '⛶ EXIT'; } else { (document.exitFullscreen || document.webkitExitFullscreen || function () { }).call(document); document.getElementById('fs-btn').textContent = '⛶ FS'; } }
     document.getElementById('fs-btn').addEventListener('click', toggleFS);
     document.addEventListener('fullscreenchange', () => { document.getElementById('fs-btn').textContent = document.fullscreenElement ? '⛶ EXIT' : '⛶ FS'; });
-    document.getElementById('cfg-open').addEventListener('click', () => { document.getElementById('cfg-shop').value = SLUG; document.getElementById('cfg-dur').value = DUR; document.getElementById('cfg-modal').classList.add('open'); });
+    document.getElementById('cfg-open').addEventListener('click', () => { document.getElementById('cfg-shop').value = SLUG; document.getElementById('cfg-dur').value = DUR; document.getElementById('cfg-tvbg').value = TV_BG; document.getElementById('cfg-modal').classList.add('open'); });
     document.getElementById('cfg-cancel').addEventListener('click', () => document.getElementById('cfg-modal').classList.remove('open'));
-    document.getElementById('cfg-save').addEventListener('click', () => { const shop = document.getElementById('cfg-shop').value.trim(); const dur = parseInt(document.getElementById('cfg-dur').value) || DUR; DUR = dur; document.getElementById('cfg-modal').classList.remove('open'); if (shop && shop !== SLUG) location.href = '?shop=' + shop; else { showToast('✓ Guardado'); render(); } });
+    document.getElementById('cfg-save').addEventListener('click', () => { const shop = document.getElementById('cfg-shop').value.trim(); const dur = parseInt(document.getElementById('cfg-dur').value) || DUR; DUR = dur; const tvbg = document.getElementById('cfg-tvbg').value.trim(); TV_BG = tvbg; try { if (tvbg) localStorage.setItem('barberos_tv_bg', tvbg); else localStorage.removeItem('barberos_tv_bg'); } catch(_) {} document.getElementById('cfg-modal').classList.remove('open'); if (shop && shop !== SLUG) location.href = '?shop=' + shop; else { showToast('✓ Guardado'); render(); } });
     document.getElementById('cfg-modal').addEventListener('click', e => { if (e.target === document.getElementById('cfg-modal')) document.getElementById('cfg-modal').classList.remove('open'); });
     document.addEventListener('click', e => { const bp = document.getElementById('barber-picker'), mb = document.getElementById('mode-bar'); if (!bp.contains(e.target) && !mb.contains(e.target)) bp.classList.remove('open'); });
     let _midnightReloading = false;
@@ -6714,6 +6858,7 @@
       const days = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'], months = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
       document.getElementById('clock-date').textContent = days[n.getDay()] + ' ' + n.getDate() + ' ' + months[n.getMonth()] + ' ' + n.getFullYear();
       if (hh === 0 && mm === 0 && ss === 0 && !_midnightReloading) { _midnightReloading = true; setTimeout(() => location.reload(), 1500); }
+      checkCierre();
     }
     setInterval(tick, 1000); tick();
     document.addEventListener('keydown', e => {
