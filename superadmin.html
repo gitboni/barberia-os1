@@ -4409,9 +4409,61 @@ function abrirEditShop(shopId){
   document.getElementById('editShopTwilio').value=shop.twilio_number||'';
   document.getElementById('editShopPlan').value=shop.plan||'pro';
   document.getElementById('editShop-resultado').style.display='none';
+  document.getElementById('difusion-test-result').style.display='none';
+  const difActiva = shop.difusion_activa === true;
+  document.getElementById('editShopDifusionActiva').checked = difActiva;
+  document.getElementById('editShopDifusionActivaLbl').textContent = difActiva ? 'ACTIVO' : 'INACTIVO';
+  document.getElementById('editShopDifusionActivaLbl').style.color = difActiva ? 'var(--green)' : 'var(--muted)';
+  document.getElementById('editShopDifusionMsg').value = shop.difusion_msg || '';
   renderIconoPicker(shop.icono||'✂️');
   toggleEditShopProvider();
   openModal('modalEditShop');
+}
+
+document.getElementById('editShopDifusionActiva').addEventListener('change', function() {
+  const lbl = document.getElementById('editShopDifusionActivaLbl');
+  lbl.textContent = this.checked ? 'ACTIVO' : 'INACTIVO';
+  lbl.style.color = this.checked ? 'var(--green)' : 'var(--muted)';
+});
+
+async function testDifusion() {
+  const shopId = document.getElementById('editShopId').value;
+  if (!shopId) { showToast('Guarda primero la barbería', 'error'); return; }
+  const btn = event.target;
+  const resultEl = document.getElementById('difusion-test-result');
+  btn.textContent = '⏳ Simulando...';
+  btn.disabled = true;
+  resultEl.style.display = 'none';
+  try {
+    // Usar chat_id único para simular conversación nueva sin historial
+    const testChatId = `test_preview_${Date.now()}`;
+    const res = await fetch(`${SB_FUNC_URL}/chat-simulator`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY_R, 'Authorization': `Bearer ${SB_KEY_R}` },
+      body: JSON.stringify({ shop_id: shopId, telefono: '+10000000000', mensaje: 'hola', chat_id: testChatId })
+    });
+    const data = await res.json();
+    resultEl.style.display = 'block';
+    if (data.respuesta) {
+      resultEl.style.borderLeft = '2px solid var(--green)';
+      resultEl.textContent = data.respuesta;
+    } else {
+      resultEl.style.borderLeft = '2px solid var(--red)';
+      resultEl.textContent = data.error || 'Sin respuesta';
+    }
+    // Limpiar la conversación de prueba para no contaminar datos
+    fetch(`https://mmokunpuslcfphalrwot.supabase.co/rest/v1/conversaciones?chat_id=eq.${encodeURIComponent(testChatId)}&shop_id=eq.${shopId}`, {
+      method: 'DELETE',
+      headers: { 'apikey': SB_KEY_R, 'Authorization': `Bearer ${SB_KEY_R}` }
+    }).catch(() => {});
+  } catch(e) {
+    resultEl.style.display = 'block';
+    resultEl.style.borderLeft = '2px solid var(--red)';
+    resultEl.textContent = 'Error: ' + e.message;
+  } finally {
+    btn.textContent = '🧪 SIMULAR PRIMER MENSAJE DEL BOT';
+    btn.disabled = false;
+  }
 }
 
 async function guardarEditShop(){
@@ -4426,6 +4478,8 @@ async function guardarEditShop(){
     icono:document.getElementById('editShopIcono').value||'✂️',
     twilio_number:provider==='twilio'?(document.getElementById('editShopTwilio').value.trim()||null):null,
     meta_phone_number_id:provider==='meta'?(document.getElementById('editShopMetaPhoneId').value.trim()||null):null,
+    difusion_activa: document.getElementById('editShopDifusionActiva').checked,
+    difusion_msg: document.getElementById('editShopDifusionMsg').value.trim() || null,
   };
   // Solo actualizar token si se ingresó uno nuevo
   if(provider==='meta'&&token) updates.meta_access_token=token;
@@ -4536,6 +4590,28 @@ async function guardarEditShop(){
         <!-- Populated by JS -->
       </div>
       <input type="hidden" id="editShopIcono" value="✂️">
+    </div>
+    <!-- ── Difusión de número ── -->
+    <div style="border-top:1px solid var(--border);margin:18px 0 14px;padding-top:14px;">
+      <div style="font-size:0.5rem;letter-spacing:0.22em;color:var(--muted);text-transform:uppercase;margin-bottom:12px;">📲 DIFUSIÓN DE CONTACTO</div>
+      <div class="form-group" style="margin-bottom:10px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <label class="form-label" style="margin:0;">Activar mensaje de difusión</label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <input type="checkbox" id="editShopDifusionActiva" style="width:16px;height:16px;accent-color:var(--green);cursor:pointer;">
+            <span id="editShopDifusionActivaLbl" style="font-size:0.58rem;color:var(--muted);letter-spacing:0.1em;">INACTIVO</span>
+          </label>
+        </div>
+        <div class="form-hint">Cuando está activo, se antepone a la primera respuesta de cada conversación nueva.</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mensaje de difusión</label>
+        <textarea class="form-input" id="editShopDifusionMsg" rows="3" placeholder="📲 Mi nuevo número personal es +1809-XXX-XXXX, donde solo te respondo para agendar citas." style="resize:vertical;font-size:0.65rem;line-height:1.5;"></textarea>
+      </div>
+      <button type="button" onclick="testDifusion()" style="width:100%;padding:9px;background:rgba(52,152,219,0.08);border:1px solid rgba(52,152,219,0.3);color:var(--blue);font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.1em;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.background='rgba(52,152,219,0.15)'" onmouseout="this.style.background='rgba(52,152,219,0.08)'">
+        🧪 SIMULAR PRIMER MENSAJE DEL BOT
+      </button>
+      <div id="difusion-test-result" style="display:none;margin-top:10px;padding:12px 14px;background:var(--surface2);border:1px solid var(--border2);border-radius:4px;font-size:0.62rem;line-height:1.6;white-space:pre-wrap;max-height:220px;overflow-y:auto;"></div>
     </div>
     <div id="editShop-resultado" style="display:none;padding:8px 12px;font-family:'DM Mono',monospace;font-size:0.58rem;margin-top:8px;border-left:2px solid var(--green);background:rgba(0,200,100,0.04);"></div>
     <div class="modal-actions">
