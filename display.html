@@ -5624,13 +5624,20 @@
       _cierreMostrado = true;
       showCierreOverlay();
     }
-    function showCierreOverlay() {
+    async function showCierreOverlay() {
+      // Contar clientes desde la DB (fecha de hoy, estado Confirmada)
       let totalClientes = 0;
-      const bnames = Object.keys(S.queues);
-      bnames.forEach(b => {
-        const q = S.queues[b]; if (!q) return;
-        totalClientes += Math.max(0, q.currentTurn - 1);
-      });
+      try {
+        const hoy = new Date().toLocaleDateString('en-CA');
+        const r = await fetch(`${SB_URL}/rest/v1/citas?shop_id=eq.${S.shopId}&fecha=eq.${hoy}&estado=eq.Confirmada&select=id`, {
+          headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` }
+        });
+        const rows = await r.json();
+        totalClientes = Array.isArray(rows) ? rows.length : 0;
+      } catch (_) {
+        const bnames = Object.keys(S.queues);
+        bnames.forEach(b => { const q = S.queues[b]; if (!q) return; totalClientes += Math.max(0, q.currentTurn - 1); });
+      }
       const jornada = Math.max(1, S.horaFin - S.horaInicio);
       let avgSum = 0, avgCount = 0;
       bnames.forEach(b => { const a = getAvgTime(b); if (a > 0) { avgSum += a; avgCount++; } });
@@ -6352,8 +6359,15 @@
               const evType = m.payload?.data?.type || m.event || '';
               const record = m.payload?.data?.record || m.payload?.record || {};
               if (['INSERT', 'UPDATE', 'DELETE'].includes(evType)) {
-                if (m.topic && m.topic.includes('shops') && record?.activo === false) { showDisplaySuspended(S.shopName); return; }
-                if (m.topic && m.topic.includes('shops') && record?.activo === true) { _barberiaPausada = false; actualizarBtnPause(); }
+                if (m.topic && m.topic.includes('shops')) {
+                  if (record?.activo === false) { showDisplaySuspended(S.shopName); return; }
+                  if (record?.activo === true) { _barberiaPausada = false; actualizarBtnPause(); }
+                  // Actualizar hora_fin/hora_inicio en S desde el evento RT
+                  if (record?.hora_fin  !== undefined) S.horaFin   = record.hora_fin;
+                  if (record?.hora_inicio !== undefined) S.horaInicio = record.hora_inicio;
+                  // Disparar cierre si ya es hora (sin esperar el próximo tick)
+                  if (!document.getElementById('cierre-overlay')) { _cierreMostrado = false; checkCierre(); }
+                }
                 await loadCitas().catch(() => { }); render();
                 if (evType === 'INSERT') bipNuevaCita();
                 showToast(evType === 'INSERT' ? '✓ Nueva cita' : evType === 'DELETE' ? '✗ Cita eliminada' : '↻ Actualizado', 'info');
