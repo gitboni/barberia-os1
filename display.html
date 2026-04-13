@@ -5647,6 +5647,12 @@
         </div>
         <button class="cierre-dismiss" onclick="document.getElementById('cierre-overlay').remove()">✕ CERRAR</button>`;
       document.body.appendChild(el);
+      // Auto-dismiss: 15 minutos o medianoche, lo que llegue primero
+      const now = new Date();
+      const ms15min = 15 * 60 * 1000;
+      const msMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0) - now;
+      const autoDismissMs = Math.min(ms15min, msMidnight);
+      setTimeout(() => { const ov = document.getElementById('cierre-overlay'); if (ov) ov.remove(); }, autoDismissMs);
     }
 
     // FIX BUG 1: conversión de timezone robusta
