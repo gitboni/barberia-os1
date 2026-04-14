@@ -6,203 +6,160 @@
 <title>AuraOS — Panel Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-/* ── AuraOS Design System ── */
-:root {
-  --bg: #070708;
-  --bg2: #0F0F12;
-  --surface: #141418;
-  --surface2: #1A1A20;
-  --border: rgba(255,255,255,0.06);
-  --border2: rgba(255,255,255,0.12);
-  --text: #E8E6E0;
-  --muted: #5A5855;
-  --muted2: #8A8885;
-  --gold: #D4A017;
-  --gold2: #F5E050;
-  --gold-dim: rgba(212,160,23,0.12);
-  --green: #3ECF8E;
-  --red: #F87171;
-  --blue: #60A5FA;
-  --glass: rgba(15, 15, 18, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --shadow-sm: 0 4px 12px rgba(0,0,0,0.4);
-  --shadow-lg: 0 12px 32px rgba(0,0,0,0.6);
-  --sidebar-w: 240px;
-}
-
 *{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#0C0C0C;--bg2:#141414;--border:rgba(255,255,255,0.06);--text:rgba(255,255,255,0.82);--muted:rgba(255,255,255,0.28);--gold:#D4A017;--gold2:#F5E050;--green:#3ECF8E;--red:#F87171;--blue:#60A5FA;}
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;overflow:hidden;}
-
-/* Grain texture */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.02'/%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: 999;
-}
-
-/* Scrollbars */
-::-webkit-scrollbar{width:4px;height:4px;}
-::-webkit-scrollbar-track{background:transparent;}
-::-webkit-scrollbar-thumb{background:rgba(212,160,23,0.2);border-radius:10px;transition:background 0.3s;}
-::-webkit-scrollbar-thumb:hover{background:var(--gold);}
-
-.app{display:grid;grid-template-columns:var(--sidebar-w) 1fr;height:100vh;}
-
-/* ── SIDEBAR ── */
-aside {
-  background: var(--bg2);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  z-index: 10;
-  backdrop-filter: blur(12px);
-}
-.aside-brand{padding:26px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
-.brand-txt{font-size:1.1rem;font-weight:800;letter-spacing:0.06em;background:linear-gradient(135deg, var(--gold), var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-.brand-sub{font-family:'DM Mono',monospace;font-size:0.48rem;color:var(--muted2);letter-spacing:0.2em;text-transform:uppercase;margin-top:2px;}
-
-.aside-shop{margin:16px 14px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:2px;position:relative;overflow:hidden;}
-.aside-shop::after{content:'';position:absolute;top:0;left:0;width:100%;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:0.3;}
-.shop-name-el{font-size:0.82rem;font-weight:700;color:var(--gold);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.shop-plan-el{font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--muted2);text-transform:uppercase;display:flex;align-items:center;gap:6px;}
-.plan-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);}
-
-.nav-section{padding:18px 22px 6px;font-family:'DM Mono',monospace;font-size:0.48rem;color:var(--muted);letter-spacing:0.3em;text-transform:uppercase;}
-.nav-item{
-  display:flex;align-items:center;gap:12px;padding:12px 22px;font-size:0.85rem;font-weight:600;color:var(--muted2);cursor:pointer;
-  transition:all 0.25s cubic-bezier(0.16,1,0.3,1);border:none;background:none;width:100%;text-align:left;letter-spacing:0.02em;position:relative;
-}
-.nav-item:hover{color:var(--text);background:rgba(255,255,255,0.03);}
-.nav-item.active{color:var(--gold);background:rgba(212,160,23,0.06);}
-.nav-item.active::before{content:'';position:absolute;left:0;top:20%;bottom:20%;width:3px;background:var(--gold);box-shadow:2px 0 10px rgba(212,160,23,0.4);}
-.nav-icon{font-size:1.1rem;width:20px;text-align:center;filter:grayscale(1);transition:filter 0.3s;}
-.nav-item.active .nav-icon, .nav-item:hover .nav-icon{filter:grayscale(0);}
-.nav-badge{margin-left:auto;background:rgba(212,160,23,0.15);color:var(--gold);font-family:'DM Mono',monospace;font-size:0.5rem;padding:2px 8px;border-radius:1px;}
-
-.aside-bottom{margin-top:auto;padding:16px;border-top:1px solid var(--border);background:rgba(0,0,0,0.12);}
-
-/* ── MAIN CONTENT ── */
-main{display:flex;flex-direction:column;height:100vh;position:relative;}
-.topbar{
-  padding:16px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;
-  background:rgba(7,7,8,0.8);backdrop-filter:blur(16px);z-index:9;flex-shrink:0;
-}
-.page-title{font-size:1.25rem;font-weight:800;letter-spacing:0.03em;color:var(--text);}
-.page-date{font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted2);margin-top:2px;}
-
-.topbar-right{display:flex;align-items:center;gap:14px;}
-
-.content{
-  flex:1;overflow-y:auto;padding:32px;display:flex;flex-direction:column;gap:24px;
-  background: radial-gradient(circle at 50% 0%, rgba(212,160,23,0.03) 0%, transparent 70%);
-}
-
-/* Page Transition Wrapper */
-#page-content {
-  opacity: 1;
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-#page-content.loading {
-  opacity: 0;
-  transform: translateY(10px);
-}
-
-/* ── COMPONENTS ── */
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
-@media(max-width:1200px){.stats-row{grid-template-columns:repeat(2,1fr);}}
-
-.stat-card {
-  padding:24px;background:var(--surface);border:1px solid var(--border);border-radius:4px;
-  position:relative;overflow:hidden;transition:all 0.3s cubic-bezier(0.16,1,0.3,1);box-shadow:var(--shadow-sm);
-}
-.stat-card:hover{border-color:rgba(212,160,23,0.25);transform:translateY(-2px);box-shadow:var(--shadow-lg);}
-.stat-card::after{content:'';position:absolute;top:0;left:0;width:100%;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:0;transition:opacity 0.3s;}
-.stat-card:hover::after{opacity:1;}
-
-.stat-val{font-size:2.4rem;font-weight:800;line-height:1;margin-bottom:8px;letter-spacing:-0.02em;}
-.stat-lbl{font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--muted2);letter-spacing:0.2em;text-transform:uppercase;}
-.stat-delta{font-family:'DM Mono',monospace;font-size:0.52rem;margin-top:12px;display:inline-flex;padding:2px 6px;background:rgba(255,255,255,0.03);}
-
-.two-col{display:grid;grid-template-columns:1.6fr 1fr;gap:20px;}
-@media(max-width:1024px){.two-col{grid-template-columns:1fr;}}
-
-.card{
-  background:var(--surface);border:1px solid var(--border);border-radius:4px;overflow:hidden;
-  box-shadow:var(--shadow-sm);transition:border-color 0.3s;
-}
-.card:hover{border-color:rgba(255,255,255,0.1);}
-.card-header{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.015);}
-.card-title{font-size:0.9rem;font-weight:800;letter-spacing:0.04em;color:var(--text);}
-.card-meta{font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--muted2);letter-spacing:0.1em;}
-
-/* Tables */
+.app{display:grid;grid-template-columns:220px 1fr;height:100vh;}
+aside{background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;height:100vh;}
+.aside-brand{padding:20px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.brand-mark{width:32px;height:32px;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:1rem;color:var(--bg);}
+.brand-txt{font-size:0.9rem;font-weight:800;letter-spacing:0.04em;}
+.brand-sub{font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--muted);letter-spacing:0.15em;text-transform:uppercase;margin-top:1px;}
+.aside-shop{padding:12px 16px;border-bottom:1px solid var(--border);background:rgba(201,168,76,0.04);}
+.shop-name-el{font-size:0.78rem;font-weight:700;color:var(--gold);}
+.shop-plan-el{font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--muted);text-transform:uppercase;margin-top:2px;display:flex;align-items:center;gap:5px;}
+.plan-dot{width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);}
+.nav-section{padding:14px 10px 4px;font-family:'DM Mono',monospace;font-size:0.44rem;color:var(--muted);letter-spacing:0.28em;text-transform:uppercase;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;font-size:0.8rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all 0.15s;border:none;background:none;width:100%;text-align:left;letter-spacing:0.02em;}
+.nav-item:hover{color:var(--text);background:rgba(255,255,255,0.04);}
+.nav-item.active{color:var(--text);background:rgba(201,168,76,0.08);border-left:2px solid var(--gold);}
+.nav-icon{font-size:0.9rem;width:16px;text-align:center;}
+.nav-badge{margin-left:auto;background:rgba(201,168,76,0.18);color:var(--gold);font-family:'DM Mono',monospace;font-size:0.46rem;padding:2px 6px;}
+.aside-bottom{margin-top:auto;padding:14px;border-top:1px solid var(--border);}
+.barber-mini-item{display:flex;align-items:center;gap:8px;padding:6px 8px;background:rgba(255,255,255,0.02);border:1px solid var(--border);margin-bottom:5px;}
+.barber-mini-dot{width:6px;height:6px;border-radius:50%;}
+.barber-mini-name{font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;}
+.barber-mini-status{margin-left:auto;font-family:'DM Mono',monospace;font-size:0.42rem;}
+main{display:flex;flex-direction:column;overflow:hidden;height:100vh;}
+.topbar{padding:14px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg2);flex-shrink:0;}
+.page-title{font-size:1.05rem;font-weight:800;letter-spacing:0.02em;}
+.page-date{font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.btn-sm{padding:7px 16px;font-family:'Syne',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.06em;cursor:pointer;transition:all 0.15s;border:none;}
+.btn-dark{background:rgba(255,255,255,0.06);color:var(--text);border:1px solid var(--border)!important;}
+.btn-dark:hover{background:rgba(255,255,255,0.1);}
+.btn-gold{background:var(--gold);color:var(--bg);}
+.btn-gold:hover{background:var(--gold2);}
+.btn-red{background:rgba(248,113,113,0.12);color:var(--red);border:1px solid rgba(248,113,113,0.2)!important;}
+.btn-green{background:rgba(62,207,142,0.12);color:var(--green);border:1px solid rgba(62,207,142,0.2)!important;}
+.status-live{display:flex;align-items:center;gap:6px;padding:5px 12px;border:1px solid rgba(62,207,142,0.2);background:rgba(62,207,142,0.04);font-family:'DM Mono',monospace;font-size:0.54rem;color:rgba(62,207,142,0.65);letter-spacing:0.14em;text-transform:uppercase;}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 1.8s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.content{flex:1;overflow-y:auto;padding:24px 28px;display:flex;flex-direction:column;gap:18px;height:0;min-height:0;}
+.content::-webkit-scrollbar{width:3px;}
+.content::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.stat-card{padding:20px;background:var(--bg2);border:1px solid var(--border);position:relative;overflow:hidden;transition:border-color 0.2s;}
+.stat-card:hover{border-color:rgba(255,255,255,0.12);}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.stat-card.c-gold::before{background:var(--gold);}
+.stat-card.c-green::before{background:var(--green);}
+.stat-card.c-red::before{background:var(--red);}
+.stat-card.c-blue::before{background:var(--blue);}
+.stat-val{font-size:2rem;font-weight:800;line-height:1;margin-bottom:4px;}
+.stat-val.gold{color:var(--gold);}
+.stat-val.green{color:var(--green);}
+.stat-val.red{color:var(--red);}
+.stat-val.blue{color:var(--blue);}
+.stat-lbl{font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);letter-spacing:0.18em;text-transform:uppercase;}
+.stat-delta{font-family:'DM Mono',monospace;font-size:0.5rem;margin-top:8px;color:var(--muted);}
+.stat-delta.up{color:rgba(62,207,142,0.6);}
+.stat-delta.dn{color:rgba(248,113,113,0.6);}
+.two-col{display:grid;grid-template-columns:1.6fr 1fr;gap:16px;}
+.card{background:var(--bg2);border:1px solid var(--border);overflow:hidden;}
+.card-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.card-title{font-size:0.82rem;font-weight:700;letter-spacing:0.04em;}
+.card-meta{font-family:'DM Mono',monospace;font-size:0.54rem;color:var(--muted);}
 table{width:100%;border-collapse:collapse;}
-th{font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--muted);letter-spacing:0.22em;text-transform:uppercase;text-align:left;padding:14px 20px;background:rgba(0,0,0,0.1);border-bottom:1px solid var(--border);}
-td{font-size:0.85rem;padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.03);color:var(--text);transition:background 0.2s;}
+th{font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--muted);letter-spacing:0.2em;text-transform:uppercase;text-align:left;padding:10px 14px;border-bottom:1px solid var(--border);}
+td{font-size:0.82rem;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.02);color:var(--text);transition:background 0.15s;}
 tr:hover td{background:rgba(255,255,255,0.02);}
 tr:last-child td{border-bottom:none;}
-
-/* Buttons */
-.btn-sm{
-  padding:10px 20px;font-family:'Syne',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.06em;
-  cursor:pointer;transition:all 0.2s cubic-bezier(0.16,1,0.3,1);border:1px solid transparent;border-radius:2px;
-  text-transform:uppercase;
-}
-.btn-gold{background:var(--gold);color:var(--bg);box-shadow:0 4px 14px rgba(212,160,23,0.35);}
-.btn-gold:hover{background:var(--gold2);transform:translateY(-1px);box-shadow:0 6px 20px rgba(212,160,23,0.5);}
-
-.btn-dark{background:var(--surface2);color:var(--text);border:1px solid var(--border2)!important;}
-.btn-dark:hover{border-color:var(--gold)!important;background:rgba(255,255,255,0.05);}
-
-/* Badges */
-.badge{
-  display:inline-flex;align-items:center;gap:6px;padding:4px 10px;font-family:'DM Mono',monospace;
-  font-size:0.52rem;letter-spacing:0.12em;text-transform:uppercase;border-radius:1px;
-}
-.badge-green{background:rgba(62,207,142,0.1);color:var(--green);border:1px solid rgba(62,207,142,0.2);}
-.badge-gold{background:rgba(212,160,23,0.1);color:var(--gold);border:1px solid rgba(212,160,23,0.2);}
-.badge-red{background:rgba(248,113,113,0.1);color:var(--red);border:1px solid rgba(248,113,113,0.2);}
-.badge-dot{width:5px;height:5px;border-radius:50%;background:currentColor;box-shadow:0 0 6px currentColor;}
-
-/* UI Helpers */
-.status-live{display:flex;align-items:center;gap:8px;padding:6px 14px;background:rgba(62,207,142,0.05);border:1px solid rgba(62,207,142,0.15);font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--green);letter-spacing:0.18em;}
-.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse-green 2s infinite;}
-@keyframes pulse-green{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.4;transform:scale(1.2);}}
-
-.search-bar{
-  display:flex;align-items:center;gap:10px;padding:8px 16px;background:var(--surface);border:1px solid var(--border2);
-  border-radius:2px;transition:border-color 0.3s;
-}
-.search-bar:focus-within{border-color:var(--gold);}
-.search-bar input{background:transparent;border:none;color:var(--text);font-family:'DM Mono',monospace;font-size:0.75rem;outline:none;width:180px;}
-
-/* Modal Enhancements */
-.modal-overlay{
-  display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.85);backdrop-filter:blur(10px);
-  align-items:center;justify-content:center;opacity:0;transition:opacity 0.3s;
-}
-.modal-overlay.open{display:flex;opacity:1;}
-.modal{
-  background:var(--bg2);border:1px solid var(--border2);padding:32px;width:520px;max-height:90vh;overflow-y:auto;
-  box-shadow:var(--shadow-lg);transform:scale(0.95);transition:transform 0.3s cubic-bezier(0.16,1,0.3,1);
-}
-.modal-overlay.open .modal{transform:scale(1);}
-
-/* Skeleton Loader */
-@keyframes skeleton-loading {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-.skeleton {
-  background: linear-gradient(90deg, var(--surface) 25%, var(--surface2) 50%, var(--surface) 75%);
-  background-size: 200% 100%;
-  animation: skeleton-loading 1.5s infinite;
-  border-radius: 2px;
-}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;font-family:'DM Mono',monospace;font-size:0.48rem;letter-spacing:0.1em;text-transform:uppercase;}
+.badge-green{background:rgba(62,207,142,0.08);color:var(--green);border:1px solid rgba(62,207,142,0.18);}
+.badge-gold{background:rgba(201,168,76,0.08);color:var(--gold);border:1px solid rgba(201,168,76,0.18);}
+.badge-red{background:rgba(248,113,113,0.08);color:var(--red);border:1px solid rgba(248,113,113,0.18);}
+.badge-blue{background:rgba(96,165,250,0.08);color:var(--blue);border:1px solid rgba(96,165,250,0.18);}
+.badge-dot{width:4px;height:4px;border-radius:50%;background:currentColor;}
+.row-actions{display:flex;gap:4px;}
+.ra-btn{padding:4px 10px;font-family:'DM Mono',monospace;font-size:0.44rem;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);text-transform:uppercase;transition:all 0.15s;}
+.ra-btn:hover{border-color:rgba(255,255,255,0.15);color:var(--text);}
+.ra-btn.danger:hover{border-color:rgba(248,113,113,0.3);color:var(--red);}
+.ra-btn.success:hover{border-color:rgba(62,207,142,0.3);color:var(--green);}
+/* BARBEROS */
+.barber-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;}
+.barber-card{background:var(--bg2);border:1px solid var(--border);padding:20px;transition:border-color 0.2s;}
+.barber-card:hover{border-color:rgba(255,255,255,0.1);}
+.barber-card.inactive{opacity:0.5;}
+.barber-avatar-lg{width:48px;height:48px;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.2);display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:800;color:var(--gold);margin-bottom:12px;}
+.toggle-switch{position:relative;width:40px;height:22px;flex-shrink:0;}
+.toggle-switch input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;cursor:pointer;inset:0;background:rgba(255,255,255,0.1);border:1px solid var(--border);transition:0.3s;border-radius:22px;}
+.toggle-slider:before{position:absolute;content:"";height:16px;width:16px;left:2px;bottom:2px;background:var(--muted);transition:0.3s;border-radius:50%;}
+input:checked+.toggle-slider{background:rgba(62,207,142,0.2);border-color:rgba(62,207,142,0.4);}
+input:checked+.toggle-slider:before{transform:translateX(18px);background:var(--green);}
+.chip-active{padding:4px 10px;font-family:'DM Mono',monospace;font-size:0.48rem;text-transform:uppercase;background:rgba(62,207,142,0.08);color:var(--green);border:1px solid rgba(62,207,142,0.15);}
+.chip-off{padding:4px 10px;font-family:'DM Mono',monospace;font-size:0.48rem;text-transform:uppercase;background:rgba(255,255,255,0.03);color:var(--muted);border:1px solid var(--border);}
+/* BARBER PROGRESS */
+.barber-row{padding:12px 18px;display:grid;grid-template-columns:24px 1fr auto;gap:12px;align-items:center;border-bottom:1px solid var(--border);}
+.barber-row:last-child{border-bottom:none;}
+.barber-avatar{width:24px;height:24px;background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.2);display:flex;align-items:center;justify-content:center;font-size:0.55rem;font-weight:700;color:var(--gold);}
+.barber-info{display:flex;flex-direction:column;gap:4px;}
+.barber-progress{height:2px;flex:1;background:rgba(255,255,255,0.06);overflow:hidden;}
+.barber-progress-fill{height:100%;background:var(--gold);box-shadow:0 0 6px var(--gold);transition:width 1s;}
+.barber-count{font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--muted);white-space:nowrap;}
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border);padding:28px;width:520px;max-height:90vh;overflow-y:auto;animation:modal-in 0.2s ease;}
+.modal.wide{width:680px;}
+@keyframes modal-in{from{opacity:0;transform:scale(0.97) translateY(8px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.modal h3{font-size:1rem;font-weight:800;margin-bottom:20px;}
+.fg{margin-bottom:12px;}
+.fg label{display:block;font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--muted);letter-spacing:0.22em;text-transform:uppercase;margin-bottom:5px;}
+.fg input,.fg select,.fg textarea{width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text);padding:9px 12px;font-family:'Syne',sans-serif;font-size:0.88rem;outline:none;transition:border 0.2s;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:rgba(201,168,76,0.4);}
+.fg select option{background:var(--bg2);}
+.fg-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.modal-actions{display:flex;gap:8px;margin-top:20px;}
+.btn-full{flex:1;padding:11px;font-family:'Syne',sans-serif;font-size:0.78rem;font-weight:700;cursor:pointer;text-transform:uppercase;border:none;transition:all 0.2s;}
+.btn-cancel{background:transparent;color:var(--muted);border:1px solid var(--border)!important;}
+.btn-cancel:hover{color:var(--text);}
+/* HORARIO */
+.horario-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+.dia-toggle input{display:none;}
+.dia-toggle label{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border:1px solid var(--border);cursor:pointer;transition:all 0.15s;font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--muted);}
+.dia-toggle input:checked+label{border-color:rgba(201,168,76,0.4);background:rgba(201,168,76,0.08);color:var(--gold);}
+.dia-check{width:16px;height:16px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:0.6rem;}
+.dia-toggle input:checked+label .dia-check{background:var(--gold);color:var(--bg);}
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;z-index:999;padding:12px 20px;background:var(--bg2);border:1px solid var(--border);font-family:'DM Mono',monospace;font-size:0.62rem;transform:translateY(80px);opacity:0;transition:all 0.3s;pointer-events:none;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.success{border-color:rgba(62,207,142,0.3);color:var(--green);}
+.toast.error{border-color:rgba(248,113,113,0.3);color:var(--red);}
+/* SEARCH */
+.search-bar{display:flex;align-items:center;gap:8px;padding:6px 12px;background:rgba(255,255,255,0.03);border:1px solid var(--border);}
+.search-bar input{background:transparent;border:none;color:var(--text);font-family:'DM Mono',monospace;font-size:0.72rem;outline:none;width:200px;}
+.search-bar input::placeholder{color:var(--muted);}
+/* ACTIVITY */
+.activity{padding:8px 0;max-height:260px;overflow-y:auto;}
+.act-item{display:flex;gap:12px;padding:9px 18px;border-bottom:1px solid rgba(255,255,255,0.02);}
+.act-dot{width:6px;height:6px;border-radius:50%;margin-top:5px;flex-shrink:0;}
+.act-body{display:flex;flex-direction:column;gap:2px;}
+.act-text{font-size:0.78rem;line-height:1.4;}
+.act-time{font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--muted);}
+.timeline{padding:12px 18px;display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;}
+.t-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.03);}
+.t-time{font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);width:38px;flex-shrink:0;}
+.t-bar-wrap{flex:1;height:20px;background:rgba(255,255,255,0.03);overflow:hidden;}
+.t-bar{height:100%;display:flex;align-items:center;padding:0 6px;}
+.t-bar span{font-size:0.38rem;font-family:'DM Mono',monospace;color:rgba(0,0,0,0.7);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.t-count{font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);width:20px;text-align:right;}
+.quick-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:16px;}
+.qa-btn{padding:14px;border:1px solid var(--border);background:rgba(255,255,255,0.02);cursor:pointer;transition:all 0.15s;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;}
+.qa-btn:hover{border-color:rgba(255,255,255,0.12);background:rgba(255,255,255,0.04);}
+.qa-icon{font-size:1.2rem;}
+.qa-label{font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--muted);letter-spacing:0.14em;text-transform:uppercase;}
 </style>
 </head>
 <body>
@@ -216,123 +173,73 @@ tr:last-child td{border-bottom:none;}
 .pin-btn:active{background:rgba(201,168,76,0.25);}
 @keyframes pdshake{0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-6px);}40%,80%{transform:translateX(6px);}}
 </style>
-<div id="login-screen" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:9999;flex-direction:column;align-items:center;justify-content:center;">
-  <div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 50%, rgba(212,160,23,0.05) 0%, transparent 70%);pointer-events:none;"></div>
-  
-  <div style="text-align:center;margin-bottom:40px;position:relative;">
-    <div style="margin:0 auto 16px;width:120px;height:120px;background:rgba(212,160,23,0.03);border:1px solid rgba(212,160,23,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);">
-      <img src="auraos-logo.svg" alt="AuraOS" style="width:70%;height:70%;filter:drop-shadow(0 0 15px rgba(212,160,23,0.4));">
-    </div>
-    <div style="font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;letter-spacing:0.05em;background:linear-gradient(135deg, var(--gold), var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">AuraOS</div>
-    <div id="login-shop-name" style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--muted2);letter-spacing:0.2em;text-transform:uppercase;margin-top:6px;">VERIFICANDO SISTEMA...</div>
+<div id="login-screen" style="display:none;position:fixed;inset:0;background:#0C0C0C;z-index:9999;flex-direction:column;align-items:center;justify-content:center;">
+  <div style="text-align:center;margin-bottom:32px;">
+    <div style="margin:0 auto 12px;"><img src="auraos-logo.svg" alt="AuraOS" style="width:110px;height:110px;filter:drop-shadow(0 0 10px rgba(212,160,23,0.3));"></div>
+    <div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:rgba(255,255,255,0.9);">AuraOS</div>
+    <div id="login-shop-name" style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--gold);letter-spacing:0.15em;text-transform:uppercase;margin-top:4px;">Cargando...</div>
   </div>
-
-  <div style="background:var(--bg2);border:1px solid var(--border2);padding:40px 32px;width:340px;max-width:90vw;position:relative;box-shadow:var(--shadow-lg);backdrop-filter:blur(10px);">
-    <div style="font-size:0.6rem;color:var(--muted2);font-family:'DM Mono',monospace;text-align:center;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:24px;">ACCESO DE SEGURIDAD</div>
-    <div style="display:flex;justify-content:center;gap:16px;margin-bottom:32px;">
+  <div style="background:#141414;border:1px solid rgba(255,255,255,0.06);padding:32px 28px;width:320px;max-width:90vw;">
+    <div style="font-size:0.7rem;color:rgba(255,255,255,0.4);font-family:'DM Mono',monospace;text-align:center;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:20px;">Ingresa tu PIN</div>
+    <div style="display:flex;justify-content:center;gap:14px;margin-bottom:24px;">
       <div class="pin-dot" id="pd0"></div><div class="pin-dot" id="pd1"></div><div class="pin-dot" id="pd2"></div><div class="pin-dot" id="pd3"></div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
       <button class="pin-btn" onclick="pinPress(1)">1</button><button class="pin-btn" onclick="pinPress(2)">2</button><button class="pin-btn" onclick="pinPress(3)">3</button>
       <button class="pin-btn" onclick="pinPress(4)">4</button><button class="pin-btn" onclick="pinPress(5)">5</button><button class="pin-btn" onclick="pinPress(6)">6</button>
       <button class="pin-btn" onclick="pinPress(7)">7</button><button class="pin-btn" onclick="pinPress(8)">8</button><button class="pin-btn" onclick="pinPress(9)">9</button>
-      <button class="pin-btn" onclick="pinClear()" style="color:var(--muted);font-size:0.6rem;text-transform:uppercase;">Borrar</button>
+      <button class="pin-btn" onclick="pinClear()" style="color:rgba(255,255,255,0.3);font-size:0.65rem;">Borrar</button>
       <button class="pin-btn" onclick="pinPress(0)">0</button>
-      <button class="pin-btn" onclick="pinDel()" style="font-size:1.1rem;color:var(--gold);">&#9003;</button>
+      <button class="pin-btn" onclick="pinDel()" style="font-size:1rem;">&#9003;</button>
     </div>
-    <div id="login-error" style="display:none;margin-top:20px;padding:12px;background:rgba(248,113,113,0.05);border:1px solid rgba(248,113,113,0.2);font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--red);text-align:center;letter-spacing:0.05em;"></div>
-    <div id="login-attempts" style="margin-top:16px;text-align:center;font-family:'DM Mono',monospace;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;"></div>
+    <div id="login-error" style="display:none;margin-top:16px;padding:10px;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.2);font-family:'DM Mono',monospace;font-size:0.58rem;color:#F87171;text-align:center;"></div>
+    <div id="login-attempts" style="margin-top:12px;text-align:center;font-family:'DM Mono',monospace;font-size:0.5rem;color:rgba(255,255,255,0.2);"></div>
   </div>
 </div>
 
 <div class="app" id="main-app" style="display:none;">
   <aside>
     <div class="aside-brand">
-      <div style="width:36px;height:36px;background:var(--gold-dim);border:1px solid rgba(212,160,23,0.2);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(5px);">
-        <img src="auraos-logo.svg" alt="AuraOS" style="width:22px;height:22px;filter:drop-shadow(0 0 8px rgba(212,160,23,0.4));">
-      </div>
-      <div>
-        <div class="brand-txt">AuraOS</div>
-        <div class="brand-sub">Sistema de Gestión</div>
-      </div>
+      <img src="auraos-logo.svg" alt="L" style="height:32px;width:32px;filter:drop-shadow(0 0 5px rgba(212,160,23,0.3));">
+      <div><div class="brand-txt">AuraOS</div><div class="brand-sub">Panel Admin</div></div>
     </div>
-
     <div class="aside-shop">
-      <div class="shop-name-el" id="shop-name-sidebar">Cargando...</div>
-      <div class="shop-plan-el"><span class="plan-dot"></span><span id="shop-plan-sidebar">SaaS Premium</span></div>
+      <div class="shop-name-el" id="shop-name-sidebar">—</div>
+      <div class="shop-plan-el"><span class="plan-dot"></span><span id="shop-plan-sidebar">Cargando...</span></div>
     </div>
-
-    <nav style="flex:1; overflow-y:auto; padding-bottom:20px;">
-      <div class="nav-section">Principal</div>
-      <button class="nav-item active" onclick="setPage('dashboard',this)">
-        <span class="nav-icon">📊</span> Dashboard
-      </button>
-      <button class="nav-item" onclick="setPage('citas',this)">
-        <span class="nav-icon">📅</span> Citas <span class="nav-badge" id="nb-citas">0</span>
-      </button>
-      <button class="nav-item" onclick="setPage('clientes',this)">
-        <span class="nav-icon">👥</span> Clientes
-      </button>
-      <button class="nav-item" onclick="setPage('barberos',this)">
-        <span class="nav-icon">✂️</span> Barberos
-      </button>
-
-      <div class="nav-section">Avanzado</div>
-      <button class="nav-item" onclick="setPage('reportes',this)">
-        <span class="nav-icon">📈</span> Finanzas
-      </button>
-      <button class="nav-item" onclick="setPage('bot',this)">
-        <span class="nav-icon">🤖</span> WhatsApp Bot
-      </button>
-      <button class="nav-item" onclick="setPage('config',this)">
-        <span class="nav-icon">⚙️</span> Ajustes
-      </button>
-      
-      <button class="nav-item" style="margin-top:10px; opacity:0.6;" onclick="window.open('/sala/'+SHOP_SLUG,'_blank')">
-        <span class="nav-icon">📟</span> Ver Sala →
-      </button>
-    </nav>
-
-    <div class="aside-bottom">
-      <div id="sidebar-barberos-status" style="display:flex;flex-direction:column;gap:5px;">
-        <!-- Se llena via JS -->
-      </div>
-      <button class="btn-sm btn-dark" style="width:100%; margin-top:12px; font-size:0.6rem; letter-spacing:0.1em;" onclick="logout()">🔒 CERRAR SESIÓN</button>
-    </div>
+    <div class="nav-section">Principal</div>
+    <button class="nav-item active" onclick="setPage('dashboard',this)"><span class="nav-icon">⬡</span>Dashboard<span class="nav-badge" id="nb-citas">0</span></button>
+    <button class="nav-item" onclick="setPage('citas',this)"><span class="nav-icon">📅</span>Citas del día</button>
+    <button class="nav-item" id="nav-btn-clientes" onclick="setPage('clientes',this)"><span class="nav-icon">👥</span>Clientes</button>
+    <div class="nav-section">Gestión</div>
+    <button class="nav-item" id="nav-btn-barberos" onclick="setPage('barberos',this)"><span class="nav-icon">✂</span>Barberos</button>
+    <button class="nav-item" id="nav-btn-reportes" onclick="setPage('reportes',this)"><span class="nav-icon">📊</span>Reportes</button>
+    <button class="nav-item" id="nav-btn-bot" onclick="setPage('bot',this)"><span class="nav-icon">💬</span>Bot WhatsApp<span class="nav-badge" style="background:rgba(62,207,142,0.12);color:var(--green)">ON</span></button>
+    <div class="nav-section">Sistema</div>
+    <button class="nav-item" id="nav-btn-config" onclick="setPage('config',this)"><span class="nav-icon">⚙</span>Configuración</button>
+    <button class="nav-item" onclick="window.open('/sala/'+SHOP_SLUG,'_blank')"><span class="nav-icon">📟</span>Ver Sala →</button>
+    <div class="aside-bottom"><div id="barbers-sidebar"></div></div>
   </aside>
-
   <main>
     <div class="topbar">
       <div>
         <div class="page-title" id="page-title">Dashboard</div>
-        <div class="page-date" id="page-date">...</div>
+        <div class="page-date" id="page-date">—</div>
       </div>
       <div class="topbar-right">
-        <div class="status-live"><span class="live-dot"></span>Sincronizado</div>
-        <button class="btn-sm btn-gold" onclick="openModal('cita')">+ NUEVA CITA</button>
+        <div class="status-live"><span class="live-dot"></span>SISTEMA ACTIVO</div>
+        <button class="btn-sm btn-dark" onclick="window.open('/sala/'+SHOP_SLUG,'_blank')" title="Abrir pantalla de sala de espera" style="display:flex;align-items:center;gap:6px;">📺 Sala de Espera</button>
+        <button class="btn-sm btn-gold" onclick="openModal('cita')">+ Nueva Cita</button>
       </div>
     </div>
-
-    <div class="content">
-      <div id="page-content">
-        <!-- Contenido dinámico -->
-      </div>
-    </div>
+    <div class="content" id="page-content"></div>
   </main>
 </div>
-
 
 <!-- MODAL CITA -->
 <div class="modal-overlay" id="modal-cita">
   <div class="modal">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
-      <div>
-        <h3 id="modal-cita-title" style="margin:0;letter-spacing:0.05em;">NUEVA CITA</h3>
-        <div style="font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--gold);margin-top:2px;letter-spacing:0.1em;text-transform:uppercase;">GESTIÓN DE TURNO</div>
-      </div>
-      <button onclick="closeModal('cita')" style="background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;">✕</button>
-    </div>
-    
+    <h3 id="modal-cita-title">Nueva Cita</h3>
     <input type="hidden" id="m-cita-id">
     <div class="fg"><label>Nombre del cliente</label><input type="text" id="m-nombre" placeholder="Carlos Martínez"></div>
     <div class="fg"><label>Teléfono WhatsApp</label><input type="text" id="m-tel" placeholder="+18091234567"></div>
@@ -345,16 +252,11 @@ tr:last-child td{border-bottom:none;}
     </div>
     <div class="fg"><label>Barbero</label><select id="m-barbero"></select></div>
     <div class="fg"><label>Estado</label>
-      <select id="m-estado">
-        <option>Confirmada</option>
-        <option>Pendiente</option>
-        <option>Completada</option>
-        <option>Cancelada</option>
-      </select>
+      <select id="m-estado"><option>Confirmada</option><option>Pendiente</option><option>Completada</option><option>Cancelada</option></select>
     </div>
-    <div class="modal-actions" style="margin-top:32px;">
-      <button class="btn-full btn-gold" onclick="saveCita()">GUARDAR CAMBIOS</button>
-      <button class="btn-full btn-cancel" onclick="closeModal('cita')">CANCELAR</button>
+    <div class="modal-actions">
+      <button class="btn-full btn-gold" onclick="saveCita()">Guardar</button>
+      <button class="btn-full btn-cancel" onclick="closeModal('cita')">Cancelar</button>
     </div>
   </div>
 </div>
@@ -362,24 +264,17 @@ tr:last-child td{border-bottom:none;}
 <!-- MODAL BARBERO -->
 <div class="modal-overlay" id="modal-barbero">
   <div class="modal">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
-      <div>
-        <h3 id="modal-barbero-title" style="margin:0;letter-spacing:0.05em;">GESTIÓN BARBERO</h3>
-        <div style="font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--gold);margin-top:2px;letter-spacing:0.1em;text-transform:uppercase;">PERFIL DEL EQUIPO</div>
-      </div>
-      <button onclick="closeModal('barbero')" style="background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;">✕</button>
-    </div>
-
+    <h3 id="modal-barbero-title">Nuevo Barbero</h3>
     <input type="hidden" id="mb-id">
-    <div class="fg"><label>Nombre</label><input type="text" id="mb-nombre" placeholder="Nombre completo"></div>
+    <div class="fg"><label>Nombre</label><input type="text" id="mb-nombre" placeholder="Nombre del barbero"></div>
     <div class="fg"><label>Orden en lista</label><input type="number" id="mb-orden" value="1" min="1"></div>
-    <div class="fg" style="display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-top:1px solid var(--border2);margin-top:10px;">
-      <label style="margin:0;font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--muted);letter-spacing:0.2em;text-transform:uppercase;">DISPONIBLE / ACTIVO</label>
+    <div class="fg" style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-top:1px solid var(--border);">
+      <label style="margin:0;font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--muted);letter-spacing:0.22em;text-transform:uppercase;">Disponible / Activo</label>
       <label class="toggle-switch"><input type="checkbox" id="mb-activo" checked><span class="toggle-slider"></span></label>
     </div>
-    <div class="modal-actions" style="margin-top:24px;">
-      <button class="btn-full btn-gold" onclick="saveBarbero()">GUARDAR BARBERO</button>
-      <button class="btn-full btn-cancel" onclick="closeModal('barbero')">CANCELAR</button>
+    <div class="modal-actions">
+      <button class="btn-full btn-gold" onclick="saveBarbero()">Guardar</button>
+      <button class="btn-full btn-cancel" onclick="closeModal('barbero')">Cancelar</button>
     </div>
   </div>
 </div>
@@ -387,21 +282,14 @@ tr:last-child td{border-bottom:none;}
 <!-- MODAL CLIENTE -->
 <div class="modal-overlay" id="modal-cliente">
   <div class="modal">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
-      <div>
-        <h3 id="modal-cliente-title" style="margin:0;letter-spacing:0.05em;">GESTIÓN DE CLIENTE</h3>
-        <div style="font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--gold);margin-top:2px;letter-spacing:0.1em;text-transform:uppercase;">BASE DE DATOS</div>
-      </div>
-      <button onclick="closeModal('cliente')" style="background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;">✕</button>
-    </div>
-
+    <h3 id="modal-cliente-title">Nuevo Cliente</h3>
     <input type="hidden" id="mc-id" value="">
-    <div class="fg"><label>Nombre completo</label><input type="text" id="mc-nombre" placeholder="Nombre del cliente"></div>
+    <div class="fg"><label>Nombre completo</label><input type="text" id="mc-nombre" placeholder="Carlos Martínez"></div>
     <div class="fg"><label>Número WhatsApp</label><input type="text" id="mc-tel" placeholder="+18091234567"></div>
-    <div class="fg"><label>Notas (opcional)</label><textarea id="mc-notas" rows="3" placeholder="Preferencias, historial, etc."></textarea></div>
-    <div class="modal-actions" style="margin-top:24px;">
-      <button class="btn-full btn-gold" onclick="saveCliente()">GUARDAR CLIENTE</button>
-      <button class="btn-full btn-cancel" onclick="closeModal('cliente')">CANCELAR</button>
+    <div class="fg"><label>Notas (opcional)</label><textarea id="mc-notas" rows="3" placeholder="Preferencias, alergias, etc."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn-full btn-gold" onclick="saveCliente()">Guardar</button>
+      <button class="btn-full btn-cancel" onclick="closeModal('cliente')">Cancelar</button>
     </div>
   </div>
 </div>
@@ -638,52 +526,52 @@ function calcAgo(d){const m=Math.round((Date.now()-d)/60000);if(m<1)return 'ahor
 
 let currentPage='dashboard';
 let _citasFechaVer='';let _citasBarberoFiltro='';let _citasEstadoFiltro='';
-function setPage(page, btn) {
-  const f = getFeatures();
-  const blocked = { 'reportes': !f.reportes, 'config': !f.config, 'bot': !f.bot, 'clientes': !f.clientes, 'barberos': !f.barberos };
-  if (blocked[page]) { toast('Esta sección está desactivada para tu plan', 'warn'); return; }
-
-  const el = document.getElementById('page-content');
-  el.classList.add('loading'); // Fade out
-
-  setTimeout(() => {
-    currentPage = page;
-    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-    if (btn) btn.classList.add('active');
-
-    const T = { dashboard: 'Dashboard', citas: 'Citas del día', clientes: 'Clientes', barberos: 'Barberos', reportes: 'Finanzas', bot: 'WhatsApp Bot', config: 'Configuración' };
-    document.getElementById('page-title').textContent = T[page] || page;
-
-    renderPage();
-    el.classList.remove('loading'); // Fade in
-  }, 150);
+function setPage(page,btn){
+  const f=getFeatures();
+  const blocked={'reportes':!f.reportes,'config':!f.config,'bot':!f.bot,'clientes':!f.clientes,'barberos':!f.barberos};
+  if(blocked[page]){toast('Esta sección está desactivada para tu plan','warn');return;}
+  currentPage=page;
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  const T={dashboard:'Dashboard',citas:'Citas del día',clientes:'Clientes',barberos:'Barberos',reportes:'Reportes',bot:'Bot WhatsApp',config:'Configuración'};
+  document.getElementById('page-title').textContent=T[page]||page;
+  renderPage();
 }
-
-function renderPage() {
-  const el = document.getElementById('page-content');
-  if (currentPage === 'dashboard') el.innerHTML = renderDashboard();
-  else if (currentPage === 'citas') el.innerHTML = renderCitas();
-  else if (currentPage === 'clientes') el.innerHTML = renderClientes();
-  else if (currentPage === 'barberos') el.innerHTML = renderBarberos();
-  else if (currentPage === 'reportes') { el.innerHTML = renderReportes(); setTimeout(initReportesCharts, 50); }
-  else if (currentPage === 'bot') { el.innerHTML = renderBot(); setTimeout(initModoRecordatorio, 50); }
-  else if (currentPage === 'config') el.innerHTML = renderConfigPage();
-
-  renderSidebar();
-  updateBarberoSelect();
+function renderPage(){
+  const el=document.getElementById('page-content');
+  if(currentPage==='dashboard')el.innerHTML=renderDashboard();
+  else if(currentPage==='citas')el.innerHTML=renderCitas();
+  else if(currentPage==='clientes')el.innerHTML=renderClientes();
+  else if(currentPage==='barberos')el.innerHTML=renderBarberos();
+  else if(currentPage==='reportes'){el.innerHTML=renderReportes();setTimeout(initReportesCharts,150);}
+  else if(currentPage==='bot'){el.innerHTML=renderBot();setTimeout(initModoRecordatorio,50);}
+  else if(currentPage==='config')el.innerHTML=renderConfigPage();
+  renderSidebar();updateBarberoSelect();
 }
+// ── Features por plan + overrides manuales del superadmin ──
+const PLAN_FEATURES = {
+  free:  {reportes:true, config:true, servicios:true, bot:true, barberos:true, clientes:true, walkin:true},
+  pro:   {reportes:true, config:true, servicios:true, bot:true, barberos:true, clientes:true, walkin:true},
+  elite: {reportes:true, config:true, servicios:true, bot:true, barberos:true, clientes:true, walkin:true},
+};
 
-function renderSidebar() {
-  const container = document.getElementById('sidebar-barberos-status');
-  if (!container) return;
-  container.innerHTML = `<div style="font-family:'DM Mono',monospace;font-size:0.44rem;color:var(--muted);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:6px;">ESTADO EQUIPO</div>` +
-    S.barberos.map(b => `
-    <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.02);">
-      <div style="width:18px;height:18px;background:var(--gold-dim);border:1px solid rgba(212,160,23,0.1);display:flex;align-items:center;justify-content:center;font-size:0.5rem;font-weight:700;color:var(--gold);flex-shrink:0;">${b.nombre.charAt(0)}</div>
-      <div style="flex:1;font-size:0.62rem;color:var(--muted2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${b.nombre}</div>
-      <div style="font-family:'DM Mono',monospace;font-size:0.48rem;color:${b.activo ? 'var(--green)' : 'var(--muted)'};">${b.citas_hoy}</div>
-    </div>`).join('');
+function getFeatures(){
+  const s=S.shopData||{};
+  const plan=s.plan||'free';
+  const base=PLAN_FEATURES[plan]||PLAN_FEATURES.free;
+  // Overrides manuales del superadmin (null = sin override, usa el plan)
+  return {
+    reportes:   s.feature_reportes    !==null&&s.feature_reportes    !==undefined ? s.feature_reportes    : base.reportes,
+    config:     s.feature_config      !==null&&s.feature_config      !==undefined ? s.feature_config      : base.config,
+    servicios:  s.feature_servicios   !==null&&s.feature_servicios   !==undefined ? s.feature_servicios   : base.servicios,
+    bot:        s.feature_bot_whatsapp!==null&&s.feature_bot_whatsapp!==undefined ? s.feature_bot_whatsapp: base.bot,
+    barberos:   s.feature_barberos    !==null&&s.feature_barberos    !==undefined ? s.feature_barberos    : base.barberos,
+    clientes:   s.feature_clientes    !==null&&s.feature_clientes    !==undefined ? s.feature_clientes    : base.clientes,
+    walkin:     s.feature_walkin      !==null&&s.feature_walkin      !==undefined ? s.feature_walkin      : base.walkin,
+  };
 }
+function renderSidebar(){
+  document.getElementById('barbers-sidebar').innerHTML=S.barberos.map(b=>'<div class="barber-mini-item"><div class="barber-mini-dot" style="background:'+(b.activo?'var(--green)':'var(--muted)')+'"></div><div class="barber-mini-name">'+b.nombre+'</div><div class="barber-mini-status" style="color:'+(b.activo?'var(--green)':'var(--muted)')+';">'+b.citas_hoy+' citas</div></div>').join('');
   const f=getFeatures();
   const navMap={'nav-btn-reportes':'reportes','nav-btn-config':'config','nav-btn-bot':'bot','nav-btn-clientes':'clientes','nav-btn-barberos':'barberos'};
   Object.entries(navMap).forEach(function(kv){var el=document.getElementById(kv[0]);if(el)el.style.display=f[kv[1]]?'':'none';});
@@ -693,158 +581,53 @@ function bc(e){return e==='Confirmada'?'badge-green':e==='Completada'?'badge-blu
 function nowStr(){return new Date().toISOString().split('T')[0];}
 
 // ── DASHBOARD ──
-function renderDashboard() {
-  const conf = S.citas.filter(c => c.estado === 'Confirmada').length;
-  const comp = S.citas.filter(c => c.estado === 'Completada').length;
-  const canc = S.citas.filter(c => c.estado === 'Cancelada' || c.estado === 'No-Show').length;
-  const maxC = Math.max(...S.barberos.map(b => b.citas_hoy), 1);
-  const horas = ['09', '10', '11', '12', '13', '14', '15', '16', '17', '18'];
-  const tl = horas.map(h => {
-    const cc = S.citas.filter(c => c.hora.startsWith(h));
-    const pct = cc.length ? Math.min(100, (cc.length / 3) * 100) : 0;
-    const col = pct > 80 ? 'var(--gold)' : pct > 40 ? 'var(--green)' : 'var(--blue)';
-    return `<div class="t-row" style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.03);">
-      <div class="t-time" style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted2);width:40px;">${h}:00</div>
-      <div class="t-bar-wrap" style="flex:1;height:12px;background:rgba(255,255,255,0.02);border-radius:6px;overflow:hidden;position:relative;">
-        <div class="t-bar" style="height:100%;width:${pct}%;background:${col};opacity:0.3;border-radius:6px;"></div>
-        <div style="position:absolute;inset:0;display:flex;align-items:center;padding:0 8px;font-size:0.45rem;font-family:'DM Mono',monospace;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-          ${cc.map(c => c.nombre.split(' ')[0]).join(', ')}
-        </div>
-      </div>
-      <div class="t-count" style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--muted2);width:20px;text-align:right;">${cc.length}</div>
-    </div>`;
-  }).join('');
-
-  return `
-    <div class="stats-row">
-      <div class="stat-card">
-        <div class="stat-val" style="color:var(--gold)">${S.citas.length}</div>
-        <div class="stat-lbl">CITAS HOY</div>
-        <div class="stat-delta">Total del día</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-val" style="color:var(--green)">${comp}</div>
-        <div class="stat-lbl">COMPLETADAS</div>
-        <div class="stat-delta" style="color:var(--green)">↑ ${S.citas.length ? Math.round(comp / S.citas.length * 100) : 0}% tasa</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-val" style="color:var(--blue)">${conf}</div>
-        <div class="stat-lbl">PENDIENTES</div>
-        <div class="stat-delta">Por atender</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-val" style="color:var(--red)">${canc}</div>
-        <div class="stat-lbl">CANCELADAS</div>
-        <div class="stat-delta" style="color:var(--red)">No asistieron</div>
-      </div>
+function renderDashboard(){
+  const conf=S.citas.filter(c=>c.estado==='Confirmada').length;
+  const comp=S.citas.filter(c=>c.estado==='Completada').length;
+  const canc=S.citas.filter(c=>c.estado==='Cancelada'||c.estado==='No-Show').length;
+  const maxC=Math.max(...S.barberos.map(b=>b.citas_hoy),1);
+  const horas=['09','10','11','12','13','14','15','16','17','18'];
+  const tl=horas.map(h=>{const cc=S.citas.filter(c=>c.hora.startsWith(h));const pct=cc.length?Math.min(100,(cc.length/3)*100):0;const col=pct>80?'var(--gold)':pct>40?'var(--green)':'var(--blue)';return '<div class="t-row"><div class="t-time">'+h+':00</div><div class="t-bar-wrap"><div class="t-bar" style="width:'+pct+'%;background:'+col+'30;"><span>'+cc.map(c=>c.nombre.split(' ')[0]).join(', ')+'</span></div></div><div class="t-count">'+cc.length+'</div></div>';}).join('');
+  return `<div class="stats-row">
+    <div class="stat-card c-gold"><div class="stat-val gold">${S.citas.length}</div><div class="stat-lbl">Citas hoy</div><div class="stat-delta up">Total del día</div></div>
+    <div class="stat-card c-green"><div class="stat-val green">${comp}</div><div class="stat-lbl">Completadas</div><div class="stat-delta up">↑ ${S.citas.length?Math.round(comp/S.citas.length*100):0}% tasa</div></div>
+    <div class="stat-card c-blue"><div class="stat-val blue">${conf}</div><div class="stat-lbl">Confirmadas</div><div class="stat-delta">Pendientes hoy</div></div>
+    <div class="stat-card c-red"><div class="stat-val red">${canc}</div><div class="stat-lbl">Canceladas/NS</div><div class="stat-delta dn">No asistieron</div></div>
+  </div>
+  <div class="two-col">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Citas recientes</div><button class="btn-sm btn-dark" onclick="setPage('citas',null)">Ver todas →</button></div>
+      <table><thead><tr><th>Hora</th><th>Cliente</th><th>Barbero</th><th>Servicio</th><th>Estado</th><th></th></tr></thead>
+      <tbody>${S.citas.slice(-6).reverse().map(c=>`<tr><td style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--gold)">${fmt12rpt(c.hora)}</td><td style="font-weight:700">${c.nombre}</td><td style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted)">${c.barbero}</td><td style="font-size:0.75rem;color:var(--muted)">${c.servicio}</td><td><span class="badge ${bc(c.estado)}"><span class="badge-dot"></span>${c.estado}</span></td><td><div class="row-actions"><button class="ra-btn" onclick="editCita(${c.id})">✏</button><button class="ra-btn danger" onclick="cancelCita(${c.id})">✕</button></div></td></tr>`).join('')}</tbody></table>
     </div>
-
-    <div class="two-col">
+    <div style="display:flex;flex-direction:column;gap:16px;">
       <div class="card">
-        <div class="card-header">
-          <div class="card-title">CITAS RECIENTES</div>
-          <button class="btn-sm btn-dark" onclick="setPage('citas',null)">VER TODAS →</button>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>HORA</th>
-              <th>CLIENTE</th>
-              <th>SERVICIO</th>
-              <th>ESTADO</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            ${S.citas.slice(-6).reverse().map(c => `
-              <tr>
-                <td style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--gold)">${fmt12rpt(c.hora)}</td>
-                <td style="font-weight:700;">${c.nombre}</td>
-                <td style="font-size:0.75rem;color:var(--muted2);">${c.servicio}</td>
-                <td><span class="badge ${bc(c.estado)}"><span class="badge-dot"></span>${c.estado}</span></td>
-                <td>
-                  <div class="row-actions">
-                    <button class="ra-btn" onclick="editCita(${c.id})">✏</button>
-                    <button class="ra-btn danger" onclick="cancelCita(${c.id})">✕</button>
-                  </div>
-                </td>
-              </tr>
-            `).join('')}
-            ${!S.citas.length ? '<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--muted);">Sin citas hoy</td></tr>' : ''}
-          </tbody>
-        </table>
+        <div class="card-header"><div class="card-title">Barberos</div><span class="card-meta">${S.barberos.filter(b=>b.activo).length} activos</span></div>
+        ${S.barberos.map(b=>`<div class="barber-row"><div class="barber-avatar">${b.nombre[0]}</div><div class="barber-info"><div style="font-size:0.82rem;font-weight:700;">${b.nombre}</div><div style="display:flex;align-items:center;gap:8px;"><div class="barber-progress"><div class="barber-progress-fill" style="width:${Math.round(b.citas_hoy/maxC*100)}%"></div></div><div class="barber-count">${b.citas_hoy} citas</div></div></div><div class="${b.activo?'chip-active':'chip-off'}">${b.activo?'Activo':'Off'}</div></div>`).join('')}
       </div>
-
-      <div style="display:flex;flex-direction:column;gap:20px;">
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title">EQUIPO</div>
-            <span class="card-meta">${S.barberos.filter(b => b.activo).length} ACTIVOS</span>
-          </div>
-          <div style="padding:10px 0;">
-            ${S.barberos.map(b => `
-              <div class="barber-row" style="padding:12px 24px;border-bottom:1px solid rgba(255,255,255,0.02);">
-                <div class="barber-avatar" style="width:28px;height:28px;border-radius:50%;">${b.nombre[0]}</div>
-                <div class="barber-info">
-                  <div style="font-size:0.85rem;font-weight:700;">${b.nombre}</div>
-                  <div style="display:flex;align-items:center;gap:8px;">
-                    <div class="barber-progress" style="height:3px;border-radius:2px;"><div class="barber-progress-fill" style="width:${Math.round(b.citas_hoy / maxC * 100)}%"></div></div>
-                    <div class="barber-count" style="font-size:0.5rem;min-width:40px;">${b.citas_hoy} citas</div>
-                  </div>
-                </div>
-                <div class="${b.activo ? 'chip-active' : 'chip-off'}" style="font-size:0.4rem;">${b.activo ? 'ON' : 'OFF'}</div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header"><div class="card-title">ACCIONES RÁPIDAS</div></div>
-          <div class="quick-actions" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);">
-            ${[
-    { l: 'CITA', i: '📅', a: "openModal('cita')" },
-    { l: 'CLIENTE', i: '👤', a: "openModal('cliente')" },
-    { l: 'EQUIPO', i: '✂', a: "setPage('barberos',null)" },
-    { l: 'SALA', i: '📟', a: "window.open('/sala/'+SHOP_SLUG,'_blank')" },
-    { l: 'AJUSTES', i: '⚙', a: "openModal('config')" },
-    { l: 'REPORTE', i: '📊', a: "setPage('reportes',null)" }
-  ].map(x => `
-              <div class="qa-btn" onclick="${x.a}" style="background:var(--surface);padding:18px 10px;">
-                <div class="qa-icon" style="font-size:1.3rem;margin-bottom:6px;">${x.i}</div>
-                <div class="qa-label" style="font-size:0.48rem;letter-spacing:0.15em;">${x.l}</div>
-              </div>
-            `).join('')}
-          </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Acciones rápidas</div></div>
+        <div class="quick-actions">
+          <div class="qa-btn" onclick="openModal('cita')"><div class="qa-icon">📅</div><div class="qa-label">+ Cita</div></div>
+          <div class="qa-btn" onclick="openModal('cliente')"><div class="qa-icon">👤</div><div class="qa-label">+ Cliente</div></div>
+          <div class="qa-btn" onclick="setPage('barberos',null)"><div class="qa-icon">✂</div><div class="qa-label">Barberos</div></div>
+          <div class="qa-btn" onclick="window.open('/sala/'+SHOP_SLUG,'_blank')"><div class="qa-icon">📟</div><div class="qa-label">Sala</div></div>
+          <div class="qa-btn" onclick="openModal('config')"><div class="qa-icon">⚙</div><div class="qa-label">Config</div></div>
+          <div class="qa-btn" onclick="setPage('reportes',null)"><div class="qa-icon">📊</div><div class="qa-label">Reporte</div></div>
         </div>
       </div>
     </div>
-
-    <div class="two-col">
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">FLUJO DE ACTIVIDAD</div>
-          <span class="card-meta">REAL-TIME</span>
-        </div>
-        <div class="activity">
-          ${S.activity.length ? S.activity.map(a => `
-            <div class="act-item" style="padding:14px 24px;">
-              <div class="act-dot" style="background:${a.color};box-shadow:0 0 8px ${a.color}80;width:8px;height:8px;"></div>
-              <div class="act-body">
-                <div class="act-text" style="font-size:0.8rem;letter-spacing:0.01em;">${a.text}</div>
-                <div class="act-time" style="margin-top:2px;">${a.time}</div>
-              </div>
-            </div>
-          `).join('') : '<div style="padding:32px;text-align:center;color:var(--muted2);font-family:\'DM Mono\',monospace;font-size:0.6rem;">Sin actividad reciente</div>'}
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">OCUPACIÓN</div>
-          <span class="card-meta">HOY</span>
-        </div>
-        <div class="timeline" style="padding:16px 24px;">${tl}</div>
-      </div>
-    </div>`;
+  </div>
+  <div class="two-col">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Actividad reciente</div><span class="card-meta">Tiempo real</span></div>
+      <div class="activity">${S.activity.length?S.activity.map(a=>`<div class="act-item"><div class="act-dot" style="background:${a.color}"></div><div class="act-body"><div class="act-text">${a.text}</div><div class="act-time">${a.time}</div></div></div>`).join(''):'<div style="padding:20px 18px;font-family:\'DM Mono\',monospace;font-size:0.6rem;color:var(--muted);">Sin actividad reciente</div>'}</div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Ocupación por hora</div><span class="card-meta">Hoy</span></div>
+      <div class="timeline">${tl}</div>
+    </div>
+  </div>`;
 }
 
 // ── CITAS ──
