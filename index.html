@@ -14,7 +14,7 @@
 <meta property="og:url" content="https://auraos.app">
 <meta property="og:locale" content="es_DO">
 <meta property="og:site_name" content="AuraOS">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%230a0a0a' stroke='%23C9A84C' stroke-width='3'/><circle cx='50' cy='50' r='32' fill='none' stroke='%23C9A84C' stroke-width='2'/><circle cx='50' cy='50' r='16' fill='none' stroke='%23C9A84C' stroke-width='2.5'/><circle cx='50' cy='50' r='6' fill='%23C9A84C'/></svg>">
+<link rel="icon" type="image/svg+xml" href="auraos-logo.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
@@ -23,7 +23,7 @@
   --bg:#070708;--surface:#0F0F12;--surface2:#141418;
   --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
   --text:#E8E6E0;--muted:#5A5855;--muted2:#8A8885;
-  --gold:#C9A84C;--gold2:#E8C96A;--gold-dim:rgba(201,168,76,0.12);
+  --gold:#D4A017;--gold2:#F5E050;--gold-dim:rgba(212,160,23,0.12);
   --green:#2ECC71;--red:#E74C3C;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -51,7 +51,8 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 
 nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:18px 52px;background:rgba(7,7,8,0);border-bottom:1px solid transparent;backdrop-filter:blur(0px);transition:all 0.35s ease;}
 nav.scrolled{padding:12px 52px;background:rgba(7,7,8,0.92);border-bottom-color:var(--border);backdrop-filter:blur(14px);}
-.nav-logo{font-family:'Bebas Neue',sans-serif;font-size:1.45rem;letter-spacing:0.15em;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.nav-logo{display:flex;align-items:center;gap:10px;font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:0.12em;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.nav-logo img{height:32px;width:32px;filter:drop-shadow(0 0 8px rgba(212,160,23,0.3));}
 .nav-links{display:flex;gap:34px;}
 .nav-links a{color:var(--muted);text-decoration:none;font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;transition:color 0.2s;position:relative;}
 .nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;right:0;height:1px;background:var(--gold);transform:scaleX(0);transition:transform 0.25s ease;transform-origin:left;}
@@ -471,7 +472,7 @@ footer{padding:44px 52px 28px;border-top:1px solid var(--border);position:relati
 
 <!-- NAV -->
 <nav id="mainNav">
-  <div class="nav-logo">AuraOS</div>
+  <div class="nav-logo"><img src="auraos-logo.svg" alt="L">AuraOS</div>
   <div class="nav-links">
     <a href="#como-funciona">Cómo funciona</a>
     <a href="#funciones">Funciones</a>
