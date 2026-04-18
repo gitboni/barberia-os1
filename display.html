@@ -21,16 +21,16 @@
     }
 
     :root {
-      --cyan: #00F5FF;
+      --cyan: #D4A017;
       --magenta: #FF006E;
-      --gold: #FFD600;
-      --green: #00FF78;
+      --gold: #F5E050;
+      --green: #3ECF8E;
       --purple: #B06EFF;
       --bg: #020408;
       --bg2: #060C14;
-      --glow-c: rgba(0, 245, 255, 0.6);
+      --glow-c: rgba(212, 160, 23, 0.45);
       --glow-m: rgba(255, 0, 110, 0.5);
-      --glow-g: rgba(0, 255, 120, 0.5);
+      --glow-g: rgba(62, 207, 142, 0.5);
       --glow-p: rgba(176, 110, 255, 0.5);
     }
 
@@ -5983,12 +5983,18 @@
             <div class="done-pills">${done.length ? done.slice(-3).map((c, i) => `<div class="done-pill" style="animation-delay:${i * 0.06}s"><div class="done-pill-num">${String(c.originalIdx + 1).padStart(2, '0')}</div><div class="done-pill-name">${c.name}</div><div class="done-pill-check">✓</div></div>`).join('') : '<span class="done-strip-empty">— ninguno aún —</span>'}</div>
             ${done.length ? `<button type="button" class="btn-recuperar" onclick="openRecuperarModal('${barber.replace(/'/g, "\\'")}')">↺</button>` : ''}
           </div>
-          ${remaining === 0 && !cur ? `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:18px 0;opacity:0.7;">
-            <div style="font-family:'Share Tech Mono',monospace;font-size:0.45rem;letter-spacing:0.22em;color:rgba(0,245,255,0.5);">${allC.length > 0 ? '✓ TODOS LOS TURNOS COMPLETADOS' : 'SIN CLIENTES REGISTRADOS HOY'}</div>
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent('barberos://registro?shop='+SLUG)}&bgcolor=060C14&color=FFFFFF&margin=8" width="90" height="90" style="border-radius:4px;opacity:0.75;" onerror="this.style.display='none'">
-            <div style="font-family:'Share Tech Mono',monospace;font-size:0.38rem;letter-spacing:0.16em;color:rgba(0,245,255,0.3);">ESCANEA PARA RESERVAR</div>
-          </div>` : ''}
-          <div class="zone-a">
+          ${remaining === 0 && !cur ? (() => {
+            const dots = Array.from({length: 8}, (_, i) => `<div class="idle-dot" style="left:${6+i*11}%;top:${20+((i*47)%60)}%;--dur:${3+i*0.4}s;--delay:${i*0.28}s;"></div>`).join('');
+            return `<div class="idle-screen" style="position:relative;height:160px;overflow:hidden;border-radius:4px;margin-bottom:6px;">
+              ${dots}
+              <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:8px;">
+                <div style="font-family:'Share Tech Mono',monospace;font-size:0.42rem;letter-spacing:0.2em;color:rgba(0,245,255,0.55);">${allC.length > 0 ? '✓ TODOS LOS TURNOS COMPLETADOS' : 'SIN CLIENTES REGISTRADOS HOY'}</div>
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent('barberos://registro?shop='+SLUG)}&bgcolor=060C14&color=FFFFFF&margin=8" width="80" height="80" style="border-radius:4px;opacity:0.8;" onerror="this.style.display='none'">
+                <div style="font-family:'Share Tech Mono',monospace;font-size:0.35rem;letter-spacing:0.14em;color:rgba(0,245,255,0.28);">ESCANEA PARA RESERVAR TU TURNO</div>
+              </div>
+            </div>`;
+          })() : ''}
+          ${zoneA.length ? `<div class="zone-a">
             <div class="q-col-header"><span>#</span><span>CLIENTE</span><span style="text-align:center">BARBERO</span><span style="text-align:center">HORA</span><span>ESTADO</span></div>
             ${zoneA.map((c, idx) => {
         const num = c.originalIdx + 1; const eta = c.pos > 0 ? calcLiveETA(c.pos, barber) : null; const { rc, tc, tl } = statusClasses(c.status);
@@ -5996,7 +6002,7 @@
         const tBtn = c.id && c.status !== 'done' ? `<button class="btn-transfer" onclick="openTransferirCita('${c.id}','${c.name.replace(/'/g, "\\'")}','${c.time}','${barber.replace(/'/g, "\\'")}',${num})">↔</button>` : '';
         return `<div class="q-item ${rc}" style="animation-delay:${idx * 0.05}s"><div class="q-num">${String(num).padStart(2, '0')}</div><div><div class="q-name">${c.name}${eta ? `<span class="wait-eta">⏱${eta}</span>` : ''}</div><div class="q-svc">${c.servicio}</div></div><div class="q-barber">${tBtn}</div><div class="q-time">${fmt12(c.time)}</div><div><span class="status-tag ${tc}"><span class="tag-dot"></span>${tl}</span></div></div>`;
       }).join('')}
-          </div>
+          </div>` : ''}
           ${zoneB.length ? `<div class="zone-b-header"><span>EN ESPERA</span><span class="zone-b-count">${zoneB.length}</span></div><div class="zone-b">${zoneB.map((c, idx) => {
         const num = c.originalIdx + 1; const eta = c.pos > 0 ? calcLiveETA(c.pos, barber) : null;
         return `<div class="q-mini ${c.status === 'alert' ? 'ms-alert' : 'ms-wait'}" style="animation-delay:${idx * 0.025}s">${conflictIdx.has(c.originalIdx) ? '<div style="position:absolute;top:2px;right:3px;width:4px;height:4px;border-radius:50%;background:var(--magenta);box-shadow:0 0 4px var(--magenta);"></div>' : ''}<div class="q-mini-num">${String(num).padStart(2, '0')}</div><div class="q-mini-name">${c.name}</div><div class="q-mini-meta"><div class="q-mini-time">${eta || fmt12(c.time)}</div><div class="q-mini-barb">${barber}</div></div></div>`;
@@ -6352,7 +6358,7 @@
               if (['INSERT', 'UPDATE', 'DELETE'].includes(evType)) {
                 if (m.topic && m.topic.includes('shops')) {
                   if (record?.activo === false) { showDisplaySuspended(S.shopName); return; }
-                  if (record?.activo === true) { _barberiaPausada = false; actualizarBtnPause(); }
+                  if (record?.activo === true) { location.reload(); return; }
                   // Actualizar hora_fin/hora_inicio en S desde el evento RT
                   if (record?.hora_fin  !== undefined) S.horaFin   = record.hora_fin;
                   if (record?.hora_inicio !== undefined) S.horaInicio = record.hora_inicio;
