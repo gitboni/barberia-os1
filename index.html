@@ -324,11 +324,54 @@ footer{padding:44px 52px 28px;border-top:1px solid var(--border);position:relati
   .footer-grid{grid-template-columns:1fr;}
 }
 
+/* ── ROI Calculator ── */
+.roi-section{padding:100px 52px;background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.roi-card{background:var(--bg);border:1px solid var(--gold-dim);max-width:850px;margin:50px auto 0;padding:44px;display:grid;grid-template-columns:1.2fr 1fr;gap:50px;align-items:center;position:relative;overflow:hidden;}
+.roi-card::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at top right,rgba(212,160,23,0.05),transparent 70%);pointer-events:none;}
+.roi-input-group{display:flex;flex-direction:column;gap:24px;}
+.roi-label{font-size:0.85rem;color:var(--text);letter-spacing:0.04em;display:flex;justify-content:space-between;align-items:center;}
+.roi-label span{color:var(--gold);font-family:'Bebas Neue',sans-serif;font-size:1.4rem;}
+.roi-slider{width:100%;height:4px;background:var(--surface2);border-radius:2px;outline:none;-webkit-appearance:none;cursor:pointer;}
+.roi-slider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;background:var(--gold);border:3px solid var(--bg);border-radius:50%;box-shadow:0 0 10px var(--gold);transition:all 0.2s;}
+.roi-slider::-webkit-slider-thumb:hover{transform:scale(1.25);}
+.roi-results{background:var(--surface2);padding:30px;border:1px solid var(--border);text-align:center;display:flex;flex-direction:column;gap:28px;}
+.roi-res-item{display:flex;flex-direction:column;gap:6px;}
+.roi-res-val{font-family:'Bebas Neue',sans-serif;font-size:2.8rem;color:var(--gold);line-height:1;}
+.roi-res-label{font-size:0.55rem;color:var(--muted);letter-spacing:0.2em;text-transform:uppercase;}
+
+/* ── Admin Showcase Carousel ── */
+.showcase-section{padding:110px 52px;text-align:center;}
+.showcase-carousel{max-width:1000px;margin:58px auto 0;position:relative;overflow:hidden;border:1px solid var(--border);background:var(--surface2);}
+.carousel-track{display:flex;transition:transform 0.5s cubic-bezier(0.4,0,0.2,1);}
+.carousel-slide{min-width:100%;aspect-ratio:16/9;background-size:cover;background-position:center;display:flex;flex-direction:column;justify-content:flex-end;}
+.carousel-caption{background:linear-gradient(0deg,rgba(0,0,0,0.92) 0%,transparent 100%);padding:40px;text-align:left;}
+.carousel-caption h3{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--gold);margin-bottom:8px;letter-spacing:0.04em;}
+.carousel-caption p{font-size:0.75rem;color:var(--muted2);max-width:500px;}
+.carousel-nav{position:absolute;bottom:24px;right:24px;display:flex;gap:12px;z-index:5;}
+.carousel-btn{width:40px;height:40px;border:1px solid var(--border2);background:rgba(0,0,0,0.5);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+.carousel-btn:hover{background:var(--gold);color:#000;border-color:var(--gold);}
+
+/* ── Social Proof Toast ── */
+.proof-toast{position:fixed;bottom:24px;left:24px;background:var(--surface);border:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;gap:14px;z-index:200;transform:translateY(150%);transition:transform 0.5s cubic-bezier(0.16,1,0.3,1);box-shadow:0 12px 30px rgba(0,0,0,0.5);max-width:320px;}
+.proof-toast.show{transform:translateY(0);}
+.proof-avatar{width:38px;height:38px;background:var(--gold-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+.proof-content{display:flex;flex-direction:column;gap:3px;}
+.proof-text{font-size:0.65rem;color:var(--text);line-height:1.4;}
+.proof-text strong{color:var(--gold2);}
+.proof-meta{font-size:0.5rem;color:var(--muted);letter-spacing:0.05em;display:flex;align-items:center;gap:6px;}
+.proof-meta::before{content:'';width:5px;height:5px;background:var(--green);border-radius:50%;}
+
+@media(max-width:900px){
+  .roi-card{grid-template-columns:1fr;padding:30px;}
+  .roi-section{padding:60px 22px;}
+  .proof-toast{display:none;}
+}
+
 /* ── App Section ── */
 .app-section{padding:120px 52px;background:linear-gradient(180deg,rgba(7,7,8,1) 0%,rgba(15,15,18,1) 50%,rgba(7,7,8,1) 100%);overflow:hidden;}
 .app-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;max-width:1100px;margin:0 auto;}
 .app-visual{position:relative;display:flex;justify-content:center;}
-.app-mockup-img{width:100%;max-width:420px;filter:drop-shadow(0 30px 60px rgba(0,0,0,0.6));animation:float 6s ease-in-out infinite;}
+.app-mockup-img{width:100%;max-width:420px;filter:drop-shadow(0 30px 60px rgba(0,0,0,0.6));animation:float 6s ease-in-out infinite;min-height:400px;background:rgba(212,160,23,0.03);border-radius:40px;}
 .app-visual::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:120%;height:120%;background:radial-gradient(circle,rgba(212,160,23,0.08) 0%,transparent 70%);z-index:-1;}
 .app-badge{background:var(--gold-dim);color:var(--gold);padding:6px 16px;font-size:0.55rem;letter-spacing:0.2em;text-transform:uppercase;display:inline-block;margin-bottom:20px;border:1px solid rgba(212,160,23,0.2);}
 .app-features{margin-top:30px;display:flex;flex-direction:column;gap:18px;}
@@ -591,6 +634,41 @@ footer{padding:44px 52px 28px;border-top:1px solid var(--border);position:relati
   </div>
 </section>
 
+<!-- ROI CALCULATOR -->
+<section class="roi-section">
+  <div style="text-align:center;">
+    <div class="section-label">Calculadora de Beneficios</div>
+    <div class="section-title">Tu tiempo vale oro.</div>
+    <p class="section-sub" style="margin:0 auto;">Mira cuánto recuperas al mes automatizando tu WhatsApp.</p>
+  </div>
+  
+  <div class="roi-card reveal">
+    <div class="roi-input-group">
+      <div class="roi-f-item">
+        <label class="roi-label">Citas por día: <span id="roiCitasVal">20</span></label>
+        <input type="range" class="roi-slider" id="roiCitas" min="5" max="100" value="20">
+      </div>
+      <div class="roi-f-item">
+        <label class="roi-label">Costo promedio de corte: <span id="roiPrecioVal">$15</span></label>
+        <input type="range" class="roi-slider" id="roiPrecio" min="5" max="100" value="15">
+      </div>
+      <p style="font-size:0.55rem;color:var(--muted);line-height:1.6;">* Cálculo basado en 3 minutos de gestión manual por cada cita y tasa de No-Show del 15% reducida a 2% con AuraOS.</p>
+    </div>
+    
+    <div class="roi-results">
+      <div class="roi-res-item">
+        <div class="roi-res-val" id="resHoras">30</div>
+        <div class="roi-res-label">Horas libres al mes</div>
+      </div>
+      <div class="roi-res-item">
+        <div class="roi-res-val" id="resDinero">$540</div>
+        <div class="roi-res-label">Ingreso recuperado / mes</div>
+      </div>
+      <a href="/registro" class="btn-hero btn-hero-primary" style="font-size:0.55rem;padding:12px;">¡Quiero este ahorro hoy!</a>
+    </div>
+  </div>
+</section>
+
 <hr class="divider">
 
 <!-- TIPOS DE NEGOCIO -->
@@ -692,6 +770,40 @@ footer{padding:44px 52px 28px;border-top:1px solid var(--border);position:relati
           <div class="store-text"><span class="store-label">Próximamente en</span><span class="store-name">Google Play</span></div>
         </a>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- ADMIN SHOWCASE -->
+<section class="showcase-section" id="admin-showcase">
+  <div class="section-label">El Panel del Dueño</div>
+  <div class="section-title">Control total desde<br>cualquier lugar.</div>
+  <p class="section-sub" style="margin:0 auto;">Una interfaz limpia diseñada para que tomes decisiones basadas en datos reales.</p>
+
+  <div class="showcase-carousel reveal">
+    <div class="carousel-track" id="carouselTrack">
+      <div class="carousel-slide" style="background-image: url('auraos-dashboard.png'), linear-gradient(45deg, #111, #222)">
+        <div class="carousel-caption">
+          <h3>Dashboard Principal</h3>
+          <p>Ve tus ingresos diarios, ocupación y próximas citas en una sola pantalla. Todo en tiempo real.</p>
+        </div>
+      </div>
+      <div class="carousel-slide" style="background-image: url('auraos-analytics.png'), linear-gradient(45deg, #111, #222)">
+        <div class="carousel-caption">
+          <h3>Análisis de Crecimiento</h3>
+          <p>Identifica tus mejores días, tus servicios más rentables y proyecta tus ganancias del mes.</p>
+        </div>
+      </div>
+      <div class="carousel-slide" style="background-image: url('auraos-team.png'), linear-gradient(45deg, #111, #222)">
+        <div class="carousel-caption">
+          <h3>Gestión de Equipo</h3>
+          <p>Asigna turnos, monitorea la productividad de tus barberos y gestiona sus comisiones fácilmente.</p>
+        </div>
+      </div>
+    </div>
+    <div class="carousel-nav">
+      <button class="carousel-btn" onclick="moveCarousel(-1)">←</button>
+      <button class="carousel-btn" onclick="moveCarousel(1)">→</button>
     </div>
   </div>
 </section>
@@ -856,6 +968,15 @@ footer{padding:44px 52px 28px;border-top:1px solid var(--border);position:relati
         <a href="/cookies">Política de cookies</a>
       </div>
     </div>
+    <div>
+      <div class="footer-col-title">SEO Local</div>
+      <div class="footer-links-col">
+        <a href="/barberos-rd">Barberías en RD</a>
+        <a href="/salones-mexico">Salones en México</a>
+        <a href="/esteticas-colombia">Estéticas en Colombia</a>
+        <a href="/spas-panama">Spas en Panamá</a>
+      </div>
+    </div>
   </div>
   <div class="footer-bottom">
     <!-- Triple-click secreto → /superadmin (invisible para usuarios) -->
@@ -867,6 +988,15 @@ footer{padding:44px 52px 28px;border-top:1px solid var(--border);position:relati
     </div>
   </div>
 </footer>
+
+<!-- SOCIAL PROOF TOAST -->
+<div class="proof-toast" id="socialProof">
+  <div class="proof-avatar" id="proofIcon">🔥</div>
+  <div class="proof-content">
+    <div class="proof-text" id="proofMsg">Una barbería en <strong>Santo Domingo</strong> acaba de activarse.</div>
+    <div class="proof-meta">Hace 4 minutos · Verificado</div>
+  </div>
+</div>
 
 <div class="sticky-cta" id="stickyCta">
   <a href="/registro">Empezar gratis — 14 días sin costo</a>
@@ -1125,6 +1255,57 @@ captureInput.addEventListener('input', () => {
   captureInput.classList.remove('error');
   captureError.style.display = 'none';
 });
+
+// ── ROI Calculator Logic ──────────────────
+const roiCitas = document.getElementById('roiCitas');
+const roiPrecio = document.getElementById('roiPrecio');
+function updateROI() {
+  const citas = parseInt(roiCitas.value);
+  const precio = parseInt(roiPrecio.value);
+  document.getElementById('roiCitasVal').textContent = citas;
+  document.getElementById('roiPrecioVal').textContent = '$' + precio;
+  const horas = Math.round(citas * 3 * 30 / 60);
+  const dinero = Math.round(citas * 30 * 0.13 * precio);
+  document.getElementById('resHoras').textContent = horas;
+  document.getElementById('resDinero').textContent = '$' + dinero;
+}
+if(roiCitas && roiPrecio) {
+  roiCitas.addEventListener('input', updateROI);
+  roiPrecio.addEventListener('input', updateROI);
+  updateROI();
+}
+
+// ── Admin Showcase Carousel ────────────────
+let curSlide = 0;
+window.moveCarousel = function(dir) {
+  const track = document.getElementById('carouselTrack');
+  if(!track) return;
+  const total = track.children.length;
+  curSlide = (curSlide + dir + total) % total;
+  track.style.transform = `translateX(-${curSlide * 100}%)`;
+};
+
+// ── Social Proof Logic ─────────────────────
+const PROOFS = [
+  { msg: 'Una barbería en <strong>Santo Domingo</strong> acaba de activarse.', icon: '🔥' },
+  { msg: 'Nuevo salón en <strong>Santiago</strong> usando AuraOS.', icon: '💇' },
+  { msg: '<strong>Elite Cuts</strong> aumentó sus citas un 25% este mes.', icon: '📈' },
+  { msg: 'Spa en <strong>La Romana</strong> activó recordatorios automáticos.', icon: '🔔' },
+  { msg: 'Centro de uñas en <strong>Punta Cana</strong> se unió a AuraOS.', icon: '💅' }
+];
+function showProof() {
+  const el = document.getElementById('socialProof');
+  if(!el) return;
+  const p = PROOFS[Math.floor(Math.random() * PROOFS.length)];
+  document.getElementById('proofMsg').innerHTML = p.msg;
+  document.getElementById('proofIcon').textContent = p.icon;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 5000);
+}
+if(document.getElementById('socialProof')) {
+  setInterval(showProof, 18000);
+  setTimeout(showProof, 6000);
+}
 
 async function handleCapture() {
   const val = captureInput.value.trim();
