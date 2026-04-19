@@ -323,6 +323,33 @@ footer{padding:44px 52px 28px;border-top:1px solid var(--border);position:relati
   .price-card.featured{order:-1;}
   .footer-grid{grid-template-columns:1fr;}
 }
+
+/* ── App Section ── */
+.app-section{padding:120px 52px;background:linear-gradient(180deg,rgba(7,7,8,1) 0%,rgba(15,15,18,1) 50%,rgba(7,7,8,1) 100%);overflow:hidden;}
+.app-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;max-width:1100px;margin:0 auto;}
+.app-visual{position:relative;display:flex;justify-content:center;}
+.app-mockup-img{width:100%;max-width:420px;filter:drop-shadow(0 30px 60px rgba(0,0,0,0.6));animation:float 6s ease-in-out infinite;}
+.app-visual::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:120%;height:120%;background:radial-gradient(circle,rgba(212,160,23,0.08) 0%,transparent 70%);z-index:-1;}
+.app-badge{background:var(--gold-dim);color:var(--gold);padding:6px 16px;font-size:0.55rem;letter-spacing:0.2em;text-transform:uppercase;display:inline-block;margin-bottom:20px;border:1px solid rgba(212,160,23,0.2);}
+.app-features{margin-top:30px;display:flex;flex-direction:column;gap:18px;}
+.app-f-item{display:flex;gap:14px;align-items:flex-start;}
+.app-f-icon{width:36px;height:36px;background:var(--surface2);border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+.app-f-title{font-size:0.8rem;color:var(--text);margin-bottom:4px;letter-spacing:0.04em;}
+.app-f-desc{font-size:0.62rem;color:var(--muted);line-height:1.6;}
+.store-btns{display:flex;gap:12px;margin-top:40px;flex-wrap:wrap;}
+.store-btn{background:var(--surface2);border:1px solid var(--border2);padding:10px 20px;border-radius:8px;display:flex;align-items:center;gap:10px;text-decoration:none;transition:all 0.2s;}
+.store-btn:hover{background:var(--surface);border-color:var(--gold);transform:translateY(-2px);}
+.store-icon{font-size:1.4rem;}
+.store-text{display:flex;flex-direction:column;text-align:left;}
+.store-label{font-size:0.4rem;color:var(--muted2);letter-spacing:0.05em;text-transform:uppercase;}
+.store-name{font-size:0.75rem;color:var(--text);font-weight:500;}
+
+@media(max-width:900px){
+  .app-grid{grid-template-columns:1fr;text-align:center;gap:50px;}
+  .app-f-item{flex-direction:column;align-items:center;}
+  .store-btns{justify-content:center;}
+  .app-section{padding:80px 22px;}
+}
 </style>
 
 <script>
@@ -629,6 +656,46 @@ footer{padding:44px 52px 28px;border-top:1px solid var(--border);position:relati
   </div>
 </section>
 
+<!-- APP SECTION -->
+<section class="app-section" id="app-movil">
+  <div class="app-grid reveal">
+    <div class="app-visual">
+      <img src="app-showcase.png" alt="AuraOS Mobile App" class="app-mockup-img">
+    </div>
+    <div class="app-content">
+      <span class="app-badge">Disponible Próximamente</span>
+      <h2 class="section-title" style="margin-bottom:24px;">Una App nativa para<br>tus clientes más fieles.</h2>
+      <p class="section-sub">Eleva el nivel de tu negocio con una experiencia personalizada. Tus clientes podrán gestionar todo desde su bolsillo.</p>
+      
+      <div class="app-features">
+        <div class="app-f-item">
+          <div class="app-f-icon">🔔</div>
+          <div><div class="app-f-title">Notificaciones Push</div><div class="app-f-desc">Recordatorios directos al celular sin depender de WhatsApp. Confirmaciones instantáneas.</div></div>
+        </div>
+        <div class="app-f-item">
+          <div class="app-f-icon">📅</div>
+          <div><div class="app-f-title">Historial de Citas</div><div class="app-f-desc">Tus clientes pueden ver sus servicios anteriores y repetir sus favoritos con un solo toque.</div></div>
+        </div>
+        <div class="app-f-item">
+          <div class="app-f-icon">⭐</div>
+          <div><div class="app-f-title">Programa de Fidelidad</div><div class="app-f-desc">Acumulación de puntos y recompensas automáticas por cada visita realizada.</div></div>
+        </div>
+      </div>
+
+      <div class="store-btns">
+        <a href="#" class="store-btn">
+          <div class="store-icon">🍎</div>
+          <div class="store-text"><span class="store-label">Próximamente en</span><span class="store-name">App Store</span></div>
+        </a>
+        <a href="#" class="store-btn">
+          <div class="store-icon">🤖</div>
+          <div class="store-text"><span class="store-label">Próximamente en</span><span class="store-name">Google Play</span></div>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
 <hr class="divider">
 
 <!-- COMPARISON -->
@@ -690,7 +757,7 @@ footer{padding:44px 52px 28px;border-top:1px solid var(--border);position:relati
       <div class="price-per">por mes · por negocio</div>
       <ul class="price-features">
         <li>Hasta 5 profesionales</li><li>Citas ilimitadas</li><li>Bot WhatsApp completo</li><li>Panel de control completo</li>
-        <li>Pantalla sala de espera</li><li>Recordatorios automáticos</li><li>Estadísticas básicas</li>
+        <li>Pantalla sala de espera</li><li>Recordatorios automáticos</li><li><strong>App de Cliente (Básica)</strong></li>
       </ul>
       <a href="/registro" class="btn-price btn-price-primary">Comenzar prueba gratis</a>
     </div>
@@ -700,7 +767,7 @@ footer{padding:44px 52px 28px;border-top:1px solid var(--border);position:relati
       <div class="price-per">por mes · por negocio</div>
       <ul class="price-features">
         <li>Profesionales ilimitados</li><li>Citas ilimitadas</li><li>Bot WhatsApp + IA</li><li>Panel avanzado multi-sucursal</li>
-        <li>Pantalla sala de espera</li><li>Recordatorios automáticos</li><li>Estadísticas avanzadas + PDF</li>
+        <li>Pantalla sala de espera</li><li>Recordatorios automáticos</li><li><strong>App de Cliente (Premium)</strong></li>
       </ul>
       <a href="https://wa.me/18098498528" target="_blank" class="btn-price btn-price-ghost">Hablar con ventas</a>
     </div>
@@ -730,7 +797,7 @@ footer{padding:44px 52px 28px;border-top:1px solid var(--border);position:relati
     <div class="faq-item"><div class="faq-q">¿Necesito saber programar para usarlo? <span class="faq-icon">+</span></div><div class="faq-a">No. El sistema se configura en 2 minutos. Solo necesitas tu número de WhatsApp y los nombres de tus profesionales. Nosotros lo activamos contigo.</div></div>
     <div class="faq-item"><div class="faq-q">¿Funciona para salones con varios servicios y precios? <span class="faq-icon">+</span></div><div class="faq-a">Sí. Puedes agregar todos tus servicios con duración y precio individual. El bot los muestra al cliente y agenda según disponibilidad real.</div></div>
     <div class="faq-item"><div class="faq-q">¿Funciona con mi WhatsApp actual? <span class="faq-icon">+</span></div><div class="faq-a">El sistema usa un número de WhatsApp Business dedicado para tu negocio. No interfiere con tu WhatsApp personal.</div></div>
-    <div class="faq-item"><div class="faq-q">¿Qué pasa si mi cliente no tiene WhatsApp? <span class="faq-icon">+</span></div><div class="faq-a">Puedes agregar citas manualmente desde el panel de administración o la app. El bot es el canal principal pero no el único.</div></div>
+    <div class="faq-item"><div class="faq-q">¿Qué pasa si mi cliente no tiene WhatsApp? <span class="faq-icon">+</span></div><div class="faq-a">Puedes agregar citas manualmente desde el panel de administración. El bot es el canal principal para tus clientes, garantizando rapidez y comodidad.</div></div>
     <div class="faq-item"><div class="faq-q">¿Puedo poner el ícono de mi tipo de negocio? <span class="faq-icon">+</span></div><div class="faq-a">Sí. Desde el panel de configuración puedes elegir el ícono que aparece en tu sala de espera — tijeras para barberías, flor para spa, esmalte para uñas, y más.</div></div>
     <div class="faq-item"><div class="faq-q">¿Puedo cancelar en cualquier momento? <span class="faq-icon">+</span></div><div class="faq-a">Sí, sin penalidades ni contratos. El servicio permanece activo hasta el final del período pagado.</div></div>
     <div class="faq-item"><div class="faq-q">¿Cómo se realiza el pago? <span class="faq-icon">+</span></div><div class="faq-a">Aceptamos tarjetas Visa y Mastercard, PayPal y transferencia bancaria para clientes en RD. También puedes pagar en DOP.</div></div>
@@ -750,7 +817,7 @@ footer{padding:44px 52px 28px;border-top:1px solid var(--border);position:relati
   <div class="capture-success" id="captureSuccess">✓ ¡Listo! Te contactamos en los próximos 15 minutos por WhatsApp.</div>
   <div class="capture-note"><span>✓</span> Sin tarjeta de crédito &nbsp;·&nbsp; <span>✓</span> Configuración en 2 minutos &nbsp;·&nbsp; <span>✓</span> 14 días gratis</div>
   <div class="cta-secondary">
-    <a href="https://wa.me/18498528825" target="_blank" class="btn-hero btn-hero-ghost">💬 Hablar con soporte por WhatsApp</a>
+    <a href="https://wa.me/18098498528" target="_blank" class="btn-hero btn-hero-ghost">💬 Hablar con soporte por WhatsApp</a>
     <a href="/sala/elite-cuts" target="_blank" class="btn-hero btn-hero-ghost">Ver demo en vivo ↗</a>
   </div>
 </div>
@@ -777,7 +844,7 @@ footer{padding:44px 52px 28px;border-top:1px solid var(--border);position:relati
       <div class="footer-links-col">
         <a href="/registro">Registro</a>
         <a href="/admin/elite-cuts">Iniciar sesión</a>
-        <a href="https://wa.me/18498528825" target="_blank">Soporte</a>
+        <a href="https://wa.me/18098498528" target="_blank">Soporte</a>
         <a href="mailto:hola@auraos.app">Contacto</a>
       </div>
     </div>
