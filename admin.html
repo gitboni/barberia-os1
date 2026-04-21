@@ -1747,7 +1747,7 @@ async function cargarLogsRecordatorios(){
   if(!el)return;
   el.innerHTML='<div style="text-align:center;color:var(--muted);font-size:0.72rem;padding:20px;">Cargando...</div>';
   try{
-    const rows=await sbGet('recordatorios_enviados','shop_id=eq.'+S.shopId+'&order=created_at.desc&limit=30&select=*');
+    const rows=await sbGet('recordatorios_enviados','shop_id=eq.'+S.shopId+'&limit=30&select=*');
     if(!rows.length){el.innerHTML='<div style="text-align:center;color:var(--muted);font-size:0.72rem;padding:20px;">No hay registros aún.</div>';return;}
     const tipoLabel={'rec_1h_antes':'1h antes','rec_20min_antes':'20min antes','turno_proximo':'Turno próximo'};
     const tipoColor={'rec_1h_antes':'var(--gold)','rec_20min_antes':'#f0a500','turno_proximo':'var(--green)'};
@@ -1756,19 +1756,18 @@ async function cargarLogsRecordatorios(){
         <table style="width:100%;border-collapse:collapse;font-size:0.68rem;">
           <thead>
             <tr style="border-bottom:1px solid var(--border);">
-              ${['Fecha/Hora','Tipo','Cita ID'].map(h=>`<th style="padding:6px 10px;text-align:left;font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);letter-spacing:0.1em;">${h}</th>`).join('')}
+              ${['Tipo','Cita ID','Fecha/Hora'].map(h=>`<th style="padding:6px 10px;text-align:left;font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);letter-spacing:0.1em;">${h}</th>`).join('')}
             </tr>
           </thead>
           <tbody>
             ${rows.map(r=>{
-              const d=new Date(r.created_at);
-              const fecha=d.toLocaleDateString('es-DO',{month:'short',day:'numeric'})+' '+d.toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit'});
               const label=tipoLabel[r.tipo]||r.tipo;
               const color=tipoColor[r.tipo]||'var(--text)';
+              const fecha=r.created_at?new Date(r.created_at).toLocaleDateString('es-DO',{month:'short',day:'numeric'})+' '+new Date(r.created_at).toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit'}):'—';
               return `<tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
-                <td style="padding:7px 10px;color:var(--muted);">${fecha}</td>
                 <td style="padding:7px 10px;"><span style="color:${color};font-family:'DM Mono',monospace;font-size:0.6rem;">${label}</span></td>
                 <td style="padding:7px 10px;color:var(--muted);font-family:'DM Mono',monospace;font-size:0.6rem;">${r.cita_id||'-'}</td>
+                <td style="padding:7px 10px;color:var(--muted);">${fecha}</td>
               </tr>`;
             }).join('')}
           </tbody>
