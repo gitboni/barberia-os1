@@ -5922,7 +5922,7 @@
       const { citas: allC, currentTurn } = q;
       const cur = allC[currentTurn - 1]; const nxt = allC[currentTurn];
       const bid = safeId(barber);
-      const withStatus = allC.map((c, oi) => { const pos = oi - (currentTurn - 1); let st = 'wait'; if (pos < 0) st = 'done'; else if (pos === 0) st = 'active'; else if (pos === 1) st = 'next'; else if (pos === 2) st = 'alert'; return { ...c, status: st, pos, originalIdx: oi }; });
+      const withStatus = allC.map((c, oi) => { const pos = oi - (currentTurn - 1); let st = 'wait'; if (c.estado === 'Completada' || c.estado === 'No-Show' || c.estado === 'Cancelada') st = 'done'; else if (pos < 0) st = 'done'; else if (pos === 0) st = 'active'; else if (pos === 1) st = 'next'; else if (pos === 2) st = 'alert'; return { ...c, status: st, pos, originalIdx: oi }; });
       const remaining = Math.max(0, allC.length - currentTurn + 1);
 
       const done = withStatus.filter(c => c.status === 'done');
@@ -6016,7 +6016,7 @@
       const nsz = 'n' + Math.min(n, 5);
       const q = S.queues[barber]; const { citas, currentTurn } = q;
       const cur = citas[currentTurn - 1]; const nxt = citas[currentTurn];
-      const pending = citas.slice(currentTurn); const remaining = Math.max(0, citas.length - currentTurn + 1);
+      const pending = citas.slice(currentTurn).filter(c => c.estado !== 'Completada' && c.estado !== 'No-Show' && c.estado !== 'Cancelada'); const remaining = Math.max(0, pending.length + (cur && cur.estado === 'Confirmada' ? 1 : 0));
       if (remaining === 0) col.classList.add('libre'); else col.classList.remove('libre');
       col.innerHTML =
         '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 12px;border-bottom:1px solid rgba(0,245,255,0.08);background:rgba(2,4,8,0.7);flex-shrink:0;position:relative;">'
