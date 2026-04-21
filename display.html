@@ -5721,7 +5721,7 @@
     }
     function loadTurns() { try { return JSON.parse(localStorage.getItem('barberos_turns_' + SLUG + '_' + getTodayKey()) || '{}'); } catch (_) { return {}; } }
 
-    // FIX BUG 2: sync correcto con BD (completadas reales + in-memory)
+    // FIX BUG 2: sync correcto con BD — currentTurn basado en primera Confirmada, no en conteo
     function rebuildQueues() {
       const blist = S.barberos.length > 0
         ? S.barberos.filter(b => b.activo).map(b => b.nombre)
@@ -5730,30 +5730,19 @@
       const nq = {};
       blist.forEach(name => {
         const mine = S.citas.filter(c => c.barbero === name);
-        const completadasBD = mine.filter(c => c.estado === 'Completada').length;
+        // Usar la posición de la primera cita Confirmada como currentTurn
+        // Esto es correcto sin importar el orden en que el barbero complete las citas
+        const firstPendingIdx = mine.findIndex(c => c.estado === 'Confirmada' || c.estado === 'Pendiente');
+        const ctFromDB = firstPendingIdx >= 0 ? firstPendingIdx + 1 : mine.length + 1;
         const prev = S.queues[name];
         let ct;
-        if (completadasBD === 0) {
-          // BD dice 0 completadas — respetar in-memory o localStorage si ya avanzó
-          // (el PATCH de completar puede fallar por conexión pero el turno ya avanzó)
-          if (prev && prev.currentTurn > 1) {
-            ct = prev.currentTurn;
-          } else if (saved[name] && saved[name] > 1 && saved[name] <= mine.length + 1) {
-            ct = saved[name];
-          } else {
-            ct = 1;
-          }
-        } else if (prev) {
-          // In-memory tiene prioridad cuando ya hay completadas reales
-          ct = prev.currentTurn;
-        } else if (saved[name] && saved[name] > 0 && saved[name] <= mine.length + 1) {
+        if (prev) {
+          // In-memory nunca puede ser menor que lo que dice la BD
+          ct = Math.max(prev.currentTurn, ctFromDB);
+        } else if (saved[name] && saved[name] >= ctFromDB && saved[name] <= mine.length + 1) {
           ct = saved[name];
         } else {
-          ct = completadasBD + 1;
-        }
-        // Asegurar que nunca quede por debajo de lo que dice la BD
-        if (completadasBD > 0) {
-          ct = Math.max(ct, completadasBD + 1);
+          ct = ctFromDB;
         }
         nq[name] = { currentTurn: Math.min(Math.max(1, ct), mine.length + 1), citas: mine };
       });
