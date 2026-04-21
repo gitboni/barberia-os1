@@ -6826,7 +6826,7 @@
       // FIX BUG 5: guardar referencias para limpiar si es necesario
       _timerInterval = setInterval(updateTimers, 30000);
       _etaInterval = setInterval(() => { if (MODE !== 'tv') render(); }, 60000);
-      _citasInterval = setInterval(async () => { await loadCitas().catch(() => { }); if (MODE === 'manana') await loadCitasMañana().catch(() => { }); render(); }, 5000);
+      _citasInterval = setInterval(async () => { await loadCitas().catch(() => { }); if (MODE === 'manana') await loadCitasMañana().catch(() => { }); render(); }, 30000);
     }
 
     function loadDemo() {
