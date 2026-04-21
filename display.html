@@ -5735,14 +5735,15 @@
         const firstPendingIdx = mine.findIndex(c => c.estado === 'Confirmada' || c.estado === 'Pendiente');
         const ctFromDB = firstPendingIdx >= 0 ? firstPendingIdx + 1 : mine.length + 1;
         const prev = S.queues[name];
-        let ct;
-        if (prev) {
-          // In-memory nunca puede ser menor que lo que dice la BD
-          ct = Math.max(prev.currentTurn, ctFromDB);
-        } else if (saved[name] && saved[name] >= ctFromDB && saved[name] <= mine.length + 1) {
-          ct = saved[name];
-        } else {
-          ct = ctFromDB;
+        let ct = ctFromDB;
+        if (prev && prev.currentTurn > ctFromDB) {
+          // Solo respetar prev si no hay citas Confirmada antes de esa posición
+          // (evita que currentTurn alto de pruebas salte citas reales nuevas)
+          const skippaConfirmada = mine.slice(0, prev.currentTurn - 1).some(c => c.estado === 'Confirmada' || c.estado === 'Pendiente');
+          if (!skippaConfirmada) ct = prev.currentTurn;
+        } else if (!prev && saved[name] && saved[name] >= ctFromDB && saved[name] <= mine.length + 1) {
+          const skippaConfirmada = mine.slice(0, saved[name] - 1).some(c => c.estado === 'Confirmada' || c.estado === 'Pendiente');
+          if (!skippaConfirmada) ct = saved[name];
         }
         nq[name] = { currentTurn: Math.min(Math.max(1, ct), mine.length + 1), citas: mine };
       });
