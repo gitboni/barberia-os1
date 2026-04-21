@@ -1472,6 +1472,28 @@ function renderBot(){
       </div>
     </div>
 
+    <!-- F3: LOGS RECORDATORIOS -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">📋 Últimos recordatorios enviados</div>
+        <button class="btn-sm" style="padding:5px 14px;font-size:0.52rem;" onclick="cargarLogsRecordatorios()">↻ Actualizar</button>
+      </div>
+      <div id="logs-recordatorios" style="padding:18px;">
+        <div style="text-align:center;color:var(--muted);font-size:0.72rem;padding:20px;">Cargando...</div>
+      </div>
+    </div>
+
+    <!-- F4: PG_CRON STATUS -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">⏱ Automatización (pg_cron)</div>
+        <button class="btn-sm" style="padding:5px 14px;font-size:0.52rem;" onclick="verificarCron()">↻ Verificar</button>
+      </div>
+      <div id="cron-status" style="padding:18px;">
+        <div style="text-align:center;color:var(--muted);font-size:0.72rem;padding:20px;">Cargando...</div>
+      </div>
+    </div>
+
   </div>`;
 }
 
@@ -1719,10 +1741,105 @@ async function toggleBotRecordatorio(el){
   }catch(e){toast('Error: '+e.message,'error');}
 }
 
+// ── LOGS RECORDATORIOS ──
+async function cargarLogsRecordatorios(){
+  const el=document.getElementById('logs-recordatorios');
+  if(!el)return;
+  el.innerHTML='<div style="text-align:center;color:var(--muted);font-size:0.72rem;padding:20px;">Cargando...</div>';
+  try{
+    const rows=await sbGet('recordatorios_enviados','shop_id=eq.'+S.shopId+'&order=created_at.desc&limit=30&select=*');
+    if(!rows.length){el.innerHTML='<div style="text-align:center;color:var(--muted);font-size:0.72rem;padding:20px;">No hay registros aún.</div>';return;}
+    const tipoLabel={'rec_1h_antes':'1h antes','rec_20min_antes':'20min antes','turno_proximo':'Turno próximo'};
+    const tipoColor={'rec_1h_antes':'var(--gold)','rec_20min_antes':'#f0a500','turno_proximo':'var(--green)'};
+    el.innerHTML=`
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.68rem;">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border);">
+              ${['Fecha/Hora','Tipo','Cita ID'].map(h=>`<th style="padding:6px 10px;text-align:left;font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);letter-spacing:0.1em;">${h}</th>`).join('')}
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(r=>{
+              const d=new Date(r.created_at);
+              const fecha=d.toLocaleDateString('es-DO',{month:'short',day:'numeric'})+' '+d.toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit'});
+              const label=tipoLabel[r.tipo]||r.tipo;
+              const color=tipoColor[r.tipo]||'var(--text)';
+              return `<tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+                <td style="padding:7px 10px;color:var(--muted);">${fecha}</td>
+                <td style="padding:7px 10px;"><span style="color:${color};font-family:'DM Mono',monospace;font-size:0.6rem;">${label}</span></td>
+                <td style="padding:7px 10px;color:var(--muted);font-family:'DM Mono',monospace;font-size:0.6rem;">${r.cita_id||'-'}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  }catch(e){el.innerHTML='<div style="color:var(--red);font-size:0.72rem;padding:12px;">Error: '+e.message+'</div>';}
+}
+
+// ── PG_CRON STATUS ──
+async function verificarCron(){
+  const el=document.getElementById('cron-status');
+  if(!el)return;
+  el.innerHTML='<div style="text-align:center;color:var(--muted);font-size:0.72rem;padding:20px;">Verificando...</div>';
+  try{
+    const r=await fetch(SUPABASE_URL+'/rest/v1/rpc/get_cron_status',{
+      method:'POST',
+      headers:{...H,'Content-Type':'application/json'},
+      body:JSON.stringify({})
+    });
+    if(!r.ok)throw new Error('RPC no disponible ('+r.status+')');
+    const data=await r.json();
+    if(!data||!data.length){
+      el.innerHTML=renderCronManual();
+      return;
+    }
+    el.innerHTML=`<div style="display:flex;flex-direction:column;gap:8px;">
+      ${data.map(job=>{
+        const activo=job.active!==false;
+        const nextRun=job.next_run?new Date(job.next_run).toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit'}):'—';
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(255,255,255,0.02);border:1px solid var(--border);">
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--text);">${job.jobname||job.command}</div>
+            <div style="font-size:0.6rem;color:var(--muted);margin-top:2px;">Schedule: ${job.schedule||'—'} · Próxima: ${nextRun}</div>
+          </div>
+          <span style="font-family:'DM Mono',monospace;font-size:0.52rem;padding:3px 10px;border:1px solid;color:${activo?'var(--green)':'var(--red)'};border-color:${activo?'var(--green)':'var(--red)'};">${activo?'ACTIVO':'INACTIVO'}</span>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }catch(e){
+    el.innerHTML=renderCronManual();
+  }
+}
+
+function renderCronManual(){
+  return `<div style="display:flex;flex-direction:column;gap:12px;">
+    <div style="padding:10px 14px;background:rgba(255,165,0,0.04);border:1px solid rgba(255,165,0,0.2);font-size:0.7rem;color:var(--muted);">
+      ⚠️ No se pudo consultar pg_cron automáticamente. Verifica manualmente en Supabase SQL Editor:
+    </div>
+    <pre style="background:var(--surface2);padding:12px 16px;font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--gold);overflow-x:auto;border:1px solid var(--border);">SELECT jobname, schedule, active, command
+FROM cron.job
+WHERE command LIKE '%trigger-recordatorios%';</pre>
+    <div style="font-size:0.68rem;color:var(--muted);">El cron debe estar activo con schedule <strong style="color:var(--text);">*/15 * * * *</strong> apuntando a la función <strong style="color:var(--text);">trigger-recordatorios</strong>.</div>
+    <div style="font-size:0.68rem;color:var(--muted);">Si no existe, créalo con:</div>
+    <pre style="background:var(--surface2);padding:12px 16px;font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--gold);overflow-x:auto;border:1px solid var(--border);">SELECT cron.schedule(
+  'trigger-recordatorios',
+  '*/15 * * * *',
+  $$SELECT net.http_post(
+    url := 'https://uoagtrzjxsavtlzpltfk.supabase.co/functions/v1/trigger-recordatorios',
+    headers := '{"Content-Type":"application/json"}'::jsonb,
+    body := '{}'::jsonb
+  )$$
+);</pre>
+  </div>`;
+}
+
 // Inicializar modo de recordatorio al abrir la sección bot
 function initModoRecordatorio(){
   const modo=(S.shopData?.recordatorio_modo)||'turnos';
   setModoRecordatorio(modo);
+  cargarLogsRecordatorios();
+  verificarCron();
 }
 
 async function toggleNotifDueno(el){
