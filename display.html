@@ -5734,8 +5734,15 @@
         const prev = S.queues[name];
         let ct;
         if (completadasBD === 0) {
-          // BD dice 0 completadas → siempre turno 1, ignorar localStorage/in-memory
-          ct = 1;
+          // BD dice 0 completadas — respetar in-memory o localStorage si ya avanzó
+          // (el PATCH de completar puede fallar por conexión pero el turno ya avanzó)
+          if (prev && prev.currentTurn > 1) {
+            ct = prev.currentTurn;
+          } else if (saved[name] && saved[name] > 1 && saved[name] <= mine.length + 1) {
+            ct = saved[name];
+          } else {
+            ct = 1;
+          }
         } else if (prev) {
           // In-memory tiene prioridad cuando ya hay completadas reales
           ct = prev.currentTurn;
