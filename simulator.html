@@ -565,65 +565,50 @@ async function sendMessage(){
   const input=document.getElementById('chatInput');
   const text=input.value.trim();
   if(!text)return;
-
-  const webhook=document.getElementById('webhookUrl').value.trim();
-  if(!webhook){toast('⚠ Configura el webhook de n8n','warn');return;}
   if(!currentShop){toast('⚠ Selecciona una barbería','warn');return;}
 
   const phone=document.getElementById('simPhone').value.trim()||'+18099999999';
+  const tel=phone.replace(/\D/g,'');
 
   input.value='';
   autoResize(input);
   addMsg('out',text);
   setSending(true);
   showTyping(true);
-  log('info','→ POST webhook: '+text.substring(0,40)+(text.length>40?'...':''));
+  log('info','→ chat-simulator: '+text.substring(0,40)+(text.length>40?'...':''));
 
   try{
-    const body=new URLSearchParams({
-      From: 'whatsapp:'+phone,
-      To: 'whatsapp:'+(currentShop.twilio_number||'+14155238886'),
-      Body: text,
-      ProfileName: 'Test User',
-      WaId: phone.replace(/\D/g,''),
-      SmsMessageSid: 'SIM'+Date.now(),
-      NumMedia: '0',
-      shop_slug: currentShop.slug,
-      shop_id: currentShop.id,
-      // ▼ PROXY: incluye el destino real para que el proxy lo reenvíe
-      webhook_url: webhook,
-    });
-
-    // ▼ PROXY: llamamos a /api/webhook-proxy en Vercel (mismo dominio = sin CORS)
-    const res=await fetch('/api/webhook-proxy', {
+    // Llamada directa a la Edge Function — misma lógica que el bot real
+    const res=await fetch(`${SB_URL}/functions/v1/chat-simulator`,{
       method:'POST',
-      headers:{'Content-Type':'application/x-www-form-urlencoded'},
-      body: body.toString(),
+      headers:{...H,'Content-Type':'application/json'},
+      body:JSON.stringify({
+        shop_id: currentShop.id,
+        telefono: tel,
+        chat_id: 'whatsapp:'+tel,
+        mensaje: text,
+      }),
     });
 
     if(!res.ok){
       const errText=await res.text().catch(()=>'');
-      throw new Error(`HTTP ${res.status}: ${errText.substring(0,100)}`);
+      throw new Error(`HTTP ${res.status}: ${errText.substring(0,200)}`);
     }
 
-    const proxyData=await res.json().catch(()=>null);
-    log('success','✓ Proxy respondió '+res.status);
+    const data=await res.json().catch(()=>null);
+    log('success','✓ chat-simulator respondió '+res.status);
 
-    // Intentar extraer respuesta del bot desde la respuesta del proxy
-    let webhookReply=null;
-    if(proxyData&&proxyData.data){
-      const d=proxyData.data;
-      if(typeof d==='string'&&d.trim()&&!d.includes('<!DOCTYPE')) webhookReply=d.trim();
-      else if(typeof d==='object') webhookReply=d.message||d.reply||d.body||d.Body||d.text||null;
-    }
-
-    if(webhookReply&&webhookReply.trim()){
+    // La respuesta viene directamente como { respuesta: "..." }
+    const botReply=data?.respuesta||null;
+    if(botReply&&botReply.trim()){
       showTyping(false);
-      addMsg('in',webhookReply.trim());
-      log('success','Bot: '+webhookReply.substring(0,60));
+      lastShownMsg=botReply;
+      addMsg('in',botReply.trim());
+      log('success','Bot: '+botReply.substring(0,60));
+      refreshState();
     }else{
-      log('info','Esperando respuesta del bot en Supabase...');
-      setTimeout(()=>pollBotReply(),1200);
+      log('warn','Sin respuesta del bot');
+      showTyping(false);
     }
 
   }catch(e){
@@ -649,10 +634,9 @@ async function pollBotReply(){
 }
 
 async function refreshState(){
-  // Solo actualiza el panel de estado lateral, sin mostrar mensajes
   if(!currentShop)return;
   const phone=document.getElementById('simPhone').value.trim()||'+18099999999';
-  const chatId=phone;
+  const chatId='whatsapp:'+phone.replace(/\D/g,'');
   try{
     const convs=await sbGet('conversaciones',`shop_id=eq.${currentShop.id}&chat_id=eq.${encodeURIComponent(chatId)}&select=*`);
     if(convs&&convs.length) updateState(convs[0]);
@@ -662,7 +646,7 @@ async function refreshState(){
 async function loadConversation(showMsg=false){
   if(!currentShop)return;
   const phone=document.getElementById('simPhone').value.trim()||'+18099999999';
-  const chatId=phone; // sin 'whatsapp:'
+  const chatId='whatsapp:'+phone.replace(/\D/g,'');
   try{
     const convs=await sbGet('conversaciones',`shop_id=eq.${currentShop.id}&chat_id=eq.${encodeURIComponent(chatId)}&select=*`);
     if(convs&&convs.length){
