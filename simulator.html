@@ -579,7 +579,7 @@ async function sendMessage(){
 
   try{
     // Llamada directa a la Edge Function — misma lógica que el bot real
-    const res=await fetch(`${SB_URL}/functions/v1/chat-simulator`,{
+    const res=await fetch(`${SB_URL}/functions/v1/chat-simulator-dev`,{
       method:'POST',
       headers:{...H,'Content-Type':'application/json'},
       body:JSON.stringify({
