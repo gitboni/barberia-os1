@@ -5822,8 +5822,7 @@
           });
         });
       }
-      render();
-      applyFlip();
+      render(applyFlip);
       showToast('✓ ' + barber.split(' ')[0] + ': turno avanzado', 'ok');
       if (btn) {
         btn.classList.remove('loading'); btn.classList.add('success');
@@ -5831,7 +5830,7 @@
         setTimeout(() => { btn.classList.remove('success'); btn.innerHTML = scHtml() + '▶ SIGUIENTE TURNO'; }, 2000);
       }
       _turnoInProgress[barber] = false;
-      loadCitas().catch(() => { }).then(() => { render(); applyFlip(); });
+      loadCitas().catch(() => { }).then(() => { render(); });
     }
 
     async function toggleBarberoActivo(barberoId, nombre, activo) {
@@ -5845,11 +5844,15 @@
     let _lastRenderHtml = '';
     let _renderTimeout = null;
 
-    function render() {
+    let _renderCallbacks = [];
+    function render(cb) {
+      if (typeof cb === 'function') _renderCallbacks.push(cb);
       if (_renderTimeout) return;
       _renderTimeout = setTimeout(() => {
         _renderTimeout = null;
         _doRender();
+        _renderCallbacks.forEach(f => { try { f(); } catch(e) {} });
+        _renderCallbacks = [];
       }, 50);
     }
 
