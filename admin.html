@@ -1774,27 +1774,35 @@ async function cargarLogsRecordatorios(){
   if(!el)return;
   el.innerHTML='<div style="text-align:center;color:var(--muted);font-size:0.72rem;padding:20px;">Cargando...</div>';
   try{
-    const rows=await sbGet('recordatorios_enviados','shop_id=eq.'+S.shopId+'&limit=30&select=*');
-    if(!rows.length){el.innerHTML='<div style="text-align:center;color:var(--muted);font-size:0.72rem;padding:20px;">No hay registros aún.</div>';return;}
-    const tipoLabel={'rec_1h_antes':'1h antes','rec_20min_antes':'20min antes','turno_proximo':'Turno próximo'};
+    // Traer recordatorios con datos de la cita via join embebido de PostgREST
+    const rows=await sbGet('recordatorios_enviados','shop_id=eq.'+S.shopId+'&order=created_at.desc&limit=30&select=id,tipo,cita_id,created_at,citas(nombre,servicio,barbero,hora,fecha)');
+    if(!rows||!rows.length){el.innerHTML='<div style="text-align:center;color:var(--muted);font-size:0.72rem;padding:20px;">No hay registros aún.</div>';return;}
+    const tipoLabel={'rec_1h_antes':'1h antes','rec_20min_antes':'20 min antes','turno_proximo':'Turno próximo'};
     const tipoColor={'rec_1h_antes':'var(--gold)','rec_20min_antes':'#f0a500','turno_proximo':'var(--green)'};
+    function fmt12(h){if(!h)return'—';const[hh,mm]=h.split(':');let n=parseInt(hh);const m=mm?.substring(0,2)||'00';const ap=n>=12?'PM':'AM';if(n===0)n=12;else if(n>12)n-=12;return n+':'+m+' '+ap;}
     el.innerHTML=`
       <div style="overflow-x:auto;">
         <table style="width:100%;border-collapse:collapse;font-size:0.68rem;">
           <thead>
             <tr style="border-bottom:1px solid var(--border);">
-              ${['Tipo','Cita ID','Fecha/Hora'].map(h=>`<th style="padding:6px 10px;text-align:left;font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);letter-spacing:0.1em;">${h}</th>`).join('')}
+              ${['Tipo','Cliente','Servicio','Hora cita','Enviado'].map(h=>`<th style="padding:6px 10px;text-align:left;font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);letter-spacing:0.1em;">${h}</th>`).join('')}
             </tr>
           </thead>
           <tbody>
             ${rows.map(r=>{
               const label=tipoLabel[r.tipo]||r.tipo;
               const color=tipoColor[r.tipo]||'var(--text)';
-              const fecha=r.created_at?new Date(r.created_at).toLocaleDateString('es-DO',{month:'short',day:'numeric'})+' '+new Date(r.created_at).toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit'}):'—';
+              const cita=r.citas||{};
+              const nombre=cita.nombre||'—';
+              const servicio=cita.servicio||'—';
+              const horaCita=cita.hora?fmt12(cita.hora.substring(0,5)):'—';
+              const enviado=r.created_at?new Date(r.created_at).toLocaleDateString('es-DO',{month:'short',day:'numeric'})+' '+new Date(r.created_at).toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit'}):'—';
               return `<tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
-                <td style="padding:7px 10px;"><span style="color:${color};font-family:'DM Mono',monospace;font-size:0.6rem;">${label}</span></td>
-                <td style="padding:7px 10px;color:var(--muted);font-family:'DM Mono',monospace;font-size:0.6rem;">${r.cita_id||'-'}</td>
-                <td style="padding:7px 10px;color:var(--muted);">${fecha}</td>
+                <td style="padding:7px 10px;"><span style="color:${color};font-family:'DM Mono',monospace;font-size:0.6rem;font-weight:600;">${label}</span></td>
+                <td style="padding:7px 10px;color:var(--text);font-size:0.7rem;">${nombre}</td>
+                <td style="padding:7px 10px;color:var(--muted);font-size:0.65rem;">${servicio}</td>
+                <td style="padding:7px 10px;color:var(--gold);font-family:'DM Mono',monospace;font-size:0.62rem;">${horaCita}</td>
+                <td style="padding:7px 10px;color:var(--muted);font-size:0.62rem;">${enviado}</td>
               </tr>`;
             }).join('')}
           </tbody>
