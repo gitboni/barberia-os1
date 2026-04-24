@@ -6131,13 +6131,21 @@
       const barber = MY_BARBER; const bid = safeId(barber);
       const q = S.queues[barber]; const bObj = S.barberos.find(b => b.nombre === barber); const isActive = bObj ? bObj.activo : true;
       if (!q) { c.innerHTML = '<div style="flex:1;display:flex;align-items:center;justify-content:center;font-family:\'Share Tech Mono\',monospace;font-size:0.6rem;color:rgba(0,245,255,0.3);letter-spacing:0.22em;">BARBERO NO ACTIVO</div>'; return; }
-      const { citas: allC, currentTurn } = q; const cur = allC[currentTurn - 1]; const nxt = allC[currentTurn];
-      const remaining = Math.max(0, allC.length - currentTurn + 1);
-      const doneCitas = allC.slice(0, currentTurn - 1).slice(-3);
+      const { citas: allC, currentTurn } = q;
+      // FIX: recalcular currentTurn en tiempo de render basado en primera cita Confirmada/Pendiente
+      // Esto corrige el caso donde currentTurn queda desincronizado cuando se cancela
+      // la cita activa (ej: #3 de 3) desde la app movil y localStorage tiene currentTurn = 3
+      const firstPendingIdx = allC.findIndex(c => c.estado === 'Confirmada' || c.estado === 'Pendiente');
+      const ctVivo = firstPendingIdx >= 0 ? firstPendingIdx + 1 : allC.length + 1;
+      const ctFinal = Math.min(currentTurn, ctVivo); // no saltar citas pendientes reales
+      const cur = allC[ctFinal - 1]; const nxt = allC[ctFinal];
+      const remaining = Math.max(0, allC.length - ctFinal + 1);
+      const doneCitas = allC.slice(0, ctFinal - 1).slice(-3);
       const toggleHtml = '';
       const queueItems = [];
       // Solo activo + pendientes — los completados ya están arriba en "LISTOS"
-      allC.slice(currentTurn - 1).forEach((c, i) => { queueItems.push({ c, i: currentTurn - 1 + i, status: i === 0 ? 'active' : i === 1 ? 'next' : 'wait' }); });
+      // FIX: filtrar por estado Confirmada/Pendiente para no mostrar canceladas que quedaron en allC
+      allC.slice(ctFinal - 1).filter(c => c.estado !== 'Cancelada' && c.estado !== 'Completada' && c.estado !== 'No-Show').forEach((c, i) => { queueItems.push({ c, i: ctFinal - 1 + i, status: i === 0 ? 'active' : i === 1 ? 'next' : 'wait' }); });
 
       c.innerHTML = `<div class="my-wrap">
     <div class="my-layout">
@@ -6154,7 +6162,7 @@
               <div style="font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:rgba(255,0,110,0.9);letter-spacing:0.28em;text-transform:uppercase;margin-top:4px;text-shadow:0 0 8px rgba(255,0,110,0.5);">● EN SILLA AHORA</div>
             </div>
           </div>
-          <div class="hero-num-wrap"><div class="hero-ghost">${String(currentTurn).padStart(2, '00')}</div><div class="my-hero-num" id="my-hn">${String(currentTurn).padStart(2, '00')}</div></div>
+          <div class="hero-num-wrap"><div class="hero-ghost">${String(ctFinal).padStart(2, '00')}</div><div class="my-hero-num" id="my-hn">${String(ctFinal).padStart(2, '00')}</div></div>
           <div class="my-client-name typing" id="my-cn">${cur.name}</div>
           <div class="my-service">${cur.servicio}</div>
           <div class="silla-timer" id="timer-my"><div class="timer-dot"></div><span id="timer-txt-my">0m</span></div>
@@ -6172,7 +6180,7 @@
           </div>`}
         <div class="my-bottom">
           ${nxt ? `<div class="next-strip" style="border-color:rgba(0,245,255,0.15);">
-            <div class="next-n" style="color:rgba(0,245,255,0.4);">${String(currentTurn + 1).padStart(2, '00')}</div>
+            <div class="next-n" style="color:rgba(0,245,255,0.4);">${String(ctFinal + 1).padStart(2, '00')}</div>
             <div class="next-info"><div class="next-nom">${nxt.name}</div><div class="next-barber">⏱ ${fmt12(nxt.time)}</div></div>
             <div class="next-time-badge">${calcLiveETA(1, barber) || fmt12(nxt.time)}</div>
           </div>`: ''}
@@ -6215,7 +6223,7 @@
             const isAct = status === 'active'; const isNxt = status === 'next';
             const cls = isAct ? 'mqi-active' : isNxt ? 'mqi-next' : 'mqi-wait';
             const tag = isAct ? '<span class="mqi-tag a">EN SILLA</span>' : isNxt ? '<span class="mqi-tag n">PRÓXIMO</span>' : '<span class="mqi-tag w">ESPERA</span>';
-            const pos = i - (currentTurn - 1); const eta = pos > 0 ? calcLiveETA(pos, barber) : null; const urgent = eta && parseInt(eta) <= 5;
+            const pos = i - (ctFinal - 1); const eta = pos > 0 ? calcLiveETA(pos, barber) : null; const urgent = eta && parseInt(eta) <= 5;
             const rBtn = c.id ? `<button onclick="openReagendar('${c.id}','${c.name.replace(/'/g, "\\'")}','${c.time}','${barber.replace(/'/g, "\\'")}')" style="padding:5px 8px;border:1px solid rgba(176,110,255,0.3);background:rgba(176,110,255,0.05);color:rgba(176,110,255,0.7);font-family:'Share Tech Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;flex-shrink:0;" onmouseover="this.style.background='rgba(176,110,255,0.15)';this.style.color='rgba(176,110,255,1)';" onmouseout="this.style.background='rgba(176,110,255,0.05)';this.style.color='rgba(176,110,255,0.7)';" title="Reagendar">↻</button>` : '';
             const tBtn = c.id ? `<button onclick="openTransferirCita('${c.id}','${c.name.replace(/'/g, "\\'")}','${c.time}','${barber.replace(/'/g, "\\'")}',${i + 1})" style="padding:5px 8px;border:1px solid rgba(176,110,255,0.3);background:rgba(176,110,255,0.05);color:rgba(176,110,255,0.7);font-family:'Share Tech Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;flex-shrink:0;" onmouseover="this.style.background='rgba(176,110,255,0.15)';this.style.color='rgba(176,110,255,1)';" onmouseout="this.style.background='rgba(176,110,255,0.05)';this.style.color='rgba(176,110,255,0.7)';" title="Transferir">↔</button>` : '';
             return `<div class="my-q-item ${cls}" style="animation-delay:${rowIdx * 0.04}s;grid-template-columns:44px minmax(0,1fr) ${c.id ? 'auto auto ' : ''} auto;">
@@ -6234,7 +6242,7 @@
                 </div>
                 <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:3px;flex-shrink:0;">
                   ${mini.map(({ c, i }, idx2) => {
-            const pos = i - (currentTurn - 1); const eta = calcLiveETA(pos, barber);
+            const pos = i - (ctFinal - 1); const eta = calcLiveETA(pos, barber);
             return `<div class="q-mini ms-wait" style="animation-delay:${idx2 * 0.025}s;">
                       <div class="q-mini-num">${String(i + 1).padStart(2, '00')}</div>
                       <div class="q-mini-name">${c.name}</div>
@@ -6380,14 +6388,19 @@
     }
 
 
+    let _rtWs = null, _rtHb = null;
     function subscribeRT() {
       if (!S.shopId) return;
+      // FIX Bug 8: cerrar conexión anterior si existe antes de crear nueva
+      if (_rtWs) { try { _rtWs.onclose = null; _rtWs.close(); } catch (_) { } _rtWs = null; }
+      if (_rtHb) { clearInterval(_rtHb); _rtHb = null; }
       setRt('connecting', 'CONECTANDO RT...');
       const wsUrl = SB_URL.replace('https://', 'wss://') + '/realtime/v1/websocket?apikey=' + SB_KEY + '&vsn=1.0.0';
-      let ws, hb, rc = 0, rt;
+      let rc = 0, rt;
       function conn() {
         try {
-          ws = new WebSocket(wsUrl);
+          const ws = new WebSocket(wsUrl);
+          _rtWs = ws;
           ws.onopen = () => {
             rc = 0; clearTimeout(rt); setRt('ok', 'REALTIME ●');
             ws.send(JSON.stringify({
@@ -6425,24 +6438,46 @@
                 }
               }, ref: '2'
             }));
-            hb = setInterval(() => { if (ws && ws.readyState === 1) ws.send(JSON.stringify({ topic: 'phoenix', event: 'heartbeat', payload: {}, ref: 'hb' })); }, 20000);
+            hb = setInterval(() => { if (ws && ws.readyState === 1) ws.send(JSON.stringify({ topic: 'phoenix', event: 'heartbeat', payload: {}, ref: 'hb' })); }, 30000);
+            _rtHb = hb;
           };
           ws.onmessage = async (ev) => {
             try {
               const m = JSON.parse(ev.data);
               const evType = m.payload?.data?.type || m.event || '';
               const record = m.payload?.data?.record || m.payload?.record || {};
+              const oldRecord = m.payload?.data?.old_record || {};
               if (['INSERT', 'UPDATE', 'DELETE'].includes(evType)) {
                 if (m.topic && m.topic.includes('shops')) {
                   if (record?.activo === false) { showDisplaySuspended(S.shopName); return; }
                   if (record?.activo === true) { location.reload(); return; }
-                  // Actualizar hora_fin/hora_inicio en S desde el evento RT
                   if (record?.hora_fin  !== undefined) S.horaFin   = record.hora_fin;
                   if (record?.hora_inicio !== undefined) S.horaInicio = record.hora_inicio;
-                  // Disparar cierre si ya es hora (sin esperar el próximo tick)
                   if (!document.getElementById('cierre-overlay')) { _cierreMostrado = false; checkCierre(); }
                 }
-                await loadCitas().catch(() => { }); render();
+                // FIX Bug 2: DELETE no trae shop_id en payload, verificar con old_record o ignorar si no coincide
+                if (evType === 'DELETE') {
+                  const delShop = oldRecord?.shop_id || record?.shop_id;
+                  if (delShop && delShop !== S.shopId) return;
+                }
+                await loadCitas().catch(() => { });
+                // FIX Bug 3: actualizar citasMañana si el modo es manana
+                if (MODE === 'manana') await loadCitasMañana().catch(() => { });
+                // FIX: sincronizar currentTurn en localStorage tras cancelacion/update
+                // Evita que modo my quede con currentTurn > allC.length cuando se cancela la cita activa
+                if (evType === 'UPDATE' || evType === 'DELETE') {
+                  Object.keys(S.queues).forEach(bName => {
+                    const bq = S.queues[bName];
+                    if (!bq) return;
+                    const firstPending = bq.citas.findIndex(c => c.estado === 'Confirmada' || c.estado === 'Pendiente');
+                    const ctVivo = firstPending >= 0 ? firstPending + 1 : bq.citas.length + 1;
+                    if (bq.currentTurn > ctVivo) {
+                      bq.currentTurn = ctVivo;
+                      saveTurns();
+                    }
+                  });
+                }
+                render();
                 if (evType === 'INSERT') bipNuevaCita();
                 showToast(evType === 'INSERT' ? '✓ Nueva cita' : evType === 'DELETE' ? '✗ Cita eliminada' : '↻ Actualizado', 'info');
               }
@@ -6533,6 +6568,8 @@
       try {
         const r = await fetch(SB_URL + '/rest/v1/citas', { method: 'POST', headers: { ...H_, 'Prefer': 'return=representation' }, body: JSON.stringify({ shop_id: S.shopId, nombre, telefono: 'walk-in', chat_id: 'walkin:' + Date.now(), fecha: hoy, hora, servicio: WI_SVC, barbero: WI_BARBER, estado: 'Confirmada' }) });
         if (!r.ok) throw new Error('POST ' + r.status);
+        // FIX Bug 4: restaurar botón ANTES de cerrar para que funcione la próxima vez
+        btn.textContent = '✓ AGREGAR A LA COLA'; btn.style.pointerEvents = '';
         closeModal('walkin-modal');
         await loadCitas(); render();
         showToast('✓ ' + nombre + ' agregado a la cola', 'ok');
@@ -6570,6 +6607,8 @@
       let takenHoy = S.citas
         .filter(c => c.barbero.toUpperCase() === barbNotm && c.id != citaId && c.estado !== 'Completada')
         .map(c => normalizarHora(c.time));
+      // FIX Bug 5: horaActual viene como "3:28 PM", normalizarla para excluir correctamente
+      const horaActualNorm = normalizarHora(horaActual);
 
       // Agregar horarios bloqueados (descanso/almuerzo) del barbero hoy
       const barbObj = S.barberos.find(b => b.nombre === barbNotm);
@@ -6592,7 +6631,7 @@
       }
 
       const slots = generarSlots();
-      const libresHoy = slots.filter(t => t !== horaActual && !takenHoy.includes(t));
+      const libresHoy = slots.filter(t => t !== horaActualNorm && !takenHoy.includes(t));
 
       // Si no hay libres hoy → usar mañana
       const usaMañana = libresHoy.length === 0;
@@ -6908,7 +6947,8 @@
       render(); updateTimers(); startPhraseCycle();
       // FIX BUG 5: guardar referencias para limpiar si es necesario
       _timerInterval = setInterval(updateTimers, 30000);
-      _etaInterval = setInterval(() => { if (MODE !== 'tv') render(); }, 60000);
+      // FIX Bug 9: solo re-render por ETA en modos que lo necesitan, no en tv
+      _etaInterval = setInterval(() => { if (MODE === 'hoy' || MODE === 'my' || MODE === 'manana') render(); }, 60000);
       _citasInterval = setInterval(async () => { await loadCitas().catch(() => { }); if (MODE === 'manana') await loadCitasMañana().catch(() => { }); render(); }, 30000);
     }
 
