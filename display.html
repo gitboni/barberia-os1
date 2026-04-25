@@ -34,6 +34,47 @@
       --glow-p: rgba(176, 110, 255, 0.5);
     }
 
+    /* ── v86: Tema light — Salón de Belleza ─────────────────────────────── */
+    html.tema-light {
+      --cyan: #6B21A8;
+      --magenta: #DB2777;
+      --gold: #C084FC;
+      --green: #86EFAC;
+      --purple: #A855F7;
+      --bg: #FAF7F5;
+      --bg2: #F0EBE8;
+      --glow-c: rgba(107, 33, 168, 0.18);
+      --glow-m: rgba(219, 39, 119, 0.25);
+      --glow-g: rgba(134, 239, 172, 0.4);
+      --glow-p: rgba(168, 85, 247, 0.3);
+    }
+    html.tema-light body { background: var(--bg); color: var(--cyan); }
+    html.tema-light .grid-line,
+    html.tema-light .scanline { opacity: 0.04; }
+    html.tema-light .barber-pole-wrap,
+    html.tema-light .shop-icon-circle { filter: drop-shadow(0 0 18px rgba(107,33,168,0.25)); }
+
+    /* ── v86: Tema zen — Spa / Estética ─────────────────────────────────── */
+    html.tema-zen {
+      --cyan: #065F46;
+      --magenta: #0891B2;
+      --gold: #34D399;
+      --green: #6EE7B7;
+      --purple: #67E8F9;
+      --bg: #F0FDF4;
+      --bg2: #DCFCE7;
+      --glow-c: rgba(6, 95, 70, 0.18);
+      --glow-m: rgba(8, 145, 178, 0.25);
+      --glow-g: rgba(52, 211, 153, 0.4);
+      --glow-p: rgba(103, 232, 249, 0.3);
+    }
+    html.tema-zen body { background: var(--bg); color: var(--cyan); }
+    html.tema-zen .grid-line,
+    html.tema-zen .scanline { opacity: 0.03; }
+    html.tema-zen .barber-pole-wrap,
+    html.tema-zen .shop-icon-circle { filter: drop-shadow(0 0 18px rgba(6,95,70,0.22)); }
+    /* ─────────────────────────────────────────────────────────────────────── */
+
     html,
     body {
       width: 100%;
@@ -5511,7 +5552,7 @@
 
     async function loadShop() {
       // FIX BUG 6: cargar hora_inicio, hora_fin, timezone
-      const rows = await retry(() => sbGet('shops', 'slug=eq.' + SLUG + '&select=id,nombre,duracion_turno,activo,hora_inicio,hora_fin,timezone,icono,recordatorio_modo,recordatorio_turnos'));
+      const rows = await retry(() => sbGet('shops', 'slug=eq.' + SLUG + '&select=id,nombre,duracion_turno,activo,hora_inicio,hora_fin,timezone,icono,recordatorio_modo,recordatorio_turnos,tema_display'));
       if (!rows || !rows.length) { setDb('err', 'NO ENCONTRADA'); return false; }
       const s = rows[0];
       if (s.activo === false) { showDisplaySuspended(s.nombre || SLUG); return false; }
@@ -5524,6 +5565,11 @@
       S.tz = s.timezone || 'America/Santo_Domingo';
       S.recordatorioModo = s.recordatorio_modo || 'turnos';
       S.recordatorioTurnos = s.recordatorio_turnos || 1;
+      // v86: aplicar tema visual según tipo de negocio
+      document.documentElement.classList.remove('tema-light', 'tema-zen');
+      if (s.tema_display && s.tema_display !== 'dark') {
+        document.documentElement.classList.add('tema-' + s.tema_display);
+      }
       document.getElementById('shop-name').textContent = S.shopName;
       document.title = S.shopName + ' — Sala de Espera';
       document.getElementById('ft-ver').textContent = S.shopName + ' · AuraOS v9';
