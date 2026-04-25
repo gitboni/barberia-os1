@@ -5541,7 +5541,7 @@
     try { TV_BG = localStorage.getItem('barberos_tv_bg') || ''; } catch(_) {}
 
     // FIX BUG 6: guardar hora_inicio/hora_fin de la shop
-    const S = { shopId: null, shopName: 'BARBEROS', barberos: [], citas: [], citasMañana: [], queues: {}, lastUp: null, horaInicio: 7, horaFin: 22, tz: 'America/Santo_Domingo', recordatorioModo: 'turnos', recordatorioTurnos: 1, labelPro: 'barbero', labelProPlural: 'barberos' };
+    const S = { shopId: null, shopName: 'BARBEROS', barberos: [], citas: [], citasMañana: [], queues: {}, lastUp: null, horaInicio: 7, horaFin: 22, tz: 'America/Santo_Domingo', recordatorioModo: 'turnos', recordatorioTurnos: 1 };
     let MODE = 'shop';
     let MY_BARBER = null;
 
@@ -5552,7 +5552,7 @@
 
     async function loadShop() {
       // FIX BUG 6: cargar hora_inicio, hora_fin, timezone
-      const rows = await retry(() => sbGet('shops', 'slug=eq.' + SLUG + '&select=id,nombre,duracion_turno,activo,hora_inicio,hora_fin,timezone,icono,recordatorio_modo,recordatorio_turnos,tema_display,label_profesional,display_color_cyan,display_color_magenta,display_color_gold,display_color_green,display_color_bg,display_color_bg2'));
+      const rows = await retry(() => sbGet('shops', 'slug=eq.' + SLUG + '&select=id,nombre,duracion_turno,activo,hora_inicio,hora_fin,timezone,icono,recordatorio_modo,recordatorio_turnos,tema_display'));
       if (!rows || !rows.length) { setDb('err', 'NO ENCONTRADA'); return false; }
       const s = rows[0];
       if (s.activo === false) { showDisplaySuspended(s.nombre || SLUG); return false; }
@@ -5565,32 +5565,10 @@
       S.tz = s.timezone || 'America/Santo_Domingo';
       S.recordatorioModo = s.recordatorio_modo || 'turnos';
       S.recordatorioTurnos = s.recordatorio_turnos || 1;
-      // v86: label dinámico
-      S.labelPro = (s.label_profesional || 'barbero').toLowerCase();
-      S.labelProPlural = S.labelPro.endsWith('a') ? S.labelPro + 's' : S.labelPro + 's';
       // v86: aplicar tema visual según tipo de negocio
       document.documentElement.classList.remove('tema-light', 'tema-zen');
       if (s.tema_display && s.tema_display !== 'dark') {
         document.documentElement.classList.add('tema-' + s.tema_display);
-      }
-      // v86: colores custom sobreescriben el tema
-      const colorVars = {
-        '--cyan':    s.display_color_cyan,
-        '--magenta': s.display_color_magenta,
-        '--gold':    s.display_color_gold,
-        '--green':   s.display_color_green,
-        '--bg':      s.display_color_bg,
-        '--bg2':     s.display_color_bg2,
-      };
-      const hasCustom = Object.values(colorVars).some(v => v);
-      if (hasCustom) {
-        let oldStyle = document.getElementById('custom-colors-style');
-        if (oldStyle) oldStyle.remove();
-        const style = document.createElement('style');
-        style.id = 'custom-colors-style';
-        const vars = Object.entries(colorVars).filter(([,v]) => v).map(([k,v]) => `${k}:${v};`).join('');
-        style.textContent = `:root{${vars}}`;
-        document.head.appendChild(style);
       }
       document.getElementById('shop-name').textContent = S.shopName;
       document.title = S.shopName + ' — Sala de Espera';
@@ -5988,7 +5966,7 @@
       const tickerDur = Math.max(20, allActive.length * 3);
       let cardsHtml = '';
       if (!bnames.length) {
-        cardsHtml = '<div style="grid-column:1/-1;display:flex;align-items:center;justify-content:center;font-family:\'Share Tech Mono\',monospace;font-size:0.6rem;color:rgba(0,245,255,0.2);letter-spacing:0.22em;">" + 'SIN ' + S.labelProPlural.toUpperCase() + ' ACTIVOS' + "</div>';
+        cardsHtml = '<div style="grid-column:1/-1;display:flex;align-items:center;justify-content:center;font-family:\'Share Tech Mono\',monospace;font-size:0.6rem;color:rgba(0,245,255,0.2);letter-spacing:0.22em;">SIN BARBEROS ACTIVOS</div>';
       } else {
         bnames.forEach((name, idx) => {
           const q = S.queues[name]; const { citas, currentTurn } = q;
@@ -6023,9 +6001,9 @@
         const dots = Array.from({length:10},(_, i)=>`<div class="idle-dot" style="left:${5+i*9}%;top:${15+((i*41)%65)}%;--dur:${3+i*0.45}s;--delay:${i*0.28}s;"></div>`).join('');
         c.innerHTML = `<div class="idle-screen" style="flex:1;">
           <div class="idle-dots">${dots}</div>
-          <div class="idle-scissors-icon">${S.labelPro==="barbero"?"✂":""}</div>
-          <div class="idle-title">${S.shopName} LISTA</div>
-          <div class="idle-sub-txt">Sin ${S.labelProPlural} activos por el momento</div>
+          <div class="idle-scissors-icon">✂</div>
+          <div class="idle-title">BARBERÍA LISTA</div>
+          <div class="idle-sub-txt">Sin barberos activos por el momento</div>
           <div class="idle-qr-wrap">
             <div class="idle-qr-box">
               <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent('barberos://registro?shop='+SLUG)}&bgcolor=060C14&color=FFFFFF&margin=8" width="110" height="110" style="display:block;border-radius:4px;opacity:0.92;" onerror="this.style.display='none'">
@@ -6139,7 +6117,7 @@
             </div>`;
           })() : ''}
           ${zoneA.length ? `<div class="zone-a">
-            <div class="q-col-header"><span>#</span><span>CLIENTE</span><span style="text-align:center">${S.labelPro.toUpperCase()}</span><span style="text-align:center">HORA</span><span>ESTADO</span></div>
+            <div class="q-col-header"><span>#</span><span>CLIENTE</span><span style="text-align:center">BARBERO</span><span style="text-align:center">HORA</span><span>ESTADO</span></div>
             ${zoneA.map((c, idx) => {
         const num = c.originalIdx + 1; const eta = c.pos > 0 ? calcLiveETA(c.pos, barber) : null; const { rc, tc, tl } = statusClasses(c.status);
         // FEATURE: botón transferir en cada fila pendiente
@@ -6195,10 +6173,10 @@
     }
 
     function renderMyTurn(c) {
-      if (!MY_BARBER) { c.innerHTML = '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;"><div style="font-family:\'Orbitron\',monospace;font-size:0.9rem;color:rgba(0,245,255,0.5);letter-spacing:0.22em;">SELECCIONA TU ' + S.labelPro.toUpperCase() + '</div></div>'; return; }
+      if (!MY_BARBER) { c.innerHTML = '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;"><div style="font-family:\'Orbitron\',monospace;font-size:0.9rem;color:rgba(0,245,255,0.5);letter-spacing:0.22em;">SELECCIONA TU BARBERO</div></div>'; return; }
       const barber = MY_BARBER; const bid = safeId(barber);
       const q = S.queues[barber]; const bObj = S.barberos.find(b => b.nombre === barber); const isActive = bObj ? bObj.activo : true;
-      if (!q) { c.innerHTML = '<div style="flex:1;display:flex;align-items:center;justify-content:center;font-family:\'Share Tech Mono\',monospace;font-size:0.6rem;color:rgba(0,245,255,0.3);letter-spacing:0.22em;">' + S.labelPro.toUpperCase() + ' NO ACTIVO</div>'; return; }
+      if (!q) { c.innerHTML = '<div style="flex:1;display:flex;align-items:center;justify-content:center;font-family:\'Share Tech Mono\',monospace;font-size:0.6rem;color:rgba(0,245,255,0.3);letter-spacing:0.22em;">BARBERO NO ACTIVO</div>'; return; }
       const { citas: allC, currentTurn } = q;
       // FIX: recalcular currentTurn en tiempo de render basado en primera cita Confirmada/Pendiente
       // Esto corrige el caso donde currentTurn queda desincronizado cuando se cancela
@@ -7022,25 +7000,6 @@
 
     function loadDemo() {
       S.shopName = 'ELITE CUTS'; S.horaInicio = 7; S.horaFin = 22;
-      // v86: colores custom sobreescriben el tema
-      const colorVars = {
-        '--cyan':    s.display_color_cyan,
-        '--magenta': s.display_color_magenta,
-        '--gold':    s.display_color_gold,
-        '--green':   s.display_color_green,
-        '--bg':      s.display_color_bg,
-        '--bg2':     s.display_color_bg2,
-      };
-      const hasCustom = Object.values(colorVars).some(v => v);
-      if (hasCustom) {
-        let oldStyle = document.getElementById('custom-colors-style');
-        if (oldStyle) oldStyle.remove();
-        const style = document.createElement('style');
-        style.id = 'custom-colors-style';
-        const vars = Object.entries(colorVars).filter(([,v]) => v).map(([k,v]) => `${k}:${v};`).join('');
-        style.textContent = `:root{${vars}}`;
-        document.head.appendChild(style);
-      }
       document.getElementById('shop-name').textContent = S.shopName;
       S.barberos = [{ id: 'b1', nombre: 'MATÍAS', activo: true, orden: 1 }, { id: 'b2', nombre: 'LUCAS', activo: true, orden: 2 }, { id: 'b3', nombre: 'GONZALO', activo: true, orden: 3 }];
       S.citas = [
