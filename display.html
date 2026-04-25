@@ -5552,7 +5552,7 @@
 
     async function loadShop() {
       // FIX BUG 6: cargar hora_inicio, hora_fin, timezone
-      const rows = await retry(() => sbGet('shops', 'slug=eq.' + SLUG + '&select=id,nombre,duracion_turno,activo,hora_inicio,hora_fin,timezone,icono,recordatorio_modo,recordatorio_turnos,tema_display'));
+      const rows = await retry(() => sbGet('shops', 'slug=eq.' + SLUG + '&select=id,nombre,duracion_turno,activo,hora_inicio,hora_fin,timezone,icono,recordatorio_modo,recordatorio_turnos,tema_display,label_profesional,display_color_cyan,display_color_magenta,display_color_gold,display_color_green,display_color_bg,display_color_bg2'));
       if (!rows || !rows.length) { setDb('err', 'NO ENCONTRADA'); return false; }
       const s = rows[0];
       if (s.activo === false) { showDisplaySuspended(s.nombre || SLUG); return false; }
@@ -5570,6 +5570,27 @@
       if (s.tema_display && s.tema_display !== 'dark') {
         document.documentElement.classList.add('tema-' + s.tema_display);
       }
+      // v86: colores custom sobreescriben el tema
+      try {
+        var colorVars = [
+          ['--cyan',    s.display_color_cyan],
+          ['--magenta', s.display_color_magenta],
+          ['--gold',    s.display_color_gold],
+          ['--green',   s.display_color_green],
+          ['--bg',      s.display_color_bg],
+          ['--bg2',     s.display_color_bg2],
+        ];
+        var activeVars = colorVars.filter(function(pair){ return !!pair[1]; });
+        if (activeVars.length > 0) {
+          var oldStyle = document.getElementById('custom-colors-style');
+          if (oldStyle) oldStyle.remove();
+          var styleEl = document.createElement('style');
+          styleEl.id = 'custom-colors-style';
+          styleEl.textContent = ':root{' + activeVars.map(function(pair){ return pair[0]+':'+pair[1]+';'; }).join('') + '}';
+          document.head.appendChild(styleEl);
+        }
+      } catch(e) { console.warn('[display] color apply error:', e); }
+
       document.getElementById('shop-name').textContent = S.shopName;
       document.title = S.shopName + ' — Sala de Espera';
       document.getElementById('ft-ver').textContent = S.shopName + ' · AuraOS v9';
