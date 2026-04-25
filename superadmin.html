@@ -4440,6 +4440,39 @@ async function sha256pin(s){const b=await crypto.subtle.digest('SHA-256',new Tex
 function openPinModal(id,nombre){document.getElementById('pinShopId').value=id;document.getElementById('pinShopName').textContent=nombre;document.getElementById('newPinInput').value='';document.getElementById('confirmPinInput').value='';openModal('modalPin');}
 document.getElementById('savePinBtn').addEventListener('click',async()=>{const id=document.getElementById('pinShopId').value;const pin=document.getElementById('newPinInput').value.trim();const conf=document.getElementById('confirmPinInput').value.trim();if(!pin||!/^\d{4}$/.test(pin)){showToast('PIN debe ser 4 dígitos','error');return;}if(pin!==conf){showToast('PINs no coinciden','error');return;}const hash=await sha256pin(pin);try{await sbPatch('shops',`id=eq.${id}`,{admin_pin_hash:hash});showToast('✅ PIN actualizado','success');closeModal('modalPin');}catch(e){showToast('Error: '+e.message,'error');}});
 
+function syncColor(pickerId, hexId) {
+  const hex = document.getElementById(hexId).value.trim();
+  if (/^#[0-9A-Fa-f]{6}$/.test(hex)) document.getElementById(pickerId).value = hex;
+}
+function clearColor(pickerId, hexId) {
+  document.getElementById(hexId).value = '';
+}
+function previewColores() {
+  const colores = {
+    '--cyan':    document.getElementById('editShopColorCyanHex').value || '#D4A017',
+    '--magenta': document.getElementById('editShopColorMagentaHex').value || '#FF006E',
+    '--gold':    document.getElementById('editShopColorGoldHex').value || '#F5E050',
+    '--green':   document.getElementById('editShopColorGreenHex').value || '#3ECF8E',
+    '--bg':      document.getElementById('editShopColorBgHex').value || '#020408',
+    '--bg2':     document.getElementById('editShopColorBg2Hex').value || '#060C14',
+  };
+  const slug = document.getElementById('editShopSlug')?.value || '';
+  if (slug) {
+    const url = '/sala/' + slug + '?' + Object.entries(colores).map(([k,v]) => encodeURIComponent(k)+'='+encodeURIComponent(v)).join('&');
+    window.open(url, '_blank');
+  } else {
+    alert('Guarda el shop primero para previsualizar el display.');
+  }
+}
+function resetColores() {
+  const defaults = { Cyan:'#D4A017', Magenta:'#FF006E', Gold:'#F5E050', Green:'#3ECF8E', Bg:'#020408', Bg2:'#060C14' };
+  Object.entries(defaults).forEach(([k, v]) => {
+    const picker = document.getElementById('editShopColor' + k);
+    const hex    = document.getElementById('editShopColor' + k + 'Hex');
+    if (picker) picker.value = v;
+    if (hex)    hex.value    = '';
+  });
+}
 function syncLabelProfesional(){
   const tipo = document.getElementById('editShopTipoNegocio').value;
   const labels = { barberia:'barbero', salon:'estilista', spa:'terapeuta', estetica:'cosmetóloga', nails:'manicurista' };
@@ -4515,6 +4548,17 @@ function abrirEditShop(shopId){
   document.getElementById('editShopDifusionActivaLbl').style.color = difActiva ? 'var(--green)' : 'var(--muted)';
   document.getElementById('editShopDifusionMsg').value = shop.difusion_msg || '';
   document.getElementById('editShopGrupoNombre').value = shop.grupo_nombre || '';
+  // v86: colores display
+  const colorDefaults = { cyan:'#D4A017', magenta:'#FF006E', gold:'#F5E050', green:'#3ECF8E', bg:'#020408', bg2:'#060C14' };
+  ['cyan','magenta','gold','green','bg','bg2'].forEach(k => {
+    const key = 'display_color_' + k;
+    const cap = k.charAt(0).toUpperCase() + k.slice(1);
+    const val = shop[key] || '';
+    const picker = document.getElementById('editShopColor' + cap);
+    const hex    = document.getElementById('editShopColor' + cap + 'Hex');
+    if (picker) picker.value = val || colorDefaults[k];
+    if (hex)    hex.value    = val;
+  });
   document.getElementById('editShopTipoNegocio').value = shop.tipo_negocio || 'barberia';
   document.getElementById('editShopLabelProfesional').value = shop.label_profesional || 'barbero';
   document.getElementById('editShopTemaDisplay').value = shop.tema_display || 'dark';
@@ -4584,6 +4628,12 @@ async function guardarEditShop(){
     difusion_activa: document.getElementById('editShopDifusionActiva').checked,
     difusion_msg: document.getElementById('editShopDifusionMsg').value.trim() || null,
     grupo_nombre: document.getElementById('editShopGrupoNombre').value.trim() || null,
+    display_color_cyan:    document.getElementById('editShopColorCyanHex').value.trim() || null,
+    display_color_magenta: document.getElementById('editShopColorMagentaHex').value.trim() || null,
+    display_color_gold:    document.getElementById('editShopColorGoldHex').value.trim() || null,
+    display_color_green:   document.getElementById('editShopColorGreenHex').value.trim() || null,
+    display_color_bg:      document.getElementById('editShopColorBgHex').value.trim() || null,
+    display_color_bg2:     document.getElementById('editShopColorBg2Hex').value.trim() || null,
     tipo_negocio: document.getElementById('editShopTipoNegocio').value || 'barberia',
     label_profesional: document.getElementById('editShopLabelProfesional').value.trim() || 'barbero',
     tema_display: document.getElementById('editShopTemaDisplay').value || 'dark',
@@ -4728,6 +4778,67 @@ async function guardarEditShop(){
         </select>
       </div>
     </div>
+
+    <!-- ── Colores del Display ── -->
+    <div style="border-top:1px solid var(--border);margin:18px 0 14px;padding-top:14px;">
+      <div style="font-size:0.5rem;letter-spacing:0.22em;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">🎨 COLORES DEL DISPLAY</div>
+      <div style="font-size:0.5rem;color:var(--muted);margin-bottom:12px;">Personalizan el display de esta barbería. Vacío = usa el tema por defecto.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Color principal</label>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input type="color" id="editShopColorCyan" value="#D4A017" style="width:36px;height:32px;border:1px solid var(--border);border-radius:4px;background:none;cursor:pointer;padding:2px;">
+            <input class="form-input" id="editShopColorCyanHex" placeholder="#D4A017" style="flex:1;font-family:monospace;" oninput="syncColor('editShopColorCyan','editShopColorCyanHex')">
+            <button type="button" onclick="clearColor('editShopColorCyan','editShopColorCyanHex')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.7rem;">✕</button>
+          </div>
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Color secundario</label>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input type="color" id="editShopColorMagenta" value="#FF006E" style="width:36px;height:32px;border:1px solid var(--border);border-radius:4px;background:none;cursor:pointer;padding:2px;">
+            <input class="form-input" id="editShopColorMagentaHex" placeholder="#FF006E" style="flex:1;font-family:monospace;" oninput="syncColor('editShopColorMagenta','editShopColorMagentaHex')">
+            <button type="button" onclick="clearColor('editShopColorMagenta','editShopColorMagentaHex')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.7rem;">✕</button>
+          </div>
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Color gold / botones</label>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input type="color" id="editShopColorGold" value="#F5E050" style="width:36px;height:32px;border:1px solid var(--border);border-radius:4px;background:none;cursor:pointer;padding:2px;">
+            <input class="form-input" id="editShopColorGoldHex" placeholder="#F5E050" style="flex:1;font-family:monospace;" oninput="syncColor('editShopColorGold','editShopColorGoldHex')">
+            <button type="button" onclick="clearColor('editShopColorGold','editShopColorGoldHex')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.7rem;">✕</button>
+          </div>
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Color verde / activo</label>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input type="color" id="editShopColorGreen" value="#3ECF8E" style="width:36px;height:32px;border:1px solid var(--border);border-radius:4px;background:none;cursor:pointer;padding:2px;">
+            <input class="form-input" id="editShopColorGreenHex" placeholder="#3ECF8E" style="flex:1;font-family:monospace;" oninput="syncColor('editShopColorGreen','editShopColorGreenHex')">
+            <button type="button" onclick="clearColor('editShopColorGreen','editShopColorGreenHex')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.7rem;">✕</button>
+          </div>
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Fondo principal</label>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input type="color" id="editShopColorBg" value="#020408" style="width:36px;height:32px;border:1px solid var(--border);border-radius:4px;background:none;cursor:pointer;padding:2px;">
+            <input class="form-input" id="editShopColorBgHex" placeholder="#020408" style="flex:1;font-family:monospace;" oninput="syncColor('editShopColorBg','editShopColorBgHex')">
+            <button type="button" onclick="clearColor('editShopColorBg','editShopColorBgHex')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.7rem;">✕</button>
+          </div>
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Fondo secundario</label>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input type="color" id="editShopColorBg2" value="#060C14" style="width:36px;height:32px;border:1px solid var(--border);border-radius:4px;background:none;cursor:pointer;padding:2px;">
+            <input class="form-input" id="editShopColorBg2Hex" placeholder="#060C14" style="flex:1;font-family:monospace;" oninput="syncColor('editShopColorBg2','editShopColorBg2Hex')">
+            <button type="button" onclick="clearColor('editShopColorBg2','editShopColorBg2Hex')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.7rem;">✕</button>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:10px;">
+        <button type="button" onclick="previewColores()" style="background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text);padding:6px 14px;font-size:0.5rem;font-family:'DM Mono',monospace;cursor:pointer;border-radius:4px;letter-spacing:0.1em;">👁 PREVISUALIZAR</button>
+        <button type="button" onclick="resetColores()" style="background:none;border:1px solid var(--border);color:var(--muted);padding:6px 14px;font-size:0.5rem;font-family:'DM Mono',monospace;cursor:pointer;border-radius:4px;letter-spacing:0.1em;margin-left:8px;">↺ RESET</button>
+      </div>
+    </div>
+
     <div class="form-group">
       <label class="form-label">Icono</label>
       <div id="editShopIconoGrid" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;">
