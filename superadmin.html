@@ -4349,6 +4349,14 @@ async function sha256pin(s){const b=await crypto.subtle.digest('SHA-256',new Tex
 function openPinModal(id,nombre){document.getElementById('pinShopId').value=id;document.getElementById('pinShopName').textContent=nombre;document.getElementById('newPinInput').value='';document.getElementById('confirmPinInput').value='';openModal('modalPin');}
 document.getElementById('savePinBtn').addEventListener('click',async()=>{const id=document.getElementById('pinShopId').value;const pin=document.getElementById('newPinInput').value.trim();const conf=document.getElementById('confirmPinInput').value.trim();if(!pin||!/^\d{4}$/.test(pin)){showToast('PIN debe ser 4 dígitos','error');return;}if(pin!==conf){showToast('PINs no coinciden','error');return;}const hash=await sha256pin(pin);try{await sbPatch('shops',`id=eq.${id}`,{admin_pin_hash:hash});showToast('✅ PIN actualizado','success');closeModal('modalPin');}catch(e){showToast('Error: '+e.message,'error');}});
 
+function syncLabelProfesional(){
+  const tipo = document.getElementById('editShopTipoNegocio').value;
+  const labels = { barberia:'barbero', salon:'estilista', spa:'terapeuta', estetica:'cosmetóloga', nails:'manicurista' };
+  const temas  = { barberia:'dark',    salon:'light',     spa:'zen',       estetica:'zen',          nails:'light' };
+  document.getElementById('editShopLabelProfesional').value = labels[tipo] || 'profesional';
+  document.getElementById('editShopTemaDisplay').value      = temas[tipo]  || 'dark';
+}
+
 function toggleEditShopProvider(){
   const p=document.getElementById('editShopProvider').value;
   document.getElementById('editShop-meta-fields').style.display=p==='meta'?'':'none';
@@ -4415,6 +4423,9 @@ function abrirEditShop(shopId){
   document.getElementById('editShopDifusionActivaLbl').textContent = difActiva ? 'ACTIVO' : 'INACTIVO';
   document.getElementById('editShopDifusionActivaLbl').style.color = difActiva ? 'var(--green)' : 'var(--muted)';
   document.getElementById('editShopDifusionMsg').value = shop.difusion_msg || '';
+  document.getElementById('editShopTipoNegocio').value = shop.tipo_negocio || 'barberia';
+  document.getElementById('editShopLabelProfesional').value = shop.label_profesional || 'barbero';
+  document.getElementById('editShopTemaDisplay').value = shop.tema_display || 'dark';
   renderIconoPicker(shop.icono||'✂️');
   toggleEditShopProvider();
   openModal('modalEditShop');
@@ -4480,6 +4491,9 @@ async function guardarEditShop(){
     meta_phone_number_id:provider==='meta'?(document.getElementById('editShopMetaPhoneId').value.trim()||null):null,
     difusion_activa: document.getElementById('editShopDifusionActiva').checked,
     difusion_msg: document.getElementById('editShopDifusionMsg').value.trim() || null,
+    tipo_negocio: document.getElementById('editShopTipoNegocio').value || 'barberia',
+    label_profesional: document.getElementById('editShopLabelProfesional').value.trim() || 'barbero',
+    tema_display: document.getElementById('editShopTemaDisplay').value || 'dark',
   };
   // Solo actualizar token si se ingresó uno nuevo
   if(provider==='meta'&&token) updates.meta_access_token=token;
@@ -4584,8 +4598,36 @@ async function guardarEditShop(){
         <option value="elite">Elite — $79/mes</option>
       </select>
     </div>
+    <!-- ── Tipo de Negocio ── -->
+    <div style="border-top:1px solid var(--border);margin:18px 0 14px;padding-top:14px;">
+      <div style="font-size:0.5rem;letter-spacing:0.22em;color:var(--muted);text-transform:uppercase;margin-bottom:12px;">🏪 TIPO DE NEGOCIO</div>
+      <div class="form-group">
+        <label class="form-label">Tipo de negocio</label>
+        <select class="form-select" id="editShopTipoNegocio" onchange="syncLabelProfesional()">
+          <option value="barberia">✂️ Barbería</option>
+          <option value="salon">💇 Salón de Belleza</option>
+          <option value="spa">💆 Spa</option>
+          <option value="estetica">✨ Centro de Estética</option>
+          <option value="nails">💅 Nail Studio</option>
+        </select>
+        <div class="form-hint">Define el vocabulario del bot y el tema visual del display.</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nombre del profesional</label>
+        <input class="form-input" id="editShopLabelProfesional" placeholder="ej: barbero, estilista, terapeuta">
+        <div class="form-hint">El bot usará esta palabra. Ej: "¿Con qué <b>estilista</b> prefieres?"</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tema del display</label>
+        <select class="form-select" id="editShopTemaDisplay">
+          <option value="dark">🌑 Oscuro — Barbería (actual)</option>
+          <option value="light">☀️ Claro — Salón</option>
+          <option value="zen">🍃 Zen — Spa / Estética</option>
+        </select>
+      </div>
+    </div>
     <div class="form-group">
-      <label class="form-label">Tipo de negocio / Icono</label>
+      <label class="form-label">Icono</label>
       <div id="editShopIconoGrid" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;">
         <!-- Populated by JS -->
       </div>
