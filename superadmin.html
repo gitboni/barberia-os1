@@ -253,12 +253,25 @@ tr:hover td{background:rgba(255,255,255,0.016);}
 .config-section-title{font-size:0.62rem;color:var(--gold);letter-spacing:0.18em;margin-bottom:16px;text-transform:uppercase;}
 .config-status{display:flex;align-items:center;gap:7px;font-size:0.56rem;margin-top:10px;}
 
-/* LOGS */
-.logs-terminal{background:var(--surface);border:1px solid var(--border);padding:16px;font-family:'DM Mono',monospace;font-size:0.57rem;height:460px;overflow-y:auto;line-height:1.75;}
-.log-line{margin-bottom:1px;display:flex;gap:9px;}
-.log-time{color:var(--muted);flex-shrink:0;}
-.log-level{flex-shrink:0;min-width:48px;}
-.log-msg{color:var(--text);}
+/* LOGS TERMINAL MAC-STYLE */
+.terminal-container { background: #000; border-radius: 12px; border: 1px solid var(--border2); box-shadow: 0 30px 60px rgba(0,0,0,0.5); overflow: hidden; margin-top: 10px; }
+.terminal-header { background: #1a1a1b; padding: 10px 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.t-dot { width: 12px; height: 12px; border-radius: 50%; }
+.t-red { background: #ff5f56; }
+.t-yellow { background: #ffbd2e; }
+.t-green { background: #27c93f; }
+.t-title { flex: 1; text-align: center; font-size: 0.6rem; color: #666; font-family: var(--font-main); letter-spacing: 0.1em; margin-right: 40px; }
+
+.logs-terminal { background: #000; padding: 20px; font-family: 'DM Mono', monospace; font-size: 0.62rem; height: 500px; overflow-y: auto; line-height: 1.6; }
+.log-line { display: flex; gap: 12px; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.03); padding-bottom: 2px; }
+.log-time { color: #444; flex-shrink: 0; }
+.log-level { font-weight: 700; flex-shrink: 0; min-width: 55px; }
+.log-msg { color: #d1d1d1; word-break: break-all; }
+
+.lvl-ERROR { color: #ff453a !important; }
+.lvl-OK { color: #32d74b !important; }
+.lvl-WARN { color: #ffd60a !important; }
+.lvl-INFO { color: #64d2ff !important; }
 
 /* DEMO BANNER */
 .demo-banner{background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.18);border-left:3px solid var(--gold);padding:10px 16px;margin-bottom:20px;font-size:0.6rem;color:var(--muted);display:flex;align-items:center;gap:9px;}
@@ -1024,7 +1037,15 @@ tr:hover td{background:rgba(255,255,255,0.016);}
           <button class="btn btn-ghost" id="clearLogsBtn">Limpiar</button>
         </div>
       </div>
-      <div class="logs-terminal" id="logsTerminal"></div>
+      <div class="terminal-container">
+        <div class="terminal-header">
+          <div class="t-dot t-red"></div>
+          <div class="t-dot t-yellow"></div>
+          <div class="t-dot t-green"></div>
+          <div class="t-title">zsh — aura-os — logs</div>
+        </div>
+        <div class="logs-terminal" id="logsTerminal"></div>
+      </div>
     </div>
 
     <!-- CONFIGURACIÓN -->
@@ -4020,7 +4041,7 @@ function renderLogs(){
   t.innerHTML=filtered.slice(0,200).map(l=>`
     <div class="log-line">
       <span class="log-time">[${l.time}]</span>
-      <span class="log-level" style="color:${LOG_COLORS[l.level]||'#888'}">[${l.level.padEnd(4)}]</span>
+      <span class="log-level lvl-${l.level}">[${l.level.padEnd(5)}]</span>
       <span class="log-msg">${l.msg}</span>
     </div>`).join('');
 }
