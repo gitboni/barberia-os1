@@ -56,8 +56,12 @@ main{display:flex;flex-direction:column;overflow:hidden;height:100vh;}
 .live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 1.8s ease-in-out infinite;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
 .content{flex:1;overflow-y:auto;padding:24px 28px;display:flex;flex-direction:column;gap:18px;height:0;min-height:0;}
-.content::-webkit-scrollbar{width:3px;}
-.content::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);}
+.content::-webkit-scrollbar{width:6px;}
+.content::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12);border-radius:3px;}
+.content::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.2);}
+.table-wrapper{flex:1;overflow:auto;position:relative;width:100%;}
+.table-wrapper::-webkit-scrollbar{width:5px;height:5px;}
+.table-wrapper::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:3px;}
 .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
 .stat-card{padding:22px;background:var(--bg2);border:1px solid var(--border);position:relative;overflow:hidden;transition:all 0.4s var(--bez);}
 .stat-card:hover{border-color:rgba(255,255,255,0.15);transform:translateY(-4px);box-shadow:var(--shadow);}
@@ -81,7 +85,7 @@ main{display:flex;flex-direction:column;overflow:hidden;height:100vh;}
 .card-title{font-size:0.82rem;font-weight:700;letter-spacing:0.04em;}
 .card-meta{font-family:'DM Mono',monospace;font-size:0.54rem;color:var(--muted);}
 table{width:100%;border-collapse:collapse;}
-th{font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--muted);letter-spacing:0.2em;text-transform:uppercase;text-align:left;padding:10px 14px;border-bottom:1px solid var(--border);}
+th{font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--muted);letter-spacing:0.2em;text-transform:uppercase;text-align:left;padding:12px 14px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg2);z-index:10;}
 td{font-size:0.82rem;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.02);color:var(--text);transition:background 0.15s;}
 tr:hover td{background:rgba(255,255,255,0.02);}
 tr:last-child td{border-bottom:none;}
@@ -682,9 +686,10 @@ function renderDashboard(){
       <div class="card-header"><div class="card-title">Actividad reciente</div><span class="card-meta">Tiempo real</span></div>
       <div class="activity">${S.activity.length?S.activity.map(a=>`<div class="act-item"><div class="act-dot" style="background:${a.color}"></div><div class="act-body"><div class="act-text">${a.text}</div><div class="act-time">${a.time}</div></div></div>`).join(''):'<div style="padding:20px 18px;font-family:\'DM Mono\',monospace;font-size:0.6rem;color:var(--muted);">Sin actividad reciente</div>'}</div>
     </div>
-    <div class="card">
-      <div class="card-header"><div class="card-title">Ocupación por hora</div><span class="card-meta">Hoy</span></div>
-      <div class="timeline">${tl}</div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Ocupación por hora</div><span class="card-meta">Hoy</span></div>
+        <div class="timeline">${tl}</div>
+      </div>
     </div>
   </div>`;
 }
@@ -699,8 +704,8 @@ function renderCitas(){
   const barbList=[...new Set(S.barberos.map(b=>b.nombre))];
   const navStyle='background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text);padding:5px 10px;font-family:\'DM Mono\',monospace;font-size:0.62rem;cursor:pointer;';
   const selStyle='background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--muted);padding:5px 10px;font-family:\'DM Mono\',monospace;font-size:0.62rem;';
-  return `<div class="card" style="flex:1;">
-    <div class="card-header" style="flex-wrap:wrap;gap:10px;">
+  return `<div class="card" style="flex:1;display:flex;flex-direction:column;min-height:0;">
+    <div class="card-header" style="flex-wrap:wrap;gap:10px;flex-shrink:0;">
       <div>
         <div class="card-title">Citas · ${_citasFechaVer}${esHoy?' (hoy)':''}</div>
         <div class="card-meta">${citasVer.length} citas · ${citasVer.filter(c=>c.estado==='Completada').length} completadas · ${citasVer.filter(c=>c.estado==='Confirmada').length} confirmadas</div>
@@ -727,8 +732,10 @@ function renderCitas(){
         <button class="btn-sm btn-gold" onclick="openModal('cita')">+ Nueva cita</button>
       </div>
     </div>
-    <table><thead><tr><th>#</th><th>Hora</th><th>Cliente</th><th>Teléfono</th><th>Servicio</th><th>Barbero</th><th>Estado</th><th>Acciones</th></tr></thead>
-    <tbody id="citas-tbody">${renderCitasRows(citasVer)}</tbody></table>
+    <div class="table-wrapper">
+      <table><thead><tr><th>#</th><th>Hora</th><th>Cliente</th><th>Teléfono</th><th>Servicio</th><th>Barbero</th><th>Estado</th><th>Acciones</th></tr></thead>
+      <tbody id="citas-tbody">${renderCitasRows(citasVer)}</tbody></table>
+    </div>
   </div>`;
 }
 function renderCitasRows(citas){
@@ -811,16 +818,18 @@ async function cancelCita(id){
 
 // ── CLIENTES ──
 function renderClientes(){
-  return `<div class="card" style="flex:1;">
-    <div class="card-header">
+  return `<div class="card" style="flex:1;display:flex;flex-direction:column;min-height:0;">
+    <div class="card-header" style="flex-shrink:0;">
       <div class="card-title">Clientes · ${S.clientes.length} registrados</div>
       <div style="display:flex;gap:8px;align-items:center;">
         <div class="search-bar">🔍 <input type="text" id="search-clientes" placeholder="Nombre o teléfono..." oninput="filterClientes()"></div>
         <button class="btn-sm btn-gold" onclick="openModal('cliente')">+ Agregar cliente</button>
       </div>
     </div>
-    <table><thead><tr><th>#</th><th>Nombre</th><th>WhatsApp</th><th>Visitas</th><th>Última visita</th><th>Acciones</th></tr></thead>
-    <tbody id="clientes-tbody">${renderClientesRows(S.clientes)}</tbody></table>
+    <div class="table-wrapper">
+      <table><thead><tr><th>#</th><th>Nombre</th><th>WhatsApp</th><th>Visitas</th><th>Última visita</th><th>Acciones</th></tr></thead>
+      <tbody id="clientes-tbody">${renderClientesRows(S.clientes)}</tbody></table>
+    </div>
   </div>`;
 }
 function renderClientesRows(lista){
