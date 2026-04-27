@@ -683,7 +683,7 @@ function renderCitas(){
 function renderCitasRows(citas){
   if(!citas.length)return `<tr><td colspan="8" style="text-align:center;padding:32px;font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);">Sin citas para esta fecha</td></tr>`;
   return citas.map((c,i)=>`<tr>
-    <td style="font-family:'DM Mono',monospace;color:var(--muted);font-size:0.68rem;">${c.id}</td>
+    <td style="font-family:'DM Mono',monospace;color:var(--muted);font-size:0.68rem;">${String(i+1).padStart(2,'0')}</td>
     <td style="font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--gold);font-weight:500;">${fmt12rpt(c.hora)}</td>
     <td style="font-weight:700;">${c.nombre}</td>
     <td style="font-family:'DM Mono',monospace;font-size:0.66rem;color:var(--muted);">${c.tel||'—'}</td>
@@ -779,7 +779,7 @@ function renderClientesRows(lista){
     const visitas=c.visitas||0;
     const notas=c.notas?`<span title="${c.notas}" style="cursor:help;color:var(--muted);">📝</span> `:'';
     return `<tr>
-      <td style="font-family:'DM Mono',monospace;color:var(--muted);font-size:0.68rem;">${c.id}</td>
+      <td style="font-family:'DM Mono',monospace;color:var(--muted);font-size:0.68rem;">${String(i+1).padStart(2,'0')}</td>
       <td style="font-weight:700;">${notas}${c.nombre}</td>
       <td style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--gold);">${c.telefono}</td>
       <td><span class="badge ${visitas>5?'badge-green':visitas>0?'badge-blue':'badge-gray'}">${visitas} ${visitas===1?'visita':'visitas'}</span></td>
@@ -1741,15 +1741,13 @@ async function saveConfigBot(){
   const modo=S.shopData?._recordatorio_modo_ui||S.shopData?.recordatorio_modo||'turnos';
   const n=parseInt(document.getElementById('bot-turnos-n').value)||2;
   const minutos=parseInt(document.getElementById('bot-minutos-n')?.value)||30;
-  const tiempo1=parseInt(document.getElementById('bot-tiempo-1')?.value)||60;
-  const tiempo2=parseInt(document.getElementById('bot-tiempo-2')?.value)||20;
   const msg=document.getElementById('bot-msg-tpl').value.trim();
   if(!msg){toast('El mensaje no puede estar vacío','error');return;}
   try{
-    const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/update_shop_config`,{method:'POST',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify({p_shop_id:S.shopId,p_recordatorio_turnos:n,p_recordatorio_msg:msg,p_recordatorio_modo:modo,p_recordatorio_minutos:minutos,p_recordatorio_tiempo_1:tiempo1,p_recordatorio_tiempo_2:tiempo2})});
+    const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/update_shop_config`,{method:'POST',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify({p_shop_id:S.shopId,p_recordatorio_turnos:n,p_recordatorio_msg:msg,p_recordatorio_modo:modo,p_recordatorio_minutos:minutos})});
     const data=await r.json();
     if(data&&data.error){toast('Error: '+data.error,'error');return;}
-    Object.assign(S.shopData,{recordatorio_turnos:n,recordatorio_msg:msg,recordatorio_modo:modo,recordatorio_minutos:minutos,recordatorio_tiempo_1:tiempo1,recordatorio_tiempo_2:tiempo2});
+    Object.assign(S.shopData,{recordatorio_turnos:n,recordatorio_msg:msg,recordatorio_modo:modo,recordatorio_minutos:minutos});
     toast('Recordatorio guardado ✓');
   }catch(e){toast('Error: '+e.message,'error');}
 }
@@ -1774,41 +1772,42 @@ async function cargarLogsRecordatorios(){
   if(!el)return;
   el.innerHTML='<div style="text-align:center;color:var(--muted);font-size:0.72rem;padding:20px;">Cargando...</div>';
   try{
-    // Traer recordatorios con datos de la cita via join embebido de PostgREST
-    const rows=await sbGet('recordatorios_enviados','shop_id=eq.'+S.shopId+'&order=created_at.desc&limit=30&select=id,tipo,cita_id,created_at,citas(nombre,servicio,barbero,hora,fecha)');
-    if(!rows||!rows.length){el.innerHTML='<div style="text-align:center;color:var(--muted);font-size:0.72rem;padding:20px;">No hay registros aún.</div>';return;}
-    const tipoLabel={'rec_1h_antes':'1h antes','rec_20min_antes':'20 min antes','turno_proximo':'Turno próximo'};
+    const rows=await sbGet('recordatorios_enviados','shop_id=eq.'+S.shopId+'&order=enviado_at.desc&limit=30&select=*');
+    if(!rows.length){
+      // Diagnóstico: busca sin filtro de shop para saber si hay algún registro en la tabla
+      const total=await sbGet('recordatorios_enviados','limit=1&select=id,shop_id').catch(()=>[]);
+      const hint=total.length
+        ? `<div style="font-size:0.6rem;color:#f0a500;margin-top:6px;">⚠ La tabla tiene registros pero ninguno con este shop_id.<br>shop_id consultado: <code style="color:var(--text);">${S.shopId}</code></div>`
+        : `<div style="font-size:0.6rem;color:var(--muted);margin-top:6px;">La tabla <code>recordatorios_enviados</code> está vacía. Verifica que el cron esté activo.</div>`;
+      el.innerHTML=`<div style="text-align:center;color:var(--muted);font-size:0.72rem;padding:20px;">No hay registros aún.${hint}</div>`;
+      return;
+    }
+    const tipoLabel={'rec_1h_antes':'1h antes','rec_20min_antes':'20min antes','turno_proximo':'Turno próximo'};
     const tipoColor={'rec_1h_antes':'var(--gold)','rec_20min_antes':'#f0a500','turno_proximo':'var(--green)'};
-    function fmt12(h){if(!h)return'—';const[hh,mm]=h.split(':');let n=parseInt(hh);const m=mm?.substring(0,2)||'00';const ap=n>=12?'PM':'AM';if(n===0)n=12;else if(n>12)n-=12;return n+':'+m+' '+ap;}
     el.innerHTML=`
       <div style="overflow-x:auto;">
         <table style="width:100%;border-collapse:collapse;font-size:0.68rem;">
           <thead>
             <tr style="border-bottom:1px solid var(--border);">
-              ${['Tipo','Cliente','Servicio','Hora cita','Enviado'].map(h=>`<th style="padding:6px 10px;text-align:left;font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);letter-spacing:0.1em;">${h}</th>`).join('')}
+              ${['Tipo','Cita ID','Fecha/Hora'].map(h=>`<th style="padding:6px 10px;text-align:left;font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);letter-spacing:0.1em;">${h}</th>`).join('')}
             </tr>
           </thead>
           <tbody>
             ${rows.map(r=>{
               const label=tipoLabel[r.tipo]||r.tipo;
               const color=tipoColor[r.tipo]||'var(--text)';
-              const cita=r.citas||{};
-              const nombre=cita.nombre||'—';
-              const servicio=cita.servicio||'—';
-              const horaCita=cita.hora?fmt12(cita.hora.substring(0,5)):'—';
-              const enviado=r.created_at?new Date(r.created_at).toLocaleDateString('es-DO',{month:'short',day:'numeric'})+' '+new Date(r.created_at).toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit'}):'—';
+              const ts=r.enviado_at||r.created_at;
+              const fecha=ts?new Date(ts).toLocaleDateString('es-DO',{month:'short',day:'numeric'})+' '+new Date(ts).toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit'}):'—';
               return `<tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
-                <td style="padding:7px 10px;"><span style="color:${color};font-family:'DM Mono',monospace;font-size:0.6rem;font-weight:600;">${label}</span></td>
-                <td style="padding:7px 10px;color:var(--text);font-size:0.7rem;">${nombre}</td>
-                <td style="padding:7px 10px;color:var(--muted);font-size:0.65rem;">${servicio}</td>
-                <td style="padding:7px 10px;color:var(--gold);font-family:'DM Mono',monospace;font-size:0.62rem;">${horaCita}</td>
-                <td style="padding:7px 10px;color:var(--muted);font-size:0.62rem;">${enviado}</td>
+                <td style="padding:7px 10px;"><span style="color:${color};font-family:'DM Mono',monospace;font-size:0.6rem;">${label}</span></td>
+                <td style="padding:7px 10px;color:var(--muted);font-family:'DM Mono',monospace;font-size:0.6rem;">${r.cita_id||'-'}</td>
+                <td style="padding:7px 10px;color:var(--muted);">${fecha}</td>
               </tr>`;
             }).join('')}
           </tbody>
         </table>
       </div>`;
-  }catch(e){el.innerHTML='<div style="color:var(--red);font-size:0.72rem;padding:12px;">Error: '+e.message+'</div>';}
+  }catch(e){el.innerHTML='<div style="color:var(--red);font-size:0.72rem;padding:12px;">Error al cargar: '+e.message+'</div>';}
 }
 
 // ── PG_CRON STATUS ──
@@ -1860,7 +1859,7 @@ WHERE command LIKE '%trigger-recordatorios%';</pre>
   'trigger-recordatorios',
   '*/15 * * * *',
   $$SELECT net.http_post(
-    url := 'https://uoagtrzjxsavtlzpltfk.supabase.co/functions/v1/trigger-recordatorios',
+    url := '${SUPABASE_URL}/functions/v1/trigger-recordatorios',
     headers := '{"Content-Type":"application/json"}'::jsonb,
     body := '{}'::jsonb
   )$$
