@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AuraOS — Panel Admin</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Syne:wght@700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -17,7 +17,7 @@
 html{font-size:16px;}
 @media(max-width:1440px){html{font-size:15px;}}
 @media(max-width:1200px){html{font-size:14px;}}
-body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;overflow:hidden;margin:0;}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;overflow:hidden;margin:0;}
 .app{display:grid;grid-template-columns:240px 1fr;height:100vh;}
 aside{background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-right:1px solid var(--glass-border);display:flex;flex-direction:column;overflow-y:auto;height:100vh;z-index:100;}
 .aside-brand{padding:20px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
@@ -90,11 +90,11 @@ th{font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--muted);letter-sp
 td{font-size:0.85rem;padding:12px 18px;border-bottom:1px solid rgba(255,255,255,0.02);color:var(--text);transition:background 0.2s;}
 tr:hover td{background:rgba(255,255,255,0.02);}
 tr:last-child td{border-bottom:none;}
-.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;font-family:'DM Mono',monospace;font-size:0.48rem;letter-spacing:0.1em;text-transform:uppercase;}
-.badge-green{background:rgba(62,207,142,0.08);color:var(--green);border:1px solid rgba(62,207,142,0.18);}
-.badge-gold{background:rgba(201,168,76,0.08);color:var(--gold);border:1px solid rgba(201,168,76,0.18);}
-.badge-red{background:rgba(248,113,113,0.08);color:var(--red);border:1px solid rgba(248,113,113,0.18);}
-.badge-blue{background:rgba(96,165,250,0.08);color:var(--blue);border:1px solid rgba(96,165,250,0.18);}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;font-family:'Outfit',sans-serif;font-size:0.65rem;font-weight:700;text-transform:uppercase;border-radius:20px;letter-spacing:0.02em;}
+.badge-green{background:rgba(62,207,142,0.12);color:var(--green);border:1px solid rgba(62,207,142,0.2);}
+.badge-gold{background:rgba(201,168,76,0.12);color:var(--gold);border:1px solid rgba(201,168,76,0.25);}
+.badge-red{background:rgba(248,113,113,0.12);color:var(--red);border:1px solid rgba(248,113,113,0.25);}
+.badge-blue{background:rgba(96,165,250,0.12);color:var(--blue);border:1px solid rgba(96,165,250,0.25);}
 .badge-dot{width:4px;height:4px;border-radius:50%;background:currentColor;}
 .row-actions{display:flex;gap:4px;}
 .ra-btn{padding:4px 10px;font-family:'DM Mono',monospace;font-size:0.44rem;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);text-transform:uppercase;transition:all 0.15s;}
@@ -106,19 +106,8 @@ tr:last-child td{border-bottom:none;}
 .barber-card{background:var(--bg2);border:1px solid var(--border);padding:20px;transition:border-color 0.2s;}
 .barber-card:hover{border-color:rgba(255,255,255,0.1);}
 .barber-card.inactive{opacity:0.5;}
-.barber-avatar-lg{width:48px;height:48px;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.2);display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:800;color:var(--gold);margin-bottom:12px;}
-.toggle-switch{position:relative;width:40px;height:22px;flex-shrink:0;}
-.toggle-switch input{opacity:0;width:0;height:0;}
-.toggle-slider{position:absolute;cursor:pointer;inset:0;background:rgba(255,255,255,0.1);border:1px solid var(--border);transition:0.3s;border-radius:22px;}
-.toggle-slider:before{position:absolute;content:"";height:16px;width:16px;left:2px;bottom:2px;background:var(--muted);transition:0.3s;border-radius:50%;}
-input:checked+.toggle-slider{background:rgba(62,207,142,0.2);border-color:rgba(62,207,142,0.4);}
-input:checked+.toggle-slider:before{transform:translateX(18px);background:var(--green);}
-.chip-active{padding:4px 10px;font-family:'DM Mono',monospace;font-size:0.48rem;text-transform:uppercase;background:rgba(62,207,142,0.08);color:var(--green);border:1px solid rgba(62,207,142,0.15);}
-.chip-off{padding:4px 10px;font-family:'DM Mono',monospace;font-size:0.48rem;text-transform:uppercase;background:rgba(255,255,255,0.03);color:var(--muted);border:1px solid var(--border);}
-/* BARBER PROGRESS */
-.barber-row{padding:12px 18px;display:grid;grid-template-columns:24px 1fr auto;gap:12px;align-items:center;border-bottom:1px solid var(--border);}
-.barber-row:last-child{border-bottom:none;}
-.barber-avatar{width:24px;height:24px;background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.2);display:flex;align-items:center;justify-content:center;font-size:0.55rem;font-weight:700;color:var(--gold);}
+.barber-avatar-lg{width:56px;height:56px;background:var(--bg3);border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:800;color:var(--gold);margin-bottom:12px;border-radius:18px;}
+.barber-avatar{width:28px;height:28px;background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.2);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:800;color:var(--gold);border-radius:8px;}
 .barber-info{display:flex;flex-direction:column;gap:4px;}
 .barber-progress{height:2px;flex:1;background:rgba(255,255,255,0.06);overflow:hidden;}
 .barber-progress-fill{height:100%;background:var(--gold);box-shadow:0 0 6px var(--gold);transition:width 1s;}
@@ -153,8 +142,9 @@ input:checked+.toggle-slider:before{transform:translateX(18px);background:var(--
 .toast.success{border-color:rgba(62,207,142,0.3);color:var(--green);}
 .toast.error{border-color:rgba(248,113,113,0.3);color:var(--red);}
 /* SEARCH */
-.search-bar{display:flex;align-items:center;gap:8px;padding:6px 12px;background:rgba(255,255,255,0.03);border:1px solid var(--border);}
-.search-bar input{background:transparent;border:none;color:var(--text);font-family:'DM Mono',monospace;font-size:0.72rem;outline:none;width:200px;}
+.search-bar{display:flex;align-items:center;gap:10px;padding:10px 18px;background:var(--bg3);border:1px solid var(--border);border-radius:30px;transition:all 0.3s var(--bez);box-shadow:inset 0 2px 4px rgba(0,0,0,0.1);}
+.search-bar:focus-within{border-color:var(--gold);box-shadow:0 0 0 4px rgba(201,168,76,0.1), inset 0 2px 4px rgba(0,0,0,0.1);}
+.search-bar input{background:transparent;border:none;color:var(--text);font-family:'Outfit',sans-serif;font-size:0.85rem;outline:none;width:240px;}
 .search-bar input::placeholder{color:var(--muted);}
 /* ACTIVITY */
 .activity{padding:8px 0;max-height:260px;overflow-y:auto;}
@@ -174,7 +164,13 @@ input:checked+.toggle-slider:before{transform:translateX(18px);background:var(--
 .qa-btn{padding:14px;border:1px solid var(--border);background:rgba(255,255,255,0.02);cursor:pointer;transition:all 0.15s;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;}
 .qa-btn:hover{border-color:rgba(255,255,255,0.12);background:rgba(255,255,255,0.04);}
 .qa-icon{font-size:1.2rem;}
-.qa-label{font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--muted);letter-spacing:0.14em;text-transform:uppercase;}
+.qa-label{font-family:'Outfit',sans-serif;font-size:0.6rem;color:var(--muted);letter-spacing:0.04em;text-transform:uppercase;font-weight:600;}
+
+/* SEGMENTED CONTROL */
+.segmented-control{display:flex;background:var(--bg3);padding:3px;border-radius:10px;border:1px solid var(--border);gap:2px;}
+.seg-btn{flex:1;border:none;background:none;color:var(--muted);font-family:'Outfit',sans-serif;font-size:0.7rem;font-weight:600;padding:6px 12px;cursor:pointer;border-radius:8px;transition:all 0.2s var(--bez);white-space:nowrap;}
+.seg-btn:hover{color:var(--text);}
+.seg-btn.active{background:rgba(255,255,255,0.08);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,0.2);}
 
 /* SKELETONS */
 .skeleton{background:linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%);background-size:200% 100%;animation:loading 1.5s infinite var(--bez);}
@@ -703,41 +699,58 @@ function renderCitas(){
   const esHoy=_citasFechaVer===hoy;
   const citasVer=_getCitasVer();
   const barbList=[...new Set(S.barberos.map(b=>b.nombre))];
-  const navStyle='background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text);padding:5px 10px;font-family:\'DM Mono\',monospace;font-size:0.62rem;cursor:pointer;';
-  const selStyle='background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--muted);padding:5px 10px;font-family:\'DM Mono\',monospace;font-size:0.62rem;';
-  return `<div class="card" style="flex:1;display:flex;flex-direction:column;min-height:0;">
-    <div class="card-header" style="flex-wrap:wrap;gap:10px;flex-shrink:0;">
+  const navStyle='background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px 14px;font-family:\'Outfit\',sans-serif;font-size:0.75rem;font-weight:600;cursor:pointer;border-radius:10px;';
+  return `<div class="card" style="flex:1;display:flex;flex-direction:column;min-height:0;border:none;background:rgba(255,255,255,0.01);">
+    <div class="card-header" style="flex-wrap:wrap;gap:20px;padding:24px;border-bottom:none;background:transparent;">
       <div>
-        <div class="card-title">Citas · ${_citasFechaVer}${esHoy?' (hoy)':''}</div>
-        <div class="card-meta">${citasVer.length} citas · ${citasVer.filter(c=>c.estado==='Completada').length} completadas · ${citasVer.filter(c=>c.estado==='Confirmada').length} confirmadas</div>
+        <div class="page-title" style="font-size:1.6rem;margin-bottom:4px;">Citas de hoy</div>
+        <div class="card-meta" style="font-size:0.7rem;letter-spacing:0;">${citasVer.length} citas registradas para este día</div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <div style="display:flex;align-items:center;gap:4px;">
-          <button style="${navStyle}" onclick="cambiarFechaCitas(-1)">◀</button>
-          <input type="date" id="fecha-citas-nav" value="${_citasFechaVer}" onchange="irFechaCitas(this.value)" style="${navStyle}padding:4px 8px;">
-          <button style="${navStyle}" onclick="cambiarFechaCitas(1)">▶</button>
-          ${!esHoy?`<button style="${navStyle}color:var(--gold);border-color:rgba(201,168,76,0.3);" onclick="irFechaCitas('${hoy}')">Hoy</button>`:''}
-        </div>
-        <select id="filter-barbero" onchange="filterCitas()" style="${selStyle}">
-          <option value="">Todos los barberos</option>
-          ${barbList.map(b=>`<option value="${b}" ${_citasBarberoFiltro===b?'selected':''}>${b}</option>`).join('')}
-        </select>
-        <select id="filter-estado" onchange="filterCitas()" style="${selStyle}">
-          <option value="">Todos los estados</option>
-          <option value="Confirmada" ${_citasEstadoFiltro==='Confirmada'?'selected':''}>Confirmada</option>
-          <option value="Completada" ${_citasEstadoFiltro==='Completada'?'selected':''}>Completada</option>
-          <option value="Cancelada" ${_citasEstadoFiltro==='Cancelada'?'selected':''}>Cancelada</option>
-          <option value="Pendiente" ${_citasEstadoFiltro==='Pendiente'?'selected':''}>Pendiente</option>
-        </select>
-        <div class="search-bar">🔍 <input type="text" id="search-citas" placeholder="Buscar..." oninput="filterCitas()"></div>
-        <button class="btn-sm btn-gold" onclick="openModal('cita')">+ Nueva cita</button>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-left:auto;">
+        <div class="search-bar">🔍 <input type="text" id="search-citas" placeholder="Buscar cliente..." oninput="filterCitas()"></div>
+        <button class="btn-sm btn-gold" onclick="openModal('cita')" style="padding:12px 24px;">+ Nueva cita</button>
       </div>
     </div>
-    <div class="table-wrapper">
-      <table><thead><tr><th>#</th><th>Hora</th><th>Cliente</th><th>Teléfono</th><th>Servicio</th><th>Barbero</th><th>Estado</th><th>Acciones</th></tr></thead>
-      <tbody id="citas-tbody">${renderCitasRows(citasVer)}</tbody></table>
+    
+    <div style="padding:0 24px 16px;display:flex;gap:20px;align-items:center;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:8px;background:var(--bg3);padding:4px;border-radius:12px;border:1px solid var(--border);">
+        <button style="background:none;border:none;color:var(--text);cursor:pointer;padding:6px 10px;" onclick="cambiarFechaCitas(-1)">◀</button>
+        <input type="date" id="fecha-citas-nav" value="${_citasFechaVer}" onchange="irFechaCitas(this.value)" style="background:none;border:none;color:var(--text);font-family:'Outfit',sans-serif;font-size:0.8rem;font-weight:600;outline:none;">
+        <button style="background:none;border:none;color:var(--text);cursor:pointer;padding:6px 10px;" onclick="cambiarFechaCitas(1)">▶</button>
+      </div>
+
+      <div class="segmented-control" id="seg-estado">
+        <button class="seg-btn ${_citasEstadoFiltro===''?'active':''}" onclick="setFilterEstado('',this)">Todas</button>
+        <button class="seg-btn ${_citasEstadoFiltro==='Confirmada'?'active':''}" onclick="setFilterEstado('Confirmada',this)">Confirmadas</button>
+        <button class="seg-btn ${_citasEstadoFiltro==='Completada'?'active':''}" onclick="setFilterEstado('Completada',this)">Listas</button>
+        <button class="seg-btn ${_citasEstadoFiltro==='Cancelada'?'active':''}" onclick="setFilterEstado('Cancelada',this)">Canceladas</button>
+      </div>
+
+      <div class="segmented-control" id="seg-barbero">
+        <button class="seg-btn ${_citasBarberoFiltro===''?'active':''}" onclick="setFilterBarbero('',this)">Todos</button>
+        ${barbList.map(b=>`<button class="seg-btn ${_citasBarberoFiltro===b?'active':''}" onclick="setFilterBarbero('${b}',this)">${b}</button>`).join('')}
+      </div>
+    </div>
+
+    <div class="table-wrapper" style="padding:0 24px;">
+      <table style="background:var(--bg2);border-radius:16px;border:1px solid var(--border);border-bottom:none;">
+        <thead><tr><th>#</th><th>Hora</th><th>Cliente</th><th>Teléfono</th><th>Servicio</th><th>Barbero</th><th>Estado</th><th></th></tr></thead>
+        <tbody id="citas-tbody">${renderCitasRows(citasVer)}</tbody></table>
     </div>
   </div>`;
+}
+
+function setFilterEstado(val,btn){
+  _citasEstadoFiltro=val;
+  btn.parentElement.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  filterCitas();
+}
+function setFilterBarbero(val,btn){
+  _citasBarberoFiltro=val;
+  btn.parentElement.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  filterCitas();
 }
 function renderCitasRows(citas){
   if(!citas.length)return `<tr><td colspan="8" style="text-align:center;padding:32px;font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);">Sin citas para esta fecha</td></tr>`;
