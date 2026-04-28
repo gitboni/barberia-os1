@@ -280,6 +280,11 @@ tr:last-child td{border-bottom:none;}
 .pin-btn:hover{background:rgba(201,168,76,0.12);border-color:rgba(201,168,76,0.3);}
 .pin-btn:active{background:rgba(201,168,76,0.25);}
 @keyframes pdshake{0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-6px);}40%,80%{transform:translateX(6px);}}
+@keyframes pulse-red {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.1); }
+  100% { opacity: 1; transform: scale(1); }
+}
 </style>
 <div id="login-screen" style="display:none;position:fixed;inset:0;background:#0C0C0C;z-index:9999;flex-direction:column;align-items:center;justify-content:center;">
   <div style="text-align:center;margin-bottom:32px;">
@@ -645,8 +650,13 @@ async function loadAll(){
     }catch(_){S._todasCitas=S.citas;}
     // Precargar servicios para que estén listos en reportes
     try{const svcs=await sbGet('servicios','shop_id=eq.'+S.shopId+'&activo=eq.true&order=orden.asc');S.servicios=svcs||[];}catch(_){S.servicios=[];}
-    // FIX: cargar servicios ANTES de renderPage para que reportes tenga los precios
-    await loadServicios().catch(()=>{});
+    // Cargar estados de notificación push (v87)
+    try {
+      const usersApp = await sbGet('usuarios_app', 'shop_id=eq.'+S.shopId+'&push_activo=eq.true&select=barbero_id,push_token');
+      S.pushTokens = {};
+      (usersApp || []).forEach(u => { if(u.barbero_id) S.pushTokens[u.barbero_id] = true; });
+    } catch(e) { S.pushTokens = {}; }
+
     renderPage();
   }catch(e){console.warn(e);toast('Error: '+e.message,'error');}
 }
@@ -1132,7 +1142,16 @@ function renderBarberos(){
           <span class="toggle-slider"></span>
         </label>
       </div>
-      <div style="font-size:1rem;font-weight:800;margin-bottom:4px;">${b.nombre}</div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+        <div style="font-size:1rem;font-weight:800;">${b.nombre}</div>
+        ${(()=>{
+          const hasPush = S.pushTokens && S.pushTokens[b.id];
+          return hasPush 
+            ? `<span title="Notificaciones Push Activas" style="color:var(--green); font-size:0.9rem; cursor:help;">🔔</span>`
+            : `<span title="¡ATENCIÓN! Este barbero no tiene notificaciones activas. Debe abrir la App y aceptar permisos." 
+                 style="color:var(--red); font-size:0.9rem; cursor:help; animation: pulse-red 1.5s infinite;">🔔</span>`;
+        })()}
+      </div>
       <div style="font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);margin-bottom:12px;">${b.citas_hoy} citas hoy · Límite ${b.max_turnos_dia||10}/día · Orden #${b.orden||1}</div>
       <div style="height:2px;background:rgba(255,255,255,0.06);margin-bottom:12px;"><div style="height:100%;background:${b.activo?'var(--gold)':'var(--muted)'};width:${Math.round(b.citas_hoy/maxC*100)}%;transition:width 1s;"></div></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
