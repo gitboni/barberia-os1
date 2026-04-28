@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AuraOS — Panel Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Syne:wght@700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -32,7 +33,7 @@ aside{background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter
 .nav-item{display:flex;align-items:center;gap:12px;padding:12px 16px;font-size:0.85rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all 0.3s var(--bez);border:none;background:none;width:calc(100% - 16px);text-align:left;letter-spacing:0.02em;border-radius:12px;margin:4px 8px;}
 .nav-item:hover{color:var(--text);background:rgba(255,255,255,0.06);transform:translateX(4px);}
 .nav-item.active{color:var(--text);background:rgba(201,168,76,0.12);border-left:3px solid var(--gold);font-weight:700;}
-.nav-icon{font-size:0.9rem;width:16px;text-align:center;}
+.nav-icon{width:18px;height:18px;stroke-width:2px;}
 .nav-badge{margin-left:auto;background:rgba(201,168,76,0.18);color:var(--gold);font-family:'DM Mono',monospace;font-size:0.46rem;padding:2px 6px;}
 .aside-bottom{margin-top:auto;padding:14px;border-top:1px solid var(--border);}
 .barber-mini-item{display:flex;align-items:center;gap:8px;padding:6px 8px;background:rgba(255,255,255,0.02);border:1px solid var(--border);margin-bottom:5px;}
@@ -321,16 +322,16 @@ tr:last-child td{border-bottom:none;}
       <div class="shop-plan-el"><span class="plan-dot"></span><span id="shop-plan-sidebar">Cargando...</span></div>
     </div>
     <div class="nav-section">Principal</div>
-    <button class="nav-item active" onclick="setPage('dashboard',this)"><span class="nav-icon">⬡</span>Dashboard<span class="nav-badge" id="nb-citas">0</span></button>
-    <button class="nav-item" onclick="setPage('citas',this)"><span class="nav-icon">📅</span>Citas del día</button>
-    <button class="nav-item" id="nav-btn-clientes" onclick="setPage('clientes',this)"><span class="nav-icon">👥</span>Clientes</button>
+    <button class="nav-item active" onclick="setPage('dashboard',this)"><i data-lucide="layout-dashboard" class="nav-icon"></i>Dashboard<span class="nav-badge" id="nb-citas">0</span></button>
+    <button class="nav-item" onclick="setPage('citas',this)"><i data-lucide="calendar" class="nav-icon"></i>Citas del día</button>
+    <button class="nav-item" id="nav-btn-clientes" onclick="setPage('clientes',this)"><i data-lucide="users" class="nav-icon"></i>Clientes</button>
     <div class="nav-section">Gestión</div>
-    <button class="nav-item" id="nav-btn-barberos" onclick="setPage('barberos',this)"><span class="nav-icon">✂</span>Barberos</button>
-    <button class="nav-item" id="nav-btn-reportes" onclick="setPage('reportes',this)"><span class="nav-icon">📊</span>Reportes</button>
-    <button class="nav-item" id="nav-btn-bot" onclick="setPage('bot',this)"><span class="nav-icon">💬</span>Bot WhatsApp<span class="nav-badge" style="background:rgba(62,207,142,0.12);color:var(--green)">ON</span></button>
+    <button class="nav-item" id="nav-btn-barberos" onclick="setPage('barberos',this)"><i data-lucide="scissors" class="nav-icon"></i>Barberos</button>
+    <button class="nav-item" id="nav-btn-reportes" onclick="setPage('reportes',this)"><i data-lucide="bar-chart-3" class="nav-icon"></i>Reportes</button>
+    <button class="nav-item" id="nav-btn-bot" onclick="setPage('bot',this)"><i data-lucide="message-square" class="nav-icon"></i>Bot WhatsApp<span class="nav-badge" style="background:rgba(62,207,142,0.12);color:var(--green)">ON</span></button>
     <div class="nav-section">Sistema</div>
-    <button class="nav-item" id="nav-btn-config" onclick="setPage('config',this)"><span class="nav-icon">⚙</span>Configuración</button>
-    <button class="nav-item" onclick="window.open('/sala/'+SHOP_SLUG,'_blank')"><span class="nav-icon">📟</span>Ver Sala →</button>
+    <button class="nav-item" id="nav-btn-config" onclick="setPage('config',this)"><i data-lucide="settings" class="nav-icon"></i>Configuración</button>
+    <button class="nav-item" onclick="window.open('/sala/'+SHOP_SLUG,'_blank')"><i data-lucide="monitor" class="nav-icon"></i>Ver Sala →</button>
     <div class="aside-bottom"><div id="barbers-sidebar"></div></div>
   </aside>
   <main>
@@ -341,8 +342,8 @@ tr:last-child td{border-bottom:none;}
       </div>
       <div class="topbar-right">
         <div class="status-live"><span class="live-dot"></span>SISTEMA ACTIVO</div>
-        <button class="btn-sm btn-dark" onclick="window.open('/sala/'+SHOP_SLUG,'_blank')" title="Abrir pantalla de sala de espera" style="display:flex;align-items:center;gap:6px;">📺 Sala de Espera</button>
-        <button class="btn-sm btn-gold" onclick="openModal('cita')">+ Nueva Cita</button>
+        <button class="btn-sm btn-dark" onclick="window.open('/sala/'+SHOP_SLUG,'_blank')" title="Abrir pantalla de sala de espera" style="display:flex;align-items:center;gap:8px;"><i data-lucide="tv" style="width:14px;height:14px;"></i> Sala de Espera</button>
+        <button class="btn-sm btn-gold" onclick="openModal('cita')"><i data-lucide="plus-circle" style="width:14px;height:14px;"></i> Nueva Cita</button>
       </div>
     </div>
     <div class="content" id="page-content"></div>
@@ -686,6 +687,7 @@ function renderPage(){
   else if(currentPage==='bot'){el.innerHTML=renderBot();setTimeout(initModoRecordatorio,50);}
   else if(currentPage==='config')el.innerHTML=renderConfigPage();
   renderSidebar();updateBarberoSelect();
+  if(window.lucide) lucide.createIcons();
 }
 // ── Features por plan + overrides manuales del superadmin ──
 const PLAN_FEATURES = {
@@ -769,7 +771,7 @@ function renderDashboard(){
     <div class="card">
       <div class="card-header"><div class="card-title">Citas recientes</div><button class="btn-sm btn-dark" onclick="setPage('citas',null)">Ver todas →</button></div>
       <table><thead><tr><th>Hora</th><th>Cliente</th><th>Barbero</th><th>Servicio</th><th>Estado</th><th></th></tr></thead>
-      <tbody>${S.citas.slice(-6).reverse().map(c=>`<tr><td style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--gold)">${fmt12rpt(c.hora)}</td><td style="font-weight:700">${c.nombre}</td><td style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted)">${c.barbero}</td><td style="font-size:0.75rem;color:var(--muted)">${c.servicio}</td><td><span class="badge ${bc(c.estado)}"><span class="badge-dot"></span>${c.estado}</span></td><td><div class="row-actions"><button class="ra-btn" onclick="editCita(${c.id})">✏</button><button class="ra-btn danger" onclick="cancelCita(${c.id})">✕</button></div></td></tr>`).join('')}</tbody></table>
+      <tbody>${S.citas.slice(-6).reverse().map(c=>`<tr><td style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--gold)">${fmt12rpt(c.hora)}</td><td style="font-weight:700">${c.nombre}</td><td style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted)">${c.barbero}</td><td style="font-size:0.75rem;color:var(--muted)">${c.servicio}</td><td><span class="badge ${bc(c.estado)}"><span class="badge-dot"></span>${c.estado}</span></td><td><div class="row-actions"><button class="ra-btn" onclick="editCita(${c.id})" title="Editar"><i data-lucide="edit-3" style="width:12px;height:12px;"></i></button><button class="ra-btn danger" onclick="cancelCita(${c.id})" title="Cancelar"><i data-lucide="trash-2" style="width:12px;height:12px;"></i></button></div></td></tr>`).join('')}</tbody></table>
     </div>
     <div style="display:flex;flex-direction:column;gap:16px;">
       <div class="card">
@@ -803,12 +805,12 @@ function renderDashboard(){
       <div class="card">
         <div class="card-header"><div class="card-title">Acciones rápidas</div></div>
         <div class="quick-actions">
-          <div class="qa-btn" onclick="openModal('cita')"><div class="qa-icon">📅</div><div class="qa-label">+ Cita</div></div>
-          <div class="qa-btn" onclick="openModal('cliente')"><div class="qa-icon">👤</div><div class="qa-label">+ Cliente</div></div>
-          <div class="qa-btn" onclick="setPage('barberos',null)"><div class="qa-icon">✂</div><div class="qa-label">Barberos</div></div>
-          <div class="qa-btn" onclick="window.open('/sala/'+SHOP_SLUG,'_blank')"><div class="qa-icon">📟</div><div class="qa-label">Sala</div></div>
-          <div class="qa-btn" onclick="openModal('config')"><div class="qa-icon">⚙</div><div class="qa-label">Config</div></div>
-          <div class="qa-btn" onclick="setPage('reportes',null)"><div class="qa-icon">📊</div><div class="qa-label">Reporte</div></div>
+          <button class="qa-btn" onclick="openModal('cita')"><i data-lucide="calendar-plus" class="qa-icon" style="color:var(--gold)"></i><div class="qa-label">+ Cita</div></button>
+          <button class="qa-btn" onclick="openModal('cliente')"><i data-lucide="user-plus" class="qa-icon" style="color:var(--blue)"></i><div class="qa-label">+ Cliente</div></button>
+          <button class="qa-btn" onclick="setPage('barberos',null)"><i data-lucide="scissors" class="qa-icon" style="color:var(--green)"></i><div class="qa-label">Barberos</div></button>
+          <button class="qa-btn" onclick="window.open('/sala/'+SHOP_SLUG,'_blank')"><i data-lucide="monitor" class="qa-icon" style="color:var(--purple)"></i><div class="qa-label">Sala</div></button>
+          <button class="qa-btn" onclick="openModal('config')"><i data-lucide="settings" class="qa-icon" style="color:var(--muted)"></i><div class="qa-label">Config</div></button>
+          <button class="qa-btn" onclick="setPage('reportes',null)"><i data-lucide="bar-chart-2" class="qa-icon" style="color:var(--red)"></i><div class="qa-label">Reporte</div></button>
         </div>
       </div>
     </div>
