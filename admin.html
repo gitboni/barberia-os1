@@ -2089,8 +2089,9 @@ async function toggleBotBarbero(el){
 }
 
 // ── Reset contraseña desde admin ────────────────────────────────────────────
+let _resetInfo = { nombre: '', tel: '', pass: '' };
 async function resetPasswordAdmin(tipo, barberoId, nombre, telefono) {
-  if (!confirm(`¿Resetear contraseña de ${nombre}?\n\nSe generará una clave temporal y se mostrará aquí.`)) return;
+  if (!confirm(`¿Resetear contraseña de ${nombre}?\n\nSe generará una clave temporal.`)) return;
   try {
     const tel = (telefono||'').replace(/\D/g,'');
     if (!tel || tel.length < 7) { toast('Este usuario no tiene teléfono registrado', 'error'); return; }
@@ -2103,13 +2104,40 @@ async function resetPasswordAdmin(tipo, barberoId, nombre, telefono) {
     const data = await r.json();
     if (!r.ok || data.error) { toast(data.error || 'Error al resetear', 'error'); return; }
 
-    // Mostrar contraseña generada
-    alert(`✅ Contraseña reseteada para ${nombre}\n\n🔑 Nueva clave temporal:\n\n${data.nueva_pass}\n\nCópiala y entrégala al usuario.\nPuede cambiarla desde Perfil en la app.`);
+    // Guardar info para los botones del modal
+    _resetInfo = { nombre, tel, pass: data.nueva_pass };
+    
+    // Poblar y abrir modal
+    document.getElementById('reset-nombre').textContent = nombre;
+    document.getElementById('reset-pass').textContent = data.nueva_pass;
+    openModal('reset-pass');
+    
     toast('🔑 Contraseña reseteada para ' + nombre, 'success');
   } catch(e) {
     toast('Error: ' + e.message, 'error');
   }
 }
+
+function copyResetPass() {
+  if (!_resetInfo.pass) return;
+  navigator.clipboard.writeText(_resetInfo.pass).then(() => {
+    const btn = document.getElementById('btn-copy-pass');
+    const old = btn.innerHTML;
+    btn.innerHTML = '✅ ¡Copiada!';
+    btn.classList.replace('btn-gold', 'btn-green');
+    setTimeout(() => {
+      btn.innerHTML = old;
+      btn.classList.replace('btn-green', 'btn-gold');
+    }, 2000);
+  });
+}
+
+function sendResetPassWA() {
+  if (!_resetInfo.tel || !_resetInfo.pass) return;
+  const msg = `¡Hola ${_resetInfo.nombre}! Tu contraseña para la App de Barbería ha sido reseteada.\n\n🔑 Tu nueva clave temporal es: *${_resetInfo.pass}*\n\nPuedes cambiarla en cualquier momento desde tu Perfil dentro de la App.`;
+  window.open(`https://wa.me/${_resetInfo.tel}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
 
 async function saveBarberoTel(id){
   const tel=document.getElementById('btel-'+id).value.trim();
@@ -2188,7 +2216,7 @@ async function saveConfig(){
     Object.assign(S.shopData,p);toast('Configuración guardada');closeModal('config');renderPage();
   }catch(e){toast('Error: '+e.message,'error');}
 }
-['cita','barbero','cliente','config'].forEach(t=>{document.getElementById('modal-'+t).addEventListener('click',e=>{if(e.target.id==='modal-'+t)closeModal(t);});});
+['cita','barbero','cliente','config','test-recordatorio','reset-pass'].forEach(t=>{document.getElementById('modal-'+t).addEventListener('click',e=>{if(e.target.id==='modal-'+t)closeModal(t);});});
 
 function updateBarberoSelect(incluirNombre){
   const sel=document.getElementById('m-barbero');if(!sel)return;
@@ -2323,6 +2351,25 @@ initLogin();
         <button class="btn-full btn-cancel" onclick="closeModal('test-recordatorio')">Cancelar</button>
         <button class="btn-full btn-gold" id="test-rec-btn" onclick="enviarRecordatorioPrueba()">📤 Enviar prueba</button>
       </div>
+    </div>
+  </div>
+</div>
+<!-- Modal: Reset Password Result -->
+<div class="modal-overlay" id="modal-reset-pass">
+  <div class="modal" style="max-width:400px; text-align:center;">
+    <div style="font-size:2.5rem; margin-bottom:16px;">🔑</div>
+    <h3 id="reset-title" style="margin-bottom:8px;">Contraseña Reseteada</h3>
+    <div id="reset-nombre" style="font-family:'DM Mono',monospace; font-size:0.6rem; color:var(--gold); margin-bottom:20px; text-transform:uppercase; letter-spacing:0.1em;"></div>
+    
+    <div style="background:var(--bg3); border:1px solid var(--border); padding:20px; border-radius:16px; margin-bottom:24px;">
+      <div style="font-family:'DM Mono',monospace; font-size:0.5rem; color:var(--muted); text-transform:uppercase; margin-bottom:8px; letter-spacing:0.1em;">Nueva clave temporal</div>
+      <div id="reset-pass" style="font-size:2.2rem; font-weight:800; color:var(--text); letter-spacing:0.1em; font-family:'Syne',sans-serif;">XXXXXX</div>
+    </div>
+    
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <button class="btn-full btn-gold" id="btn-copy-pass" onclick="copyResetPass()" style="padding:16px;">📋 Copiar Clave</button>
+      <button class="btn-full btn-dark" id="btn-wa-pass" onclick="sendResetPassWA()" style="padding:16px; display:flex; align-items:center; justify-content:center; gap:8px;">💬 Enviar por WhatsApp</button>
+      <button class="btn-full btn-cancel" onclick="closeModal('reset-pass')" style="margin-top:10px; border:none!important;">Cerrar</button>
     </div>
   </div>
 </div>
