@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AuraOS — SuperAdmin</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
 <style>
 :root{
   --bg:#0C0C0C;--bg2:#141414;--bg3:#1A1A1A;
@@ -64,7 +65,7 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .nav-item{display:flex;align-items:center;gap:12px;padding:12px 18px;cursor:pointer;transition:all 0.3s var(--bez);font-size:0.85rem;font-weight:600;color:var(--muted);white-space:nowrap;position:relative;border-radius:12px;margin:4px 10px;}
 .nav-item:hover{color:var(--text);background:rgba(255,255,255,0.06);transform:translateX(4px);}
 .nav-item.active{color:var(--text);background:rgba(201,168,76,0.12);border-left:3px solid var(--gold);font-weight:700;}
-.nav-item .icon{font-size:1.1rem;width:24px;text-align:center;flex-shrink:0;}
+.nav-item .icon{width:18px;height:18px;stroke-width:2px;flex-shrink:0;}
 .nav-item .badge{margin-left:auto;background:var(--red);color:#fff;font-size:0.42rem;padding:2px 5px;border-radius:10px;animation:badge-pulse 2s ease-in-out infinite;}
 .nav-item .badge.green{background:var(--green);animation:none;}
 @keyframes badge-pulse{0%,100%{opacity:1;}50%{opacity:0.6;}}
@@ -444,29 +445,29 @@ tr:hover td{background:rgba(255,255,255,0.016);}
     <button class="collapse-btn" id="collapseBtn">◂</button>
   </div>
   <div class="nav-section sidebar-text">Principal</div>
-  <div class="nav-item active" data-page="dashboard"><span class="icon">◈</span><span class="sidebar-text">Dashboard</span></div>
-  <div class="nav-item" data-page="solicitudes"><span class="icon">🔔</span><span class="sidebar-text">Solicitudes</span><span class="badge sidebar-text" id="pendingBadge" style="display:none">0</span></div>
-  <div class="nav-item" data-page="shops"><span class="icon">✂</span><span class="sidebar-text">Barberías</span><span class="badge green sidebar-text" id="shopsCount">0</span></div>
-  <div class="nav-item" data-page="grupos"><span class="icon">🏢</span><span class="sidebar-text">Grupos</span><span class="badge sidebar-text" id="gruposCount" style="display:none">0</span></div>
-  <div class="nav-item" data-page="usuarios"><span class="icon">◎</span><span class="sidebar-text">Usuarios</span></div>
-  <div class="nav-item" data-page="barberos"><span class="icon">💈</span><span class="sidebar-text">Barberos</span></div>
-  <div class="nav-item" data-page="clientes-app"><span class="icon">👥</span><span class="sidebar-text">Clientes App</span></div>
+  <div class="nav-item active" data-page="dashboard"><i data-lucide="layout-dashboard" class="icon"></i><span class="sidebar-text">Dashboard</span></div>
+  <div class="nav-item" data-page="solicitudes"><i data-lucide="bell" class="icon"></i><span class="sidebar-text">Solicitudes</span><span class="badge sidebar-text" id="pendingBadge" style="display:none">0</span></div>
+  <div class="nav-item" data-page="shops"><i data-lucide="scissors" class="icon"></i><span class="sidebar-text">Barberías</span><span class="badge green sidebar-text" id="shopsCount">0</span></div>
+  <div class="nav-item" data-page="grupos"><i data-lucide="building-2" class="icon"></i><span class="sidebar-text">Grupos</span><span class="badge sidebar-text" id="gruposCount" style="display:none">0</span></div>
+  <div class="nav-item" data-page="usuarios"><i data-lucide="users" class="icon"></i><span class="sidebar-text">Usuarios</span></div>
+  <div class="nav-item" data-page="barberos"><i data-lucide="user-circle" class="icon"></i><span class="sidebar-text">Barberos</span></div>
+  <div class="nav-item" data-page="clientes-app"><i data-lucide="smartphone" class="icon"></i><span class="sidebar-text">Clientes App</span></div>
   <div class="nav-section sidebar-text">Finanzas</div>
-  <div class="nav-item" data-page="pagos"><span class="icon">$</span><span class="sidebar-text">Pagos</span></div>
-  <div class="nav-item" data-page="facturacion"><span class="icon">≡</span><span class="sidebar-text">Facturación</span></div>
+  <div class="nav-item" data-page="pagos"><i data-lucide="dollar-sign" class="icon"></i><span class="sidebar-text">Pagos</span></div>
+  <div class="nav-item" data-page="facturacion"><i data-lucide="file-text" class="icon"></i><span class="sidebar-text">Facturación</span></div>
   <div class="nav-section sidebar-text">Sistema</div>
-  <div class="nav-item" data-page="citas"><span class="icon">📅</span><span class="sidebar-text">Citas Global</span></div>
-  <div class="nav-item" data-page="simulador"><span class="icon">🧪</span><span class="sidebar-text">Simulador Chat</span></div>
-  <div class="nav-item" data-page="whatsapp"><span class="icon">💬</span><span class="sidebar-text">WhatsApp</span></div>
-  <div class="nav-item" data-page="leads"><span class="icon">📋</span><span class="sidebar-text">Leads</span></div>
-  <div class="nav-item" data-page="landing"><span class="icon">🌐</span><span class="sidebar-text">Landing Page</span></div>
-  <div class="nav-item" data-page="analytics"><span class="icon">📈</span><span class="sidebar-text">Analytics</span></div>
-  <div class="nav-item" data-page="reportes"><span class="icon">📊</span><span class="sidebar-text">Reportes</span></div>
-  <div class="nav-item" data-page="seguridad"><span class="icon">🔒</span><span class="sidebar-text">Seguridad</span></div>
-  <div class="nav-item" data-page="logs"><span class="icon">▸</span><span class="sidebar-text">Logs</span></div>
-  <div class="nav-item" data-page="config"><span class="icon">⊙</span><span class="sidebar-text">Configuración</span></div>
-  <div class="nav-item" data-page="estado"><span class="icon">🛰</span><span class="sidebar-text">Estado Sistema</span></div>
-  <div class="nav-item" data-page="broadcast"><span class="icon">📣</span><span class="sidebar-text">Broadcast</span></div>
+  <div class="nav-item" data-page="citas"><i data-lucide="calendar" class="icon"></i><span class="sidebar-text">Citas Global</span></div>
+  <div class="nav-item" data-page="simulador"><i data-lucide="flask-conical" class="icon"></i><span class="sidebar-text">Simulador Chat</span></div>
+  <div class="nav-item" data-page="whatsapp"><i data-lucide="message-square" class="icon"></i><span class="sidebar-text">WhatsApp</span></div>
+  <div class="nav-item" data-page="leads"><i data-lucide="list-checks" class="icon"></i><span class="sidebar-text">Leads</span></div>
+  <div class="nav-item" data-page="landing"><i data-lucide="globe" class="icon"></i><span class="sidebar-text">Landing Page</span></div>
+  <div class="nav-item" data-page="analytics"><i data-lucide="line-chart" class="icon"></i><span class="sidebar-text">Analytics</span></div>
+  <div class="nav-item" data-page="reportes"><i data-lucide="bar-chart-3" class="icon"></i><span class="sidebar-text">Reportes</span></div>
+  <div class="nav-item" data-page="seguridad"><i data-lucide="lock" class="icon"></i><span class="sidebar-text">Seguridad</span></div>
+  <div class="nav-item" data-page="logs"><i data-lucide="terminal" class="icon"></i><span class="sidebar-text">Logs</span></div>
+  <div class="nav-item" data-page="config"><i data-lucide="settings" class="icon"></i><span class="sidebar-text">Configuración</span></div>
+  <div class="nav-item" data-page="estado"><i data-lucide="activity" class="icon"></i><span class="sidebar-text">Estado Sistema</span></div>
+  <div class="nav-item" data-page="broadcast"><i data-lucide="megaphone" class="icon"></i><span class="sidebar-text">Broadcast</span></div>
   <div class="sidebar-footer">
     <div class="admin-avatar sidebar-text" id="adminAvatar">S</div>
     <div class="admin-info sidebar-text">Sesión activa</div>
@@ -490,7 +491,7 @@ tr:hover td{background:rgba(255,255,255,0.016);}
         <span id="refreshLabel">—</span>
       </div>
       <div class="notif-bell" id="notifBell">
-        🔔<span class="notif-count" id="notifCount" style="display:none">0</span>
+        <i data-lucide="bell" style="width:18px;height:18px;"></i><span class="notif-count" id="notifCount" style="display:none">0</span>
         <div class="notif-dropdown" id="notifDropdown">
           <div class="notif-header">Notificaciones<span class="notif-mark-read" id="markReadBtn">Marcar leídas</span></div>
           <div id="notifList"><div style="padding:16px;font-size:0.58rem;color:var(--muted);">Sin notificaciones</div></div>
@@ -498,7 +499,7 @@ tr:hover td{background:rgba(255,255,255,0.016);}
       </div>
       <div class="topbar-search" style="position:relative;max-width:320px;flex:1;">
         <div class="search-bar" style="display:flex;align-items:center;gap:10px;padding:8px 18px;background:var(--bg3);border:1px solid var(--border);border-radius:30px;transition:all 0.3s var(--bez);">
-          <span style="font-size:0.8rem;opacity:0.5;">🔍</span>
+          <i data-lucide="search" style="width:14px;height:14px;opacity:0.5;"></i>
           <input id="globalSearchInput" type="text" placeholder="Buscar barbería o cliente..." 
             style="width:100%;background:transparent;border:none;color:var(--text);font-size:0.8rem;font-family:'Outfit',sans-serif;outline:none;"
             oninput="clearTimeout(_searchTimeout);_searchTimeout=setTimeout(searchGlobal,350);"
@@ -506,7 +507,7 @@ tr:hover td{background:rgba(255,255,255,0.016);}
         </div>
         <div id="globalSearchResults" style="display:none;position:absolute;top:110%;left:0;right:0;z-index:200;background:var(--bg2);border:1px solid var(--border2);border-radius:16px;max-height:400px;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,0.6);margin-top:2px;backdrop-filter:blur(20px);"></div>
       </div>
-      <button id="themeToggle" onclick="toggleTheme()" style="background:none;border:1px solid var(--border);color:var(--muted);width:28px;height:28px;cursor:pointer;font-size:0.9rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;" title="Cambiar tema">☀️</button>
+      <button id="themeToggle" onclick="toggleTheme()" style="background:none;border:1px solid var(--border);color:var(--muted);width:28px;height:28px;cursor:pointer;font-size:0.9rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;" title="Cambiar tema"><i data-lucide="sun" id="themeIcon" style="width:16px;height:16px;"></i></button>
       <div style="display:flex;align-items:center;gap:5px;font-size:0.56rem;color:var(--muted);">
         <div class="status-dot"></div><span>ONLINE</span>
       </div>
@@ -522,28 +523,28 @@ tr:hover td{background:rgba(255,255,255,0.016);}
       </div>
       <div class="kpi-grid">
         <div class="kpi-card" style="--accent-color:var(--gold)">
-          <div class="kpi-icon">🏪</div>
+          <i data-lucide="store" class="kpi-icon"></i>
           <div class="kpi-label">Barberías Totales</div>
           <div class="kpi-value" id="kpi-shops">—</div>
           <div class="kpi-sub">Registradas en el sistema</div>
           <div class="kpi-trend up" id="kpi-shops-trend"></div>
         </div>
         <div class="kpi-card" style="--accent-color:var(--green)">
-          <div class="kpi-icon">💰</div>
+          <i data-lucide="dollar-sign" class="kpi-icon"></i>
           <div class="kpi-label">MRR</div>
           <div class="kpi-value" id="kpi-mrr">—</div>
           <div class="kpi-sub">Ingresos mensuales recurrentes</div>
           <div class="kpi-trend up">↑ Creciendo</div>
         </div>
         <div class="kpi-card" style="--accent-color:var(--blue)">
-          <div class="kpi-icon">📅</div>
+          <i data-lucide="calendar" class="kpi-icon"></i>
           <div class="kpi-label">Citas Hoy (Global)</div>
           <div class="kpi-value" id="kpi-citas">—</div>
           <div class="kpi-sub">En todas las barberías</div>
           <div class="kpi-trend up" id="kpi-citas-trend">↑ Sistema activo</div>
         </div>
         <div class="kpi-card" style="--accent-color:var(--orange)">
-          <div class="kpi-icon">📋</div>
+          <i data-lucide="file-text" class="kpi-icon"></i>
           <div class="kpi-label">Solicitudes Pendientes</div>
           <div class="kpi-value" id="kpi-pending">—</div>
           <div class="kpi-sub">Esperando aprobación</div>
@@ -552,25 +553,25 @@ tr:hover td{background:rgba(255,255,255,0.016);}
       </div>
       <div class="kpi-grid" style="margin-bottom:16px;">
         <div class="kpi-card" style="--accent-color:#8B5CF6">
-          <div class="kpi-icon">👥</div>
+          <i data-lucide="users" class="kpi-icon"></i>
           <div class="kpi-label">Clientes Únicos</div>
           <div class="kpi-value" id="kpi-clientes">—</div>
           <div class="kpi-sub">Total registrados</div>
         </div>
         <div class="kpi-card" style="--accent-color:var(--red)">
-          <div class="kpi-icon">🚫</div>
+          <i data-lucide="ban" class="kpi-icon"></i>
           <div class="kpi-label">No-Shows Hoy</div>
           <div class="kpi-value" id="kpi-noshows">—</div>
           <div class="kpi-sub">Clientes ausentes</div>
         </div>
         <div class="kpi-card" style="--accent-color:var(--green)">
-          <div class="kpi-icon">✅</div>
+          <i data-lucide="check-circle-2" class="kpi-icon"></i>
           <div class="kpi-label">Tasa Completadas</div>
           <div class="kpi-value" id="kpi-tasa">—</div>
           <div class="kpi-sub">De citas de hoy</div>
         </div>
         <div class="kpi-card" style="--accent-color:var(--gold)">
-          <div class="kpi-icon">✂️</div>
+          <i data-lucide="scissors" class="kpi-icon"></i>
           <div class="kpi-label">Barberos Activos</div>
           <div class="kpi-value" id="kpi-barberos-activos">—</div>
           <div class="kpi-sub">En todas las barberías</div>
@@ -1652,6 +1653,7 @@ function showPage(id, el) {
     grupos:loadGrupos
   };
   if(loaders[id]) loaders[id]();
+  if(window.lucide) setTimeout(lucide.createIcons, 100);
 }
 document.getElementById('verTodasBtn').addEventListener('click',()=>showPage('shops'));
 
@@ -1829,6 +1831,7 @@ function renderDashboard() {
   renderShopRankings();
   renderMrrHistorico(shops);
   renderTrialsPorVencer(shops);
+  if(window.lucide) lucide.createIcons();
 }
 
 function renderShopRankings() {
@@ -2308,6 +2311,7 @@ function _renderShopsTable(shops, barberos=[]) {
       </div></td>
     </tr>`;
   }).join('');
+  if(window.lucide) lucide.createIcons();
 }
 
 // ── v86: Multi-sucursal — Vista consolidada por grupo ──────────────────────
