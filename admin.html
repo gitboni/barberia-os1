@@ -1301,6 +1301,10 @@ async function eliminarBloqueoBarbero(id){
   }catch(e){toast('Error: '+e.message,'error');}
 }
 
+// ── REPORTES ──
+let _reporteRango = 'mes';
+function fmt12rpt(h){ if(!h)return'—'; const[hh,mm]=(h+':00').split(':').map(Number),ap=hh>=12?'PM':'AM',h12=hh===0?12:hh>12?hh-12:hh; return h12+':'+(mm<10?'0':'')+mm+' '+ap; }
+
 function renderReportes(){
   const fecha = new Date().toLocaleDateString('es-DO', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
   const todasCitas = S._todasCitas || S.citas;
@@ -1347,54 +1351,111 @@ function renderReportes(){
     return (h * 60 + m) > ahoraMin;
   }).sort((a,b) => a.hora.localeCompare(b.hora)).slice(0,3);
 
+  return `<div style="display:flex;flex-direction:column;gap:20px;">
+    
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:0.7rem;color:var(--gold);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;">Analítica de Negocio</div>
+        <div class="page-title" style="font-size:1.8rem;">Reporte Ejecutivo</div>
+      </div>
+      <div class="segmented-control">
+        <button class="seg-btn ${_reporteRango==='hoy'?'active':''}" onclick="_reporteRango='hoy';renderPage()">Hoy</button>
+        <button class="seg-btn ${_reporteRango==='semana'?'active':''}" onclick="_reporteRango='semana';renderPage()">Semana</button>
+        <button class="seg-btn ${_reporteRango==='mes'?'active':''}" onclick="_reporteRango='mes';renderPage()">Mes</button>
+      </div>
     </div>
 
-    <div class="two-col" style="margin-bottom:20px;">
-      <div class="card" style="border-left:4px solid var(--green); background:rgba(62,207,142,0.02);">
-        <div class="card-header"><div class="card-title">🟢 Monitor en Vivo</div><span class="card-meta">Tiempo real</span></div>
-        <div style="padding:16px;">
-          <div style="font-family:'DM Mono',monospace; font-size:0.5rem; color:var(--muted); text-transform:uppercase; margin-bottom:10px;">EN LA SILLA AHORA</div>
-          ${enCurso.length ? enCurso.map(c => `<div style="display:flex; justify-content:space-between; margin-bottom:12px; background:rgba(255,255,255,0.03); padding:10px; border-radius:8px; border:1px solid rgba(62,207,142,0.2);">
-            <div><div style="font-weight:700; font-size:0.85rem;">${c.nombre}</div><div style="font-size:0.65rem; color:var(--muted);">${c.servicio} · ${c.barbero}</div></div>
-            <div style="text-align:right;"><div style="color:var(--green); font-family:'DM Mono',monospace; font-size:0.7rem; font-weight:700;">EN CURSO</div><div style="font-size:0.6rem; color:var(--muted);">${fmt12rpt(c.hora)}</div></div>
-          </div>`).join('') : '<div style="color:var(--muted); font-size:0.7rem; margin-bottom:15px;">Nadie en servicio ahora mismo</div>'}
-          
-          <div style="font-family:'DM Mono',monospace; font-size:0.5rem; color:var(--muted); text-transform:uppercase; margin-bottom:10px; border-top:1px solid var(--border); padding-top:15px;">PRÓXIMOS TURNOS</div>
-          ${proximas.length ? proximas.map(c => `<div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-            <div style="font-size:0.75rem;"><span style="color:var(--gold); font-family:'DM Mono',monospace;">${fmt12rpt(c.hora)}</span> · ${c.nombre}</div>
-            <div style="font-size:0.65rem; color:var(--muted);">${c.barbero}</div>
-          </div>`).join('') : '<div style="color:var(--muted); font-size:0.7rem;">No hay citas próximas</div>'}
+    <div class="stats-row">
+      <div class="stat-card c-gold">
+        <div class="stat-val gold">$${ingresos.toLocaleString()}</div>
+        <div class="stat-lbl">Ingresos Brutos</div>
+        <div class="stat-delta">${txtRango} · ${completadas.length} servicios</div>
+      </div>
+      <div class="stat-card c-green">
+        <div class="stat-val green">${ticketPromedio}</div>
+        <div class="stat-lbl">Ticket Promedio ($)</div>
+        <div class="stat-delta">Valor medio por servicio</div>
+      </div>
+      <div class="stat-card c-blue">
+        <div class="stat-val blue">${filtradas.length}</div>
+        <div class="stat-lbl">Total Citas</div>
+        <div class="stat-delta">${(completadas.length/Math.max(filtradas.length,1)*100).toFixed(0)}% Efectividad</div>
+      </div>
+      <div class="stat-card c-red">
+        <div class="stat-val red">${filtradas.filter(c=>c.estado==='Cancelada').length}</div>
+        <div class="stat-lbl">Cancelaciones</div>
+        <div class="stat-delta">Citas no concretadas</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-header"><div class="card-title">⚡ Flujo en Vivo</div><span class="status-live"><span class="live-dot"></span>Real-time</span></div>
+        <div style="padding:18px;">
+          <div style="margin-bottom:15px;">
+            <div style="font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--muted);margin-bottom:10px;letter-spacing:0.1em;">EN LA SILLA AHORA</div>
+            ${enCurso.length ? enCurso.map(c => `
+              <div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(62,207,142,0.05);border:1px solid rgba(62,207,142,0.1);border-radius:12px;margin-bottom:8px;">
+                <div style="width:36px;height:36px;background:var(--green);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--bg);font-weight:800;">${c.nombre[0]}</div>
+                <div><div style="font-weight:700;font-size:0.85rem;">${c.nombre}</div><div style="font-size:0.65rem;color:var(--muted);">${c.servicio} con ${c.barbero}</div></div>
+                <div style="margin-left:auto;font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--green);">${c.hora}</div>
+              </div>
+            `).join('') : '<div style="color:var(--muted);font-size:0.7rem;padding:10px;text-align:center;">Nadie en la silla ahora</div>'}
+          </div>
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--muted);margin-bottom:10px;letter-spacing:0.1em;">PRÓXIMOS TURNOS</div>
+            ${proximas.map(c => `
+              <div style="display:flex;align-items:center;gap:12px;padding:10px;border-bottom:1px solid var(--border);">
+                <div style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--gold);width:45px;">${c.hora}</div>
+                <div style="font-weight:600;font-size:0.8rem;">${c.nombre}</div>
+                <div style="margin-left:auto;font-size:0.65rem;color:var(--muted);">${c.barbero}</div>
+              </div>
+            `).join('')}
+          </div>
         </div>
       </div>
-      
-      <div class="stat-card c-gold">
-        <div style="font-family:'DM Mono',monospace; font-size:0.44rem; color:var(--muted); letter-spacing:0.18em; text-transform:uppercase; margin-bottom:8px;">TICKET PROMEDIO</div>
-        <div class="stat-val gold">$${ticketPromedio.toLocaleString()}</div>
-        <div class="stat-delta" style="color:var(--muted);">Gasto medio por cliente completado</div>
+
+      <div style="display:flex;flex-direction:column;gap:20px;">
+        <div class="card">
+          <div class="card-header"><div class="card-title">💰 Liquidación</div><span class="card-meta">Comisión</span></div>
+          <div style="padding:18px;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+              <div style="font-size:0.65rem;color:var(--muted);flex:1;">% Barbero</div>
+              <input type="number" id="liq-pct" value="50" oninput="renderPage()" style="background:var(--bg3);border:1px solid var(--border);color:var(--gold);padding:4px;width:55px;border-radius:4px;text-align:center;">
+            </div>
+            ${(()=>{
+              const bCount={}; const pct = parseInt(document.getElementById('liq-pct')?.value)||50;
+              completadas.forEach(c=>{ 
+                const sObj = S.servicios.find(s => s.nombre.trim().toUpperCase() === (c.servicio||'').trim().toUpperCase());
+                bCount[c.barbero] = (bCount[c.barbero]||0) + (sObj ? parseFloat(sObj.precio||0) : 0);
+              });
+              return Object.entries(bCount).map(([b,tot]) => `
+                <div style="display:flex;justify-content:space-between;font-size:0.75rem;margin-bottom:5px;">
+                  <span style="color:var(--muted);">${b}</span>
+                  <span style="font-weight:700;">$${(tot*(pct/100)).toLocaleString()}</span>
+                </div>
+              `).join('') || '<div style="color:var(--muted);font-size:0.65rem;">Sin datos</div>';
+            })()}
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">💸 Utilidad Estimada</div></div>
+          <div style="padding:18px;text-align:center;">
+             <div style="font-size:1.5rem;font-weight:800;color:var(--green);">$${ingresos.toLocaleString()}</div>
+             <div style="font-size:0.55rem;color:var(--muted);margin-top:4px;">Ingreso Bruto - Gastos (0)</div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="stats-row" style="margin-bottom:20px;">
-      <div class="stat-card c-gold"><div class="stat-val gold">$${ingresos.toLocaleString()}</div><div class="stat-lbl">Ingresos</div><div class="stat-delta">${completadas} servicios</div></div>
-      <div class="stat-card c-blue"><div class="stat-val blue">${confirmadas}</div><div class="stat-lbl">Confirmadas</div><div class="stat-delta">Pendientes de completar</div></div>
-      <div class="stat-card c-green"><div class="stat-val green">${asistenciaPct}%</div><div class="stat-lbl">Asistencia</div><div class="stat-delta">${canceladas} cancelaciones</div></div>
-      <div class="stat-card c-red"><div class="stat-val red">${canceladas}</div><div class="stat-lbl">No-Show / Canc.</div><div class="stat-delta">Citas perdidas</div></div>
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;">
+      <div class="card" style="height:320px;"><div class="card-header"><div class="card-title">📈 Tendencia</div></div><div style="padding:15px;height:250px;"><canvas id="chart-tendencia"></canvas></div></div>
+      <div class="card" style="height:320px;"><div class="card-header"><div class="card-title">✂ Servicios</div></div><div style="padding:15px;height:250px;"><canvas id="chart-servicios"></canvas></div></div>
     </div>
-
-    <div class="card" style="margin-bottom:20px;">
-      <div class="card-header"><div class="card-title">📈 Tendencia y Volumen</div></div>
-      <div style="padding:20px 18px;"><canvas id="chart-tendencia" height="100"></canvas></div>
-    </div>
-
-    <div class="two-col" style="margin-bottom:20px;">
-      <div class="card"><div class="card-header"><div class="card-title">✂ Servicios</div></div><div style="padding:16px 18px;"><canvas id="chart-servicios" height="160"></canvas></div></div>
-      <div class="card"><div class="card-header"><div class="card-title">💈 Barberos</div></div><div style="padding:16px 18px;"><canvas id="chart-barberos" height="160"></canvas></div></div>
-    </div>
-  `;
+  </div>`;
 }
 
 
-// ── Renderizar gráficas después de insertar el HTML ──
 // ── Renderizar gráficas después de insertar el HTML ──
 function renderCharts(){
   if(typeof Chart === 'undefined') return;
