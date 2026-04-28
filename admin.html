@@ -1372,66 +1372,71 @@ function renderReportes(){
 
 
 // ── Renderizar gráficas después de insertar el HTML ──
+// ── Renderizar gráficas después de insertar el HTML ──
 function renderCharts(){
   if(typeof Chart === 'undefined') return;
   const todasCitas = S._todasCitas || S.citas;
   const hoy = new Date();
   const hoyStr = hoy.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
 
-  // Aplicar mismo filtro que en renderReportes para coherencia
   let filtradas = [];
   if(_reporteRango === 'hoy') {
     filtradas = todasCitas.filter(c => c.fecha === hoyStr);
   } else if(_reporteRango === 'semana') {
     const sem = new Date(); sem.setDate(sem.getDate() - 7);
-    filtradas = todasCitas.filter(c => c.fecha >= sem.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'}));
+    const semStr = sem.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
+    filtradas = todasCitas.filter(c => c.fecha >= semStr);
   } else {
     const mes = new Date(); mes.setDate(mes.getDate() - 30);
-    filtradas = todasCitas.filter(c => c.fecha >= mes.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'}));
+    const mesStr = mes.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
+    filtradas = todasCitas.filter(c => c.fecha >= mesStr);
   }
 
-  const chartDefaults = { responsive:true, plugins:{legend:{display:false}}, scales:{x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'rgba(255,255,255,0.3)',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'rgba(255,255,255,0.3)',font:{size:10}}}} };
+  const chartDefaults = { 
+    responsive:true, 
+    maintainAspectRatio: false,
+    plugins:{legend:{display:false}}, 
+    scales:{
+      x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'rgba(255,255,255,0.3)',font:{size:10}}},
+      y:{beginAtZero:true, grid:{color:'rgba(255,255,255,0.04)'},ticks:{precision:0, color:'rgba(255,255,255,0.3)',font:{size:10}}}
+    } 
+  };
 
-  // Gráfico de Volumen (Tendencia)
+  // 1. Gráfico de Volumen (Tendencia)
   const c1 = document.getElementById('chart-tendencia');
   if(c1){
-    const datasets = [{
-      label: 'Citas',
-      data: filtradas.length ? [filtradas.length] : [0], // Simplificado para el rango
-      borderColor: '#C9A84C', backgroundColor: 'rgba(201,168,76,0.08)', tension: 0.4, fill: true
-    }];
-    
-    // Si es "mes" o "semana", intentamos agrupar por día para que se vea una línea
+    Chart.getChart('chart-tendencia')?.destroy();
     if(_reporteRango !== 'hoy') {
       const dias = {};
       filtradas.forEach(c => { dias[c.fecha] = (dias[c.fecha]||0) + 1; });
       const dArr = Object.entries(dias).sort((a,b) => a[0].localeCompare(b[0]));
-      new Chart(c1,{type:'line',data:{labels:dArr.map(x=>x[0].substring(5)),datasets:[{data:dArr.map(x=>x[1]),borderColor:'#C9A84C',backgroundColor:'rgba(201,168,76,0.08)',tension:0.4,fill:true}]},options:chartDefaults});
+      new Chart(c1,{type:'line',data:{labels:dArr.map(x=>x[0].substring(5)),datasets:[{data:dArr.map(x=>x[1]),borderColor:'#C9A84C',backgroundColor:'rgba(201,168,76,0.08)',tension:0.4,fill:true,pointRadius:4}]},options:chartDefaults});
     } else {
-      // Si es hoy, mostramos por hora
       const horas = {};
       filtradas.forEach(c => { const h=c.hora.substring(0,2); horas[h]=(horas[h]||0)+1; });
       const hArr = Object.entries(horas).sort((a,b) => a[0].localeCompare(b[0]));
-      new Chart(c1,{type:'bar',data:{labels:hArr.map(x=>x[0]+':00'),datasets:[{data:hArr.map(x=>x[1]),backgroundColor:'var(--gold)'}]},options:chartDefaults});
+      new Chart(c1,{type:'bar',data:{labels:hArr.map(x=>x[0]+':00'),datasets:[{data:hArr.map(x=>x[1]),backgroundColor:'var(--gold)',borderRadius:4}]},options:chartDefaults});
     }
   }
 
-  // Servicios
+  // 2. Servicios
   const c3 = document.getElementById('chart-servicios');
   if(c3){
+    Chart.getChart('chart-servicios')?.destroy();
     const svcCount={};
-    filtradas.forEach(c=>{ const k=(c.servicio||'—').toUpperCase(); svcCount[k]=(svcCount[k]||0)+1; });
+    filtradas.forEach(c=>{ const k=(c.servicio||'—'); svcCount[k]=(svcCount[k]||0)+1; });
     const svcArr=Object.entries(svcCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
-    new Chart(c3,{type:'bar',data:{labels:svcArr.map(([s])=>s),datasets:[{data:svcArr.map(([,n])=>n),backgroundColor:'rgba(0,200,255,0.5)',borderRadius:3}]},options:{...chartDefaults,indexAxis:'y'}});
+    new Chart(c3,{type:'bar',data:{labels:svcArr.map(([s])=>s),datasets:[{data:svcArr.map(([,n])=>n),backgroundColor:'rgba(0,200,255,0.5)',borderRadius:4}]},options:chartDefaults});
   }
 
-  // Barberos
+  // 3. Barberos
   const c4 = document.getElementById('chart-barberos');
   if(c4){
+    Chart.getChart('chart-barberos')?.destroy();
     const cpbMap={};
     filtradas.forEach(c=>{ cpbMap[c.barbero]=(cpbMap[c.barbero]||0)+1; });
     const cpbArr=Object.entries(cpbMap).sort((a,b)=>b[1]-a[1]);
-    new Chart(c4,{type:'doughnut',data:{labels:cpbArr.map(([b])=>b),datasets:[{data:cpbArr.map(([,n])=>n),backgroundColor:['#C9A84C','#00F5FF','#B06EFF','#00FF78'],borderWidth:0}]},options:{responsive:true,plugins:{legend:{display:true,position:'bottom',labels:{color:'var(--muted)',font:{size:10}}}}}});
+    new Chart(c4,{type:'doughnut',data:{labels:cpbArr.map(([b])=>b),datasets:[{data:cpbArr.map(([,n])=>n),backgroundColor:['#C9A84C','#00F5FF','#B06EFF','#3ECF8E','#F87171'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'bottom',labels:{color:'var(--muted)',padding:15,font:{size:10}}}}}});
   }
 }
 
