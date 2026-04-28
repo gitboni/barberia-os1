@@ -1863,7 +1863,7 @@ async function cargarLogsRecordatorios(){
         <table style="width:100%;border-collapse:collapse;font-size:0.68rem;">
           <thead>
             <tr style="border-bottom:1px solid var(--border);">
-              ${['Tipo','Cita ID','Fecha/Hora'].map(h=>`<th style="padding:6px 10px;text-align:left;font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);letter-spacing:0.1em;">${h}</th>`).join('')}
+              ${['Tipo','Cliente','Barbero','Fecha/Hora'].map(h=>`<th style="padding:6px 10px;text-align:left;font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);letter-spacing:0.1em;">${h}</th>`).join('')}
             </tr>
           </thead>
           <tbody>
@@ -1872,9 +1872,13 @@ async function cargarLogsRecordatorios(){
               const color=tipoColor[r.tipo]||'var(--text)';
               const ts=r.enviado_at||r.created_at;
               const fecha=ts?new Date(ts).toLocaleDateString('es-DO',{month:'short',day:'numeric'})+' '+new Date(ts).toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit'}):'—';
+              const cita=(S._todasCitas||[]).find(c=>String(c.id)===String(r.cita_id));
+              const nombre=cita?cita.nombre:'—';
+              const barbero=cita?cita.barbero:'—';
               return `<tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
                 <td style="padding:7px 10px;"><span style="color:${color};font-family:'DM Mono',monospace;font-size:0.6rem;">${label}</span></td>
-                <td style="padding:7px 10px;color:var(--muted);font-family:'DM Mono',monospace;font-size:0.6rem;">${r.cita_id||'-'}</td>
+                <td style="padding:7px 10px;color:var(--text);font-weight:600;">${nombre}</td>
+                <td style="padding:7px 10px;color:var(--muted);font-size:0.6rem;">${barbero}</td>
                 <td style="padding:7px 10px;color:var(--muted);">${fecha}</td>
               </tr>`;
             }).join('')}
