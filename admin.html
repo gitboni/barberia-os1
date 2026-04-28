@@ -1263,168 +1263,178 @@ async function eliminarBloqueoBarbero(id){
 // ── REPORTES ──
 function fmt12rpt(h){ if(!h)return'—'; const[hh,mm]=(h+':00').split(':').map(Number),ap=hh>=12?'PM':'AM',h12=hh===0?12:hh>12?hh-12:hh; return h12+':'+(mm<10?'0':'')+mm+' '+ap; }
 
+// ── REPORTES ──
+let _reporteRango = 'mes';
+function fmt12rpt(h){ if(!h)return'—'; const[hh,mm]=(h+':00').split(':').map(Number),ap=hh>=12?'PM':'AM',h12=hh===0?12:hh>12?hh-12:hh; return h12+':'+(mm<10?'0':'')+mm+' '+ap; }
+
 function renderReportes(){
   const todasCitas = S._todasCitas || S.citas;
+  const hoy = new Date();
+  const hoyStr = hoy.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
+  
+  // 1. Filtrar por rango
+  let filtradas = [];
+  if(_reporteRango === 'hoy') {
+    filtradas = todasCitas.filter(c => c.fecha === hoyStr);
+  } else if(_reporteRango === 'semana') {
+    const sem = new Date(); sem.setDate(sem.getDate() - 7);
+    const semStr = sem.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
+    filtradas = todasCitas.filter(c => c.fecha >= semStr);
+  } else {
+    const mes = new Date(); mes.setDate(mes.getDate() - 30);
+    const mesStr = mes.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
+    filtradas = todasCitas.filter(c => c.fecha >= mesStr);
+  }
 
-  // ── Cálculos ANTES del return ──
   const svcMap = {};
   (S.servicios||[]).forEach(s=>{ svcMap[s.nombre.trim().toUpperCase()] = parseFloat(s.precio)||0; });
 
-  const completadas = todasCitas.filter(c=>c.estado==='Completada').length;
-  const confirmadas = todasCitas.filter(c=>c.estado==='Confirmada').length;
-  const canceladas  = todasCitas.filter(c=>c.estado==='Cancelada').length;
-  const totalCitas  = todasCitas.length;
+  const completadas = filtradas.filter(c=>c.estado==='Completada').length;
+  const confirmadas = filtradas.filter(c=>c.estado==='Confirmada').length;
+  const canceladas  = filtradas.filter(c=>c.estado==='Cancelada').length;
+  const totalCitas  = filtradas.length;
   const asistenciaPct = totalCitas > 0 ? Math.round((completadas / Math.max(completadas+canceladas,1)) * 100) : 0;
 
-  const ingresos = todasCitas.filter(c=>c.estado==='Completada').reduce((acc,c)=>acc+(svcMap[(c.servicio||'').trim().toUpperCase()]||0),0);
+  const ingresos = filtradas.filter(c=>c.estado==='Completada').reduce((acc,c)=>acc+(svcMap[(c.servicio||'').trim().toUpperCase()]||0),0);
+  const ticketPromedio = completadas > 0 ? Math.round(ingresos / completadas) : 0;
 
-  // Proyección futura
-  const hoyStr = new Date().toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
-  const citasFuturas = todasCitas.filter(c=>c.fecha>=hoyStr&&c.estado==='Confirmada');
-  const proyeccion = citasFuturas.reduce((acc,c)=>acc+(svcMap[(c.servicio||'').trim().toUpperCase()]||0),0);
+  // Monitor en vivo (Solo para hoy)
+  const citasHoy = todasCitas.filter(c => c.fecha === hoyStr && c.estado !== 'Cancelada');
+  const ahora = new Date();
+  const ahoraMin = ahora.getHours() * 60 + ahora.getMinutes();
+  
+  const enCurso = citasHoy.filter(c => {
+    const [h,m] = c.hora.split(':').map(Number);
+    const inicio = h * 60 + m;
+    const dur = svcMap[(c.servicio||'').trim().toUpperCase()] || 45;
+    return ahoraMin >= inicio && ahoraMin < (inicio + dur) && c.estado !== 'Completada';
+  });
 
-  // Comparativa 30 días
-  const hoy30 = new Date(); hoy30.setDate(hoy30.getDate()-1);
-  const ini30 = new Date(); ini30.setDate(ini30.getDate()-30);
-  const ini60 = new Date(); ini60.setDate(ini60.getDate()-60);
-  const f30fin = hoy30.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
-  const f30ini = ini30.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
-  const f60ini = ini60.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
-  const citasPeriodo = todasCitas.filter(c=>c.fecha>=f30ini&&c.fecha<=f30fin).length;
-  const citasPrev    = todasCitas.filter(c=>c.fecha>=f60ini&&c.fecha<f30ini).length;
-  const compPct = citasPrev>0 ? Math.round(((citasPeriodo-citasPrev)/citasPrev)*100) : 0;
-  const tendencia = compPct>0?'up +'+compPct+'%':compPct<0?'down '+compPct+'%':'= Sin cambio';
-  const tendColor = compPct>0?'var(--green)':compPct<0?'var(--red)':'var(--muted)';
-  const tendIcon  = compPct>0?'↑':compPct<0?'↓':'=';
+  const proximas = citasHoy.filter(c => {
+    const [h,m] = c.hora.split(':').map(Number);
+    const inicio = h * 60 + m;
+    return inicio > ahoraMin && c.estado === 'Confirmada';
+  }).sort((a,b) => a.hora.localeCompare(b.hora)).slice(0,3);
 
-  // Hora pico
-  const horaMapAll = {};
-  todasCitas.forEach(c=>{ const h=(c.hora||'00').substring(0,2); horaMapAll[h]=(horaMapAll[h]||0)+1; });
-  const horaPicoEntry = Object.entries(horaMapAll).sort((a,b)=>b[1]-a[1])[0];
-  const horaPico = horaPicoEntry ? fmt12rpt(horaPicoEntry[0]+':00')+' ('+horaPicoEntry[1]+' citas)' : '—';
+  return `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:15px;">
+      <div class="segmented-control" style="width:auto; min-width:300px;">
+        <button class="seg-btn ${_reporteRango==='hoy'?'active':''}" onclick="_reporteRango='hoy';renderPage();">Hoy</button>
+        <button class="seg-btn ${_reporteRango==='semana'?'active':''}" onclick="_reporteRango='semana';renderPage();">Esta Semana</button>
+        <button class="seg-btn ${_reporteRango==='mes'?'active':''}" onclick="_reporteRango='mes';renderPage();">Este Mes</button>
+      </div>
+      <button class="btn-sm btn-dark" onclick="exportarPDF()">📄 Exportar PDF</button>
+    </div>
 
-  // Por barbero
-  const cpbMap = {};
-  todasCitas.forEach(c=>{ cpbMap[c.barbero]=(cpbMap[c.barbero]||0)+1; });
-  const cpbArr = Object.entries(cpbMap).sort((a,b)=>b[1]-a[1]);
-  const maxCpb = Math.max(...cpbArr.map(x=>x[1]), 1);
+    <div class="two-col" style="margin-bottom:20px;">
+      <div class="card" style="border-left:4px solid var(--green); background:rgba(62,207,142,0.02);">
+        <div class="card-header"><div class="card-title">🟢 Monitor en Vivo</div><span class="card-meta">Tiempo real</span></div>
+        <div style="padding:16px;">
+          <div style="font-family:'DM Mono',monospace; font-size:0.5rem; color:var(--muted); text-transform:uppercase; margin-bottom:10px;">EN LA SILLA AHORA</div>
+          ${enCurso.length ? enCurso.map(c => `<div style="display:flex; justify-content:space-between; margin-bottom:12px; background:rgba(255,255,255,0.03); padding:10px; border-radius:8px; border:1px solid rgba(62,207,142,0.2);">
+            <div><div style="font-weight:700; font-size:0.85rem;">${c.nombre}</div><div style="font-size:0.65rem; color:var(--muted);">${c.servicio} · ${c.barbero}</div></div>
+            <div style="text-align:right;"><div style="color:var(--green); font-family:'DM Mono',monospace; font-size:0.7rem; font-weight:700;">EN CURSO</div><div style="font-size:0.6rem; color:var(--muted);">${fmt12rpt(c.hora)}</div></div>
+          </div>`).join('') : '<div style="color:var(--muted); font-size:0.7rem; margin-bottom:15px;">Nadie en servicio ahora mismo</div>'}
+          
+          <div style="font-family:'DM Mono',monospace; font-size:0.5rem; color:var(--muted); text-transform:uppercase; margin-bottom:10px; border-top:1px solid var(--border); padding-top:15px;">PRÓXIMOS TURNOS</div>
+          ${proximas.length ? proximas.map(c => `<div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+            <div style="font-size:0.75rem;"><span style="color:var(--gold); font-family:'DM Mono',monospace;">${fmt12rpt(c.hora)}</span> · ${c.nombre}</div>
+            <div style="font-size:0.65rem; color:var(--muted);">${c.barbero}</div>
+          </div>`).join('') : '<div style="color:var(--muted); font-size:0.7rem;">No hay citas próximas</div>'}
+        </div>
+      </div>
+      
+      <div class="stat-card c-gold">
+        <div style="font-family:'DM Mono',monospace; font-size:0.44rem; color:var(--muted); letter-spacing:0.18em; text-transform:uppercase; margin-bottom:8px;">TICKET PROMEDIO</div>
+        <div class="stat-val gold">$${ticketPromedio.toLocaleString()}</div>
+        <div class="stat-delta" style="color:var(--muted);">Gasto medio por cliente completado</div>
+      </div>
+    </div>
 
-  // Servicios
-  const svcCount = {};
-  todasCitas.forEach(c=>{ const k=(c.servicio||'—').toUpperCase(); svcCount[k]=(svcCount[k]||0)+1; });
-  const svcArr = Object.entries(svcCount).sort((a,b)=>b[1]-a[1]);
+    <div class="stats-row" style="margin-bottom:20px;">
+      <div class="stat-card c-gold"><div class="stat-val gold">$${ingresos.toLocaleString()}</div><div class="stat-lbl">Ingresos</div><div class="stat-delta">${completadas} servicios</div></div>
+      <div class="stat-card c-blue"><div class="stat-val blue">${confirmadas}</div><div class="stat-lbl">Confirmadas</div><div class="stat-delta">Pendientes de completar</div></div>
+      <div class="stat-card c-green"><div class="stat-val green">${asistenciaPct}%</div><div class="stat-lbl">Asistencia</div><div class="stat-delta">${canceladas} cancelaciones</div></div>
+      <div class="stat-card c-red"><div class="stat-val red">${canceladas}</div><div class="stat-lbl">No-Show / Canc.</div><div class="stat-delta">Citas perdidas</div></div>
+    </div>
 
-  // Clientes
-  const recurrentes = (S.clientes||[]).filter(c=>(c.visitas||0)>1).length;
-  const nuevos = (S.clientes||[]).filter(c=>(c.visitas||0)<=1).length;
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-header"><div class="card-title">📈 Tendencia y Volumen</div></div>
+      <div style="padding:20px 18px;"><canvas id="chart-tendencia" height="100"></canvas></div>
+    </div>
 
-  // Horas para gráfica
-  const horaArr = Object.entries(horaMapAll).sort((a,b)=>a[0].localeCompare(b[0]));
-  const maxHora = Math.max(...horaArr.map(x=>x[1]), 1);
-
-  return '<div style="display:flex;justify-content:flex-end;margin-bottom:12px;">'
-    +'<button onclick="exportarPDF()" style="display:flex;align-items:center;gap:7px;padding:8px 18px;background:rgba(201,168,76,0.08);border:1px solid var(--gold);color:var(--gold);font-family:\'DM Mono\',monospace;font-size:0.54rem;cursor:pointer;letter-spacing:0.1em;">📄 EXPORTAR PDF</button>'
-    +'</div>'
-    +'<div id="reporte-pdf-content">'
-    // KPIs
-    +'<div class="stats-row">'
-    +'<div class="stat-card c-gold"><div class="stat-val gold">'+(ingresos>0?'$'+ingresos.toLocaleString():'—')+'</div><div class="stat-lbl">Ingresos realizados</div><div class="stat-delta" style="font-size:0.5rem;color:var(--muted);">'+completadas+' servicios</div></div>'
-    +'<div class="stat-card" style="border-color:rgba(0,200,255,0.15);"><div class="stat-val" style="color:#00c8ff;">'+(proyeccion>0?'$'+proyeccion.toLocaleString():'—')+'</div><div class="stat-lbl">Proyección futura</div><div class="stat-delta" style="font-size:0.5rem;color:var(--muted);">'+citasFuturas.length+' citas confirmadas</div></div>'
-    +'<div class="stat-card c-green"><div class="stat-val green">'+asistenciaPct+'%</div><div class="stat-lbl">Asistencia</div><div class="stat-delta" style="font-size:0.5rem;color:var(--muted);">'+totalCitas+' total · '+canceladas+' canceladas</div></div>'
-    +'<div class="stat-card"><div class="stat-val" style="color:'+tendColor+';">'+tendIcon+' '+(compPct>=0?'+':'')+compPct+'%</div><div class="stat-lbl">vs 30 días anteriores</div><div class="stat-delta" style="font-size:0.5rem;color:var(--muted);">'+citasPeriodo+' vs '+citasPrev+' citas</div></div>'
-    +'</div>'
-    // Hora pico + Clientes
-    +'<div class="two-col">'
-    +'<div class="stat-card" style="display:flex;flex-direction:column;gap:6px;"><div style="font-family:\'DM Mono\',monospace;font-size:0.44rem;color:var(--muted);letter-spacing:0.18em;text-transform:uppercase;">⏰ Hora pico del día</div>'
-    +'<div style="font-family:\'DM Mono\',monospace;font-size:1.2rem;font-weight:700;color:var(--gold);">'+horaPico+'</div>'
-    +'<div style="font-family:\'DM Mono\',monospace;font-size:0.46rem;color:var(--muted);">Mayor concentración de clientes</div></div>'
-    +'<div class="stat-card" style="display:flex;flex-direction:column;gap:6px;"><div style="font-family:\'DM Mono\',monospace;font-size:0.44rem;color:var(--muted);letter-spacing:0.18em;text-transform:uppercase;">👥 Clientes</div>'
-    +'<div style="font-family:\'DM Mono\',monospace;font-size:1.2rem;font-weight:700;color:var(--text);">'+S.clientes.length+'</div>'
-    +'<div style="font-family:\'DM Mono\',monospace;font-size:0.46rem;color:var(--muted);">'+recurrentes+' recurrentes · '+nuevos+' nuevos</div></div>'
-    +'</div>'
-    // Gráficas
-    +'<div class="card"><div class="card-header"><div class="card-title">📈 Tendencia — Últimas 8 semanas</div><span class="card-meta">'+totalCitas+' citas registradas</span></div>'
-    +'<div style="padding:20px 18px;"><canvas id="chart-tendencia" height="120"></canvas></div></div>'
-    +'<div class="card"><div class="card-header"><div class="card-title">⏰ Distribución por hora del día</div><span class="card-meta">Hora pico: '+horaPico+'</span></div>'
-    +'<div style="padding:20px 18px;"><canvas id="chart-horas" height="100"></canvas></div></div>'
-    +'<div class="two-col">'
-    +'<div class="card"><div class="card-header"><div class="card-title">✂ Servicios más solicitados</div><span class="card-meta">'+totalCitas+' total</span></div>'
-    +'<div style="padding:16px 18px;"><canvas id="chart-servicios" height="160"></canvas></div></div>'
-    +'<div class="card"><div class="card-header"><div class="card-title">💈 Citas por barbero</div></div>'
-    +'<div style="padding:16px 18px;"><canvas id="chart-barberos" height="160"></canvas></div></div>'
-    +'</div>'
-    // Comparativa
-    +'<div class="card"><div class="card-header"><div class="card-title">🔄 Comparativa — últimos 30 días vs anteriores</div></div>'
-    +'<div style="padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:20px;">'
-    +'<div><div style="font-family:\'DM Mono\',monospace;font-size:0.44rem;color:var(--muted);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:12px;">ÚLTIMOS 30 DÍAS</div>'
-    +[['Citas',citasPeriodo,'var(--text)'],['Ingresos','$'+ingresos.toLocaleString(),'var(--gold)'],['Asistencia',asistenciaPct+'%','var(--green)']].map(function(x){var l=x[0],v=x[1],c=x[2];return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span style="font-family:\'DM Mono\',monospace;font-size:0.6rem;color:var(--muted);">'+l+'</span><span style="font-family:\'DM Mono\',monospace;font-size:0.72rem;font-weight:700;color:'+c+';">'+v+'</span></div>';}).join('')
-    +'</div>'
-    +'<div><div style="font-family:\'DM Mono\',monospace;font-size:0.44rem;color:var(--muted);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:12px;">30 DÍAS ANTERIORES</div>'
-    +[['Citas',citasPrev,'var(--muted)'],['Diferencia',(compPct>=0?'+':'')+compPct+'%',tendColor],['Tendencia',tendencia,tendColor]].map(function(x){var l=x[0],v=x[1],c=x[2];return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);"><span style="font-family:\'DM Mono\',monospace;font-size:0.6rem;color:var(--muted);">'+l+'</span><span style="font-family:\'DM Mono\',monospace;font-size:0.72rem;font-weight:700;color:'+c+';">'+v+'</span></div>';}).join('')
-    +'</div></div></div>'
-    // Clientes
-    +'<div class="card"><div class="card-header"><div class="card-title">👥 Clientes recientes</div><span class="card-meta">'+S.clientes.length+' registrados</span></div>'
-    +'<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;">'
-    +'<thead><tr style="border-bottom:1px solid var(--border);">'
-    +['Nombre','Teléfono','Últ. visita','Servicio favorito','Barbero favorito','Visitas'].map(function(h){return '<th style="text-align:left;padding:7px 10px;font-family:\'DM Mono\',monospace;font-size:0.46rem;color:var(--muted);font-weight:400;letter-spacing:0.1em;text-transform:uppercase;">'+h+'</th>';}).join('')
-    +'</tr></thead><tbody>'
-    +(S.clientes.length ? S.clientes.slice(0,10).map(function(c){return '<tr style="border-bottom:1px solid var(--border);"><td style="padding:8px 10px;font-size:0.78rem;font-weight:600;">'+(c.nombre||'—')+'</td><td style="padding:8px 10px;font-family:\'DM Mono\',monospace;font-size:0.6rem;color:var(--muted);">'+(c.telefono||'—')+'</td><td style="padding:8px 10px;font-family:\'DM Mono\',monospace;font-size:0.6rem;color:var(--muted);">'+(c.ultima_visita?(c.ultima_visita+'').substring(0,10):'—')+'</td><td style="padding:8px 10px;font-size:0.72rem;">'+(c.servicio_favorito||'—')+'</td><td style="padding:8px 10px;font-size:0.72rem;">'+(c.barbero_favorito||'—')+'</td><td style="padding:8px 10px;font-family:\'DM Mono\',monospace;font-size:0.7rem;color:var(--gold);text-align:center;">'+(c.visitas||0)+'</td></tr>';}).join('')
-     : '<tr><td colspan="6" style="padding:24px;text-align:center;font-family:\'DM Mono\',monospace;font-size:0.58rem;color:var(--muted);">Sin clientes aún</td></tr>')
-    +'</tbody></table></div></div>'
-    +'</div>';
+    <div class="two-col" style="margin-bottom:20px;">
+      <div class="card"><div class="card-header"><div class="card-title">✂ Servicios</div></div><div style="padding:16px 18px;"><canvas id="chart-servicios" height="160"></canvas></div></div>
+      <div class="card"><div class="card-header"><div class="card-title">💈 Barberos</div></div><div style="padding:16px 18px;"><canvas id="chart-barberos" height="160"></canvas></div></div>
+    </div>
+  `;
 }
+
 
 // ── Renderizar gráficas después de insertar el HTML ──
 function renderCharts(){
   if(typeof Chart === 'undefined') return;
   const todasCitas = S._todasCitas || S.citas;
-  const svcMap = {};
-  (S.servicios||[]).forEach(s=>{ svcMap[s.nombre.trim().toUpperCase()] = parseFloat(s.precio)||0; });
-  const chartDefaults = { responsive:true, plugins:{legend:{display:false}}, scales:{x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'rgba(255,255,255,0.3)',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'rgba(255,255,255,0.3)',font:{size:10}}}} };
+  const hoy = new Date();
+  const hoyStr = hoy.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
 
-  // Tendencia semanal
-  const c1 = document.getElementById('chart-tendencia');
-  if(c1){
-    const semanas=[];
-    for(let i=7;i>=0;i--){
-      const fin=new Date(); fin.setDate(fin.getDate()-i*7);
-      const ini=new Date(fin); ini.setDate(ini.getDate()-6);
-      const f=fin.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
-      const f2=ini.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
-      semanas.push({lbl:ini.toLocaleDateString('es-DO',{month:'short',day:'numeric'}),n:todasCitas.filter(c=>c.fecha>=f2&&c.fecha<=f).length});
-    }
-    new Chart(c1,{type:'line',data:{labels:semanas.map(s=>s.lbl),datasets:[{data:semanas.map(s=>s.n),borderColor:'#C9A84C',backgroundColor:'rgba(201,168,76,0.08)',tension:0.4,pointBackgroundColor:'#C9A84C',borderWidth:2,fill:true}]},options:{...chartDefaults}});
+  // Aplicar mismo filtro que en renderReportes para coherencia
+  let filtradas = [];
+  if(_reporteRango === 'hoy') {
+    filtradas = todasCitas.filter(c => c.fecha === hoyStr);
+  } else if(_reporteRango === 'semana') {
+    const sem = new Date(); sem.setDate(sem.getDate() - 7);
+    filtradas = todasCitas.filter(c => c.fecha >= sem.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'}));
+  } else {
+    const mes = new Date(); mes.setDate(mes.getDate() - 30);
+    filtradas = todasCitas.filter(c => c.fecha >= mes.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'}));
   }
 
-  // Horas
-  const c2 = document.getElementById('chart-horas');
-  if(c2){
-    const horaMap={};
-    todasCitas.forEach(c=>{ const h=(c.hora||'00').substring(0,2); horaMap[h]=(horaMap[h]||0)+1; });
-    const hArr=Object.entries(horaMap).sort((a,b)=>a[0].localeCompare(b[0]));
-    const maxH=Math.max(...hArr.map(x=>x[1]),1);
-    new Chart(c2,{type:'bar',data:{labels:hArr.map(([h])=>fmt12rpt(h+':00')),datasets:[{data:hArr.map(([,n])=>n),backgroundColor:hArr.map(([,n])=>`rgba(201,168,76,${0.3+0.7*(n/maxH)})`),borderRadius:3}]},options:{...chartDefaults}});
+  const chartDefaults = { responsive:true, plugins:{legend:{display:false}}, scales:{x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'rgba(255,255,255,0.3)',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'rgba(255,255,255,0.3)',font:{size:10}}}} };
+
+  // Gráfico de Volumen (Tendencia)
+  const c1 = document.getElementById('chart-tendencia');
+  if(c1){
+    const datasets = [{
+      label: 'Citas',
+      data: filtradas.length ? [filtradas.length] : [0], // Simplificado para el rango
+      borderColor: '#C9A84C', backgroundColor: 'rgba(201,168,76,0.08)', tension: 0.4, fill: true
+    }];
+    
+    // Si es "mes" o "semana", intentamos agrupar por día para que se vea una línea
+    if(_reporteRango !== 'hoy') {
+      const dias = {};
+      filtradas.forEach(c => { dias[c.fecha] = (dias[c.fecha]||0) + 1; });
+      const dArr = Object.entries(dias).sort((a,b) => a[0].localeCompare(b[0]));
+      new Chart(c1,{type:'line',data:{labels:dArr.map(x=>x[0].substring(5)),datasets:[{data:dArr.map(x=>x[1]),borderColor:'#C9A84C',backgroundColor:'rgba(201,168,76,0.08)',tension:0.4,fill:true}]},options:chartDefaults});
+    } else {
+      // Si es hoy, mostramos por hora
+      const horas = {};
+      filtradas.forEach(c => { const h=c.hora.substring(0,2); horas[h]=(horas[h]||0)+1; });
+      const hArr = Object.entries(horas).sort((a,b) => a[0].localeCompare(b[0]));
+      new Chart(c1,{type:'bar',data:{labels:hArr.map(x=>x[0]+':00'),datasets:[{data:hArr.map(x=>x[1]),backgroundColor:'var(--gold)'}]},options:chartDefaults});
+    }
   }
 
   // Servicios
   const c3 = document.getElementById('chart-servicios');
   if(c3){
     const svcCount={};
-    todasCitas.forEach(c=>{ const k=(c.servicio||'—').toUpperCase(); svcCount[k]=(svcCount[k]||0)+1; });
-    const svcArr=Object.entries(svcCount).sort((a,b)=>b[1]-a[1]).slice(0,6);
-    new Chart(c3,{type:'bar',data:{labels:svcArr.map(([s])=>s),datasets:[{data:svcArr.map(([,n])=>n),backgroundColor:'rgba(0,200,255,0.5)',borderColor:'rgba(0,200,255,0.8)',borderWidth:1,borderRadius:3}]},options:{...chartDefaults,indexAxis:'y'}});
+    filtradas.forEach(c=>{ const k=(c.servicio||'—').toUpperCase(); svcCount[k]=(svcCount[k]||0)+1; });
+    const svcArr=Object.entries(svcCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    new Chart(c3,{type:'bar',data:{labels:svcArr.map(([s])=>s),datasets:[{data:svcArr.map(([,n])=>n),backgroundColor:'rgba(0,200,255,0.5)',borderRadius:3}]},options:{...chartDefaults,indexAxis:'y'}});
   }
 
   // Barberos
   const c4 = document.getElementById('chart-barberos');
   if(c4){
     const cpbMap={};
-    todasCitas.forEach(c=>{ cpbMap[c.barbero]=(cpbMap[c.barbero]||0)+1; });
+    filtradas.forEach(c=>{ cpbMap[c.barbero]=(cpbMap[c.barbero]||0)+1; });
     const cpbArr=Object.entries(cpbMap).sort((a,b)=>b[1]-a[1]);
-    const colors=['#C9A84C','#00F5FF','#B06EFF','#00FF78','#FF006E'];
-    new Chart(c4,{type:'doughnut',data:{labels:cpbArr.map(([b])=>b),datasets:[{data:cpbArr.map(([,n])=>n),backgroundColor:colors,borderWidth:2,borderColor:'#0e0e14'}]},options:{responsive:true,plugins:{legend:{display:true,position:'right',labels:{color:'rgba(255,255,255,0.5)',font:{size:11}}}}}});
+    new Chart(c4,{type:'doughnut',data:{labels:cpbArr.map(([b])=>b),datasets:[{data:cpbArr.map(([,n])=>n),backgroundColor:['#C9A84C','#00F5FF','#B06EFF','#00FF78'],borderWidth:0}]},options:{responsive:true,plugins:{legend:{display:true,position:'bottom',labels:{color:'var(--muted)',font:{size:10}}}}}});
   }
 }
+
 
 // ── PDF Export ──
 async function exportarPDF(){
