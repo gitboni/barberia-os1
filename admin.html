@@ -101,17 +101,106 @@ tr:last-child td{border-bottom:none;}
 .ra-btn:hover{border-color:rgba(255,255,255,0.15);color:var(--text);}
 .ra-btn.danger:hover{border-color:rgba(248,113,113,0.3);color:var(--red);}
 .ra-btn.success:hover{border-color:rgba(62,207,142,0.3);color:var(--green);}
-/* BARBEROS */
+/* BARBEROS DASHBOARD PREMIUM */
+.barber-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  margin-bottom: 10px;
+  transition: all 0.3s var(--bez);
+  cursor: default;
+}
+.barber-row:hover {
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(201,168,76,0.2);
+  transform: translateX(4px);
+}
+.barber-avatar {
+  width: 44px;
+  height: 44px;
+  background: var(--bg3);
+  border: 1.5px solid var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--gold);
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  position: relative;
+}
+.barber-status-dot {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--bg2);
+}
+.barber-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.barber-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.barber-stats-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.barber-progress {
+  height: 4px;
+  flex: 1;
+  background: rgba(255,255,255,0.05);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.barber-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), var(--gold2));
+  box-shadow: 0 0 8px rgba(201,168,76,0.3);
+  border-radius: 2px;
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.barber-count {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+.barber-action-btn {
+  padding: 6px 12px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.barber-action-btn:hover {
+  background: rgba(255,255,255,0.08);
+  color: var(--text);
+  border-color: var(--muted);
+}
 .barber-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;}
 .barber-card{background:var(--bg2);border:1px solid var(--border);padding:20px;transition:border-color 0.2s;}
 .barber-card:hover{border-color:rgba(255,255,255,0.1);}
 .barber-card.inactive{opacity:0.5;}
 .barber-avatar-lg{width:56px;height:56px;background:var(--bg3);border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:800;color:var(--gold);margin-bottom:12px;border-radius:18px;}
-.barber-avatar{width:28px;height:28px;background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.2);display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:800;color:var(--gold);border-radius:8px;}
-.barber-info{display:flex;flex-direction:column;gap:4px;}
-.barber-progress{height:2px;flex:1;background:rgba(255,255,255,0.06);overflow:hidden;}
-.barber-progress-fill{height:100%;background:var(--gold);box-shadow:0 0 6px var(--gold);transition:width 1s;}
-.barber-count{font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--muted);white-space:nowrap;}
 /* MODAL */
 .modal-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);align-items:center;justify-content:center;}
 .modal-overlay.open{display:flex;}
@@ -662,8 +751,32 @@ function renderDashboard(){
     </div>
     <div style="display:flex;flex-direction:column;gap:16px;">
       <div class="card">
-        <div class="card-header"><div class="card-title">Barberos</div><span class="card-meta">${S.barberos.filter(b=>b.activo).length} activos</span></div>
-        ${S.barberos.map(b=>`<div class="barber-row"><div class="barber-avatar">${b.nombre[0]}</div><div class="barber-info"><div style="font-size:0.82rem;font-weight:700;">${b.nombre}</div><div style="display:flex;align-items:center;gap:8px;"><div class="barber-progress"><div class="barber-progress-fill" style="width:${Math.round(b.citas_hoy/maxC*100)}%"></div></div><div class="barber-count">${b.citas_hoy} citas</div></div></div><div class="${b.activo?'chip-active':'chip-off'}">${b.activo?'Activo':'Off'}</div></div>`).join('')}
+        <div class="card-header">
+          <div class="card-title">Barberos</div>
+          <span class="card-meta">${S.barberos.filter(b=>b.activo).length} ACTIVOS</span>
+        </div>
+        <div style="padding:16px;">
+          ${S.barberos.map(b=>{
+            const pct = Math.min(100, Math.round(b.citas_hoy/maxC*100));
+            return `
+            <div class="barber-row">
+              <div class="barber-avatar">
+                ${b.nombre[0]}
+                <div class="barber-status-dot" style="background:${b.activo?'var(--green)':'var(--muted)'}; box-shadow: 0 0 8px ${b.activo? 'var(--green)':'transparent'}"></div>
+              </div>
+              <div class="barber-info">
+                <div class="barber-name">${b.nombre}</div>
+                <div class="barber-stats-line">
+                  <div class="barber-progress">
+                    <div class="barber-progress-fill" style="width:${pct}%"></div>
+                  </div>
+                  <div class="barber-count">${b.citas_hoy} citas</div>
+                </div>
+              </div>
+              <button class="barber-action-btn" onclick="setPage('barberos',null)">Gestionar</button>
+            </div>`;
+          }).join('')}
+        </div>
       </div>
       <div class="card">
         <div class="card-header"><div class="card-title">Acciones rápidas</div></div>
