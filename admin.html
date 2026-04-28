@@ -1701,7 +1701,11 @@ function renderBot(){
     <div class="card">
       <div class="card-header">
         <div class="card-title">📋 Últimos recordatorios enviados</div>
-        <button class="btn-sm" style="padding:5px 14px;font-size:0.52rem;" onclick="cargarLogsRecordatorios()">↻ Actualizar</button>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <input type="date" id="filtro-logs-fecha" onchange="cargarLogsRecordatorios()" 
+            style="background:var(--bg3); border:1px solid var(--border); color:var(--text); padding:4px 8px; font-family:'DM Mono',monospace; font-size:0.65rem; border-radius:6px; outline:none;">
+          <button class="btn-sm" style="padding:5px 14px;font-size:0.52rem;" onclick="cargarLogsRecordatorios()">↻ Actualizar</button>
+        </div>
       </div>
       <div id="logs-recordatorios" style="padding:18px;">
         <div style="text-align:center;color:var(--muted);font-size:0.72rem;padding:20px;">Cargando...</div>
@@ -1970,9 +1974,14 @@ async function toggleBotRecordatorio(el){
 async function cargarLogsRecordatorios(){
   const el=document.getElementById('logs-recordatorios');
   if(!el)return;
+  const fechaFiltro = document.getElementById('filtro-logs-fecha')?.value;
   el.innerHTML='<div style="text-align:center;color:var(--muted);font-size:0.72rem;padding:20px;">Cargando...</div>';
   try{
-    const rows=await sbGet('recordatorios_enviados','shop_id=eq.'+S.shopId+'&order=enviado_at.desc&limit=30&select=*');
+    let query = 'shop_id=eq.'+S.shopId+'&order=enviado_at.desc&limit=50&select=*';
+    if(fechaFiltro){
+      query += `&enviado_at=gte.${fechaFiltro}T00:00:00&enviado_at=lte.${fechaFiltro}T23:59:59`;
+    }
+    const rows=await sbGet('recordatorios_enviados', query);
     if(!rows.length){
       // Diagnóstico: busca sin filtro de shop para saber si hay algún registro en la tabla
       const total=await sbGet('recordatorios_enviados','limit=1&select=id,shop_id').catch(()=>[]);
