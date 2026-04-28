@@ -393,11 +393,23 @@ tr:last-child td{border-bottom:none;}
   <div class="modal">
     <h3 id="modal-cliente-title">Nuevo Cliente</h3>
     <input type="hidden" id="mc-id" value="">
-    <div class="fg"><label>Nombre completo</label><input type="text" id="mc-nombre" placeholder="Carlos Martínez"></div>
-    <div class="fg"><label>Número WhatsApp</label><input type="text" id="mc-tel" placeholder="+18091234567"></div>
-    <div class="fg"><label>Notas (opcional)</label><textarea id="mc-notas" rows="3" placeholder="Preferencias, alergias, etc."></textarea></div>
+    <div class="fg-row">
+      <div class="fg"><label>Nombre del cliente</label><input type="text" id="mc-nombre" placeholder="Nombre completo"></div>
+      <div class="fg"><label>WhatsApp (809...)</label><input type="text" id="mc-tel" placeholder="8091234567"></div>
+    </div>
+    <div class="fg">
+      <label>Etiqueta / Categoría</label>
+      <select id="mc-etiqueta" style="width:100%; background:var(--bg3); border:1px solid var(--border); color:var(--text); padding:10px; border-radius:12px;">
+        <option value="">— Ninguna —</option>
+        <option value="VIP">⭐ VIP</option>
+        <option value="Frecuente">🔄 Frecuente</option>
+        <option value="Nuevo">🌱 Nuevo</option>
+        <option value="Inactivo">😴 Inactivo</option>
+      </select>
+    </div>
+    <div class="fg"><label>Notas internas</label><textarea id="mc-notas" rows="3" placeholder="Ej: Prefiere el corte con tijera..."></textarea></div>
     <div class="modal-actions">
-      <button class="btn-full btn-gold" onclick="saveCliente()">Guardar</button>
+      <button class="btn-full btn-gold" onclick="saveCliente()">Guardar Cliente</button>
       <button class="btn-full btn-cancel" onclick="closeModal('cliente')">Cancelar</button>
     </div>
   </div>
@@ -945,10 +957,14 @@ async function cancelCita(id){
 function renderClientes(){
   return `<div class="card" style="flex:1;display:flex;flex-direction:column;min-height:0;">
     <div class="card-header" style="flex-shrink:0;">
-      <div class="card-title">Clientes · ${S.clientes.length} registrados</div>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <div class="search-bar">🔍 <input type="text" id="search-clientes" placeholder="Nombre o teléfono..." oninput="filterClientes()"></div>
-        <button class="btn-sm btn-gold" onclick="openModal('cliente')">+ Agregar cliente</button>
+      <div>
+        <div class="card-title">Clientes · ${S.clientes.length} registrados</div>
+        <div style="font-size:0.6rem; color:var(--muted); margin-top:2px;">Gestiona tu base de datos y fideliza a tus clientes</div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center;">
+        <button class="btn-sm" style="background:rgba(201,168,76,0.1); color:var(--gold); border:1px solid rgba(201,168,76,0.2);" onclick="abrirMarketingRecuperacion()">📣 Recuperar Perdidos</button>
+        <div class="search-bar">🔍 <input type="text" id="search-clientes" placeholder="Buscar por nombre o tel..." oninput="filterClientes()"></div>
+        <button class="btn-sm btn-gold" onclick="openModal('cliente')">+ Nuevo cliente</button>
       </div>
     </div>
     <div class="table-wrapper">
@@ -958,23 +974,26 @@ function renderClientes(){
   </div>`;
 }
 function renderClientesRows(lista){
-  if(!lista.length)return `<tr><td colspan="6" style="text-align:center;padding:32px;font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);">Sin clientes. Agregalos manualmente o llegarán por WhatsApp.</td></tr>`;
+  if(!lista.length)return `<tr><td colspan="7" style="text-align:center;padding:32px;font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);">Sin clientes coincidentes.</td></tr>`;
   return lista.map((c,i)=>{
     const ult=c.ultima_visita?new Date(c.ultima_visita).toLocaleDateString('es-DO'):c.ultima?new Date(c.ultima).toLocaleDateString('es-DO'):'—';
     const visitas=c.visitas||0;
-    const notas=c.notas?`<span title="${c.notas}" style="cursor:help;color:var(--muted);">📝</span> `:'';
+    const etiqueta = c.etiqueta || '';
+    const etColors = { 'VIP': '#C9A84C', 'Frecuente': '#60A5FA', 'Nuevo': '#3ECF8E', 'Inactivo': '#F87171' };
+    const etBadge = etiqueta ? `<span style="font-size:0.5rem; background:${etColors[etiqueta]}22; color:${etColors[etiqueta]}; border:1px solid ${etColors[etiqueta]}44; padding:2px 6px; border-radius:4px; margin-right:6px;">${etiqueta}</span>` : '';
+    
     return `<tr>
       <td style="font-family:'DM Mono',monospace;color:var(--muted);font-size:0.68rem;">${String(i+1).padStart(2,'0')}</td>
-      <td style="font-weight:700;">${notas}${c.nombre}</td>
+      <td style="font-weight:700;">${etBadge}${c.nombre}</td>
       <td style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--gold);">${c.telefono}</td>
-      <td><span class="badge ${visitas>5?'badge-green':visitas>0?'badge-blue':'badge-gray'}">${visitas} ${visitas===1?'visita':'visitas'}</span></td>
+      <td><span class="badge ${visitas>5?'badge-green':visitas>0?'badge-blue':'badge-gray'}">${visitas} v.</span></td>
       <td style="font-family:'DM Mono',monospace;font-size:0.66rem;color:var(--muted);">${ult}</td>
       <td><div class="row-actions">
-        <button class="ra-btn" onclick="openHistorialCliente('${c.nombre.replace(/'/g,"\\'")}','${c.telefono}')">📋 Historial</button>
-        <button class="ra-btn success" onclick="citarCliente('${c.nombre.replace(/'/g,"\\'")}','${c.telefono}')">📅 Citar</button>
-        <button class="ra-btn" onclick="sendWA('${c.telefono}')">💬 WA</button>
+        <button class="ra-btn" onclick="openHistorialCliente('${c.nombre.replace(/'/g,"\\'")}','${c.telefono}')">📋</button>
+        <button class="ra-btn success" onclick="citarCliente('${c.nombre.replace(/'/g,"\\'")}','${c.telefono}')">📅</button>
+        <button class="ra-btn" onclick="sendWA('${c.telefono}')">💬</button>
         <button class="ra-btn" onclick="resetPasswordAdmin('cliente',null,'${c.nombre.replace(/'/g,"\\'")}','${c.telefono}')">🔑</button>
-        <button class="ra-btn" onclick="editarCliente('${c.id||''}','${c.nombre.replace(/'/g,"\\'")}','${c.telefono}','${(c.notas||'').replace(/'/g,"\\'")}')">✏️</button>
+        <button class="ra-btn" onclick="editarCliente('${c.id||''}','${c.nombre.replace(/'/g,"\\'")}','${c.telefono}','${(c.notas||'').replace(/'/g,"\\'")}', '${c.etiqueta||''}')">✏️</button>
       </div></td>
     </tr>`;
   }).join('');
@@ -984,11 +1003,12 @@ function filterClientes(){
   const f=q?S.clientes.filter(c=>c.nombre.toLowerCase().includes(q)||c.telefono.includes(q)):S.clientes;
   document.getElementById('clientes-tbody').innerHTML=renderClientesRows(f);
 }
-function editarCliente(id,nombre,tel,notas){
+function editarCliente(id,nombre,tel,notas,etiqueta){
   document.getElementById('modal-cliente-title').textContent='Editar Cliente';
   document.getElementById('mc-nombre').value=nombre;
   document.getElementById('mc-tel').value=tel;
   document.getElementById('mc-notas').value=notas||'';
+  document.getElementById('mc-etiqueta').value=etiqueta||'';
   document.getElementById('mc-id').value=id||'';
   document.getElementById('modal-cliente').classList.add('open');
 }
@@ -996,33 +1016,54 @@ async function saveCliente(){
   const nombre=document.getElementById('mc-nombre').value.trim();
   const tel=document.getElementById('mc-tel').value.trim();
   const notas=document.getElementById('mc-notas').value.trim();
+  const etiqueta=document.getElementById('mc-etiqueta').value;
   const mcId=document.getElementById('mc-id')?.value||'';
   if(!nombre||!tel){toast('Nombre y teléfono requeridos','error');return;}
   try{
     if(mcId){
-      // Editar existente
-      await sbPatch('clientes','id=eq.'+mcId,{nombre,notas});
+      await sbPatch('clientes','id=eq.'+mcId,{nombre,notas,etiqueta});
       const idx=S.clientes.findIndex(x=>String(x.id)===mcId);
-      if(idx>=0)Object.assign(S.clientes[idx],{nombre,notas});
+      if(idx>=0)Object.assign(S.clientes[idx],{nombre,notas,etiqueta});
       toast('Cliente actualizado ✓');
     } else {
-      // Verificar si ya existe por teléfono
       const existeLocal=S.clientes.find(x=>x.telefono===tel);
       if(existeLocal){toast('Ya existe un cliente con ese teléfono','error');return;}
-      // Guardar en Supabase
       const r=await fetch(SUPABASE_URL+'/rest/v1/clientes',{
         method:'POST',
         headers:{...H,'Content-Type':'application/json','Prefer':'return=representation'},
-        body:JSON.stringify({shop_id:S.shopId,nombre,telefono:tel,chat_id:'whatsapp:'+tel,notas,visitas:0,primera_visita:new Date().toISOString()})
+        body:JSON.stringify({shop_id:S.shopId,nombre,telefono:tel,chat_id:'whatsapp:'+tel,notas,etiqueta,visitas:0,primera_visita:new Date().toISOString()})
       });
       if(!r.ok)throw new Error(await r.text());
       const data=await r.json();
       S.clientes.unshift({...data[0],ultima:new Date().toISOString()});
       toast('Cliente agregado ✓');
     }
-    closeModal('cliente');
-    renderPage();
+    closeModal('cliente');renderPage();
   }catch(e){toast('Error: '+e.message,'error');}
+}
+
+function abrirMarketingRecuperacion() {
+  const treintaDias = new Date(); treintaDias.setDate(treintaDias.getDate() - 30);
+  const perdidos = S.clientes.filter(c => {
+    const ult = c.ultima_visita ? new Date(c.ultima_visita) : c.ultima ? new Date(c.ultima) : null;
+    return ult && ult < treintaDias;
+  }).sort((a,b) => {
+    const ua = a.ultima_visita || a.ultima || '0';
+    const ub = b.ultima_visita || b.ultima || '0';
+    return ua.localeCompare(ub);
+  });
+  
+  if(!perdidos.length) {
+    toast('No hay clientes inactivos por más de 30 días','warn');
+    return;
+  }
+  
+  const p = perdidos[0];
+  const msg = `¡Hola ${p.nombre}! Te extrañamos en ${S.shopData?.nombre||'la barbería'}. ✂️ Hace tiempo que no nos visitas. ¿Qué tal un corte esta semana? Reserva aquí: https://barberos.app/${SHOP_SLUG}`;
+  
+  if(confirm(`Se encontraron ${perdidos.length} clientes inactivos. ¿Deseas contactar a ${p.nombre} (${p.telefono})?`)) {
+    sendWA(p.telefono, msg);
+  }
 }
 function citarCliente(nombre,tel){
   document.getElementById('modal-cita-title').textContent='Nueva Cita para '+nombre;
@@ -1260,70 +1301,52 @@ async function eliminarBloqueoBarbero(id){
   }catch(e){toast('Error: '+e.message,'error');}
 }
 
-// ── REPORTES ──
-function fmt12rpt(h){ if(!h)return'—'; const[hh,mm]=(h+':00').split(':').map(Number),ap=hh>=12?'PM':'AM',h12=hh===0?12:hh>12?hh-12:hh; return h12+':'+(mm<10?'0':'')+mm+' '+ap; }
-
-// ── REPORTES ──
-let _reporteRango = 'mes';
-function fmt12rpt(h){ if(!h)return'—'; const[hh,mm]=(h+':00').split(':').map(Number),ap=hh>=12?'PM':'AM',h12=hh===0?12:hh>12?hh-12:hh; return h12+':'+(mm<10?'0':'')+mm+' '+ap; }
-
 function renderReportes(){
+  const fecha = new Date().toLocaleDateString('es-DO', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
   const todasCitas = S._todasCitas || S.citas;
   const hoy = new Date();
   const hoyStr = hoy.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
-  
-  // 1. Filtrar por rango
+
   let filtradas = [];
+  let txtRango = 'Hoy';
   if(_reporteRango === 'hoy') {
     filtradas = todasCitas.filter(c => c.fecha === hoyStr);
   } else if(_reporteRango === 'semana') {
     const sem = new Date(); sem.setDate(sem.getDate() - 7);
     const semStr = sem.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
     filtradas = todasCitas.filter(c => c.fecha >= semStr);
+    txtRango = 'Últimos 7 días';
   } else {
     const mes = new Date(); mes.setDate(mes.getDate() - 30);
     const mesStr = mes.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
     filtradas = todasCitas.filter(c => c.fecha >= mesStr);
+    txtRango = 'Últimos 30 días';
   }
 
-  const svcMap = {};
-  (S.servicios||[]).forEach(s=>{ svcMap[s.nombre.trim().toUpperCase()] = parseFloat(s.precio)||0; });
+  const completadas = filtradas.filter(c => c.estado === 'Completada');
+  const ingresos = completadas.reduce((sum, c) => {
+    const sObj = S.servicios.find(s => s.nombre.trim().toUpperCase() === (c.servicio||'').trim().toUpperCase());
+    return sum + (sObj ? parseFloat(sObj.precio||0) : 0);
+  }, 0);
+  const ticketPromedio = completadas.length ? (ingresos / completadas.length).toFixed(2) : 0;
 
-  const completadas = filtradas.filter(c=>c.estado==='Completada').length;
-  const confirmadas = filtradas.filter(c=>c.estado==='Confirmada').length;
-  const canceladas  = filtradas.filter(c=>c.estado==='Cancelada').length;
-  const totalCitas  = filtradas.length;
-  const asistenciaPct = totalCitas > 0 ? Math.round((completadas / Math.max(completadas+canceladas,1)) * 100) : 0;
-
-  const ingresos = filtradas.filter(c=>c.estado==='Completada').reduce((acc,c)=>acc+(svcMap[(c.servicio||'').trim().toUpperCase()]||0),0);
-  const ticketPromedio = completadas > 0 ? Math.round(ingresos / completadas) : 0;
-
-  // Monitor en vivo (Solo para hoy)
+  // Monitor en vivo (Hoy)
   const citasHoy = todasCitas.filter(c => c.fecha === hoyStr && c.estado !== 'Cancelada');
   const ahora = new Date();
   const ahoraMin = ahora.getHours() * 60 + ahora.getMinutes();
+  const svcMap = {}; S.servicios.forEach(s => svcMap[s.nombre.trim().toUpperCase()] = s.duracion_min);
   
   const enCurso = citasHoy.filter(c => {
-    const [h,m] = c.hora.split(':').map(Number);
+    const [h,m] = (c.hora||'00:00').split(':').map(Number);
     const inicio = h * 60 + m;
     const dur = svcMap[(c.servicio||'').trim().toUpperCase()] || 45;
     return ahoraMin >= inicio && ahoraMin < (inicio + dur) && c.estado !== 'Completada';
   });
-
   const proximas = citasHoy.filter(c => {
-    const [h,m] = c.hora.split(':').map(Number);
-    const inicio = h * 60 + m;
-    return inicio > ahoraMin && c.estado === 'Confirmada';
+    const [h,m] = (c.hora||'00:00').split(':').map(Number);
+    return (h * 60 + m) > ahoraMin;
   }).sort((a,b) => a.hora.localeCompare(b.hora)).slice(0,3);
 
-  return `
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:15px;">
-      <div class="segmented-control" style="width:auto; min-width:300px;">
-        <button class="seg-btn ${_reporteRango==='hoy'?'active':''}" onclick="_reporteRango='hoy';renderPage();">Hoy</button>
-        <button class="seg-btn ${_reporteRango==='semana'?'active':''}" onclick="_reporteRango='semana';renderPage();">Esta Semana</button>
-        <button class="seg-btn ${_reporteRango==='mes'?'active':''}" onclick="_reporteRango='mes';renderPage();">Este Mes</button>
-      </div>
-      <button class="btn-sm btn-dark" onclick="exportarPDF()">📄 Exportar PDF</button>
     </div>
 
     <div class="two-col" style="margin-bottom:20px;">
