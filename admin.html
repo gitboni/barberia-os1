@@ -883,8 +883,6 @@ function renderCitasRows(citas){
   </tr>`).join('');
 }
 function filterCitas(){
-  _citasBarberoFiltro=document.getElementById('filter-barbero')?.value||'';
-  _citasEstadoFiltro=document.getElementById('filter-estado')?.value||'';
   const q=(document.getElementById('search-citas')?.value||'').toLowerCase();
   let f=[..._getCitasVer()];
   if(q)f=f.filter(c=>c.nombre.toLowerCase().includes(q)||(c.tel||'').includes(q));
