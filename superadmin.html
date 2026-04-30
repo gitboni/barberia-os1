@@ -4847,6 +4847,7 @@ function abrirEditShop(shopId){
   document.getElementById('editShopTipoNegocio').value = shop.tipo_negocio || 'barberia';
   document.getElementById('editShopLabelProfesional').value = shop.label_profesional || 'barbero';
   document.getElementById('editShopTemaDisplay').value = shop.tema_display || 'dark';
+  document.getElementById('editShopShowcase').value = Array.isArray(shop.showcase_images) ? shop.showcase_images.join('\n') : '';
   renderIconoPicker(shop.icono||'✂️');
   toggleEditShopProvider();
   openModal('modalEditShop');
@@ -4922,6 +4923,7 @@ async function guardarEditShop(){
     tipo_negocio: document.getElementById('editShopTipoNegocio').value || 'barberia',
     label_profesional: document.getElementById('editShopLabelProfesional').value.trim() || 'barbero',
     tema_display: document.getElementById('editShopTemaDisplay').value || 'dark',
+    showcase_images: document.getElementById('editShopShowcase').value.split('\n').map(u=>u.trim()).filter(u=>u.length > 5)
   };
   // Solo actualizar token si se ingresó uno nuevo
   if(provider==='meta'&&token) updates.meta_access_token=token;
@@ -5153,6 +5155,17 @@ async function guardarEditShop(){
       </button>
       <div id="difusion-test-result" style="display:none;margin-top:10px;padding:12px 14px;background:var(--surface2);border:1px solid var(--border2);border-radius:4px;font-size:0.62rem;line-height:1.6;white-space:pre-wrap;max-height:220px;overflow-y:auto;"></div>
     </div>
+
+    <!-- ── Galería Showcase (Modo TV) ── -->
+    <div style="border-top:1px solid var(--border);margin:18px 0 14px;padding-top:14px;">
+      <div style="font-size:0.5rem;letter-spacing:0.22em;color:var(--muted);text-transform:uppercase;margin-bottom:12px;">🖼️ GALERÍA SHOWCASE (MODO TV)</div>
+      <div class="form-group">
+        <label class="form-label">URLs de Imágenes (Una por línea)</label>
+        <textarea class="form-input" id="editShopShowcase" rows="4" placeholder="https://ejemplo.com/foto1.jpg&#10;https://ejemplo.com/foto2.png" style="resize:vertical;font-size:0.65rem;font-family:'DM Mono',monospace;line-height:1.4;"></textarea>
+        <div class="form-hint">Estas fotos rotarán en el carrusel lateral del modo TV.</div>
+      </div>
+    </div>
+
     <div id="editShop-resultado" style="display:none;padding:8px 12px;font-family:'DM Mono',monospace;font-size:0.58rem;margin-top:8px;border-left:2px solid var(--green);background:rgba(0,200,100,0.04);"></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('modalEditShop')">CANCELAR</button>
