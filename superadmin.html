@@ -4667,6 +4667,7 @@ const FEATURES_DEF = [
   { key:'feature_barberos',     label:'💈 Barberos',           desc:'Agregar, editar y activar/desactivar barberos' },
   { key:'feature_clientes',     label:'👥 Clientes',           desc:'Ver historial y datos de clientes' },
   { key:'feature_walkin',       label:'🚶 Walk-in',            desc:'Cliente sin cita en el display' },
+  { key:'feature_monitor',      label:'📺 Monitor Elite',      desc:'Panel de gestión en vivo para tablets y operadores' },
 ];
 var _featShopId = null;
 var _featShopData = {};
@@ -4675,7 +4676,7 @@ async function openFeaturesModal(shopId, shopNombre) {
   _featShopId = shopId;
   document.getElementById('features-shop-name').textContent = shopNombre;
   try {
-    var rows = await sbGet('shops','id=eq.'+shopId+'&select=id,feature_reportes,feature_config,feature_servicios,feature_bot_whatsapp,feature_barberos,feature_clientes,feature_walkin');
+    var rows = await sbGet('shops','id=eq.'+shopId+'&select=id,feature_reportes,feature_config,feature_servicios,feature_bot_whatsapp,feature_barberos,feature_clientes,feature_walkin,feature_monitor');
     _featShopData = rows[0] || {};
   } catch(e) { _featShopData = {}; }
 
@@ -4718,7 +4719,27 @@ function featToggle(key) {
   if(lbl) { lbl.textContent = on ? 'ACTIVO' : 'INACTIVO'; lbl.style.color = on ? 'var(--green)' : 'var(--muted)'; }
 }
 
-async function saveFeatures(){if(!_featShopId)return;const btn=document.getElementById('saveFeatsBtn');btn.textContent='⏳ Guardando...';btn.disabled=true;try{const p={p_shop_id:_featShopId};FEATURES_DEF.forEach(f=>{const el=document.getElementById('feat-val-'+f.key);if(el)p['p_'+f.key]=el.value==='true';});await sbRpc('update_shop_features',p);closeModal('modalFeatures');showToast('✓ Features actualizadas','success');logSuperadminAction('update_features',`shop:${_featShopId}`);loadShops();}catch(e){showToast('Error: '+e.message,'error');}finally{btn.textContent='✓ GUARDAR CAMBIOS';btn.disabled=false;}}
+async function saveFeatures(){
+  if(!_featShopId) return;
+  const btn = document.getElementById('saveFeatsBtn');
+  btn.textContent = '⏳ Guardando...'; btn.disabled = true;
+  try {
+    const p = {};
+    FEATURES_DEF.forEach(f => {
+      const el = document.getElementById('feat-val-'+f.key);
+      if(el) p[f.key] = (el.value === 'true');
+    });
+    await sbPatch('shops', 'id=eq.'+_featShopId, p);
+    closeModal('modalFeatures');
+    showToast('✓ Features actualizadas','success');
+    logSuperadminAction('update_features', `shop:${_featShopId}`);
+    loadShops();
+  } catch(e) {
+    showToast('Error: '+e.message,'error');
+  } finally {
+    btn.textContent = '✓ GUARDAR CAMBIOS'; btn.disabled = false;
+  }
+}
 
 
 async function sha256pin(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');}
