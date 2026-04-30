@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link
-    href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=Share+Tech+Mono&display=swap&font-display=swap"
+    href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=Share+Tech+Mono&family=Outfit:wght@400;600;800&display=swap&font-display=swap"
     rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <style>
@@ -544,15 +544,18 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      margin-top: 8px;
-      padding: 4px 14px;
-      border: 1px solid rgba(0, 255, 120, 0.2);
-      background: rgba(0, 255, 120, 0.03);
-      font-family: 'Orbitron', monospace;
-      font-size: 0.72rem;
+      margin-top: 10px;
+      padding: 5px 16px;
+      border: 1px solid rgba(62, 207, 142, 0.15);
+      border-radius: 999px;
+      background: rgba(62, 207, 142, 0.04);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.65rem;
       font-weight: 600;
-      color: rgba(0, 255, 120, 0.55);
-      letter-spacing: 0.14em;
+      color: rgba(62, 207, 142, 0.6);
+      letter-spacing: 0.06em;
       transition: color 0.5s, border-color 0.5s;
     }
 
@@ -1196,6 +1199,7 @@
     }
 
     .corner-frame {
+      display: none;
       position: fixed;
       z-index: 3;
       pointer-events: none;
@@ -1297,6 +1301,49 @@
       border-color: rgba(0, 245, 255, 0.06);
     }
 
+    /* ── TRANSITIONS & FEEDBACK ── */
+    #content {
+      transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transform-origin: center center;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .view-leaving {
+      opacity: 0;
+      transform: scale(0.97) translateY(10px);
+    }
+    
+    .view-entering {
+      opacity: 0;
+      transform: scale(1.03) translateY(-10px);
+    }
+
+    button, .btn-siguiente, .btn-my-sig, .mode-btn, .abtn, .q-item, .bp-item, .tv-btn {
+      transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1) !important;
+    }
+
+    button:active, .btn-siguiente:active, .btn-my-sig:active, .mode-btn:active, .abtn:active, .tv-btn:active {
+      transform: scale(0.95) translateY(2px) !important;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4), inset 0 2px 10px rgba(0,0,0,0.1) !important;
+    }
+
+    :root {
+      --app-scale: 1;
+    }
+
+    .tv-cards {
+      zoom: var(--app-scale);
+      transform-origin: top center;
+    }
+    
+    .layout-multi {
+      zoom: var(--app-scale);
+      transform-origin: top center;
+    }
+
     /* ── LAYOUT ── */
     .app {
       position: relative;
@@ -1310,10 +1357,10 @@
       display: grid;
       grid-template-columns: 1fr auto 1fr;
       align-items: center;
-      padding: 10px 32px;
-      border-bottom: 1px solid rgba(0, 245, 255, 0.1);
-      background: rgba(2, 4, 8, 0.65);
-      backdrop-filter: blur(16px);
+      padding: 14px 32px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(2, 4, 8, 0.4);
+      backdrop-filter: blur(25px) saturate(160%);
       position: relative;
       z-index: 10;
       flex-shrink: 0;
@@ -1676,22 +1723,25 @@
       --bc-glow: rgba(255, 0, 110, 0.5);
     }
 
-    /* ── MODO BAR ── */
+    /* ── MODO BAR ─ iOS Segmented Control ── */
     .mode-bar {
       position: fixed;
-      bottom: 16px;
+      bottom: 20px;
       left: 68%;
       transform: translateX(-50%);
       z-index: 50;
       display: flex;
       align-items: center;
-      gap: 3px;
-      background: rgba(2, 4, 8, 0.85);
-      border: 1px solid rgba(0, 245, 255, 0.12);
-      padding: 4px 6px;
-      backdrop-filter: blur(12px);
-      opacity: 0.22;
-      transition: opacity 0.3s;
+      gap: 2px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 3px;
+      backdrop-filter: blur(40px) saturate(180%);
+      -webkit-backdrop-filter: blur(40px) saturate(180%);
+      border-radius: 14px;
+      opacity: 0.3;
+      transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     }
 
     .mode-bar:hover {
@@ -1702,41 +1752,41 @@
       display: flex;
       align-items: center;
       gap: 5px;
-      padding: 6px 14px;
-      border: 1px solid transparent;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.48rem;
-      letter-spacing: 0.14em;
+      padding: 7px 16px;
+      border: none;
+      border-radius: 11px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.5rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
       text-transform: uppercase;
-      color: rgba(0, 245, 255, 0.4);
+      color: rgba(255, 255, 255, 0.4);
       background: transparent;
       cursor: pointer;
-      transition: all 0.25s;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       white-space: nowrap;
     }
 
     .mode-btn:hover {
-      color: var(--cyan);
-      border-color: rgba(0, 245, 255, 0.5);
-      background: rgba(0, 245, 255, 0.1);
+      color: rgba(255, 255, 255, 0.75);
     }
 
     .mode-btn.active {
-      color: var(--cyan);
-      border-color: rgba(0, 245, 255, 0.4);
-      background: rgba(0, 245, 255, 0.07);
+      color: #fff;
+      background: rgba(255, 255, 255, 0.12);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255,255,255,0.08);
     }
 
     .mode-btn.mode-barber-active {
-      color: var(--purple);
-      border-color: rgba(176, 110, 255, 0.4);
-      background: rgba(176, 110, 255, 0.07);
+      color: #fff;
+      background: rgba(176, 110, 255, 0.15);
+      box-shadow: 0 2px 8px rgba(176, 110, 255, 0.15);
     }
 
     .mode-sep {
       width: 1px;
-      height: 14px;
-      background: rgba(0, 245, 255, 0.1);
+      height: 16px;
+      background: rgba(255, 255, 255, 0.06);
     }
 
     .barber-picker {
@@ -1866,24 +1916,26 @@
     }
 
     .tv-card {
-      border: 1px solid rgba(0, 245, 255, 0.1);
-      background: rgba(2, 6, 14, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 28px;
       display: flex;
       flex-direction: column;
       overflow: hidden;
       position: relative;
-      backdrop-filter: blur(8px);
+      backdrop-filter: blur(32px) saturate(180%);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
     }
 
     .tv-card::before {
       content: '';
       position: absolute;
       top: 0;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, var(--bc, var(--cyan)), transparent);
-      opacity: 0.7;
+      left: 15%;
+      right: 15%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+      opacity: 1;
     }
 
     .tv-card.libre {
@@ -1895,41 +1947,46 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 8px 14px;
-      border-bottom: 1px solid rgba(0, 245, 255, 0.07);
-      background: rgba(2, 4, 8, 0.5);
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      background: rgba(255, 255, 255, 0.02);
       flex-shrink: 0;
       position: relative;
       z-index: 1;
     }
 
     .tv-barber-name {
-      font-family: 'Orbitron', monospace;
-      font-size: 0.7rem;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.72rem;
       font-weight: 700;
-      letter-spacing: 0.2em;
+      letter-spacing: 0.03em;
       text-transform: uppercase;
-      color: var(--bc, var(--cyan));
-      text-shadow: 0 0 10px var(--bc-glow, var(--glow-c));
+      color: rgba(255, 255, 255, 0.85);
     }
 
     .tv-status-badge {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.38rem;
-      padding: 2px 7px;
-      border: 1px solid;
-      letter-spacing: 0.1em;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.42rem;
+      font-weight: 600;
+      padding: 3px 12px;
+      border-radius: 999px;
+      letter-spacing: 0.03em;
       text-transform: uppercase;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
     }
 
     .tv-status-badge.activo {
-      border-color: rgba(0, 255, 120, 0.3);
-      color: rgba(0, 255, 120, 0.6);
+      border-color: rgba(62, 207, 142, 0.2);
+      color: rgba(62, 207, 142, 0.7);
+      background: rgba(62, 207, 142, 0.06);
     }
 
     .tv-status-badge.libre {
-      border-color: rgba(255, 0, 110, 0.25);
-      color: rgba(255, 0, 110, 0.5);
+      border-color: rgba(255, 255, 255, 0.06);
+      color: rgba(255, 255, 255, 0.3);
     }
 
     .tv-card-body {
@@ -1945,13 +2002,14 @@
     }
 
     .tv-num {
-      font-family: 'Orbitron', monospace;
-      font-weight: 900;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
       color: var(--bc, var(--cyan));
       line-height: 1;
-      letter-spacing: 0.06em;
-      animation: hero-pulse 3s ease-in-out infinite;
+      letter-spacing: -0.02em;
+      animation: hero-pulse 4s ease-in-out infinite;
       transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      text-shadow: 0 0 40px var(--bc-glow, var(--glow-c));
     }
 
     .tv-num.flip {
@@ -1976,16 +2034,17 @@
     }
 
     .tv-name {
-      font-family: 'Rajdhani', sans-serif;
-      font-weight: 700;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
       color: #fff;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.05em;
       text-transform: uppercase;
       text-align: center;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       max-width: 100%;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.5);
     }
 
     .tv-cards.n1 .tv-name,
@@ -2004,20 +2063,24 @@
 
     .tv-service {
       margin-top: 5px;
-      padding: 3px 12px;
-      border: 1px solid rgba(255, 214, 0, 0.25);
-      background: rgba(255, 214, 0, 0.04);
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.52rem;
-      color: var(--gold);
-      letter-spacing: 0.18em;
+      padding: 4px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 999px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.5rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.55);
+      letter-spacing: 0.03em;
       text-transform: uppercase;
     }
 
     .tv-card-footer {
-      padding: 6px 14px;
-      border-top: 1px solid rgba(0, 245, 255, 0.06);
-      background: rgba(2, 4, 8, 0.4);
+      padding: 8px 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
+      background: rgba(255, 255, 255, 0.015);
       display: grid;
       grid-template-columns: auto 1fr auto;
       align-items: center;
@@ -2028,37 +2091,38 @@
     }
 
     .tv-next-label {
-      font-family: 'Share Tech Mono', monospace;
+      font-family: 'Outfit', sans-serif;
       font-size: 0.38rem;
-      letter-spacing: 0.22em;
-      color: rgba(0, 245, 255, 0.22);
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: rgba(255, 255, 255, 0.2);
       text-transform: uppercase;
     }
 
     .tv-next-num {
-      font-family: 'Orbitron', monospace;
-      font-size: 0.9rem;
-      font-weight: 700;
-      color: rgba(0, 245, 255, 0.32);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: rgba(255, 255, 255, 0.2);
     }
 
     .tv-next-name {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 0.82rem;
-      font-weight: 600;
-      color: rgba(255, 255, 255, 0.45);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.5);
       text-transform: uppercase;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.03em;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
     .tv-next-time {
-      font-family: 'Orbitron', monospace;
-      font-size: 0.75rem;
-      color: var(--gold);
-      opacity: 0.7;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.3);
     }
 
     .tv-btn {
@@ -2166,9 +2230,34 @@
     .layout-solo .col-left {
       display: flex;
       flex-direction: column;
-      border-right: 1px solid rgba(0, 245, 255, 0.08);
-      background: rgba(0, 245, 255, 0.012);
+      background: linear-gradient(145deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.05) 100%);
+      backdrop-filter: blur(80px) saturate(200%) brightness(1.1);
+      -webkit-backdrop-filter: blur(80px) saturate(200%) brightness(1.1);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 32px;
+      margin: 14px 0 14px 14px;
       overflow: hidden;
+      box-shadow:
+        0 24px 80px rgba(0, 0, 0, 0.45),
+        0 0 0 0.5px rgba(255, 255, 255, 0.1),
+        inset 0 1px 1px rgba(255, 255, 255, 0.12),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.1);
+      position: relative;
+    }
+
+    .layout-solo .col-left::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 32px;
+      background: linear-gradient(170deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 30%, transparent 60%, rgba(212,160,23,0.03) 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .layout-solo .col-left > * {
+      position: relative;
+      z-index: 1;
     }
 
     .layout-solo .col-right {
@@ -2183,21 +2272,40 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      border-right: 1px solid rgba(0, 245, 255, 0.08);
+      border-right: 1px solid rgba(255, 255, 255, 0.04);
       overflow: hidden;
       touch-action: pan-y;
       user-select: none;
       -webkit-user-select: none;
+      background: rgba(255, 255, 255, 0.015);
+      backdrop-filter: blur(40px) saturate(180%);
+      -webkit-backdrop-filter: blur(40px) saturate(180%);
+      position: relative;
+    }
+
+    .layout-multi .barber-col::after {
+      content: '';
+      position: absolute;
+      top: 8%;
+      right: -1px;
+      bottom: 8%;
+      width: 1px;
+      background: linear-gradient(180deg, transparent, rgba(255,255,255,0.06), transparent);
+      pointer-events: none;
     }
 
     .layout-multi .barber-col:last-child {
       border-right: none;
     }
 
+    .layout-multi .barber-col:last-child::after {
+      display: none;
+    }
+
     .layout-multi .barber-col.libre {
       flex: 0.55;
-      opacity: 0.4;
-      filter: grayscale(50%);
+      opacity: 0.35;
+      filter: grayscale(50%) brightness(0.9);
     }
 
     /* ── SILLA ZONE ── */
@@ -2206,10 +2314,11 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      padding: 20px 24px 14px;
+      padding: 24px 24px 18px;
       position: relative;
-      border-bottom: 1px solid rgba(0, 245, 255, 0.06);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
       flex-shrink: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 30%, rgba(255,255,255,0.02), transparent);
     }
 
     .layout-solo .silla-zone {
@@ -2218,12 +2327,7 @@
 
     .silla-zone::before,
     .silla-zone::after {
-      content: '';
-      position: absolute;
-      width: 36px;
-      height: 36px;
-      border-style: solid;
-      border-color: var(--bc, rgba(0, 245, 255, 0.2));
+      display: none;
     }
 
     .silla-zone::before {
@@ -2239,18 +2343,21 @@
     }
 
     .now-label {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.72rem;
-      letter-spacing: 0.5em;
-      color: var(--magenta);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.52rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      color: rgba(62, 207, 142, 0.85);
       text-transform: uppercase;
-      margin-bottom: 6px;
-      text-shadow: 0 0 20px var(--glow-m), 0 0 40px rgba(255, 0, 110, 0.3);
-      animation: lbl-glow 2s ease-in-out infinite;
-      padding: 4px 0;
-      border: 1px solid rgba(255, 0, 110, 0.2);
-      background: rgba(255, 0, 110, 0.04);
+      margin-bottom: 16px;
+      padding: 5px 16px;
+      border-radius: 999px;
+      background: rgba(62, 207, 142, 0.08);
+      border: 1px solid rgba(62, 207, 142, 0.18);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       text-align: center;
+      display: inline-block;
     }
 
     .hero-num-wrap {
@@ -2272,16 +2379,16 @@
     }
 
     .hero-num {
-      font-family: 'Orbitron', monospace;
-      font-weight: 900;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
       color: var(--bc, var(--cyan));
-      text-shadow: 0 0 30px var(--bc-glow, var(--glow-c)), 0 0 80px var(--bc-glow, rgba(0, 245, 255, 0.25));
+      text-shadow: 0 0 40px var(--bc-glow, var(--glow-c)), 0 0 80px var(--bc-glow, rgba(0, 245, 255, 0.15));
       line-height: 1;
-      letter-spacing: 0.06em;
+      letter-spacing: -0.02em;
       position: relative;
       z-index: 1;
       transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-      animation: hero-pulse 3s ease-in-out infinite;
+      animation: hero-pulse 4s ease-in-out infinite;
     }
 
     .hero-num.flip {
@@ -2321,10 +2428,10 @@
     }
 
     .silla-name {
-      font-family: 'Rajdhani', sans-serif;
-      font-weight: 700;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
       color: #fff;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
       text-align: center;
       margin-top: 2px;
@@ -2332,6 +2439,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
       max-width: 100%;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.6);
     }
 
     .layout-solo .silla-name {
@@ -2359,31 +2467,37 @@
     }
 
     .silla-service {
-      margin-top: 6px;
-      padding: 4px 16px;
-      border: 1px solid rgba(255, 214, 0, 0.28);
-      background: rgba(255, 214, 0, 0.05);
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.64rem;
-      letter-spacing: 0.2em;
-      color: var(--gold);
+      margin-top: 12px;
+      padding: 5px 20px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.58rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: rgba(255, 255, 255, 0.65);
       text-transform: uppercase;
     }
 
     .layout-multi .silla-service {
-      font-size: 0.52rem;
-      padding: 3px 10px;
-      margin-top: 4px;
+      font-size: 0.48rem;
+      padding: 4px 12px;
+      margin-top: 6px;
     }
 
     .silla-barber {
-      margin-top: 5px;
-      padding: 3px 12px;
-      border: 1px solid rgba(176, 110, 255, 0.25);
-      background: rgba(176, 110, 255, 0.05);
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.58rem;
-      letter-spacing: 0.18em;
+      margin-top: 8px;
+      padding: 4px 16px;
+      border-radius: 999px;
+      background: rgba(176, 110, 255, 0.1);
+      border: 1px solid rgba(176, 110, 255, 0.2);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.55rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
       color: var(--purple);
       display: flex;
       align-items: center;
@@ -2463,11 +2577,11 @@
     }
 
     .next-nom {
-      font-family: 'Rajdhani', sans-serif;
+      font-family: 'Outfit', sans-serif;
       font-size: 0.95rem;
-      font-weight: 600;
-      color: rgba(255, 255, 255, 0.65);
-      letter-spacing: 0.1em;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: 0.05em;
       text-transform: uppercase;
     }
 
@@ -2513,24 +2627,34 @@
     }
 
     .btn-siguiente {
-      width: 100%;
-      padding: 11px 0;
-      background: linear-gradient(135deg, rgba(0, 255, 120, 0.1), rgba(0, 245, 255, 0.05));
-      border: 1px solid rgba(0, 255, 120, 0.5);
-      color: var(--green);
-      font-family: 'Orbitron', monospace;
-      font-size: 0.72rem;
+      width: 88%;
+      margin: 8px auto 0;
+      padding: 15px 0;
+      background: rgba(62, 207, 142, 0.15);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(62, 207, 142, 0.3);
+      border-radius: 999px;
+      color: #3ECF8E;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.88rem;
       font-weight: 700;
-      letter-spacing: 0.26em;
+      letter-spacing: 0.05em;
       text-transform: uppercase;
       cursor: pointer;
       position: relative;
       overflow: hidden;
-      transition: all 0.2s;
-      text-shadow: 0 0 12px var(--glow-g);
-      box-shadow: 0 0 16px rgba(0, 255, 120, 0.12), inset 0 0 14px rgba(0, 255, 120, 0.04);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
       flex-shrink: 0;
       -webkit-tap-highlight-color: transparent;
+    }
+    .btn-siguiente:hover {
+      background: rgba(62, 207, 142, 0.25);
+      transform: scale(1.02);
+      box-shadow: 0 8px 25px rgba(62, 207, 142, 0.2);
+    }
+    .btn-siguiente:active {
+      transform: scale(0.96);
     }
 
     .layout-multi .btn-siguiente {
@@ -2686,9 +2810,11 @@
     }
 
     .stat-card {
-      padding: 9px 12px;
-      border: 1px solid rgba(0, 245, 255, 0.09);
-      background: rgba(0, 245, 255, 0.018);
+      padding: 12px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 18px;
+      backdrop-filter: blur(10px);
     }
 
     .stat-val {
@@ -2807,11 +2933,11 @@
     }
 
     .done-pill-name {
-      font-family: 'Rajdhani', sans-serif;
+      font-family: 'Outfit', sans-serif;
       font-size: 0.75rem;
-      font-weight: 600;
-      color: rgba(0, 255, 120, 0.45);
-      letter-spacing: 0.06em;
+      font-weight: 700;
+      color: rgba(0, 255, 120, 0.7);
+      letter-spacing: 0.04em;
       text-transform: uppercase;
       white-space: nowrap;
     }
@@ -2875,34 +3001,38 @@
       display: grid;
       grid-template-columns: 68px 1fr 96px 84px 96px;
       align-items: center;
-      padding: 10px 12px;
-      border: 1px solid rgba(0, 245, 255, 0.11);
-      background: rgba(0, 245, 255, 0.025);
+      padding: 12px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.02);
       position: relative;
       overflow: hidden;
-      transition: border-color 0.3s, background 0.3s;
+      transition: all 0.3s ease;
       animation: item-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
       opacity: 0;
-      border-radius: 3px;
+      border-radius: 18px;
+      margin-bottom: 4px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
     }
 
     .q-item.s-active {
-      border-left: 3px solid var(--cyan);
-      background: rgba(0, 245, 255, 0.045);
+      border-left: 3px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.04);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
     }
 
     .q-item.s-next {
-      border-left: 3px solid var(--gold);
-      background: rgba(255, 214, 0, 0.022);
+      border-left: 3px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.025);
     }
 
     .q-item.s-alert {
-      border-left: 3px solid rgba(255, 214, 0, 0.5);
+      border-left: 3px solid rgba(255, 214, 0, 0.4);
       animation: item-in 0.4s forwards, alert-row 2.5s ease-in-out infinite;
     }
 
     .q-item.s-wait {
-      border-left: 3px solid rgba(0, 245, 255, 0.08);
+      border-left: 3px solid rgba(255, 255, 255, 0.05);
     }
 
     .q-item.s-active::after {
@@ -2917,29 +3047,81 @@
     }
 
     .q-num {
-      font-family: 'Orbitron', monospace;
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: rgba(0, 245, 255, 0.28);
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: rgba(255, 255, 255, 0.2);
     }
 
     .q-item.s-active .q-num {
-      font-size: 1.7rem;
-      color: var(--cyan);
-      text-shadow: 0 0 12px var(--glow-c);
+      font-size: 1.5rem;
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    /* ── TV SHOWCASE ── */
+    .tv-showcase {
+      grid-column: span 1;
+      border-radius: 28px;
+      overflow: hidden;
+      position: relative;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 15px 45px rgba(0, 0, 0, 0.3);
+    }
+    
+    .tv-showcase-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity 1.5s ease-in-out;
+    }
+    
+    .tv-showcase-img.active {
+      opacity: 1;
+    }
+    
+    .tv-showcase-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 60%);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 24px;
+      z-index: 2;
+    }
+    
+    .tv-showcase-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    
+    .tv-showcase-sub {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.55rem;
+      color: rgba(255,255,255,0.6);
+      letter-spacing: 0.05em;
     }
 
     .q-item.s-next .q-num {
-      font-size: 1.45rem;
-      color: var(--gold);
+      font-size: 1.3rem;
+      color: rgba(255, 255, 255, 0.55);
     }
 
     .q-name {
-      font-family: 'Rajdhani', sans-serif;
+      font-family: 'Outfit', sans-serif;
       font-size: 0.98rem;
-      font-weight: 600;
+      font-weight: 800;
       color: #fff;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
       white-space: nowrap;
       overflow: hidden;
@@ -2947,66 +3129,72 @@
     }
 
     .q-svc {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.52rem;
-      color: rgba(255, 245, 200, 0.75);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.5rem;
       font-weight: 500;
-      letter-spacing: 0.08em;
+      color: rgba(255, 255, 255, 0.4);
+      letter-spacing: 0.03em;
       text-transform: uppercase;
     }
 
     .q-barber {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.53rem;
-      color: rgba(176, 110, 255, 0.42);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.5rem;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.3);
       text-align: center;
     }
 
     .q-item.s-active .q-barber {
-      color: rgba(176, 110, 255, 0.78);
+      color: rgba(255, 255, 255, 0.55);
     }
 
     .q-time {
-      font-family: 'Orbitron', monospace;
-      font-size: 0.8rem;
-      color: var(--gold);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.45);
       text-align: center;
     }
 
     .status-tag {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      padding: 3px 7px;
-      font-family: 'Share Tech Mono', monospace;
+      gap: 5px;
+      padding: 4px 12px;
+      font-family: 'Outfit', sans-serif;
       font-size: 0.44rem;
-      letter-spacing: 0.12em;
+      font-weight: 600;
+      border-radius: 999px;
+      letter-spacing: 0.03em;
       text-transform: uppercase;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
     }
 
     .tag-active {
-      background: rgba(0, 245, 255, 0.1);
-      color: var(--cyan);
-      border: 1px solid rgba(0, 245, 255, 0.3);
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.12);
     }
 
     .tag-next {
-      background: rgba(255, 214, 0, 0.08);
-      color: var(--gold);
-      border: 1px solid rgba(255, 214, 0, 0.28);
+      background: rgba(255, 255, 255, 0.05);
+      color: rgba(255, 255, 255, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     .tag-alert {
-      background: rgba(255, 214, 0, 0.04);
+      background: rgba(255, 214, 0, 0.06);
       color: rgba(255, 214, 0, 0.65);
-      border: 1px solid rgba(255, 214, 0, 0.18);
+      border: 1px solid rgba(255, 214, 0, 0.15);
       animation: tag-blink 1.5s ease-in-out infinite;
     }
 
     .tag-wait {
       background: rgba(255, 255, 255, 0.02);
       color: rgba(255, 255, 255, 0.2);
-      border: 1px solid rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.04);
     }
 
     .tag-dot {
@@ -3063,9 +3251,10 @@
     }
 
     .q-mini {
-      padding: 5px 8px;
-      border: 1px solid rgba(0, 245, 255, 0.06);
-      background: rgba(0, 245, 255, 0.012);
+      padding: 8px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 14px;
       position: relative;
       overflow: hidden;
       animation: mini-in 0.3s ease forwards;
@@ -3090,11 +3279,11 @@
     }
 
     .q-mini-name {
-      font-family: 'Rajdhani', sans-serif;
+      font-family: 'Outfit', sans-serif;
       font-size: 0.88rem;
-      font-weight: 600;
-      color: rgba(255, 255, 255, 0.82);
-      letter-spacing: 0.05em;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
       white-space: nowrap;
       overflow: hidden;
@@ -3163,10 +3352,11 @@
       display: grid;
       grid-template-columns: 28px 1fr auto;
       align-items: center;
-      gap: 5px;
-      padding: 7px 8px;
-      border: 1px solid rgba(0, 245, 255, 0.07);
-      background: rgba(0, 245, 255, 0.015);
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      background: rgba(255, 255, 255, 0.015);
+      border-radius: 12px;
       position: relative;
       overflow: hidden;
       animation: item-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
@@ -3199,11 +3389,11 @@
     }
 
     .mq-info .mq-name {
-      font-family: 'Rajdhani', sans-serif;
+      font-family: 'Outfit', sans-serif;
       font-size: 0.8rem;
-      font-weight: 600;
+      font-weight: 800;
       color: #fff;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
       white-space: nowrap;
       overflow: hidden;
@@ -3237,33 +3427,35 @@
     }
 
     .multi-next {
-      padding: 5px 10px;
-      border-top: 1px solid rgba(0, 245, 255, 0.06);
+      padding: 8px 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       flex-shrink: 0;
       position: relative;
+      background: rgba(255, 255, 255, 0.015);
     }
 
     .multi-next::before {
       content: 'PRÓXIMO';
       position: absolute;
       top: -6px;
-      left: 9px;
-      background: var(--bg);
-      padding: 0 5px;
-      font-family: 'Share Tech Mono', monospace;
+      left: 12px;
+      background: var(--bg2);
+      padding: 0 6px;
+      font-family: 'Outfit', sans-serif;
       font-size: 0.36rem;
-      letter-spacing: 0.28em;
-      color: rgba(0, 245, 255, 0.22);
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      color: rgba(255, 255, 255, 0.2);
     }
 
     .mn-n {
-      font-family: 'Orbitron', monospace;
-      font-size: 1.3rem;
-      font-weight: 700;
-      color: rgba(0, 245, 255, 0.28);
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: rgba(255, 255, 255, 0.18);
     }
 
     .mn-wrap {
@@ -3272,28 +3464,31 @@
     }
 
     .mn-nom {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 0.78rem;
-      font-weight: 600;
-      color: rgba(255, 255, 255, 0.5);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.7);
       text-transform: uppercase;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.03em;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
     .mn-svc {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.36rem;
-      color: rgba(255, 255, 255, 0.18);
-      margin-top: 1px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.38rem;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.22);
+      margin-top: 2px;
+      letter-spacing: 0.02em;
     }
 
     .mn-time {
-      font-family: 'Orbitron', monospace;
-      font-size: 0.7rem;
-      color: var(--gold);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.35);
     }
 
     /* ── MI TURNO ── */
@@ -3308,47 +3503,49 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 8px 20px;
-      border-bottom: 1px solid rgba(0, 245, 255, 0.12);
-      background: rgba(0, 245, 255, 0.03);
+      padding: 14px 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.02);
+      backdrop-filter: blur(40px) saturate(180%);
+      -webkit-backdrop-filter: blur(40px) saturate(180%);
       flex-shrink: 0;
     }
 
     .my-name-badge {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
 
     .my-avatar {
-      width: 38px;
-      height: 38px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
-      border: 2px solid rgba(0, 245, 255, 0.4);
-      background: rgba(0, 245, 255, 0.08);
+      border: 1.5px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.06);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: 'Orbitron', monospace;
-      font-size: 1rem;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.9rem;
       font-weight: 700;
-      color: var(--cyan);
+      color: rgba(255, 255, 255, 0.7);
     }
 
     .my-barber-name {
-      font-family: 'Orbitron', monospace;
-      font-size: 0.9rem;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.95rem;
       font-weight: 700;
-      letter-spacing: 0.18em;
-      color: var(--cyan);
-      text-shadow: 0 0 12px rgba(0, 245, 255, 0.5);
+      letter-spacing: 0.03em;
+      color: rgba(255, 255, 255, 0.88);
     }
 
     .my-sub {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.62rem;
-      color: rgba(0, 245, 255, 0.75);
-      letter-spacing: 0.2em;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.55rem;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.35);
+      letter-spacing: 0.06em;
       text-transform: uppercase;
       margin-top: 2px;
     }
@@ -3365,8 +3562,10 @@
       flex: 0 0 360px;
       display: flex;
       flex-direction: column;
-      border-right: 1px solid rgba(0, 245, 255, 0.08);
-      background: rgba(0, 245, 255, 0.012);
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      background: linear-gradient(180deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.01) 100%);
+      backdrop-filter: blur(60px) saturate(180%);
+      -webkit-backdrop-filter: blur(60px) saturate(180%);
       overflow-y: auto;
       min-height: 0;
     }
@@ -3408,22 +3607,18 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      padding: 22px 18px 6px;
+      padding: 28px 18px 10px;
       position: relative;
-      border-bottom: 1px solid rgba(0, 245, 255, 0.08);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
       flex: 1;
       min-height: 160px;
       overflow: visible;
+      background: radial-gradient(ellipse 80% 50% at 50% 40%, rgba(255,255,255,0.025), transparent);
     }
 
     .my-silla-zone::before,
     .my-silla-zone::after {
-      content: '';
-      position: absolute;
-      width: 36px;
-      height: 36px;
-      border-style: solid;
-      border-color: rgba(0, 245, 255, 0.3);
+      display: none;
     }
 
     .my-silla-zone::before {
@@ -3439,14 +3634,14 @@
     }
 
     .my-hero-num {
-      font-family: 'Orbitron', monospace;
+      font-family: 'Outfit', sans-serif;
       font-size: clamp(3.5rem, 12vh, 9rem);
-      font-weight: 900;
+      font-weight: 800;
       color: var(--cyan);
-      text-shadow: 0 0 30px rgba(0, 245, 255, 0.5), 0 0 80px rgba(0, 245, 255, 0.25);
+      text-shadow: 0 0 40px rgba(0, 245, 255, 0.35), 0 0 80px rgba(0, 245, 255, 0.12);
       line-height: 1;
-      letter-spacing: 0.06em;
-      animation: hero-pulse 3s ease-in-out infinite;
+      letter-spacing: -0.02em;
+      animation: hero-pulse 4s ease-in-out infinite;
     }
 
     .my-hero-num.flip {
@@ -3454,59 +3649,67 @@
     }
 
     .my-client-name {
-      font-family: 'Rajdhani', sans-serif;
+      font-family: 'Outfit', sans-serif;
       font-size: clamp(1rem, 2.5vh, 1.5rem);
-      font-weight: 700;
+      font-weight: 800;
       color: #fff;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
       text-align: center;
       margin-top: 2px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.6);
     }
 
     .my-service {
-      margin-top: 4px;
-      padding: 3px 12px;
-      border: 1px solid rgba(0, 245, 255, 0.25);
-      background: rgba(0, 245, 255, 0.04);
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.58rem;
-      letter-spacing: 0.2em;
-      color: var(--cyan);
+      margin-top: 8px;
+      padding: 5px 18px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 999px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.55rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: rgba(255, 255, 255, 0.6);
       text-transform: uppercase;
     }
 
     .my-bottom {
-      padding: 8px 14px 10px;
+      padding: 10px 16px 12px;
       display: flex;
       flex-direction: column;
       gap: 6px;
       flex-shrink: 0;
       position: sticky;
       bottom: 0;
-      background: rgba(2, 4, 8, 0.97);
-      backdrop-filter: blur(8px);
+      background: rgba(6, 12, 20, 0.9);
+      backdrop-filter: blur(30px) saturate(160%);
+      -webkit-backdrop-filter: blur(30px) saturate(160%);
       z-index: 5;
-      border-top: 1px solid rgba(0, 245, 255, 0.06);
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
     }
 
     .btn-my-sig {
-      width: 100%;
-      padding: 11px 0;
-      background: linear-gradient(135deg, rgba(0, 245, 255, 0.1), rgba(0, 245, 255, 0.04));
-      border: 1px solid rgba(0, 245, 255, 0.5);
-      color: var(--cyan);
-      font-family: 'Orbitron', monospace;
-      font-size: 0.72rem;
+      width: 88%;
+      margin: 12px auto 0;
+      padding: 16px 0;
+      background: rgba(62, 207, 142, 0.18);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(62, 207, 142, 0.35);
+      border-radius: 999px;
+      color: #3ECF8E;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.95rem;
       font-weight: 700;
-      letter-spacing: 0.26em;
+      letter-spacing: 0.05em;
       text-transform: uppercase;
       cursor: pointer;
       position: relative;
       overflow: hidden;
-      transition: all 0.2s;
-      text-shadow: 0 0 12px rgba(0, 245, 255, 0.5);
-      box-shadow: 0 0 16px rgba(0, 245, 255, 0.12);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
       flex-shrink: 0;
       -webkit-tap-highlight-color: transparent;
     }
@@ -3555,14 +3758,14 @@
     }
 
     .my-queue-title {
-      font-family: 'Orbitron', monospace;
-      font-size: 0.74rem;
-      font-weight: 600;
-      letter-spacing: 0.2em;
-      color: var(--cyan);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: rgba(255, 255, 255, 0.55);
       text-transform: uppercase;
-      padding: 4px 0 5px;
-      border-bottom: 1px solid rgba(0, 245, 255, 0.1);
+      padding: 6px 0 7px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
       flex-shrink: 0;
       position: relative;
       display: flex;
@@ -3576,16 +3779,16 @@
       position: absolute;
       bottom: -1px;
       left: 0;
-      width: 70px;
+      width: 50px;
       height: 1px;
-      background: var(--cyan);
-      box-shadow: 0 0 12px var(--cyan);
+      background: rgba(255, 255, 255, 0.15);
     }
 
     .my-queue-meta {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.7rem;
-      color: rgba(0, 245, 255, 0.65);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.6rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.35);
       float: right;
       margin-top: 2px;
     }
@@ -3617,36 +3820,37 @@
       display: grid;
       grid-template-columns: 38px minmax(0, 1fr) auto;
       align-items: center;
-      gap: 7px;
-      padding: 6px 10px;
-      border: 1px solid rgba(0, 245, 255, 0.11);
-      background: rgba(0, 245, 255, 0.025);
+      gap: 10px;
+      padding: 10px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.02);
       position: relative;
       overflow: hidden;
       animation: item-in 0.4s forwards;
       opacity: 0;
-      border-radius: 3px;
+      border-radius: 18px;
+      margin-bottom: 4px;
     }
 
     .my-q-item.mqi-active {
-      border-left: 3px solid var(--cyan);
-      background: rgba(0, 245, 255, 0.055);
-      box-shadow: inset 0 0 20px rgba(0, 245, 255, 0.04);
+      border-left: 3px solid rgba(255, 255, 255, 0.25);
+      background: rgba(255, 255, 255, 0.04);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
       padding: 7px 10px;
     }
 
     .my-q-item.mqi-next {
-      border-left: 3px solid var(--gold);
-      background: rgba(255, 214, 0, 0.02);
+      border-left: 3px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.025);
     }
 
     .my-q-item.mqi-wait {
-      border-left: 3px solid rgba(0, 245, 255, 0.1);
+      border-left: 3px solid rgba(255, 255, 255, 0.05);
     }
 
     .my-q-item.mqi-done {
-      opacity: 0.35;
-      border-left: 3px solid rgba(0, 255, 120, 0.25);
+      opacity: 0.3;
+      border-left: 3px solid rgba(255, 255, 255, 0.06);
     }
 
     .my-q-item.mqi-active::after {
@@ -3661,33 +3865,32 @@
     }
 
     .mqi-num {
-      font-family: 'Orbitron', monospace;
+      font-family: 'Outfit', sans-serif;
       font-size: 0.88rem;
-      font-weight: 700;
-      color: rgba(0, 245, 255, 0.28);
+      font-weight: 800;
+      color: rgba(255, 255, 255, 0.2);
     }
 
     .my-q-item.mqi-active .mqi-num {
-      font-size: 1.25rem;
-      color: var(--cyan);
-      text-shadow: 0 0 10px rgba(0, 245, 255, 0.5);
+      font-size: 1.15rem;
+      color: rgba(255, 255, 255, 0.85);
     }
 
     .my-q-item.mqi-next .mqi-num {
-      color: var(--gold);
-      font-size: 1rem;
+      color: rgba(255, 255, 255, 0.45);
+      font-size: 0.95rem;
     }
 
     .my-q-item.mqi-done .mqi-num {
-      color: rgba(0, 255, 120, 0.4);
+      color: rgba(255, 255, 255, 0.2);
     }
 
     .mqi-name {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 0.88rem;
-      font-weight: 600;
-      color: rgba(255, 255, 255, 0.8);
-      letter-spacing: 0.08em;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
       white-space: nowrap;
       overflow: hidden;
@@ -3704,18 +3907,18 @@
     }
 
     .mqi-svc {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.52rem;
-      color: rgba(255, 245, 200, 0.75);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.5rem;
+      color: rgba(255, 255, 255, 0.4);
       margin-top: 1px;
       font-weight: 500;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.03em;
       text-transform: uppercase;
     }
 
     .my-q-item.mqi-active .mqi-svc {
-      font-size: 0.58rem;
-      color: rgba(255, 250, 220, 0.9);
+      font-size: 0.55rem;
+      color: rgba(255, 255, 255, 0.6);
       font-weight: 600;
     }
 
@@ -3728,39 +3931,41 @@
     }
 
     .mqi-time {
-      font-family: 'Orbitron', monospace;
-      font-size: 0.82rem;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.75rem;
       font-weight: 700;
-      color: var(--gold);
-      text-shadow: 0 0 8px rgba(255, 214, 0, 0.35);
+      color: rgba(255, 255, 255, 0.45);
       text-align: center;
     }
 
     .mqi-tag {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.4rem;
-      padding: 2px 6px;
-      border: 1px solid;
-      letter-spacing: 0.1em;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.42rem;
+      font-weight: 600;
+      padding: 2px 10px;
+      border-radius: 999px;
+      letter-spacing: 0.03em;
       text-transform: uppercase;
       text-align: center;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
     }
 
     .mqi-tag.a {
-      color: var(--cyan);
-      border-color: rgba(0, 245, 255, 0.3);
-      background: rgba(0, 245, 255, 0.06);
+      color: rgba(255, 255, 255, 0.75);
+      border-color: rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.08);
     }
 
     .mqi-tag.n {
-      color: var(--gold);
-      border-color: rgba(255, 214, 0, 0.25);
-      background: rgba(255, 214, 0, 0.04);
+      color: rgba(255, 255, 255, 0.5);
+      border-color: rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.04);
     }
 
     .mqi-tag.w {
       color: rgba(255, 255, 255, 0.18);
-      border-color: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.04);
     }
 
     .mqi-tag.d {
@@ -3786,8 +3991,8 @@
       50%      { box-shadow: 0 0 28px rgba(0,245,255,0.32), inset 0 0 16px rgba(0,245,255,0.08); border-color: rgba(0,245,255,0.45); }
     }
     @keyframes idle-scan-line {
-      0%   { top: 0%; opacity: 0.9; }
-      90%  { top: 100%; opacity: 0.9; }
+      0%   { top: 0%; opacity: 0.6; }
+      90%  { top: 100%; opacity: 0.6; }
       100% { top: 100%; opacity: 0; }
     }
     @keyframes idle-dot-float {
@@ -3972,8 +4177,10 @@
     }
 
     .mqi-name {
+      font-family: 'Outfit', sans-serif;
       font-size: 0.82rem;
-      color: rgba(255, 255, 255, 0.7);
+      font-weight: 700;
+      color: #fff;
     }
 
     .mqi-svc {
@@ -4099,13 +4306,12 @@
     }
 
     .footer-msg {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 1.05rem;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.95rem;
       font-weight: 500;
-      color: rgba(0, 245, 255, 0.42);
+      color: rgba(255, 255, 255, 0.45);
       font-style: italic;
-      letter-spacing: 0.08em;
-      text-shadow: 0 0 18px rgba(0, 245, 255, 0.18);
+      letter-spacing: 0.05em;
       animation: lbl-glow 4s ease-in-out infinite;
     }
 
@@ -5016,9 +5222,11 @@
     }
 
     .manana-group {
-      border: 1px solid rgba(255, 214, 0, 0.1);
-      background: rgba(255, 214, 0, 0.015);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 20px;
       overflow: hidden;
+      backdrop-filter: blur(10px);
     }
 
     .manana-group::before {
@@ -5039,12 +5247,12 @@
     }
 
     .manana-barber-name {
-      font-family: 'Orbitron', monospace;
-      font-size: 0.72rem;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.8rem;
       font-weight: 700;
-      letter-spacing: 0.2em;
+      letter-spacing: 0.05em;
       text-transform: uppercase;
-      color: var(--bc, var(--gold));
+      color: #fff;
     }
 
     .manana-count {
@@ -5068,9 +5276,10 @@
       grid-template-columns: 40px 1fr auto auto;
       align-items: center;
       gap: 10px;
-      padding: 9px 12px;
-      border: 1px solid rgba(255, 214, 0, 0.07);
-      background: rgba(255, 214, 0, 0.015);
+      padding: 10px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 14px;
       animation: item-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
       opacity: 0;
     }
@@ -5083,11 +5292,11 @@
     }
 
     .manana-name {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 0.95rem;
-      font-weight: 600;
+      font-family: 'Outfit', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
       color: #fff;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
     }
 
@@ -5109,12 +5318,15 @@
     }
 
     .manana-estado {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.42rem;
-      padding: 2px 8px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.44rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: rgba(0, 255, 120, 0.1);
       border: 1px solid rgba(0, 255, 120, 0.2);
-      color: rgba(0, 255, 120, 0.55);
-      letter-spacing: 0.1em;
+      color: #00FF78;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
       white-space: nowrap;
     }
@@ -5628,7 +5840,22 @@
 
       // Verificar si está pausada
       checkBarberiaPausada();
+      updateDynamicScale();
       return true;
+    }
+
+    function updateDynamicScale() {
+      const n = S.barberos.filter(b => b.activo).length || Object.keys(S.queues).length || 1;
+      let scale = 1;
+      if (MODE === 'tv') {
+        if (n > 4) scale = 0.85;
+        if (n > 5) scale = 0.75;
+        if (n > 8) scale = 0.65;
+      } else if (MODE === 'shop') {
+        if (n > 3) scale = 0.9;
+        if (n > 5) scale = 0.75;
+      }
+      document.documentElement.style.setProperty('--app-scale', scale);
     }
 
 
@@ -5973,6 +6200,7 @@
 
       c.innerHTML = newHtml;
       _lastRenderHtml = newHtml;
+      updateDynamicScale();
     }
 
     function renderTV(c) {
@@ -6010,10 +6238,39 @@
       </div>`;
         });
       }
+      
+      const showcaseImgs = (S.shop && S.shop.showcase_images && S.shop.showcase_images.length > 0)
+        ? S.shop.showcase_images
+        : [
+          'C:/Users/Usuario/.gemini/antigravity/brain/9ade49bc-c515-421e-8d85-ee1b6683b8f9/haircut_showcase_1_1777575858739.png',
+          'C:/Users/Usuario/.gemini/antigravity/brain/9ade49bc-c515-421e-8d85-ee1b6683b8f9/haircut_showcase_2_1777575870825.png',
+          'C:/Users/Usuario/.gemini/antigravity/brain/9ade49bc-c515-421e-8d85-ee1b6683b8f9/haircut_showcase_3_1777575883336.png'
+        ];
+      
+      let showcaseHtml = `<div class="tv-showcase">
+        ${showcaseImgs.map((img, i) => `<img src="${img}" class="tv-showcase-img ${i===0?'active':''}" id="showcase-img-${i}">`).join('')}
+        <div class="tv-showcase-overlay">
+          <div class="tv-showcase-title">Elite Portfolio</div>
+          <div class="tv-showcase-sub">Estilo · Precisión · AuraOS</div>
+        </div>
+      </div>`;
+
       const tvBgEl = TV_BG ? (TV_BG.match(/\.(mp4|webm|ogg)$/i)
         ? `<video class="tv-bg-media" src="${TV_BG}" autoplay loop muted playsinline></video>`
         : `<img class="tv-bg-media" src="${TV_BG}" alt="">`) : '';
-      c.innerHTML = `<div class="tv-wrap">${tvBgEl}<div class="tv-cards n${nc}">${cardsHtml}</div><div class="tv-ticker"><div class="tv-ticker-label">◈ HOY</div><div class="tv-ticker-track"><div class="tv-ticker-inner" style="animation-duration:${tickerDur}s;">${tickerHtml + tickerHtml}</div></div></div></div>`;
+      c.innerHTML = `<div class="tv-wrap">${tvBgEl}<div class="tv-cards n${nc+1}">${cardsHtml + showcaseHtml}</div><div class="tv-ticker"><div class="tv-ticker-label">◈ HOY</div><div class="tv-ticker-track"><div class="tv-ticker-inner" style="animation-duration:${tickerDur}s;">${tickerHtml + tickerHtml}</div></div></div></div>`;
+      
+      // Rotación del Showcase
+      if (!window._showcaseTimer) {
+        let curS = 0;
+        window._showcaseTimer = setInterval(() => {
+          const imgs = document.querySelectorAll('.tv-showcase-img');
+          if (!imgs.length) return;
+          imgs[curS].classList.remove('active');
+          curS = (curS + 1) % imgs.length;
+          imgs[curS].classList.add('active');
+        }, 5000);
+      }
     }
 
     function renderShop(c) {
@@ -6166,11 +6423,12 @@
       const pending = citas.slice(currentTurn).filter(c => c.estado !== 'Completada' && c.estado !== 'No-Show' && c.estado !== 'Cancelada'); const remaining = Math.max(0, pending.length + (cur && cur.estado === 'Confirmada' ? 1 : 0));
       if (remaining === 0) col.classList.add('libre'); else col.classList.remove('libre');
       col.innerHTML =
-        '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 12px;border-bottom:1px solid rgba(0,245,255,0.08);background:rgba(2,4,8,0.7);flex-shrink:0;position:relative;">'
-        + '<div style="font-family:\'Orbitron\',monospace;font-size:0.68rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--bc);text-shadow:0 0 10px var(--bc);">✂ ' + barber + '</div>'
-        + '<span style="font-family:\'Share Tech Mono\',monospace;font-size:0.42rem;letter-spacing:0.1em;text-transform:uppercase;padding:2px 7px;border:1px solid var(--bc);color:var(--bc);opacity:0.6;">' + (remaining > 0 ? remaining + ' EN ESPERA' : 'LIBRE') + '</span>'
-        + '<div style="position:absolute;bottom:-1px;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--bc),transparent);opacity:0.4;"></div></div>'
-        + '<div class="silla-zone"><div class="now-label">◆ EN SILLA ◆</div>'
+        '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.04);background:rgba(255,255,255,0.02);backdrop-filter:blur(20px);flex-shrink:0;position:relative;">'
+        + '<div style="display:flex;align-items:center;gap:10px;"><div style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.06);border:1.5px solid var(--bc);display:flex;align-items:center;justify-content:center;font-family:\'Outfit\',sans-serif;font-size:0.75rem;font-weight:700;color:var(--bc);">' + barber[0] + '</div>'
+        + '<div style="font-family:\'Outfit\',sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.03em;text-transform:uppercase;color:rgba(255,255,255,0.85);">✂ ' + barber + '</div></div>'
+        + '<span style="font-family:\'Outfit\',sans-serif;font-size:0.42rem;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;padding:3px 12px;border-radius:999px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:' + (remaining > 0 ? 'rgba(62,207,142,0.7)' : 'rgba(255,255,255,0.25)') + ';">' + (remaining > 0 ? remaining + ' en espera' : 'Libre') + '</span>'
+        + '</div>'
+        + '<div class="silla-zone"><div class="now-label">EN SILLA AHORA</div>'
         + '<div class="hero-num-wrap"><div class="hero-num ' + nsz + '" id="hn-' + bid + '">' + (cur ? String(currentTurn).padStart(2, '0') : '—') + '</div></div>'
         + '<div class="silla-name ' + nsz + '">' + (cur ? cur.name : 'SIN CLIENTE') + '</div>'
         + (cur ? '<div class="silla-service">' + cur.servicio + '</div>' : '')
@@ -6218,21 +6476,23 @@
     <div class="my-layout">
       <div class="my-left">
         ${isActive && cur ? `<div class="my-silla-zone">
-          <div style="margin-bottom: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,245,255,0.02); border: 1px solid rgba(0,245,255,0.15); padding: 8px; border-radius: 6px; min-width:106px; min-height:106px;">
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent('barberos://registro?shop=' + SLUG)}&bgcolor=060C14&color=FFFFFF&margin=8" width="90" height="90" style="display:block; border-radius:4px; opacity:0.92; filter: drop-shadow(0 0 6px rgba(0,245,255,0.35));" onerror="this.style.display='none'">
-            <div style="font-family:'Share Tech Mono',monospace;font-size:0.42rem;color:rgba(0,245,255,0.5);letter-spacing:0.15em;margin-top:5px;text-transform:uppercase;">QR APP</div>
+          <div style="margin-bottom: 25px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 12px; border-radius: 20px; width:120px; height:120px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); backdrop-filter: blur(10px);">
+            <img src="${window._qrcData || ''}" width="96" height="96" style="display:block; border-radius:10px; opacity:0.95;" onerror="this.style.display='none'">
           </div>
-          <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
-            ${barbAvatar(barber, 52)}
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;">
+            ${barbAvatar(barber, 58)}
             <div style="display:flex;flex-direction:column;">
-              <div style="font-family:'Orbitron',monospace;font-size:0.82rem;font-weight:700;color:var(--cyan);letter-spacing:0.18em;text-shadow:0 0 10px rgba(0,245,255,0.5);">✂ ${barber}</div>
-              <div style="font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:rgba(255,0,110,0.9);letter-spacing:0.28em;text-transform:uppercase;margin-top:4px;text-shadow:0 0 8px rgba(255,0,110,0.5);">● EN SILLA AHORA</div>
+              <div style="font-family:'Outfit',sans-serif;font-size:1.1rem;font-weight:700;color:#fff;letter-spacing:0.02em;">✂ ${barber}</div>
+              <div class="now-label" style="margin-top:6px; font-size: 0.55rem; padding: 3px 12px;">EN SILLA AHORA</div>
             </div>
           </div>
-          <div class="hero-num-wrap"><div class="hero-ghost">${String(ctFinal).padStart(2, '00')}</div><div class="my-hero-num" id="my-hn">${String(ctFinal).padStart(2, '00')}</div></div>
-          <div class="my-client-name typing" id="my-cn">${cur.name}</div>
-          <div class="my-service">${cur.servicio}</div>
-          <div class="silla-timer" id="timer-my"><div class="timer-dot"></div><span id="timer-txt-my">0m</span></div>
+          <div class="hero-num-wrap">
+            <div class="hero-ghost" style="opacity: 0.03;">${String(ctFinal).padStart(2, '0')}</div>
+            <div class="my-hero-num" id="my-hn" style="font-family:'Outfit',sans-serif; font-weight: 800; font-size: 8.5rem; letter-spacing: -0.05em; background: linear-gradient(135deg, #fff, rgba(255,255,255,0.4)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 10px 30px rgba(0,0,0,0.3));">${String(ctFinal).padStart(2, '0')}</div>
+          </div>
+          <div class="my-client-name" id="my-cn" style="font-family:'Outfit',sans-serif; font-weight: 700; font-size: 2.2rem; color: #fff; letter-spacing: -0.02em; margin-bottom: 2px;">${cur.name}</div>
+          <div class="my-service" style="font-family:'Outfit',sans-serif; font-size: 0.9rem; font-weight: 500; color: var(--cyan); text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.8;">${cur.servicio}</div>
+          <div class="silla-timer" id="timer-my" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 999px; padding: 4px 14px; margin-top: 15px;"><div class="timer-dot"></div><span id="timer-txt-my" style="font-family:'Outfit',sans-serif; font-weight: 600;">0m</span></div>
           <div class="swipe-flash" id="fl-${bid}"></div>
         </div>`: isActive ? `<div class="libre-banner">
             <div class="libre-ring"></div><div class="libre-ring"></div><div class="libre-ring"></div>
@@ -6246,10 +6506,10 @@
             <div class="libre-sub">Actívate para recibir turnos</div>
           </div>`}
         <div class="my-bottom">
-          ${nxt ? `<div class="next-strip" style="border-color:rgba(0,245,255,0.15);">
-            <div class="next-n" style="color:rgba(0,245,255,0.4);">${String(ctFinal + 1).padStart(2, '00')}</div>
-            <div class="next-info"><div class="next-nom">${nxt.name}</div><div class="next-barber">⏱ ${fmt12(nxt.time)}</div></div>
-            <div class="next-time-badge">${calcLiveETA(1, barber) || fmt12(nxt.time)}</div>
+          ${nxt ? `<div class="next-strip" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; padding: 12px 20px;">
+            <div class="next-n" style="font-family:'Outfit',sans-serif; font-weight: 800; color: rgba(255,255,255,0.2);">${String(ctFinal + 1).padStart(2, '0')}</div>
+            <div class="next-info"><div class="next-nom" style="font-family:'Outfit',sans-serif; font-weight: 700;">${nxt.name}</div><div class="next-barber" style="font-family:'Outfit',sans-serif; font-size: 0.65rem; opacity: 0.6;">PRÓXIMO TURNO · ${fmt12(nxt.time)}</div></div>
+            <div class="next-time-badge" style="font-family:'Outfit',sans-serif; font-weight: 700; background: rgba(0,245,255,0.1); color: var(--cyan); border-radius: 12px;">${calcLiveETA(1, barber) || fmt12(nxt.time)}</div>
           </div>`: ''}
           <button class="btn-my-sig${!isActive ? ' loading' : ''}" id="btn-my" onclick="siguienteTurno('${barber.replace(/'/g, "\\'")}','btn-my')" ${!isActive ? 'disabled' : ''}>
             ${scHtml()}${isActive ? '▶ &nbsp; SIGUIENTE TURNO' : '⏸ &nbsp; DESACTIVADO'}
@@ -6412,14 +6672,33 @@
     }
 
     function setMode(m, barber) {
-      MODE = m; if (m === 'my' && barber) MY_BARBER = barber;
-      ['tv', 'shop', 'my', 'manana'].forEach(id => { const btn = document.getElementById('mbtn-' + id); if (btn) btn.classList.remove('active', 'mode-barber-active', 'mode-manana-active'); });
-      const modeClass = { tv: 'active', shop: 'active', my: 'mode-barber-active', manana: 'mode-manana-active' };
-      const ab = document.getElementById('mbtn-' + (m === 'my' ? 'my' : m)); if (ab) ab.classList.add(modeClass[m] || 'active');
-      document.getElementById('brand-sub').textContent = { tv: 'Vista Global · TV', shop: 'Vista Barbería', my: MY_BARBER ? '✂ ' + MY_BARBER : 'Vista Personal', manana: 'Citas para Mañana' }[m] || 'Sistema de Turnos · AuraOS';
-      if (m === 'manana') loadCitasMañana().catch(() => { }).then(() => render());
-      _lastRenderHtml = '';
-      document.getElementById('content').innerHTML = ''; render();
+      if (MODE === m && (m !== 'my' || MY_BARBER === barber)) return;
+      
+      const c = document.getElementById('content');
+      c.classList.add('view-leaving');
+      
+      setTimeout(() => {
+        MODE = m; if (m === 'my' && barber) MY_BARBER = barber;
+        ['tv', 'shop', 'my', 'manana'].forEach(id => { const btn = document.getElementById('mbtn-' + id); if (btn) btn.classList.remove('active', 'mode-barber-active', 'mode-manana-active'); });
+        const modeClass = { tv: 'active', shop: 'active', my: 'mode-barber-active', manana: 'mode-manana-active' };
+        const ab = document.getElementById('mbtn-' + (m === 'my' ? 'my' : m)); if (ab) ab.classList.add(modeClass[m] || 'active');
+        document.getElementById('brand-sub').textContent = { tv: 'Vista Global · TV', shop: 'Vista Barbería', my: MY_BARBER ? '✂ ' + MY_BARBER : 'Vista Personal', manana: 'Citas para Mañana' }[m] || 'Sistema de Turnos · AuraOS';
+        
+        if (m === 'manana') loadCitasMañana().catch(() => { }).then(() => {
+          c.classList.remove('view-leaving');
+          c.classList.add('view-entering');
+          render();
+          setTimeout(() => c.classList.remove('view-entering'), 500);
+        });
+        else {
+          _lastRenderHtml = '';
+          c.innerHTML = ''; 
+          c.classList.remove('view-leaving');
+          c.classList.add('view-entering');
+          render();
+          setTimeout(() => c.classList.remove('view-entering'), 500);
+        }
+      }, 300);
     }
 
     function openBarberPicker() { renderBarberPicker(); document.getElementById('barber-picker').classList.toggle('open'); }
