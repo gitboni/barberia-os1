@@ -219,13 +219,15 @@ tr:last-child td{border-bottom:none;}
 .btn-full{flex:1;padding:11px;font-family:'Syne',sans-serif;font-size:0.78rem;font-weight:700;cursor:pointer;text-transform:uppercase;border:none;transition:all 0.2s;}
 .btn-cancel{background:transparent;color:var(--muted);border:1px solid var(--border)!important;}
 .btn-cancel:hover{color:var(--text);}
-/* HORARIO */
-.horario-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
-.dia-toggle input{display:none;}
-.dia-toggle label{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border:1px solid var(--border);cursor:pointer;transition:all 0.15s;font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--muted);}
-.dia-toggle input:checked+label{border-color:rgba(201,168,76,0.4);background:rgba(201,168,76,0.08);color:var(--gold);}
-.dia-check{width:16px;height:16px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:0.6rem;}
-.dia-toggle input:checked+label .dia-check{background:var(--gold);color:var(--bg);}
+/* HORARIO POR DÍA */
+.hpd-table{width:100%;border-collapse:collapse;margin-top:8px;}
+.hpd-table th{font-family:'DM Mono',monospace;font-size:0.46rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;padding:0 6px 6px;text-align:left;border-bottom:1px solid var(--border);}
+.hpd-table td{padding:5px 6px;border-bottom:1px solid rgba(255,255,255,0.03);}
+.hpd-table tr.hpd-off td{opacity:0.35;}
+.hpd-day-name{font-size:0.72rem;color:var(--text);font-weight:600;}
+.hpd-check{width:16px;height:16px;accent-color:var(--gold);cursor:pointer;}
+.hpd-time{width:52px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text);padding:4px 6px;font-family:'DM Mono',monospace;font-size:0.62rem;text-align:center;}
+.hpd-time:disabled{opacity:0.3;}
 /* TOAST */
 .toast{position:fixed;bottom:24px;right:24px;z-index:999;padding:12px 20px;background:var(--bg2);border:1px solid var(--border);font-family:'DM Mono',monospace;font-size:0.62rem;transform:translateY(80px);opacity:0;transition:all 0.3s;pointer-events:none;}
 .toast.show{transform:translateY(0);opacity:1;}
@@ -429,10 +431,6 @@ tr:last-child td{border-bottom:none;}
       <div class="fg"><label>Nombre del local</label><input type="text" id="cfg-nombre"></div>
       <div class="fg"><label>WhatsApp del dueño</label><input type="text" id="cfg-whatsapp"></div>
     </div>
-    <div class="fg-row">
-      <div class="fg"><label>Hora apertura (ej: 9 = 9:00 AM)</label><input type="number" id="cfg-inicio" min="0" max="23"></div>
-      <div class="fg"><label>Hora cierre (ej: 22 = 10:00 PM)</label><input type="number" id="cfg-fin" min="0" max="23"></div>
-    </div>
     <div class="fg"><label>Duración de turno (minutos)</label><input type="number" id="cfg-duracion" min="15" max="120"></div>
     <div class="fg"><label>Zona horaria</label>
       <select id="cfg-timezone">
@@ -443,16 +441,11 @@ tr:last-child td{border-bottom:none;}
         <option value="America/Buenos_Aires">America/Buenos_Aires (ART)</option>
       </select>
     </div>
-    <div class="fg"><label>Días de atención</label>
-      <div class="horario-grid" style="margin-top:8px;">
-        <div class="dia-toggle"><input type="checkbox" id="dia-0" checked><label for="dia-0"><div class="dia-check">✓</div>Lun</label></div>
-        <div class="dia-toggle"><input type="checkbox" id="dia-1" checked><label for="dia-1"><div class="dia-check">✓</div>Mar</label></div>
-        <div class="dia-toggle"><input type="checkbox" id="dia-2" checked><label for="dia-2"><div class="dia-check">✓</div>Mié</label></div>
-        <div class="dia-toggle"><input type="checkbox" id="dia-3" checked><label for="dia-3"><div class="dia-check">✓</div>Jue</label></div>
-        <div class="dia-toggle"><input type="checkbox" id="dia-4" checked><label for="dia-4"><div class="dia-check">✓</div>Vie</label></div>
-        <div class="dia-toggle"><input type="checkbox" id="dia-5" checked><label for="dia-5"><div class="dia-check">✓</div>Sáb</label></div>
-        <div class="dia-toggle"><input type="checkbox" id="dia-6"><label for="dia-6"><div class="dia-check">✓</div>Dom</label></div>
-      </div>
+    <div class="fg"><label>Horario por día</label>
+      <table class="hpd-table">
+        <thead><tr><th>Día</th><th>Activo</th><th>Apertura</th><th>Cierre</th></tr></thead>
+        <tbody id="hpd-body-cfg"></tbody>
+      </table>
     </div>
     <div class="modal-actions">
       <button class="btn-full btn-gold" onclick="saveConfig()">💾 Guardar cambios</button>
@@ -685,7 +678,7 @@ function renderPage(){
   else if(currentPage==='barberos')el.innerHTML=renderBarberos();
   else if(currentPage==='reportes'){el.innerHTML=renderReportes();setTimeout(initReportesCharts,150);}
   else if(currentPage==='bot'){el.innerHTML=renderBot();setTimeout(initModoRecordatorio,50);}
-  else if(currentPage==='config')el.innerHTML=renderConfigPage();
+  else if(currentPage==='config'){el.innerHTML=renderConfigPage();const s=S.shopData||{};buildHpdGrid('pg',s.dias_atencion,s.horarios_por_dia,s.hora_inicio||9,s.hora_fin||21);}
   renderSidebar();updateBarberoSelect();
   if(window.lucide) lucide.createIcons();
 }
@@ -1873,10 +1866,6 @@ function renderConfigPage(){
         <div style="padding:18px;display:flex;flex-direction:column;gap:12px;">
           <div class="fg"><label>Nombre del local</label><input type="text" id="cfg-nombre-pg" value="${s.nombre||''}"></div>
           <div class="fg"><label>WhatsApp del dueño</label><input type="text" id="cfg-whatsapp-pg" value="${s.whatsapp_dueño||''}"></div>
-          <div class="fg-row">
-            <div class="fg"><label>Hora apertura</label><input type="number" id="cfg-inicio-pg" value="${s.hora_inicio||9}" min="0" max="23"></div>
-            <div class="fg"><label>Hora cierre</label><input type="number" id="cfg-fin-pg" value="${s.hora_fin||18}" min="0" max="23"></div>
-          </div>
           <div class="fg"><label>Duración de turno (minutos)</label><input type="number" id="cfg-dur-pg" value="${s.duracion_turno||45}" min="15" max="120"></div>
           <div class="fg"><label>Zona horaria</label>
             <select id="cfg-tz-pg">
@@ -1886,10 +1875,11 @@ function renderConfigPage(){
               <option value="America/Mexico_City" ${s.timezone==='America/Mexico_City'?'selected':''}>America/Mexico_City</option>
             </select>
           </div>
-          <div class="fg"><label>Días de atención</label>
-            <div class="horario-grid" style="margin-top:8px;">
-              ${['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'].map((d,i)=>`<div class="dia-toggle"><input type="checkbox" id="pgdia-${i}" ${(s.dias_atencion||[0,1,2,3,4,5]).includes(i)?'checked':''}><label for="pgdia-${i}"><div class="dia-check">✓</div>${d}</label></div>`).join('')}
-            </div>
+          <div class="fg"><label>Horario por día</label>
+            <table class="hpd-table">
+              <thead><tr><th>Día</th><th>Activo</th><th>Apertura</th><th>Cierre</th></tr></thead>
+              <tbody id="hpd-body-pg"></tbody>
+            </table>
           </div>
           <button class="btn-sm btn-gold" style="align-self:flex-start;padding:10px 24px;" onclick="saveConfigPage()">💾 Guardar cambios</button>
         </div>
@@ -1958,12 +1948,13 @@ function renderConfigPage(){
   </div>`;
 }
 async function saveConfigPage(){
-  const dias=[0,1,2,3,4,5,6].filter(i=>{const cb=document.getElementById('pgdia-'+i);return cb&&cb.checked;});
-  const p={nombre:document.getElementById('cfg-nombre-pg').value.trim(),'whatsapp_dueño':document.getElementById('cfg-whatsapp-pg').value.trim(),hora_inicio:parseInt(document.getElementById('cfg-inicio-pg').value)||9,hora_fin:parseInt(document.getElementById('cfg-fin-pg').value)||18,timezone:document.getElementById('cfg-tz-pg').value,duracion_turno:parseInt(document.getElementById('cfg-dur-pg').value)||45,dias_atencion:dias};
+  const hpd=collectHpd('pg');
+  const p={nombre:document.getElementById('cfg-nombre-pg').value.trim(),'whatsapp_dueño':document.getElementById('cfg-whatsapp-pg').value.trim(),hora_inicio:hpd.hora_inicio,hora_fin:hpd.hora_fin,timezone:document.getElementById('cfg-tz-pg').value,duracion_turno:parseInt(document.getElementById('cfg-dur-pg').value)||45,dias_atencion:hpd.dias_atencion,horarios_por_dia:hpd.horarios_por_dia};
   try{
     const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/update_shop_config`,{method:'POST',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify({p_shop_id:S.shopId,p_nombre:p.nombre,p_whatsapp_dueno:p['whatsapp_dueño'],p_hora_inicio:p.hora_inicio,p_hora_fin:p.hora_fin,p_timezone:p.timezone,p_duracion_turno:p.duracion_turno,p_dias_atencion:p.dias_atencion})});
     const data=await r.json();
     if(data&&data.error){toast('Error: '+data.error,'error');return;}
+    await sbPatch('shops','id=eq.'+S.shopId,{horarios_por_dia:hpd.horarios_por_dia});
     Object.assign(S.shopData,p);
     document.getElementById('shop-name-sidebar').textContent=p.nombre;
     renderPage();
@@ -2332,20 +2323,75 @@ function openModal(type){
   if(type==='cita'){document.getElementById('modal-cita-title').textContent='Nueva Cita';document.getElementById('m-cita-id').value='';document.getElementById('m-nombre').value='';document.getElementById('m-tel').value='';document.getElementById('m-fecha').value=nowStr();document.getElementById('m-hora').value='09:00';document.getElementById('m-estado').value='Confirmada';updateServicioSelect();updateBarberoSelect();}
   if(type==='barbero'){document.getElementById('modal-barbero-title').textContent='Nuevo Barbero';document.getElementById('mb-id').value='';document.getElementById('mb-nombre').value='';document.getElementById('mb-orden').value=S.barberos.length+1;document.getElementById('mb-activo').checked=true;}
   if(type==='cliente'){document.getElementById('modal-cliente-title').textContent='Nuevo Cliente';document.getElementById('mc-id').value='';document.getElementById('mc-nombre').value='';document.getElementById('mc-tel').value='';document.getElementById('mc-notas').value='';}
-  if(type==='config'){const s=S.shopData||{};document.getElementById('cfg-nombre').value=s.nombre||'';document.getElementById('cfg-whatsapp').value=s.whatsapp_dueño||'';document.getElementById('cfg-inicio').value=s.hora_inicio||9;document.getElementById('cfg-fin').value=s.hora_fin||18;document.getElementById('cfg-duracion').value=s.duracion_turno||45;document.getElementById('cfg-timezone').value=s.timezone||'America/Santo_Domingo';const dias=s.dias_atencion||[0,1,2,3,4,5];for(let i=0;i<7;i++){const cb=document.getElementById('dia-'+i);if(cb)cb.checked=dias.includes(i);}}
+  if(type==='config'){const s=S.shopData||{};document.getElementById('cfg-nombre').value=s.nombre||'';document.getElementById('cfg-whatsapp').value=s.whatsapp_dueño||'';document.getElementById('cfg-duracion').value=s.duracion_turno||45;document.getElementById('cfg-timezone').value=s.timezone||'America/Santo_Domingo';buildHpdGrid('cfg',s.dias_atencion,s.horarios_por_dia,s.hora_inicio||9,s.hora_fin||21);}
   document.getElementById('modal-'+type).classList.add('open');
 }
 function closeModal(type){document.getElementById('modal-'+type).classList.remove('open');}
 async function saveConfig(){
-  const p={nombre:document.getElementById('cfg-nombre').value.trim(),'whatsapp_dueño':document.getElementById('cfg-whatsapp').value.trim(),hora_inicio:parseInt(document.getElementById('cfg-inicio').value)||9,hora_fin:parseInt(document.getElementById('cfg-fin').value)||18,duracion_turno:parseInt(document.getElementById('cfg-duracion').value)||45,timezone:document.getElementById('cfg-timezone').value,dias_atencion:[0,1,2,3,4,5,6].filter(i=>{const cb=document.getElementById('dia-'+i);return cb&&cb.checked;})};
+  const hpd=collectHpd('cfg');
+  const p={nombre:document.getElementById('cfg-nombre').value.trim(),'whatsapp_dueño':document.getElementById('cfg-whatsapp').value.trim(),hora_inicio:hpd.hora_inicio,hora_fin:hpd.hora_fin,duracion_turno:parseInt(document.getElementById('cfg-duracion').value)||45,timezone:document.getElementById('cfg-timezone').value,dias_atencion:hpd.dias_atencion,horarios_por_dia:hpd.horarios_por_dia};
   try{
     const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/update_shop_config`,{method:'POST',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify({p_shop_id:S.shopId,p_nombre:p.nombre,p_whatsapp_dueno:p['whatsapp_dueño'],p_hora_inicio:p.hora_inicio,p_hora_fin:p.hora_fin,p_duracion_turno:p.duracion_turno,p_timezone:p.timezone,p_dias_atencion:p.dias_atencion})});
     const data=await r.json();
     if(data&&data.error){toast('Error: '+data.error,'error');return;}
+    // Guardar horarios_por_dia directo (el RPC no lo conoce aún)
+    await sbPatch('shops','id=eq.'+S.shopId,{horarios_por_dia:hpd.horarios_por_dia});
     Object.assign(S.shopData,p);toast('Configuración guardada');closeModal('config');renderPage();
   }catch(e){toast('Error: '+e.message,'error');}
 }
 ['cita','barbero','cliente','config','test-recordatorio','reset-pass'].forEach(t=>{document.getElementById('modal-'+t).addEventListener('click',e=>{if(e.target.id==='modal-'+t)closeModal(t);});});
+
+// ── HORARIO POR DÍA ──────────────────────────────────────────────────────────
+const HPD_DIAS = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+
+function buildHpdGrid(pfx, diasAtencion, horariosPorDia, defIni, defFin) {
+  const tbody = document.getElementById('hpd-body-'+pfx);
+  if (!tbody) return;
+  tbody.innerHTML = HPD_DIAS.map((nombre, i) => {
+    const activo = (diasAtencion||[0,1,2,3,4,5]).includes(i);
+    const override = (horariosPorDia||{})[i] || (horariosPorDia||{})[String(i)];
+    const ini = override ? override.ini : (defIni||9);
+    const fin = override ? override.fin : (defFin||21);
+    return `<tr id="hpd-row-${pfx}-${i}" class="${activo?'':'hpd-off'}">
+      <td class="hpd-day-name">${nombre}</td>
+      <td><input type="checkbox" class="hpd-check" id="${pfx}dia-${i}" ${activo?'checked':''} onchange="toggleHpdDay('${pfx}',${i})"></td>
+      <td><input type="number" class="hpd-time" id="${pfx}dia-${i}-ini" value="${ini}" min="0" max="23" ${activo?'':'disabled'}></td>
+      <td><input type="number" class="hpd-time" id="${pfx}dia-${i}-fin" value="${fin}" min="0" max="23" ${activo?'':'disabled'}></td>
+    </tr>`;
+  }).join('');
+}
+
+function toggleHpdDay(pfx, i) {
+  const on = document.getElementById(pfx+'dia-'+i)?.checked;
+  const row = document.getElementById('hpd-row-'+pfx+'-'+i);
+  if (row) row.className = on ? '' : 'hpd-off';
+  ['ini','fin'].forEach(f => {
+    const el = document.getElementById(pfx+'dia-'+i+'-'+f);
+    if (el) el.disabled = !on;
+  });
+}
+
+function collectHpd(pfx) {
+  const dias = [], hpd = {};
+  for (let i = 0; i < 7; i++) {
+    const cb = document.getElementById(pfx+'dia-'+i);
+    if (cb && cb.checked) {
+      dias.push(i);
+      hpd[i] = {
+        ini: parseInt(document.getElementById(pfx+'dia-'+i+'-ini')?.value)||9,
+        fin: parseInt(document.getElementById(pfx+'dia-'+i+'-fin')?.value)||21,
+      };
+    }
+  }
+  const allIni = Object.values(hpd).map(h=>h.ini);
+  const allFin = Object.values(hpd).map(h=>h.fin);
+  return {
+    dias_atencion: dias,
+    horarios_por_dia: hpd,
+    hora_inicio: allIni.length ? Math.min(...allIni) : 9,
+    hora_fin:    allFin.length ? Math.max(...allFin) : 21,
+  };
+}
 
 function updateBarberoSelect(incluirNombre){
   const sel=document.getElementById('m-barbero');if(!sel)return;
