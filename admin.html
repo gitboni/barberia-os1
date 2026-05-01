@@ -678,7 +678,7 @@ function renderPage(){
   else if(currentPage==='barberos')el.innerHTML=renderBarberos();
   else if(currentPage==='reportes'){el.innerHTML=renderReportes();setTimeout(initReportesCharts,150);}
   else if(currentPage==='bot'){el.innerHTML=renderBot();setTimeout(initModoRecordatorio,50);}
-  else if(currentPage==='config'){el.innerHTML=renderConfigPage();const s=S.shopData||{};buildHpdGrid('pg',s.dias_atencion,s.horarios_por_dia,s.hora_inicio||9,s.hora_fin||21);}
+  else if(currentPage==='config'){el.innerHTML=renderConfigPage();}
   renderSidebar();updateBarberoSelect();
   if(window.lucide) lucide.createIcons();
 }
@@ -1878,7 +1878,7 @@ function renderConfigPage(){
           <div class="fg"><label>Horario por día</label>
             <table class="hpd-table">
               <thead><tr><th>Día</th><th>Activo</th><th>Apertura</th><th>Cierre</th></tr></thead>
-              <tbody id="hpd-body-pg"></tbody>
+              <tbody id="hpd-body-pg">${['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'].map((dia,i)=>{const activo=(s.dias_atencion||[0,1,2,3,4,5]).includes(i);const ov=(s.horarios_por_dia||{})[i]||(s.horarios_por_dia||{})[String(i)];const ini=ov?ov.ini:(s.hora_inicio||9);const fin=ov?ov.fin:(s.hora_fin||21);return `<tr id="hpd-row-pg-${i}" class="${activo?'':'hpd-off'}"><td class="hpd-day-name">${dia}</td><td><input type="checkbox" class="hpd-check" id="pgdia-${i}" ${activo?'checked':''} onchange="toggleHpdDay('pg',${i})"></td><td><input type="number" class="hpd-time" id="pgdia-${i}-ini" value="${ini}" min="0" max="23" ${activo?'':'disabled'}></td><td><input type="number" class="hpd-time" id="pgdia-${i}-fin" value="${fin}" min="0" max="23" ${activo?'':'disabled'}></td></tr>`;}).join('')}</tbody>
             </table>
           </div>
           <button class="btn-sm btn-gold" style="align-self:flex-start;padding:10px 24px;" onclick="saveConfigPage()">💾 Guardar cambios</button>
