@@ -226,7 +226,7 @@ tr:last-child td{border-bottom:none;}
 .hpd-table tr.hpd-off td{opacity:0.35;}
 .hpd-day-name{font-size:0.72rem;color:var(--text);font-weight:600;}
 .hpd-check{width:16px;height:16px;accent-color:var(--gold);cursor:pointer;}
-.hpd-time{width:52px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text);padding:4px 6px;font-family:'DM Mono',monospace;font-size:0.62rem;text-align:center;}
+.hpd-time{width:90px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text);padding:4px 6px;font-family:'DM Mono',monospace;font-size:0.62rem;text-align:center;color-scheme:dark;}
 .hpd-time:disabled{opacity:0.3;}
 /* TOAST */
 .toast{position:fixed;bottom:24px;right:24px;z-index:999;padding:12px 20px;background:var(--bg2);border:1px solid var(--border);font-family:'DM Mono',monospace;font-size:0.62rem;transform:translateY(80px);opacity:0;transition:all 0.3s;pointer-events:none;}
@@ -1878,7 +1878,7 @@ function renderConfigPage(){
           <div class="fg"><label>Horario por día</label>
             <table class="hpd-table">
               <thead><tr><th>Día</th><th>Activo</th><th>Apertura</th><th>Cierre</th></tr></thead>
-              <tbody id="hpd-body-pg">${['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'].map((dia,i)=>{const activo=(s.dias_atencion||[0,1,2,3,4,5]).includes(i);const ov=(s.horarios_por_dia||{})[i]||(s.horarios_por_dia||{})[String(i)];const ini=ov?ov.ini:(s.hora_inicio||9);const fin=ov?ov.fin:(s.hora_fin||21);return `<tr id="hpd-row-pg-${i}" class="${activo?'':'hpd-off'}"><td class="hpd-day-name">${dia}</td><td><input type="checkbox" class="hpd-check" id="pgdia-${i}" ${activo?'checked':''} onchange="toggleHpdDay('pg',${i})"></td><td><input type="number" class="hpd-time" id="pgdia-${i}-ini" value="${ini}" min="0" max="23" ${activo?'':'disabled'}></td><td><input type="number" class="hpd-time" id="pgdia-${i}-fin" value="${fin}" min="0" max="23" ${activo?'':'disabled'}></td></tr>`;}).join('')}</tbody>
+              <tbody id="hpd-body-pg">${['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'].map((dia,i)=>{const activo=(s.dias_atencion||[0,1,2,3,4,5]).includes(i);const ov=(s.horarios_por_dia||{})[i]||(s.horarios_por_dia||{})[String(i)];const ini=toTimeStr(ov?ov.ini:(s.hora_inicio||9));const fin=toTimeStr(ov?ov.fin:(s.hora_fin||21));return `<tr id="hpd-row-pg-${i}" class="${activo?'':'hpd-off'}"><td class="hpd-day-name">${dia}</td><td><input type="checkbox" class="hpd-check" id="pgdia-${i}" ${activo?'checked':''} onchange="toggleHpdDay('pg',${i})"></td><td><input type="time" class="hpd-time" id="pgdia-${i}-ini" value="${ini}" ${activo?'':'disabled'}></td><td><input type="time" class="hpd-time" id="pgdia-${i}-fin" value="${fin}" ${activo?'':'disabled'}></td></tr>`;}).join('')}</tbody>
             </table>
           </div>
           <button class="btn-sm btn-gold" style="align-self:flex-start;padding:10px 24px;" onclick="saveConfigPage()">💾 Guardar cambios</button>
@@ -2344,19 +2344,36 @@ async function saveConfig(){
 // ── HORARIO POR DÍA ──────────────────────────────────────────────────────────
 const HPD_DIAS = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
 
+// Convierte integer (hora) o string "HH:MM" al formato que acepta <input type="time">
+function toTimeStr(v) {
+  if (v == null) return '09:00';
+  if (typeof v === 'string' && v.includes(':')) return v.slice(0, 5);
+  const h = parseInt(v) || 9;
+  return String(h).padStart(2,'0') + ':00';
+}
+// Convierte "HH:MM" o integer (hora) a minutos desde medianoche
+function timeToMins(v) {
+  if (v == null) return 9 * 60;
+  if (typeof v === 'number') return v * 60;
+  const [h, m] = v.split(':').map(Number);
+  return (h||0) * 60 + (m||0);
+}
+
 function buildHpdGrid(pfx, diasAtencion, horariosPorDia, defIni, defFin) {
   const tbody = document.getElementById('hpd-body-'+pfx);
   if (!tbody) return;
+  const defIniStr = toTimeStr(defIni);
+  const defFinStr = toTimeStr(defFin);
   tbody.innerHTML = HPD_DIAS.map((nombre, i) => {
     const activo = (diasAtencion||[0,1,2,3,4,5]).includes(i);
     const override = (horariosPorDia||{})[i] || (horariosPorDia||{})[String(i)];
-    const ini = override ? override.ini : (defIni||9);
-    const fin = override ? override.fin : (defFin||21);
+    const ini = override ? toTimeStr(override.ini) : defIniStr;
+    const fin = override ? toTimeStr(override.fin) : defFinStr;
     return `<tr id="hpd-row-${pfx}-${i}" class="${activo?'':'hpd-off'}">
       <td class="hpd-day-name">${nombre}</td>
       <td><input type="checkbox" class="hpd-check" id="${pfx}dia-${i}" ${activo?'checked':''} onchange="toggleHpdDay('${pfx}',${i})"></td>
-      <td><input type="number" class="hpd-time" id="${pfx}dia-${i}-ini" value="${ini}" min="0" max="23" ${activo?'':'disabled'}></td>
-      <td><input type="number" class="hpd-time" id="${pfx}dia-${i}-fin" value="${fin}" min="0" max="23" ${activo?'':'disabled'}></td>
+      <td><input type="time" class="hpd-time" id="${pfx}dia-${i}-ini" value="${ini}" ${activo?'':'disabled'}></td>
+      <td><input type="time" class="hpd-time" id="${pfx}dia-${i}-fin" value="${fin}" ${activo?'':'disabled'}></td>
     </tr>`;
   }).join('');
 }
@@ -2377,19 +2394,19 @@ function collectHpd(pfx) {
     const cb = document.getElementById(pfx+'dia-'+i);
     if (cb && cb.checked) {
       dias.push(i);
-      hpd[i] = {
-        ini: parseInt(document.getElementById(pfx+'dia-'+i+'-ini')?.value)||9,
-        fin: parseInt(document.getElementById(pfx+'dia-'+i+'-fin')?.value)||21,
-      };
+      const iniVal = document.getElementById(pfx+'dia-'+i+'-ini')?.value || '09:00';
+      const finVal = document.getElementById(pfx+'dia-'+i+'-fin')?.value || '21:00';
+      hpd[i] = { ini: iniVal, fin: finVal };
     }
   }
-  const allIni = Object.values(hpd).map(h=>h.ini);
-  const allFin = Object.values(hpd).map(h=>h.fin);
+  const allMinsIni = Object.values(hpd).map(h => timeToMins(h.ini));
+  const allMinsFin = Object.values(hpd).map(h => timeToMins(h.fin));
   return {
     dias_atencion: dias,
     horarios_por_dia: hpd,
-    hora_inicio: allIni.length ? Math.min(...allIni) : 9,
-    hora_fin:    allFin.length ? Math.max(...allFin) : 21,
+    // hora_inicio/fin como enteros para retrocompat con código que aún los use
+    hora_inicio: allMinsIni.length ? Math.floor(Math.min(...allMinsIni) / 60) : 9,
+    hora_fin:    allMinsFin.length ? Math.ceil(Math.max(...allMinsFin) / 60)  : 21,
   };
 }
 
