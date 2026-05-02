@@ -345,7 +345,7 @@ tr:last-child td{border-bottom:none;}
       <div class="topbar-right">
         <div class="status-live"><span class="live-dot"></span>SISTEMA ACTIVO</div>
         <button class="btn-sm btn-dark" onclick="window.open('/sala/'+SHOP_SLUG,'_blank')" title="Abrir pantalla de sala de espera" style="display:flex;align-items:center;gap:8px;"><i data-lucide="tv" style="width:14px;height:14px;"></i> Sala de Espera</button>
-        <button class="btn-sm btn-gold" onclick="openModal('cita')"><i data-lucide="plus-circle" style="width:14px;height:14px;"></i> Nueva Cita</button>
+        <button class="btn-sm btn-gold" onclick="openModal('cita', true)"><i data-lucide="plus-circle" style="width:14px;height:14px;"></i> Nueva Cita</button>
       </div>
     </div>
     <div class="content" id="page-content"></div>
@@ -798,11 +798,11 @@ function renderDashboard(){
       <div class="card">
         <div class="card-header"><div class="card-title">Acciones rápidas</div></div>
         <div class="quick-actions">
-          <button class="qa-btn" onclick="openModal('cita')"><i data-lucide="calendar-plus" class="qa-icon" style="color:var(--gold)"></i><div class="qa-label">+ Cita</div></button>
-          <button class="qa-btn" onclick="openModal('cliente')"><i data-lucide="user-plus" class="qa-icon" style="color:var(--blue)"></i><div class="qa-label">+ Cliente</div></button>
+          <button class="qa-btn" onclick="openModal('cita', true)"><i data-lucide="calendar-plus" class="qa-icon" style="color:var(--gold)"></i><div class="qa-label">+ Cita</div></button>
+          <button class="qa-btn" onclick="openModal('cliente', true)"><i data-lucide="user-plus" class="qa-icon" style="color:var(--blue)"></i><div class="qa-label">+ Cliente</div></button>
           <button class="qa-btn" onclick="setPage('barberos',null)"><i data-lucide="scissors" class="qa-icon" style="color:var(--green)"></i><div class="qa-label">Barberos</div></button>
           <button class="qa-btn" onclick="window.open('/sala/'+SHOP_SLUG,'_blank')"><i data-lucide="monitor" class="qa-icon" style="color:var(--purple)"></i><div class="qa-label">Sala</div></button>
-          <button class="qa-btn" onclick="openModal('config')"><i data-lucide="settings" class="qa-icon" style="color:var(--muted)"></i><div class="qa-label">Config</div></button>
+          <button class="qa-btn" onclick="openModal('config', true)"><i data-lucide="settings" class="qa-icon" style="color:var(--muted)"></i><div class="qa-label">Config</div></button>
           <button class="qa-btn" onclick="setPage('reportes',null)"><i data-lucide="bar-chart-2" class="qa-icon" style="color:var(--red)"></i><div class="qa-label">Reporte</div></button>
         </div>
       </div>
@@ -838,7 +838,7 @@ function renderCitas(){
       </div>
       <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-left:auto;">
         <div class="search-bar">🔍 <input type="text" id="search-citas" placeholder="Buscar cliente..." oninput="filterCitas()"></div>
-        <button class="btn-sm btn-gold" onclick="openModal('cita')" style="padding:12px 24px;">+ Nueva cita</button>
+        <button class="btn-sm btn-gold" onclick="openModal('cita', true)" style="padding:12px 24px;">+ Nueva cita</button>
       </div>
     </div>
     
@@ -1126,7 +1126,7 @@ function renderBarberos(){
   const maxC=Math.max(...S.barberos.map(b=>b.citas_hoy),1);
   return `<div class="card-header" style="background:var(--bg2);border:1px solid var(--border);padding:14px 18px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
     <div class="card-title">Gestión de Barberos · ${S.barberos.filter(b=>b.activo).length} activos</div>
-    <button class="btn-sm btn-gold" onclick="openModal('barbero')">+ Agregar barbero</button>
+    <button class="btn-sm btn-gold" onclick="openModal('barbero', true)">+ Agregar barbero</button>
   </div>
   <div class="barber-grid">
     ${S.barberos.map(b=>`<div class="barber-card ${b.activo?'':'inactive'}">
@@ -1159,7 +1159,7 @@ function renderBarberos(){
         </div>
       </div>
     </div>`).join('')}
-    <div class="barber-card" style="display:flex;align-items:center;justify-content:center;cursor:pointer;border-style:dashed;min-height:180px;" onclick="openModal('barbero')">
+    <div class="barber-card" style="display:flex;align-items:center;justify-content:center;cursor:pointer;border-style:dashed;min-height:180px;" onclick="openModal('barbero', true)">
       <div style="text-align:center;"><div style="font-size:2rem;color:var(--muted);margin-bottom:8px;">+</div><div style="font-family:'DM Mono',monospace;font-size:0.54rem;color:var(--muted);text-transform:uppercase;">Agregar</div></div>
     </div>
   </div>
@@ -2320,12 +2320,13 @@ async function addServicio(){
 }
 
 // ── MODALS ──
-function openModal(type){
-  if(type==='cita'){document.getElementById('modal-cita-title').textContent='Nueva Cita';document.getElementById('m-cita-id').value='';document.getElementById('m-nombre').value='';document.getElementById('m-tel').value='';document.getElementById('m-fecha').value=nowStr();document.getElementById('m-hora').value='09:00';document.getElementById('m-estado').value='Confirmada';updateServicioSelect();updateBarberoSelect();}
-  if(type==='barbero'){document.getElementById('modal-barbero-title').textContent='Nuevo Barbero';document.getElementById('mb-id').value='';document.getElementById('mb-nombre').value='';document.getElementById('mb-orden').value=S.barberos.length+1;document.getElementById('mb-activo').checked=true;}
-  if(type==='cliente'){document.getElementById('modal-cliente-title').textContent='Nuevo Cliente';document.getElementById('mc-id').value='';document.getElementById('mc-nombre').value='';document.getElementById('mc-tel').value='';document.getElementById('mc-notas').value='';}
-  if(type==='config'){const s=S.shopData||{};document.getElementById('cfg-nombre').value=s.nombre||'';document.getElementById('cfg-whatsapp').value=s.whatsapp_dueño||'';document.getElementById('cfg-duracion').value=s.duracion_turno||45;document.getElementById('cfg-timezone').value=s.timezone||'America/Santo_Domingo';buildHpdGrid('cfg',s.dias_atencion,s.horarios_por_dia,s.hora_inicio||9,s.hora_fin||21);}
-
+function openModal(type, reset = false){
+  if(reset){
+    if(type==='cita'){document.getElementById('modal-cita-title').textContent='Nueva Cita';document.getElementById('m-cita-id').value='';document.getElementById('m-nombre').value='';document.getElementById('m-tel').value='';document.getElementById('m-fecha').value=nowStr();document.getElementById('m-hora').value='09:00';document.getElementById('m-estado').value='Confirmada';updateServicioSelect();updateBarberoSelect();}
+    if(type==='barbero'){document.getElementById('modal-barbero-title').textContent='Nuevo Barbero';document.getElementById('mb-id').value='';document.getElementById('mb-nombre').value='';document.getElementById('mb-orden').value=S.barberos.length+1;document.getElementById('mb-activo').checked=true;}
+    if(type==='cliente'){document.getElementById('modal-cliente-title').textContent='Nuevo Cliente';document.getElementById('mc-id').value='';document.getElementById('mc-nombre').value='';document.getElementById('mc-tel').value='';document.getElementById('mc-notas').value='';}
+    if(type==='config'){const s=S.shopData||{};document.getElementById('cfg-nombre').value=s.nombre||'';document.getElementById('cfg-whatsapp').value=s.whatsapp_dueño||'';document.getElementById('cfg-duracion').value=s.duracion_turno||45;document.getElementById('cfg-timezone').value=s.timezone||'America/Santo_Domingo';buildHpdGrid('cfg',s.dias_atencion,s.horarios_por_dia,s.hora_inicio||9,s.hora_fin||21);}
+  }
   document.getElementById('modal-'+type).classList.add('open');
 }
 function closeModal(type){document.getElementById('modal-'+type).classList.remove('open');}
