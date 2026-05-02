@@ -102,6 +102,7 @@ tr:last-child td{border-bottom:none;}
 .ra-btn:hover{border-color:rgba(255,255,255,0.15);color:var(--text);}
 .ra-btn.danger:hover{border-color:rgba(248,113,113,0.3);color:var(--red);}
 .ra-btn.success:hover{border-color:rgba(62,207,142,0.3);color:var(--green);}
+.ra-btn.warning:hover{border-color:rgba(201,168,76,0.3);color:var(--gold);}
 /* BARBEROS DASHBOARD PREMIUM */
 .barber-row {
   display: flex;
@@ -369,7 +370,13 @@ tr:last-child td{border-bottom:none;}
     </div>
     <div class="fg"><label>Barbero</label><select id="m-barbero"></select></div>
     <div class="fg"><label>Estado</label>
-      <select id="m-estado"><option>Confirmada</option><option>Pendiente</option><option>Completada</option><option>Cancelada</option></select>
+      <select id="m-estado">
+        <option>Confirmada</option>
+        <option>Pendiente</option>
+        <option>Completada</option>
+        <option>Cancelada</option>
+        <option>No-Show</option>
+      </select>
     </div>
     <div class="modal-actions">
       <button class="btn-full btn-gold" onclick="saveCita()">Guardar</button>
@@ -782,7 +789,13 @@ function renderSkeletons(){
     `;
   }
 }
-function bc(e){return e==='Confirmada'?'badge-green':e==='Completada'?'badge-blue':e==='Cancelada'||e==='No-Show'?'badge-red':'badge-gold';}
+function bc(e){
+  if(e==='Confirmada') return 'badge-green';
+  if(e==='Completada') return 'badge-blue';
+  if(e==='Cancelada') return 'badge-red';
+  if(e==='No-Show') return 'badge-gold';
+  return 'badge-gold';
+}
 function nowStr(){return new Date().toISOString().split('T')[0];}
 
 // ── DASHBOARD ──
@@ -932,9 +945,10 @@ function renderCitasRows(citas){
     <td style="font-size:0.78rem;">${c.barbero}</td>
     <td><span class="badge ${bc(c.estado)}"><span class="badge-dot"></span>${c.estado}</span></td>
     <td><div class="row-actions">
-      <button class="ra-btn" onclick="editCita(${c.id})">✏ Editar</button>
-      <button class="ra-btn success" onclick="completarCita(${c.id})">✓ Lista</button>
-      <button class="ra-btn danger" onclick="cancelCita(${c.id})">✕</button>
+      <button class="ra-btn" onclick="editCita(${c.id})" title="Editar">✏</button>
+      <button class="ra-btn success" onclick="completarCita(${c.id})" title="Completada">✓</button>
+      <button class="ra-btn warning" onclick="noShowCita(${c.id})" title="No-Show">🚫</button>
+      <button class="ra-btn danger" onclick="deleteCita(${c.id})" title="Eliminar definitivamente">🗑</button>
     </div></td>
   </tr>`).join('');
 }
@@ -995,6 +1009,19 @@ async function completarCita(id){
 async function cancelCita(id){
   if(!confirm('¿Cancelar esta cita?'))return;
   try{await sbPatch('citas','id=eq.'+id,{estado:'Cancelada'});const c=_findCita(id);if(c)c.estado='Cancelada';toast('Cita cancelada');renderPage();}catch(e){toast('Error','error');}
+}
+async function noShowCita(id){
+  if(!confirm('¿Marcar como No-Show?'))return;
+  try{await sbPatch('citas','id=eq.'+id,{estado:'No-Show'});const c=_findCita(id);if(c)c.estado='No-Show';toast('Cita marcada como No-Show');renderPage();}catch(e){toast('Error','error');}
+}
+async function deleteCita(id){
+  if(!confirm('¿ELIMINAR DEFINITIVAMENTE esta cita? Esta acción no se puede deshacer.'))return;
+  try{
+    await sbDelete('citas','id=eq.'+id);
+    S.citas=S.citas.filter(x=>x.id!==id);
+    if(S._citasOtraFecha) S._citasOtraFecha=S._citasOtraFecha.filter(x=>x.id!==id);
+    toast('Cita eliminada definitivamente');renderPage();
+  }catch(e){toast('Error al eliminar cita','error');}
 }
 
 // ── CLIENTES ──
