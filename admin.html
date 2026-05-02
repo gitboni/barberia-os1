@@ -1878,7 +1878,8 @@ function renderConfigPage(){
           <div class="fg"><label>Horario por día</label>
             <table class="hpd-table">
               <thead><tr><th>Día</th><th>Activo</th><th>Apertura</th><th>Cierre</th></tr></thead>
-              <tbody id="hpd-body-pg">${['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'].map((dia,i)=>{const activo=(s.dias_atencion||[0,1,2,3,4,5]).includes(i);const ov=(s.horarios_por_dia||{})[i]||(s.horarios_por_dia||{})[String(i)];const ini=toTimeStr(ov?ov.ini:(s.hora_inicio||9));const fin=toTimeStr(ov?ov.fin:(s.hora_fin||21));return `<tr id="hpd-row-pg-${i}" class="${activo?'':'hpd-off'}"><td class="hpd-day-name">${dia}</td><td><input type="checkbox" class="hpd-check" id="pgdia-${i}" ${activo?'checked':''} onchange="toggleHpdDay('pg',${i})"></td><td><input type="time" class="hpd-time" id="pgdia-${i}-ini" value="${ini}" ${activo?'':'disabled'}></td><td><input type="time" class="hpd-time" id="pgdia-${i}-fin" value="${fin}" ${activo?'':'disabled'}></td></tr>`;}).join('')}</tbody>
+              <tbody id="hpd-body-pg">${['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'].map((dia,i)=>{const idx=(i+1)%7; const activo=(s.dias_atencion||[1,2,3,4,5,6]).includes(idx);const ov=(s.horarios_por_dia||{})[idx]||(s.horarios_por_dia||{})[String(idx)];const ini=toTimeStr(ov?(ov.ini||ov.inicio):(s.hora_inicio||9));const fin=toTimeStr(ov?(ov.fin||ov.final):(s.hora_fin||21));return `<tr id="hpd-row-pg-${idx}" class="${activo?'':'hpd-off'}"><td class="hpd-day-name">${dia}</td><td><input type="checkbox" class="hpd-check" id="pgdia-${idx}" ${activo?'checked':''} onchange="toggleHpdDay('pg',${idx})"></td><td><input type="time" class="hpd-time" id="pgdia-${idx}-ini" value="${ini}" ${activo?'':'disabled'}></td><td><input type="time" class="hpd-time" id="pgdia-${idx}-fin" value="${fin}" ${activo?'':'disabled'}></td></tr>`;}).join('')}</tbody>
+
             </table>
           </div>
           <button class="btn-sm btn-gold" style="align-self:flex-start;padding:10px 24px;" onclick="saveConfigPage()">💾 Guardar cambios</button>
@@ -2324,6 +2325,7 @@ function openModal(type){
   if(type==='barbero'){document.getElementById('modal-barbero-title').textContent='Nuevo Barbero';document.getElementById('mb-id').value='';document.getElementById('mb-nombre').value='';document.getElementById('mb-orden').value=S.barberos.length+1;document.getElementById('mb-activo').checked=true;}
   if(type==='cliente'){document.getElementById('modal-cliente-title').textContent='Nuevo Cliente';document.getElementById('mc-id').value='';document.getElementById('mc-nombre').value='';document.getElementById('mc-tel').value='';document.getElementById('mc-notas').value='';}
   if(type==='config'){const s=S.shopData||{};document.getElementById('cfg-nombre').value=s.nombre||'';document.getElementById('cfg-whatsapp').value=s.whatsapp_dueño||'';document.getElementById('cfg-duracion').value=s.duracion_turno||45;document.getElementById('cfg-timezone').value=s.timezone||'America/Santo_Domingo';buildHpdGrid('cfg',s.dias_atencion,s.horarios_por_dia,s.hora_inicio||9,s.hora_fin||21);}
+
   document.getElementById('modal-'+type).classList.add('open');
 }
 function closeModal(type){document.getElementById('modal-'+type).classList.remove('open');}
@@ -2364,19 +2366,22 @@ function buildHpdGrid(pfx, diasAtencion, horariosPorDia, defIni, defFin) {
   if (!tbody) return;
   const defIniStr = toTimeStr(defIni);
   const defFinStr = toTimeStr(defFin);
-  tbody.innerHTML = HPD_DIAS.map((nombre, i) => {
-    const activo = (diasAtencion||[0,1,2,3,4,5]).includes(i);
-    const override = (horariosPorDia||{})[i] || (horariosPorDia||{})[String(i)];
-    const ini = override ? toTimeStr(override.ini) : defIniStr;
-    const fin = override ? toTimeStr(override.fin) : defFinStr;
-    return `<tr id="hpd-row-${pfx}-${i}" class="${activo?'':'hpd-off'}">
+  const diasUI = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+  tbody.innerHTML = diasUI.map((nombre, i) => {
+    const idx = (i + 1) % 7; // 0->1 (Lun), 6->0 (Dom)
+    const activo = (diasAtencion||[1,2,3,4,5,6]).includes(idx);
+    const override = (horariosPorDia||{})[idx] || (horariosPorDia||{})[String(idx)];
+    const ini = override ? toTimeStr(override.ini || override.inicio) : defIniStr;
+    const fin = override ? toTimeStr(override.fin || override.final) : defFinStr;
+    return `<tr id="hpd-row-${pfx}-${idx}" class="${activo?'':'hpd-off'}">
       <td class="hpd-day-name">${nombre}</td>
-      <td><input type="checkbox" class="hpd-check" id="${pfx}dia-${i}" ${activo?'checked':''} onchange="toggleHpdDay('${pfx}',${i})"></td>
-      <td><input type="time" class="hpd-time" id="${pfx}dia-${i}-ini" value="${ini}" ${activo?'':'disabled'}></td>
-      <td><input type="time" class="hpd-time" id="${pfx}dia-${i}-fin" value="${fin}" ${activo?'':'disabled'}></td>
+      <td><input type="checkbox" class="hpd-check" id="${pfx}dia-${idx}" ${activo?'checked':''} onchange="toggleHpdDay('${pfx}',${idx})"></td>
+      <td><input type="time" class="hpd-time" id="${pfx}dia-${idx}-ini" value="${ini}" ${activo?'':'disabled'}></td>
+      <td><input type="time" class="hpd-time" id="${pfx}dia-${idx}-fin" value="${fin}" ${activo?'':'disabled'}></td>
     </tr>`;
   }).join('');
 }
+
 
 function toggleHpdDay(pfx, i) {
   const on = document.getElementById(pfx+'dia-'+i)?.checked;
@@ -2390,13 +2395,14 @@ function toggleHpdDay(pfx, i) {
 
 function collectHpd(pfx) {
   const dias = [], hpd = {};
-  for (let i = 0; i < 7; i++) {
-    const cb = document.getElementById(pfx+'dia-'+i);
+  // Los días en la base de datos son 0=Dom, 1=Lun... 6=Sáb
+  for (let idx = 0; idx < 7; idx++) {
+    const cb = document.getElementById(pfx+'dia-'+idx);
     if (cb && cb.checked) {
-      dias.push(i);
-      const iniVal = document.getElementById(pfx+'dia-'+i+'-ini')?.value || '09:00';
-      const finVal = document.getElementById(pfx+'dia-'+i+'-fin')?.value || '21:00';
-      hpd[i] = { ini: iniVal, fin: finVal };
+      dias.push(idx);
+      const iniVal = document.getElementById(pfx+'dia-'+idx+'-ini')?.value || '09:00';
+      const finVal = document.getElementById(pfx+'dia-'+idx+'-fin')?.value || '21:00';
+      hpd[idx] = { ini: iniVal, fin: finVal };
     }
   }
   const allMinsIni = Object.values(hpd).map(h => timeToMins(h.ini));
@@ -2404,10 +2410,44 @@ function collectHpd(pfx) {
   return {
     dias_atencion: dias,
     horarios_por_dia: hpd,
-    // hora_inicio/fin como enteros para retrocompat con código que aún los use
     hora_inicio: allMinsIni.length ? Math.floor(Math.min(...allMinsIni) / 60) : 9,
     hora_fin:    allMinsFin.length ? Math.ceil(Math.max(...allMinsFin) / 60)  : 21,
   };
+}
+
+async function saveConfigPage() {
+  const btn = event.target;
+  const old = btn.innerHTML;
+  btn.innerHTML = '⌛ Guardando...';
+  btn.disabled = true;
+
+  try {
+    const hpd = collectHpd('pg');
+    const update = {
+      nombre: document.getElementById('cfg-nombre-pg').value.trim(),
+      'whatsapp_dueño': document.getElementById('cfg-whatsapp-pg').value.trim(),
+      duracion_turno: parseInt(document.getElementById('cfg-dur-pg').value) || 45,
+      timezone: document.getElementById('cfg-tz-pg').value,
+      dias_atencion: hpd.dias_atencion,
+      horarios_por_dia: hpd.horarios_por_dia,
+      hora_inicio: hpd.hora_inicio,
+      hora_fin: hpd.hora_fin
+    };
+
+    if (!update.nombre) { toast('El nombre es obligatorio', 'error'); throw 'err'; }
+
+    // Usar RPC para consistencia si existe, o patch directo
+    await sbPatch('shops', 'id=eq.'+S.shopId, update);
+    
+    Object.assign(S.shopData, update);
+    toast('Configuración de página guardada ✓');
+    renderPage();
+  } catch(e) {
+    if (e !== 'err') toast('Error: ' + e.message, 'error');
+  } finally {
+    btn.innerHTML = old;
+    btn.disabled = false;
+  }
 }
 
 function updateBarberoSelect(incluirNombre){
