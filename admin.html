@@ -330,6 +330,7 @@ tr:last-child td{border-bottom:none;}
     <div class="nav-section">Gestión</div>
     <button class="nav-item" id="nav-btn-barberos" onclick="setPage('barberos',this)"><i data-lucide="scissors" class="nav-icon"></i>Barberos</button>
     <button class="nav-item" id="nav-btn-reportes" onclick="setPage('reportes',this)"><i data-lucide="bar-chart-3" class="nav-icon"></i>Reportes</button>
+    <button class="nav-item" id="nav-btn-gastos" onclick="setPage('gastos',this)"><i data-lucide="wallet" class="nav-icon"></i>Gastos</button>
     <button class="nav-item" id="nav-btn-bot" onclick="setPage('bot',this)"><i data-lucide="message-square" class="nav-icon"></i>Bot WhatsApp<span class="nav-badge" style="background:rgba(62,207,142,0.12);color:var(--green)">ON</span></button>
     <div class="nav-section">Sistema</div>
     <button class="nav-item" id="nav-btn-config" onclick="setPage('config',this)"><i data-lucide="settings" class="nav-icon"></i>Configuración</button>
@@ -419,6 +420,35 @@ tr:last-child td{border-bottom:none;}
     <div class="modal-actions">
       <button class="btn-full btn-gold" onclick="saveCliente()">Guardar Cliente</button>
       <button class="btn-full btn-cancel" onclick="closeModal('cliente')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL GASTO -->
+<div class="modal-overlay" id="modal-gasto">
+  <div class="modal">
+    <h3 id="modal-gasto-title">Nuevo Gasto</h3>
+    <input type="hidden" id="mg-id">
+    <div class="fg"><label>Descripción / Motivo</label><input type="text" id="mg-desc" placeholder="Ej: Pago de Luz Abril"></div>
+    <div class="fg-row">
+      <div class="fg"><label>Monto ($)</label><input type="number" id="mg-monto" placeholder="0.00" step="0.01"></div>
+      <div class="fg"><label>Categoría</label>
+        <select id="mg-cat">
+          <option value="Renta">🏠 Renta</option>
+          <option value="Servicios">💡 Servicios (Luz, Agua)</option>
+          <option value="Productos">💈 Productos / Insumos</option>
+          <option value="Marketing">📣 Marketing / Publicidad</option>
+          <option value="Limpieza">🧹 Limpieza</option>
+          <option value="Café">☕ Café / Refrigerios</option>
+          <option value="Sueldos">👥 Sueldos / Comisiones</option>
+          <option value="Otro">📦 Otro</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label>Fecha del gasto</label><input type="date" id="mg-fecha"></div>
+    <div class="modal-actions">
+      <button class="btn-full btn-gold" onclick="saveGasto()">Guardar Gasto</button>
+      <button class="btn-full btn-cancel" onclick="closeModal('gasto')">Cancelar</button>
     </div>
   </div>
 </div>
@@ -546,7 +576,7 @@ async function sbPost(t,d){const r=await fetch(SUPABASE_URL+'/rest/v1/'+t,{metho
 async function sbPatch(t,q,d){const r=await fetch(SUPABASE_URL+'/rest/v1/'+t+'?'+q,{method:'PATCH',headers:{...H,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(d)});if(!r.ok)throw new Error(await r.text());return true;}
 async function sbDelete(t,q){const r=await fetch(SUPABASE_URL+'/rest/v1/'+t+'?'+q,{method:'DELETE',headers:H});if(!r.ok)throw new Error(await r.text());return true;}
 
-let S={shopId:null,shopData:null,barberos:[],citas:[],clientes:[],activity:[]};
+let S={shopId:null,shopData:null,barberos:[],citas:[],clientes:[],activity:[],gastos:[]};
 
 function toast(msg,type='success'){
   const el=document.getElementById('toast');
@@ -651,6 +681,14 @@ async function loadAll(){
       (usersApp || []).forEach(u => { if(u.barbero_id) S.pushTokens[u.barbero_id] = true; });
     } catch(e) { S.pushTokens = {}; }
 
+    // Cargar gastos (últimos 90 días)
+    try {
+      const hace90g=new Date(); hace90g.setDate(hace90g.getDate()-90);
+      const fecha90g=hace90g.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
+      const gastosDB = await sbGet('gastos', 'shop_id=eq.'+S.shopId+'&fecha=gte.'+fecha90g+'&order=fecha.desc').catch(()=>[]);
+      S.gastos = gastosDB || [];
+    } catch(e) { S.gastos = []; }
+
     renderPage();
   }catch(e){console.warn(e);toast('Error: '+e.message,'error');}
 }
@@ -661,12 +699,12 @@ let currentPage='dashboard';
 let _citasFechaVer='';let _citasBarberoFiltro='';let _citasEstadoFiltro='';
 function setPage(page,btn){
   const f=getFeatures();
-  const blocked={'reportes':!f.reportes,'config':!f.config,'bot':!f.bot,'clientes':!f.clientes,'barberos':!f.barberos};
+  const blocked={'reportes':!f.reportes,'config':!f.config,'bot':!f.bot,'clientes':!f.clientes,'barberos':!f.barberos,'gastos':!f.reportes};
   if(blocked[page]){toast('Esta sección está desactivada para tu plan','warn');return;}
   currentPage=page;
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   if(btn)btn.classList.add('active');
-  const T={dashboard:'Dashboard',citas:'Citas del día',clientes:'Clientes',barberos:'Barberos',reportes:'Reportes',bot:'Bot WhatsApp',config:'Configuración'};
+  const T={dashboard:'Dashboard',citas:'Citas del día',clientes:'Clientes',barberos:'Barberos',reportes:'Reportes',bot:'Bot WhatsApp',config:'Configuración',gastos:'Gestión de Gastos'};
   document.getElementById('page-title').textContent=T[page]||page;
   renderPage();
 }
@@ -679,6 +717,7 @@ function renderPage(){
   else if(currentPage==='reportes'){el.innerHTML=renderReportes();setTimeout(initReportesCharts,150);}
   else if(currentPage==='bot'){el.innerHTML=renderBot();setTimeout(initModoRecordatorio,50);}
   else if(currentPage==='config'){el.innerHTML=renderConfigPage();}
+  else if(currentPage==='gastos'){el.innerHTML=renderGastos();}
   renderSidebar();updateBarberoSelect();
   if(window.lucide) lucide.createIcons();
 }
@@ -707,7 +746,7 @@ function getFeatures(){
 function renderSidebar(){
   document.getElementById('barbers-sidebar').innerHTML=S.barberos.map(b=>'<div class="barber-mini-item"><div class="barber-mini-dot" style="background:'+(b.activo?'var(--green)':'var(--muted)')+'"></div><div class="barber-mini-name">'+b.nombre+'</div><div class="barber-mini-status" style="color:'+(b.activo?'var(--green)':'var(--muted)')+';">'+b.citas_hoy+' citas</div></div>').join('');
   const f=getFeatures();
-  const navMap={'nav-btn-reportes':'reportes','nav-btn-config':'config','nav-btn-bot':'bot','nav-btn-clientes':'clientes','nav-btn-barberos':'barberos'};
+  const navMap={'nav-btn-reportes':'reportes','nav-btn-config':'config','nav-btn-bot':'bot','nav-btn-clientes':'clientes','nav-btn-barberos':'barberos','nav-btn-gastos':'reportes'};
   Object.entries(navMap).forEach(function(kv){var el=document.getElementById(kv[0]);if(el)el.style.display=f[kv[1]]?'':'none';});
   var wf=document.getElementById('walkin-fab-btn');if(wf)wf.style.display=f.walkin?'':'none';
 }
@@ -1348,6 +1387,21 @@ function renderReportes(){
   }, 0);
   const ticketPromedio = completadas.length ? (ingresos / completadas.length).toFixed(2) : 0;
 
+  // Gastos en el rango
+  let gastosRango = [];
+  if(_reporteRango === 'hoy') gastosRango = S.gastos.filter(g => g.fecha === hoyStr);
+  else if(_reporteRango === 'semana') {
+    const sem = new Date(); sem.setDate(sem.getDate() - 7);
+    const semStr = sem.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
+    gastosRango = S.gastos.filter(g => g.fecha >= semStr);
+  } else {
+    const mes = new Date(); mes.setDate(mes.getDate() - 30);
+    const mesStr = mes.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
+    gastosRango = S.gastos.filter(g => g.fecha >= mesStr);
+  }
+  const totalGastos = gastosRango.reduce((sum, g) => sum + parseFloat(g.monto||0), 0);
+  const utilidadReal = ingresos - totalGastos;
+
   // Monitor en vivo (Hoy)
   const citasHoy = todasCitas.filter(c => c.fecha === hoyStr && c.estado !== 'Cancelada');
   const ahora = new Date();
@@ -1453,10 +1507,10 @@ function renderReportes(){
           </div>
         </div>
         <div class="card">
-          <div class="card-header"><div class="card-title">💸 Utilidad Estimada</div></div>
+          <div class="card-header"><div class="card-title">💸 Utilidad Real</div></div>
           <div style="padding:18px;text-align:center;">
-             <div style="font-size:1.5rem;font-weight:800;color:var(--green);">$${ingresos.toLocaleString()}</div>
-             <div style="font-size:0.55rem;color:var(--muted);margin-top:4px;">Ingreso Bruto - Gastos (0)</div>
+             <div style="font-size:1.5rem;font-weight:800;color:${utilidadReal >= 0 ? 'var(--green)' : 'var(--red)'};">$${utilidadReal.toLocaleString()}</div>
+             <div style="font-size:0.55rem;color:var(--muted);margin-top:4px;">Ingreso Bruto ($${ingresos.toLocaleString()}) - Gastos ($${totalGastos.toLocaleString()})</div>
           </div>
         </div>
       </div>
@@ -2342,7 +2396,88 @@ async function saveConfig(){
     Object.assign(S.shopData,p);toast('Configuración guardada');closeModal('config');renderPage();
   }catch(e){toast('Error: '+e.message,'error');}
 }
-['cita','barbero','cliente','config','test-recordatorio','reset-pass'].forEach(t=>{document.getElementById('modal-'+t).addEventListener('click',e=>{if(e.target.id==='modal-'+t)closeModal(t);});});
+['cita','barbero','cliente','config','test-recordatorio','reset-pass','gasto'].forEach(t=>{document.getElementById('modal-'+t).addEventListener('click',e=>{if(e.target.id==='modal-'+t)closeModal(t);});});
+
+// ── GASTOS ──
+function renderGastos(){
+  const hoy = getHoyRD();
+  const totalMes = S.gastos.reduce((a,b)=>a+parseFloat(b.monto||0),0);
+  return `<div class="card" style="flex:1;display:flex;flex-direction:column;min-height:0;">
+    <div class="card-header">
+      <div>
+        <div class="card-title">Control de Gastos</div>
+        <div style="font-size:0.6rem;color:var(--muted);margin-top:2px;">Registra tus costos fijos y variables para calcular la utilidad real</div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center;">
+        <div style="background:rgba(248,113,113,0.1);color:var(--red);padding:8px 16px;border-radius:12px;font-family:'DM Mono',monospace;font-size:0.8rem;font-weight:700;border:1px solid rgba(248,113,113,0.2);">
+          Total Gastos (90d): $${totalMes.toLocaleString()}
+        </div>
+        <button class="btn-sm btn-gold" onclick="openModal('gasto', true)">+ Registrar Gasto</button>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Fecha</th><th>Categoría</th><th>Descripción</th><th>Monto</th><th>Acciones</th></tr></thead>
+        <tbody>${S.gastos.length ? S.gastos.map(g=>`<tr>
+          <td style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted);">${g.fecha}</td>
+          <td><span style="font-size:0.7rem;background:rgba(255,255,255,0.05);padding:4px 8px;border-radius:6px;color:var(--text);">${g.categoria||'Otro'}</span></td>
+          <td style="font-weight:600;">${g.descripcion||'—'}</td>
+          <td style="font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--red);font-weight:700;">$${parseFloat(g.monto).toLocaleString()}</td>
+          <td><div class="row-actions">
+            <button class="ra-btn" onclick="editGasto('${g.id}')">✏️</button>
+            <button class="ra-btn danger" onclick="deleteGasto('${g.id}')">✕</button>
+          </div></td>
+        </tr>`).join('') : '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--muted);font-family:\'DM Mono\',monospace;font-size:0.6rem;">No hay gastos registrados en los últimos 90 días.</td></tr>'}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function editGasto(id){
+  const g = S.gastos.find(x => String(x.id) === String(id));
+  if(!g) return;
+  document.getElementById('modal-gasto-title').textContent = 'Editar Gasto';
+  document.getElementById('mg-id').value = g.id;
+  document.getElementById('mg-desc').value = g.descripcion;
+  document.getElementById('mg-monto').value = g.monto;
+  document.getElementById('mg-cat').value = g.categoria;
+  document.getElementById('mg-fecha').value = g.fecha;
+  openModal('gasto');
+}
+
+async function saveGasto(){
+  const id = document.getElementById('mg-id').value;
+  const p = {
+    shop_id: S.shopId,
+    descripcion: document.getElementById('mg-desc').value.trim(),
+    monto: parseFloat(document.getElementById('mg-monto').value) || 0,
+    categoria: document.getElementById('mg-cat').value,
+    fecha: document.getElementById('mg-fecha').value || getHoyRD()
+  };
+  if(!p.descripcion || p.monto <= 0){ toast('Descripción y monto válidos requeridos','error'); return; }
+  try {
+    if(id){
+      await sbPatch('gastos', 'id=eq.'+id, p);
+      const idx = S.gastos.findIndex(x => String(x.id) === String(id));
+      if(idx>=0) Object.assign(S.gastos[idx], p);
+      toast('Gasto actualizado ✓');
+    } else {
+      const res = await sbPost('gastos', p);
+      if(res && res[0]) S.gastos.unshift(res[0]);
+      toast('Gasto registrado ✓');
+    }
+    closeModal('gasto'); renderPage();
+  } catch(e){ toast('Error: '+e.message, 'error'); }
+}
+
+async function deleteGasto(id){
+  if(!confirm('¿Eliminar este gasto?')) return;
+  try {
+    await sbDelete('gastos', 'id=eq.'+id);
+    S.gastos = S.gastos.filter(x => String(x.id) !== String(id));
+    toast('Gasto eliminado'); renderPage();
+  } catch(e){ toast('Error','error'); }
+}
 
 // ── HORARIO POR DÍA ──────────────────────────────────────────────────────────
 const HPD_DIAS = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
