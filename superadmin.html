@@ -458,6 +458,7 @@ tr:hover td{background:rgba(255,255,255,0.016);}
   <div class="nav-section sidebar-text">Sistema</div>
   <div class="nav-item" data-page="citas"><i data-lucide="calendar" class="icon"></i><span class="sidebar-text">Citas Global</span></div>
   <div class="nav-item" data-page="simulador"><i data-lucide="flask-conical" class="icon"></i><span class="sidebar-text">Simulador Chat</span></div>
+  <div class="nav-item" data-page="stuck-threads"><i data-lucide="alert-circle" class="icon"></i><span class="sidebar-text">Hilos Perdidos</span><span class="badge sidebar-text" id="stuckBadge" style="display:none;background:var(--orange)">0</span></div>
   <div class="nav-item" data-page="whatsapp"><i data-lucide="message-square" class="icon"></i><span class="sidebar-text">WhatsApp</span></div>
   <div class="nav-item" data-page="leads"><i data-lucide="list-checks" class="icon"></i><span class="sidebar-text">Leads</span></div>
   <div class="nav-item" data-page="landing"><i data-lucide="globe" class="icon"></i><span class="sidebar-text">Landing Page</span></div>
@@ -1064,19 +1065,41 @@ tr:hover td{background:rgba(255,255,255,0.016);}
       <div class="section-header">
         <div class="section-title">Logs del Sistema</div>
         <div class="btn-group">
-          <select class="filter-select" id="logLevelFilter"><option value="">Todos</option><option value="ERROR">Errores</option><option value="WARN">Warnings</option><option value="OK">OK</option><option value="INFO">Info</option></select>
-          <button class="btn btn-ghost" id="exportLogsBtn">↓ Exportar</button>
-          <button class="btn btn-ghost" id="clearLogsBtn">Limpiar</button>
+          <button class="btn btn-ghost" onclick="loadLogs()">↻ Actualizar</button>
+          <button class="btn btn-ghost danger" onclick="clearLogs()">Limpiar</button>
         </div>
       </div>
-      <div class="terminal-container">
-        <div class="terminal-header">
-          <div class="t-dot t-red"></div>
-          <div class="t-dot t-yellow"></div>
-          <div class="t-dot t-green"></div>
-          <div class="t-title">zsh — aura-os — logs</div>
+      <div class="config-card">
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:140px;">Fecha</th>
+                <th style="width:80px;">Tipo</th>
+                <th>Acción / Resultado</th>
+              </tr>
+            </thead>
+            <tbody id="logsTable">
+              <tr><td colspan="3" style="text-align:center;padding:40px;color:var(--muted);">Cargando logs...</td></tr>
+            </tbody>
+          </table>
         </div>
-        <div class="logs-terminal" id="logsTerminal"></div>
+      </div>
+    </div>
+
+    <!-- HILOS PERDIDOS -->
+    <div class="page" id="page-stuck-threads">
+      <div class="section-header">
+        <div class="section-title">Monitor de Hilos Perdidos</div>
+        <div class="btn-group">
+          <button class="btn btn-ghost" onclick="loadStuckThreads()">↻ Actualizar</button>
+        </div>
+      </div>
+      <div style="margin-bottom:20px;padding:12px 16px;background:rgba(230,126,34,0.1);border-left:3px solid var(--orange);border-radius:4px;font-size:0.62rem;color:var(--text);line-height:1.5;">
+        ⚠️ Se muestran conversaciones en estados pendientes (esperando servicio, horario, etc.) que no han tenido actividad en los últimos <b>15 minutos</b>.
+      </div>
+      <div id="stuckThreadsList" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));gap:16px;">
+        <!-- Populated by JS -->
       </div>
     </div>
 
@@ -1483,17 +1506,25 @@ let usingDemo = false;
 async function fetchAll() {
   showRefreshProgress();
   try {
-    // FIX: fecha en timezone America/Santo_Domingo (evita UTC bug)
     const rdNow = new Date(new Date().toLocaleString('en-US',{timeZone:'America/Santo_Domingo'}));
     const today = rdNow.getFullYear()+'-'+String(rdNow.getMonth()+1).padStart(2,'0')+'-'+String(rdNow.getDate()).padStart(2,'0');
-    // FIX: queries separadas consolidadas — menos round-trips al servidor
-    const [shops, barberos, citas, convs] = await Promise.all([
+    const quinceMins = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+    
+    const [shops, barberos, citas, convs, stuck] = await Promise.all([
       sbGet('shops','select=*&order=created_at.desc'),
       sbGet('barberos','select=id,nombre,shop_id,activo,orden&order=orden.asc'),
       sbGet('citas',`select=id,nombre,telefono,hora,fecha,servicio,barbero,estado,shop_id&fecha=eq.${today}&order=hora.asc`),
       sbGet('conversaciones','select=id,shop_id,chat_id,telefono,nombre_parcial,estado_conversacion,ultimo_mensaje,ultima_actualizacion&order=ultima_actualizacion.desc&limit=50'),
+      sbGet('conversaciones', `ultima_actualizacion=lt.${quinceMins}&ultima_actualizacion=gt.${today}T00:00:00Z&estado_conversacion=not.in.(completado,inicio,esperando_otra_cita)&select=id`)
     ]);
     _shops=shops; _barberos=barberos; _citas=citas; _convs=convs;
+    
+    const badge = document.getElementById('stuckBadge');
+    if(badge) {
+      badge.textContent = stuck.length;
+      badge.style.display = stuck.length > 0 ? 'inline-block' : 'none';
+    }
+
     usingDemo=false;
     document.getElementById('demoBanner').style.display='none';
     addLog('OK',`Supabase: ${shops.length} barberías, ${barberos.length} barberos, ${citas.length} citas hoy`);
@@ -1654,6 +1685,7 @@ const PAGE_TITLES = {
   'clientes-app':'Clientes en la App',
   facturacion:'Facturación', citas:'Citas Global', simulador:'Simulador de Chat WhatsApp', whatsapp:'WhatsApp',
   leads:'Leads del Landing', reportes:'Reportes por Barbería', seguridad:'Centro de Seguridad', 'ia-audit':'Auditoría de IA', logs:'Logs del Sistema', config:'Configuración Global',
+  'stuck-threads':'Hilos Perdidos',
   estado:'Estado del Sistema', broadcast:'Broadcast WhatsApp', grupos:'Grupos Multi-Sucursal'
 };
 document.querySelectorAll('.nav-item[data-page]').forEach(el => {
@@ -4996,6 +5028,68 @@ async function guardarEditShop(){
     closeModal('modalEditShop');
     await fetchAll(); loadShops();
   }catch(e){showToast('Error: '+e.message,'error');}
+}
+
+async function loadStuckThreads() {
+  const list = document.getElementById('stuckThreadsList');
+  if(!list) return;
+  list.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">Buscando hilos atascados...</div>';
+  
+  try {
+    const quinceMins = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+    // Traemos hilos no completados/inicio con actividad antigua pero de hoy
+    const hoy = new Date().toISOString().split('T')[0];
+    const data = await sbGet('conversaciones', `ultima_actualizacion=lt.${quinceMins}&ultima_actualizacion=gt.${hoy}T00:00:00Z&estado_conversacion=not.in.(completado,inicio,esperando_otra_cita)&order=ultima_actualizacion.desc`);
+    
+    const badge = document.getElementById('stuckBadge');
+    if(badge) {
+      badge.textContent = data.length;
+      badge.style.display = data.length > 0 ? 'inline-block' : 'none';
+    }
+
+    if(!data.length) {
+      list.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--green);background:rgba(62,207,142,0.05);border-radius:12px;border:1px dashed var(--green);">✨ No hay hilos perdidos en este momento.</div>';
+      return;
+    }
+
+    const shopsMap = Object.fromEntries(_shops.map(s => [s.id, s.nombre]));
+    list.innerHTML = data.map(c => {
+      const mins = Math.round((Date.now() - new Date(c.ultima_actualizacion)) / 60000);
+      return `
+        <div class="kpi-card" style="display:flex;flex-direction:column;gap:12px;padding:20px;border:1px solid var(--border2);background:rgba(255,255,255,0.02);">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+              <div style="font-size:0.5rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;">${shopsMap[c.shop_id] || 'Tienda desconocida'}</div>
+              <div style="font-size:0.9rem;font-weight:800;color:var(--text);margin-top:2px;">${c.telefono}</div>
+            </div>
+            <div style="padding:4px 8px;background:rgba(230,126,34,0.15);color:var(--orange);font-size:0.5rem;border-radius:4px;font-weight:700;">HACE ${mins} MIN</div>
+          </div>
+          <div style="padding:10px;background:var(--bg3);border-radius:6px;font-size:0.6rem;color:var(--muted);border-left:2px solid var(--border2);">
+            <div style="font-size:0.45rem;color:var(--gold);margin-bottom:4px;letter-spacing:0.05em;">ÚLTIMO MENSAJE</div>
+            "${c.ultimo_mensaje || '(vacío)'}"
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+            <div style="font-size:0.55rem;color:var(--muted);">Estado: <span style="color:var(--blue)">${c.estado_conversacion}</span></div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-ghost" onclick="window.open('https://wa.me/${c.telefono.replace(/\D/g,'')}', '_blank')" style="font-size:0.5rem;padding:5px 10px;">💬 CHAT</button>
+              <button class="btn btn-ghost danger" onclick="resetThread('${c.id}')" style="font-size:0.5rem;padding:5px 10px;">↺ RESET</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch(e) {
+    list.innerHTML = `<div style="grid-column:1/-1;color:var(--red);text-align:center;padding:20px;">Error: ${e.message}</div>`;
+  }
+}
+
+async function resetThread(id) {
+  if(!confirm('¿Deseas reiniciar el estado de esta conversación a "inicio"?')) return;
+  try {
+    await sbPatch('conversaciones', `id=eq.${id}`, { estado_conversacion: 'inicio', ultima_actualizacion: new Date().toISOString() });
+    showToast('Conversación reiniciada ✓', 'success');
+    loadStuckThreads();
+  } catch(e) { showToast('Error: '+e.message, 'error'); }
 }
 
 async function loadIAAudit() {
