@@ -725,11 +725,14 @@ tr:hover td{background:rgba(255,255,255,0.016);}
     <div class="page" id="page-grupos">
       <div class="section-header">
         <div class="section-title">Grupos Multi-Sucursal</div>
-        <button class="btn btn-ghost" id="refreshGruposBtn">↻</button>
+        <div class="btn-group">
+          <button class="btn btn-ghost" id="refreshGruposBtn">↻</button>
+          <button class="btn btn-primary" onclick="abrirNuevoGrupo()">+ Nuevo Grupo</button>
+        </div>
       </div>
       <div id="grupos-container" style="display:grid;gap:18px;"></div>
       <div id="grupos-empty" style="display:none;text-align:center;padding:60px 20px;color:var(--muted);font-size:0.7rem;letter-spacing:0.1em;">
-        SIN GRUPOS CONFIGURADOS — ASIGNA UN NOMBRE DE GRUPO EN LA EDICIÓN DE CADA BARBERÍA
+        SIN GRUPOS CONFIGURADOS — CREA UN GRUPO Y ASIGNA BARBERÍAS
       </div>
     </div>
 
@@ -1446,7 +1449,7 @@ async function sbSignOut() {
 }
 
 // ── DATA STATE ──
-let _shops=[], _barberos=[], _citas=[], _convs=[];
+let _shops=[], _barberos=[], _citas=[], _convs=[], _grupos=[];
 let usingDemo = false;
 
 async function fetchAll() {
@@ -1456,13 +1459,14 @@ async function fetchAll() {
     const rdNow = new Date(new Date().toLocaleString('en-US',{timeZone:'America/Santo_Domingo'}));
     const today = rdNow.getFullYear()+'-'+String(rdNow.getMonth()+1).padStart(2,'0')+'-'+String(rdNow.getDate()).padStart(2,'0');
     // FIX: queries separadas consolidadas — menos round-trips al servidor
-    const [shops, barberos, citas, convs] = await Promise.all([
+    const [shops, barberos, citas, convs, grupos] = await Promise.all([
       sbGet('shops','select=*&order=created_at.desc'),
       sbGet('barberos','select=id,nombre,shop_id,activo,orden&order=orden.asc'),
       sbGet('citas',`select=id,nombre,telefono,hora,fecha,servicio,barbero,estado,shop_id&fecha=eq.${today}&order=hora.asc`),
       sbGet('conversaciones','select=id,shop_id,chat_id,telefono,nombre_parcial,estado_conversacion,ultimo_mensaje,ultima_actualizacion&order=ultima_actualizacion.desc&limit=50'),
+      sbGet('grupos','select=*&order=nombre.asc').catch(()=>[]),
     ]);
-    _shops=shops; _barberos=barberos; _citas=citas; _convs=convs;
+    _shops=shops; _barberos=barberos; _citas=citas; _convs=convs; _grupos=grupos;
     usingDemo=false;
     document.getElementById('demoBanner').style.display='none';
     addLog('OK',`Supabase: ${shops.length} barberías, ${barberos.length} barberos, ${citas.length} citas hoy`);
@@ -2315,49 +2319,153 @@ function _renderShopsTable(shops, barberos=[]) {
 }
 
 // ── v86: Multi-sucursal — Vista consolidada por grupo ──────────────────────
+// ════════════════════════════════════════════
+//  GRUPOS MULTI-SUCURSAL
+// ════════════════════════════════════════════
+
+function onGrupoSelectChange() {
+  const sel = document.getElementById('editShopGrupoId');
+  const grupoId = sel.value;
+  const grupo = _grupos.find(g => g.id === grupoId);
+  if (grupo) {
+    document.getElementById('editShopGrupoNombre').value = grupo.nombre;
+  } else if (!grupoId) {
+    // No limpiamos el texto por si lo puso manual
+  }
+}
+
 async function loadGrupos() {
   const container = document.getElementById('grupos-container');
-  const empty = document.getElementById('grupos-empty');
+  const empty     = document.getElementById('grupos-empty');
   if (!container) return;
 
-  const shops = _shops.filter(s => s.grupo_nombre);
-  const gruposMap = {};
-  for (const s of shops) {
-    const g = s.grupo_nombre.trim();
-    if (!gruposMap[g]) gruposMap[g] = [];
-    gruposMap[g].push(s);
+  // Recargar grupos desde BD
+  try {
+    if (!usingDemo) {
+      const fresh = await sbGet('grupos', 'select=*&order=nombre.asc').catch(() => []);
+      _grupos = fresh;
+    }
+  } catch(_) {}
+
+  const countEl = document.getElementById('gruposCount');
+
+  // Si no hay tabla grupos aún, caer en modo legacy (por grupo_nombre texto)
+  if (!_grupos || _grupos.length === 0) {
+    const legacyShops = _shops.filter(s => s.grupo_nombre);
+    const legacyMap   = {};
+    for (const s of legacyShops) {
+      const g = s.grupo_nombre.trim();
+      if (!legacyMap[g]) legacyMap[g] = [];
+      legacyMap[g].push(s);
+    }
+    const keys = Object.keys(legacyMap);
+    if (countEl) { countEl.textContent = keys.length; countEl.style.display = keys.length ? '' : 'none'; }
+    if (!keys.length) { container.innerHTML = ''; empty.style.display = ''; return; }
+    empty.style.display = 'none';
+    container.innerHTML = keys.sort().map(g => _renderGrupoLegacy(g, legacyMap[g])).join('');
+    return;
   }
 
-  const gruposKeys = Object.keys(gruposMap);
-  document.getElementById('gruposCount').textContent = gruposKeys.length;
-  document.getElementById('gruposCount').style.display = gruposKeys.length ? '' : 'none';
+  if (countEl) { countEl.textContent = _grupos.length; countEl.style.display = _grupos.length ? '' : 'none'; }
 
-  if (!gruposKeys.length) {
+  if (!_grupos.length) {
     container.innerHTML = '';
     empty.style.display = '';
     return;
   }
   empty.style.display = 'none';
 
-  // Para cada grupo obtener citas del día
-  const hoy = new Date().toLocaleDateString('en-CA');
-  let html = '';
-  for (const grupo of gruposKeys.sort()) {
-    const sucursales = gruposMap[grupo];
-    const shopIds = sucursales.map(s => `"${s.id}"`).join(',');
+  // Render inicial rápido (sin KPIs)
+  container.innerHTML = _grupos.map(g => _renderGrupoCard(g, null)).join('');
 
-    let totalCitasHoy = 0; let totalActivas = 0;
+  // Cargar KPIs de cada grupo en paralelo (async, sin bloquear la UI)
+  const hoy = new Date(new Date().toLocaleString('en-US',{timeZone:'America/Santo_Domingo'}));
+  const today = hoy.getFullYear()+'-'+String(hoy.getMonth()+1).padStart(2,'0')+'-'+String(hoy.getDate()).padStart(2,'0');
+
+  _grupos.forEach(async (g) => {
     try {
-      const citas = await sbGet('citas', `shop_id=in.(${sucursales.map(s=>s.id).join(',')})&fecha=eq.${hoy}&estado=eq.Confirmada&select=id,shop_id`);
-      totalCitasHoy = citas.length;
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_grupo_kpis`, {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${_accessToken||SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p_grupo_id: g.id })
+      });
+      if (!res.ok) return;
+      const kpis = await res.json();
+      const el = document.getElementById(`grupo-card-${g.id}`);
+      if (el) el.outerHTML = _renderGrupoCard(g, kpis);
     } catch(_) {}
-    totalActivas = sucursales.filter(s => s.activo).length;
+  });
+}
 
-    const sucursalesHtml = sucursales.map(s => {
-      const estado = s.activo
-        ? '<span style="color:var(--green);font-size:0.55rem;">● ACTIVA</span>'
-        : '<span style="color:var(--muted);font-size:0.55rem;">○ INACTIVA</span>';
-      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;margin-bottom:6px;">
+function _renderGrupoCard(g, kpis) {
+  const shopsGrupo  = _shops.filter(s => s.grupo_id === g.id);
+  const activas     = shopsGrupo.filter(s => s.activo).length;
+  const citasHoy    = kpis ? (kpis.citas_hoy || 0) : '—';
+  const citasMes    = kpis ? (kpis.citas_mes || 0) : '—';
+  const ingresosMes = kpis ? `$${Number(kpis.ingresos_mes||0).toLocaleString('es')}` : '—';
+
+  const sucursalesHtml = shopsGrupo.length
+    ? shopsGrupo.map(s => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;margin-bottom:6px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:1rem;">${s.icono||'✂️'}</span>
+            <div>
+              <div style="font-size:0.65rem;font-weight:600;color:var(--text);">${s.nombre}</div>
+              <div style="font-size:0.52rem;color:var(--muted);">/${s.slug} · ${s.plan}</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            ${s.activo
+              ? '<span style="color:var(--green);font-size:0.55rem;">● ACTIVA</span>'
+              : '<span style="color:var(--muted);font-size:0.55rem;">○ INACTIVA</span>'}
+            <button class="action-btn" onclick="abrirEditShop('${s.id}')" style="font-size:0.5rem;padding:3px 8px;">✏️ Editar</button>
+          </div>
+        </div>`).join('')
+    : `<div style="text-align:center;padding:16px;color:var(--muted);font-size:0.6rem;letter-spacing:0.1em;">SIN SUCURSALES ASIGNADAS</div>`;
+
+  return `<div id="grupo-card-${g.id}" style="background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:18px;">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;gap:12px;">
+      <div style="flex:1;">
+        <div style="font-size:0.9rem;font-weight:700;color:var(--gold);letter-spacing:0.05em;">🏢 ${g.nombre}</div>
+        <div style="font-size:0.55rem;color:var(--muted);margin-top:3px;letter-spacing:0.08em;">
+          ${shopsGrupo.length} SUCURSAL${shopsGrupo.length!==1?'ES':''} · ${activas} ACTIVA${activas!==1?'S':''} · ${g.owner_email}
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0;">
+        <div style="text-align:right;margin-right:12px;">
+          <div style="font-size:1.4rem;font-weight:700;color:var(--cyan);">${citasHoy}</div>
+          <div style="font-size:0.5rem;color:var(--muted);letter-spacing:0.1em;">CITAS HOY</div>
+        </div>
+        <div style="text-align:right;margin-right:12px;">
+          <div style="font-size:1rem;font-weight:700;color:var(--green);">${citasMes}</div>
+          <div style="font-size:0.5rem;color:var(--muted);letter-spacing:0.1em;">MES</div>
+        </div>
+        <div style="text-align:right;margin-right:14px;">
+          <div style="font-size:1rem;font-weight:700;color:var(--text);">${ingresosMes}</div>
+          <div style="font-size:0.5rem;color:var(--muted);letter-spacing:0.1em;">INGRESOS</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <button class="action-btn" onclick="abrirEditGrupo('${g.id}')" style="font-size:0.5rem;padding:3px 8px;">✏️ Editar</button>
+          <button class="action-btn" onclick="confirmarEliminarGrupo('${g.id}','${g.nombre.replace(/'/g,"\\\'")}')" style="font-size:0.5rem;padding:3px 8px;color:var(--red);border-color:rgba(255,0,110,0.3);">✕ Eliminar</button>
+        </div>
+      </div>
+    </div>
+    <div style="font-size:0.52rem;color:var(--muted);letter-spacing:0.1em;margin-bottom:8px;">SUCURSALES</div>
+    ${sucursalesHtml}
+  </div>`;
+}
+
+function _renderGrupoLegacy(nombre, shops) {
+  const activas = shops.filter(s => s.activo).length;
+  return `<div style="background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:18px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div>
+        <div style="font-size:0.9rem;font-weight:700;color:var(--gold);letter-spacing:0.05em;">🏢 ${nombre}</div>
+        <div style="font-size:0.55rem;color:var(--muted);margin-top:2px;letter-spacing:0.1em;">${shops.length} SUCURSAL${shops.length>1?'ES':''} · ${activas} ACTIVA${activas!==1?'S':''} · <span style="color:var(--orange)">⚠ Sin grupo formal en BD</span></div>
+      </div>
+    </div>
+    ${shops.map(s => `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;margin-bottom:6px;">
         <div style="display:flex;align-items:center;gap:8px;">
           <span style="font-size:1rem;">${s.icono||'✂️'}</span>
           <div>
@@ -2366,27 +2474,106 @@ async function loadGrupos() {
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:10px;">
-          ${estado}
+          ${s.activo ? '<span style="color:var(--green);font-size:0.55rem;">● ACTIVA</span>' : '<span style="color:var(--muted);font-size:0.55rem;">○ INACTIVA</span>'}
           <button class="action-btn" onclick="abrirEditShop('${s.id}')" style="font-size:0.5rem;padding:3px 8px;">✏️ Editar</button>
         </div>
-      </div>`;
-    }).join('');
+      </div>`).join('')}
+  </div>`;
+}
 
-    html += `<div style="background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:18px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-        <div>
-          <div style="font-size:0.9rem;font-weight:700;color:var(--gold);letter-spacing:0.05em;">🏢 ${grupo}</div>
-          <div style="font-size:0.55rem;color:var(--muted);margin-top:2px;letter-spacing:0.1em;">${sucursales.length} SUCURSAL${sucursales.length>1?'ES':''} · ${totalActivas} ACTIVA${totalActivas!==1?'S':''}</div>
-        </div>
-        <div style="text-align:right;">
-          <div style="font-size:1.4rem;font-weight:700;color:var(--cyan);">${totalCitasHoy}</div>
-          <div style="font-size:0.5rem;color:var(--muted);letter-spacing:0.1em;">CITAS HOY</div>
-        </div>
-      </div>
-      ${sucursalesHtml}
-    </div>`;
+// ── Crear / Editar Grupo ──────────────────────────────────
+function abrirNuevoGrupo() {
+  document.getElementById('grupoModalTitle').textContent = 'Nuevo Grupo';
+  document.getElementById('grupoId').value = '';
+  document.getElementById('grupoNombre').value = '';
+  document.getElementById('grupoSlug').value = '';
+  document.getElementById('grupoOwnerEmail').value = '';
+  document.getElementById('grupoPlan').value = 'pro';
+  openModal('modalGrupo');
+}
+
+async function abrirEditGrupo(id) {
+  const g = _grupos.find(x => x.id === id);
+  if (!g) { showToast('Grupo no encontrado', 'error'); return; }
+  document.getElementById('grupoModalTitle').textContent = 'Editar Grupo';
+  document.getElementById('grupoId').value = g.id;
+  document.getElementById('grupoNombre').value = g.nombre || '';
+  document.getElementById('grupoSlug').value = g.slug || '';
+  document.getElementById('grupoOwnerEmail').value = g.owner_email || '';
+  document.getElementById('grupoPlan').value = g.plan || 'pro';
+  openModal('modalGrupo');
+}
+
+document.getElementById('grupoNombre').addEventListener('input', e => {
+  const slug = document.getElementById('grupoSlug');
+  if (!document.getElementById('grupoId').value) { // solo auto-slug en nuevo
+    slug.value = e.target.value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
   }
-  container.innerHTML = html;
+});
+
+document.getElementById('guardarGrupoBtn').addEventListener('click', async () => {
+  const id          = document.getElementById('grupoId').value.trim();
+  const nombre      = document.getElementById('grupoNombre').value.trim();
+  const slug        = document.getElementById('grupoSlug').value.trim();
+  const ownerEmail  = document.getElementById('grupoOwnerEmail').value.trim();
+  const plan        = document.getElementById('grupoPlan').value;
+
+  if (!nombre)      { showToast('El nombre es requerido', 'error'); return; }
+  if (!slug)        { showToast('El slug es requerido', 'error'); return; }
+  if (!ownerEmail)  { showToast('El email del dueño es requerido', 'error'); return; }
+
+  const btn = document.getElementById('guardarGrupoBtn');
+  btn.disabled = true; btn.textContent = '⏳ Guardando...';
+
+  try {
+    const body = { nombre, slug, owner_email: ownerEmail, plan, activo: true };
+
+    if (id) {
+      // Editar existente
+      await sbPatch('grupos', `id=eq.${id}`, body);
+      const idx = _grupos.findIndex(g => g.id === id);
+      if (idx >= 0) Object.assign(_grupos[idx], body);
+      showToast('Grupo actualizado ✓', 'success');
+      logSuperadminAction('editar_grupo', `${nombre} (${id})`);
+    } else {
+      // Crear nuevo
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/grupos`, {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${_accessToken||SUPABASE_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) { const e = await res.text(); throw new Error(e); }
+      const [nuevo] = await res.json();
+      _grupos.push(nuevo);
+      showToast('Grupo creado ✓', 'success');
+      logSuperadminAction('crear_grupo', `${nombre}`);
+    }
+    closeModal('modalGrupo');
+    loadGrupos();
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'GUARDAR';
+  }
+});
+
+function confirmarEliminarGrupo(id, nombre) {
+  showConfirm(
+    `¿Eliminar el grupo "${nombre}"?\n\nLas barberías asignadas quedarán sin grupo pero no se eliminarán.`,
+    async () => {
+      try {
+        // Desvincular shops primero
+        await sbPatch('shops', `grupo_id=eq.${id}`, { grupo_id: null });
+        await sbDelete('grupos', `id=eq.${id}`);
+        _grupos = _grupos.filter(g => g.id !== id);
+        _shops.forEach(s => { if (s.grupo_id === id) s.grupo_id = null; });
+        showToast('Grupo eliminado ✓', 'info');
+        logSuperadminAction('eliminar_grupo', `id:${id} nombre:${nombre}`);
+        loadGrupos();
+      } catch(e) { showToast('Error: ' + e.message, 'error'); }
+    },
+    'Eliminar'
+  );
 }
 // ───────────────────────────────────────────────────────────────────────────
 
@@ -4854,6 +5041,11 @@ function abrirEditShop(shopId){
   document.getElementById('editShopDifusionActivaLbl').style.color = difActiva ? 'var(--green)' : 'var(--muted)';
   document.getElementById('editShopDifusionMsg').value = shop.difusion_msg || '';
   document.getElementById('editShopGrupoNombre').value = shop.grupo_nombre || '';
+  // Poblar selector de grupos y pre-seleccionar
+  const grupoSel = document.getElementById('editShopGrupoId');
+  grupoSel.innerHTML = '<option value="">— Independiente (sin grupo) —</option>' +
+    _grupos.map(g => `<option value="${g.id}" ${g.id === shop.grupo_id ? 'selected' : ''}>${g.nombre}</option>`).join('');
+  if (!shop.grupo_id) grupoSel.value = '';
   // v86: colores display
   const colorDefaults = { cyan:'#D4A017', magenta:'#FF006E', gold:'#F5E050', green:'#3ECF8E', bg:'#020408', bg2:'#060C14' };
   ['cyan','magenta','gold','green','bg','bg2'].forEach(k => {
@@ -4935,6 +5127,7 @@ async function guardarEditShop(){
     difusion_activa: document.getElementById('editShopDifusionActiva').checked,
     difusion_msg: document.getElementById('editShopDifusionMsg').value.trim() || null,
     grupo_nombre: document.getElementById('editShopGrupoNombre').value.trim() || null,
+    grupo_id:     document.getElementById('editShopGrupoId').value || null,
     display_color_cyan:    document.getElementById('editShopColorCyanHex').value.trim() || null,
     display_color_magenta: document.getElementById('editShopColorMagentaHex').value.trim() || null,
     display_color_gold:    document.getElementById('editShopColorGoldHex').value.trim() || null,
@@ -5053,9 +5246,16 @@ async function guardarEditShop(){
     <div style="border-top:1px solid var(--border);margin:18px 0 14px;padding-top:14px;">
       <div style="font-size:0.5rem;letter-spacing:0.22em;color:var(--muted);text-transform:uppercase;margin-bottom:12px;">🏢 MULTI-SUCURSAL</div>
       <div class="form-group">
-        <label class="form-label">Nombre del grupo / empresa</label>
+        <label class="form-label">Asignar a grupo</label>
+        <select class="form-select" id="editShopGrupoId" onchange="onGrupoSelectChange()">
+          <option value="">— Independiente (sin grupo) —</option>
+        </select>
+        <div class="form-hint">Selecciona un grupo existente o déjalo vacío si es independiente.</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nombre del grupo (texto manual)</label>
         <input class="form-input" id="editShopGrupoNombre" placeholder="ej: Richard Stilo Group">
-        <div class="form-hint">Si tiene varias sucursales, escribe el mismo nombre en todas. Déjalo vacío si es independiente.</div>
+        <div class="form-hint">Se rellena automáticamente al seleccionar un grupo. Puedes editarlo manualmente.</div>
       </div>
     </div>
     <!-- ── Tipo de Negocio ── -->
@@ -5194,5 +5394,71 @@ async function guardarEditShop(){
     </div>
   </div>
 </div>
+
+<!-- ══════════════════════════════════════════════════════
+     MODAL — CREAR / EDITAR GRUPO
+══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modalGrupo" onclick="if(event.target===this)closeModal('modalGrupo')">
+  <div class="modal-content" style="max-width:480px;">
+    <div class="modal-header">
+      <div class="modal-title" id="grupoModalTitle">Nuevo Grupo</div>
+      <button class="modal-close" onclick="closeModal('modalGrupo')">✕</button>
+    </div>
+    <input type="hidden" id="grupoId">
+
+    <div class="form-group">
+      <label class="form-label">Nombre del grupo *</label>
+      <input class="form-input" id="grupoNombre" placeholder="ej: Richard Stilo Group">
+      <div class="form-hint">Nombre visible en el panel y en los reportes consolidados.</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Slug (URL) *</label>
+      <input class="form-input" id="grupoSlug" placeholder="ej: richard-stilo-group" style="font-family:'DM Mono',monospace;">
+      <div class="form-hint">Se genera automáticamente. URL del panel: <code style="color:var(--gold)">/admin/grupo/<span id="grupoSlugPreview">slug</span></code></div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Email del dueño *</label>
+      <input class="form-input" id="grupoOwnerEmail" type="email" placeholder="dueño@email.com">
+      <div class="form-hint">El dueño inicia sesión con este email para ver todas sus sucursales.</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Plan del grupo</label>
+      <select class="form-select" id="grupoPlan">
+        <option value="free">Free</option>
+        <option value="pro" selected>Pro — $29/mes</option>
+        <option value="elite">Elite — $79/mes</option>
+      </select>
+    </div>
+
+    <div style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.18);padding:10px 12px;border-radius:6px;font-size:0.6rem;color:var(--muted);margin:10px 0 14px;">
+      💡 Después de crear el grupo, edita cada barbería y asígnala a este grupo en la sección <b>Multi-Sucursal</b>.
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modalGrupo')">CANCELAR</button>
+      <button class="btn btn-primary" id="guardarGrupoBtn">GUARDAR</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Preview del slug en tiempo real en el modal de grupo
+document.getElementById('grupoSlug').addEventListener('input', e => {
+  const prev = document.getElementById('grupoSlugPreview');
+  if (prev) prev.textContent = e.target.value || 'slug';
+});
+document.getElementById('grupoNombre').addEventListener('input', e => {
+  const prev = document.getElementById('grupoSlugPreview');
+  const slug = document.getElementById('grupoSlug');
+  if (!document.getElementById('grupoId').value) {
+    const s = e.target.value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+    slug.value = s;
+    if (prev) prev.textContent = s || 'slug';
+  }
+});
+</script>
 </body>
 </html>
