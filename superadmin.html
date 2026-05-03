@@ -464,6 +464,7 @@ tr:hover td{background:rgba(255,255,255,0.016);}
   <div class="nav-item" data-page="analytics"><i data-lucide="line-chart" class="icon"></i><span class="sidebar-text">Analytics</span></div>
   <div class="nav-item" data-page="reportes"><i data-lucide="bar-chart-3" class="icon"></i><span class="sidebar-text">Reportes</span></div>
   <div class="nav-item" data-page="seguridad"><i data-lucide="lock" class="icon"></i><span class="sidebar-text">Seguridad</span></div>
+  <div class="nav-item" data-page="ia-audit"><i data-lucide="cpu" class="icon"></i><span class="sidebar-text">Auditoría IA</span></div>
   <div class="nav-item" data-page="logs"><i data-lucide="terminal" class="icon"></i><span class="sidebar-text">Logs</span></div>
   <div class="nav-item" data-page="config"><i data-lucide="settings" class="icon"></i><span class="sidebar-text">Configuración</span></div>
   <div class="nav-item" data-page="estado"><i data-lucide="activity" class="icon"></i><span class="sidebar-text">Estado Sistema</span></div>
@@ -1029,6 +1030,36 @@ tr:hover td{background:rgba(255,255,255,0.016);}
     </div>
 
     <!-- LOGS -->
+    <!-- AUDITORÍA IA -->
+    <div class="page" id="page-ia-audit">
+      <div class="section-header">
+        <div class="section-title">Auditoría de IA (Groq)</div>
+        <div class="btn-group">
+          <button class="btn btn-ghost" onclick="loadIAAudit()">↻ Actualizar</button>
+          <button class="btn btn-ghost" onclick="clearIAAudit()">Limpiar</button>
+        </div>
+      </div>
+      <div class="config-card">
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:140px;">Fecha</th>
+                <th>Barbería</th>
+                <th>Cliente</th>
+                <th>Prompt (Usuario)</th>
+                <th>Respuesta (IA)</th>
+                <th style="width:120px;">Modelo/Tokens</th>
+              </tr>
+            </thead>
+            <tbody id="iaAuditTable">
+              <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--muted);">Cargando registros...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <div class="page" id="page-logs">
       <div class="section-header">
         <div class="section-title">Logs del Sistema</div>
@@ -1622,7 +1653,7 @@ const PAGE_TITLES = {
   usuarios:'Usuarios & Accesos', barberos:'Gestión de Barberos', pagos:'Pagos & Suscripciones',
   'clientes-app':'Clientes en la App',
   facturacion:'Facturación', citas:'Citas Global', simulador:'Simulador de Chat WhatsApp', whatsapp:'WhatsApp',
-  leads:'Leads del Landing', reportes:'Reportes por Barbería', seguridad:'Centro de Seguridad', logs:'Logs del Sistema', config:'Configuración Global',
+  leads:'Leads del Landing', reportes:'Reportes por Barbería', seguridad:'Centro de Seguridad', 'ia-audit':'Auditoría de IA', logs:'Logs del Sistema', config:'Configuración Global',
   estado:'Estado del Sistema', broadcast:'Broadcast WhatsApp', grupos:'Grupos Multi-Sucursal'
 };
 document.querySelectorAll('.nav-item[data-page]').forEach(el => {
@@ -1650,7 +1681,8 @@ function showPage(id, el) {
     citas:() => { document.getElementById('citasFecha').value=new Date().toISOString().split('T')[0]; loadCitas(); },
     estado:loadEstado,
     broadcast:loadBroadcast,
-    grupos:loadGrupos
+    grupos:loadGrupos,
+    'ia-audit':loadIAAudit
   };
   if(loaders[id]) loaders[id]();
   if(window.lucide) setTimeout(lucide.createIcons, 100);
@@ -4729,12 +4761,15 @@ async function saveFeatures(){
       const el = document.getElementById('feat-val-'+f.key);
       if(el) p[f.key] = (el.value === 'true');
     });
+    console.log("Enviando features a Supabase:", p);
     await sbPatch('shops', 'id=eq.'+_featShopId, p);
+    console.log("Guardado exitoso en Supabase ✓");
     closeModal('modalFeatures');
     showToast('✓ Features actualizadas','success');
     logSuperadminAction('update_features', `shop:${_featShopId}`);
     loadShops();
   } catch(e) {
+    console.error("Error al guardar en Supabase:", e);
     showToast('Error: '+e.message,'error');
   } finally {
     btn.textContent = '✓ GUARDAR CAMBIOS'; btn.disabled = false;
@@ -4961,6 +4996,42 @@ async function guardarEditShop(){
     closeModal('modalEditShop');
     await fetchAll(); loadShops();
   }catch(e){showToast('Error: '+e.message,'error');}
+}
+
+async function loadIAAudit() {
+  const table = document.getElementById('iaAuditTable');
+  if(!table) return;
+  try {
+    const data = await sbGet('auditoria_ia', 'order=created_at.desc&limit=50');
+    if(!data.length) {
+      table.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--muted);">No hay registros de IA aún.</td></tr>';
+      return;
+    }
+    const shopsMap = Object.fromEntries(_shops.map(s => [s.id, s.nombre]));
+    table.innerHTML = data.map(l => `
+      <tr>
+        <td style="color:var(--muted);font-size:0.58rem;">${new Date(l.created_at).toLocaleString('es')}</td>
+        <td><div style="font-weight:700;">${shopsMap[l.shop_id] || '—'}</div><div style="font-size:0.5rem;color:var(--muted);">${l.shop_id.slice(0,8)}</div></td>
+        <td><div style="color:var(--text);">${l.chat_id}</div></td>
+        <td><div style="max-width:250px;white-space:pre-wrap;font-size:0.6rem;color:var(--muted);">${l.prompt}</div></td>
+        <td><div style="max-width:300px;white-space:pre-wrap;font-size:0.6rem;color:var(--gold); border-left:2px solid var(--gold3); padding-left:8px;">${l.respuesta}</div></td>
+        <td><div style="font-size:0.55rem;color:var(--muted);">${l.modelo}</div><div style="color:var(--green);font-size:0.55rem;">${l.tokens} tokens</div></td>
+      </tr>`).join('');
+  } catch(e) {
+    table.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--red);">Error: ${e.message}</td></tr>`;
+  }
+}
+
+async function clearIAAudit() {
+  if(!confirm('¿Seguro que deseas borrar todos los logs de IA?')) return;
+  try {
+    // Para borrar todos usamos un filtro que siempre sea cierto o llamamos a una rpc si está disponible
+    // Aquí usamos un delete con filtro sobre created_at (hace menos de 10 años)
+    const diezAnios = new Date(Date.now() - 3650*24*60*60*1000).toISOString();
+    await sbDelete('auditoria_ia', `created_at=gt.${diezAnios}`);
+    showToast('Logs de IA eliminados', 'info');
+    loadIAAudit();
+  } catch(e) { showToast('Error al borrar: '+e.message, 'error'); }
 }
 
 </script>
