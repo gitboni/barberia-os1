@@ -20,33 +20,51 @@
       box-sizing: border-box;
     }
 
+    /* ── Global Apple Scrollbar ── */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      border: 1px solid transparent;
+      background-clip: padding-box;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
     :root {
-      --cyan: #E5E7EB;
-      --magenta: #FB7185;
-      --gold: #FDE68A;
-      --green: #34D399;
-      --purple: #C084FC;
-      --bg: #020408;
-      --bg2: #090B10;
-      --glow-c: rgba(255, 255, 255, 0.1);
-      --glow-m: rgba(251, 113, 133, 0.3);
-      --glow-g: rgba(52, 211, 153, 0.3);
-      --glow-p: rgba(192, 132, 252, 0.3);
+      --bg: #000000;
+      --bg2: #0A0A0A;
+      --cyan: #98C1D9; /* Azul Glaciar - Calma y Profesionalismo */
+      --magenta: #B298DC; /* Lavanda Suave - Elegancia Beauty */
+      --gold: #D4AF37; /* Oro Champagne - Lujo */
+      --green: #A9BFA1; /* Verde Salvia - Bienestar / Spa */
+      --purple: #9F9FED; /* Periwinkle - Modernidad Soft */
+      --glow-c: rgba(152, 193, 217, 0.1);
+      --glow-m: rgba(178, 152, 220, 0.1);
+      --glow-g: rgba(169, 191, 161, 0.1);
+      --glow-p: rgba(159, 159, 237, 0.1);
     }
 
     /* ── v86: Tema light — Salón de Belleza ─────────────────────────────── */
     html.tema-light {
-      --cyan: #1E1B4B;
-      --magenta: #DB2777;
-      --gold: #D97706;
-      --green: #059669;
-      --purple: #7C3AED;
-      --bg: #F9FAFB;
-      --bg2: #F3F4F6;
-      --glow-c: rgba(30, 27, 75, 0.05);
-      --glow-m: rgba(219, 39, 119, 0.15);
-      --glow-g: rgba(5, 150, 105, 0.15);
-      --glow-p: rgba(124, 58, 237, 0.15);
+      --cyan: #2D3142;
+      --magenta: #9F9FED;
+      --gold: #D4AF37;
+      --green: #A9BFA1;
+      --purple: #8E8E93;
+      --bg: #FCFCFC;
+      --bg2: #F2F2F7;
+      --glow-c: rgba(45, 49, 66, 0.05);
+      --glow-m: rgba(159, 159, 237, 0.1);
+      --glow-g: rgba(169, 191, 161, 0.1);
+      --glow-p: rgba(142, 142, 147, 0.1);
     }
     html.tema-light body { background: var(--bg); color: var(--cyan); }
     html.tema-light .grid-line,
@@ -56,17 +74,17 @@
 
     /* ── v86: Tema zen — Spa / Estética ─────────────────────────────────── */
     html.tema-zen {
-      --cyan: #064E3B;
-      --magenta: #0E7490;
-      --gold: #059669;
-      --green: #10B981;
-      --purple: #22D3EE;
-      --bg: #F0FDFA;
-      --bg2: #CCFBF1;
-      --glow-c: rgba(6, 78, 59, 0.05);
-      --glow-m: rgba(14, 116, 144, 0.15);
-      --glow-g: rgba(16, 185, 129, 0.15);
-      --glow-p: rgba(34, 211, 238, 0.15);
+      --cyan: #4A5759;
+      --magenta: #B298DC;
+      --gold: #D4AF37;
+      --green: #A9BFA1;
+      --purple: #778DA9;
+      --bg: #EDF2F4;
+      --bg2: #D8E2DC;
+      --glow-c: rgba(74, 87, 89, 0.05);
+      --glow-m: rgba(178, 152, 220, 0.1);
+      --glow-g: rgba(169, 191, 161, 0.1);
+      --glow-p: rgba(119, 141, 169, 0.1);
     }
     html.tema-zen body { background: var(--bg); color: var(--cyan); }
     html.tema-zen .grid-line,
@@ -288,49 +306,40 @@
     }
 
     @keyframes item-in {
-      from {
-        opacity: 0;
-        transform: translateY(10px)
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0)
-      }
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     @keyframes pill-in {
-      from {
-        opacity: 0;
-        transform: translateX(-8px) scale(0.9)
-      }
-
-      to {
-        opacity: 1;
-        transform: translateX(0) scale(1)
-      }
+      from { opacity: 0; transform: translateX(-8px) scale(0.9); }
+      to { opacity: 1; transform: translateX(0) scale(1); }
     }
 
     @keyframes mini-in {
-      from {
-        opacity: 0;
-        transform: scale(0.93)
-      }
+      from { opacity: 0; transform: scale(0.93); }
+      to { opacity: 1; transform: scale(1); }
+    }
 
-      to {
-        opacity: 1;
-        transform: scale(1)
-      }
+    @keyframes modal-pop {
+      0% { opacity: 0; transform: scale(0.9) translateY(20px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    @keyframes avatar-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(0, 245, 255, 0.4); }
+      50% { box-shadow: 0 0 0 8px rgba(0, 245, 255, 0); }
     }
 
     @keyframes scan {
-      0% {
-        left: -80%
-      }
+      0% { left: -100%; opacity: 0; }
+      20% { opacity: 0.4; }
+      80% { opacity: 0.4; }
+      100% { left: 100%; opacity: 0; }
+    }
 
-      100% {
-        left: 180%
-      }
+    @keyframes qr-breathe {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(255,255,255,0.1)); }
+      50% { transform: scale(1.02); filter: drop-shadow(0 0 15px rgba(255,255,255,0.2)); }
     }
 
     @keyframes alert-row {
@@ -437,26 +446,69 @@
       }
     }
 
+    @keyframes view-blur-in {
+      from { filter: blur(30px); opacity: 0; transform: scale(0.96); }
+      to { filter: blur(0); opacity: 1; transform: scale(1); }
+    }
+
+    .view-transition {
+      animation: view-blur-in 0.5s cubic-bezier(0.2, 1, 0.3, 1) forwards;
+    }
+
+    /* ── Apple-style Aurora Mesh ── */
+    .orbs-container {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      filter: url(#gooey) blur(60px);
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      mix-blend-mode: screen;
+      will-change: transform;
+    }
+
+    .orb1 {
+      width: 80vw; height: 80vw;
+      background: radial-gradient(circle, var(--cyan) 0%, transparent 70%);
+      top: -10%; left: -10%;
+      animation: nebula-drift 25s ease-in-out infinite;
+      opacity: 0.15;
+    }
+
+    .orb2 {
+      width: 70vw; height: 70vw;
+      background: radial-gradient(circle, var(--purple) 0%, transparent 70%);
+      bottom: -10%; right: -10%;
+      animation: nebula-drift2 30s ease-in-out infinite alternate;
+      opacity: 0.12;
+    }
+
+    .orb3 {
+      width: 60vw; height: 60vw;
+      background: radial-gradient(circle, var(--magenta) 0%, transparent 70%);
+      top: 20%; right: 20%;
+      animation: nebula-drift3 22s ease-in-out infinite;
+      opacity: 0.1;
+    }
+
+    .orb4 {
+      width: 90vw; height: 90vw;
+      background: radial-gradient(circle, var(--green) 0%, transparent 70%);
+      bottom: 10%; left: 10%;
+      animation: nebula-drift 35s ease-in-out infinite reverse;
+      opacity: 0.08;
+    }
+
     @keyframes nebula-drift {
-      0% {
-        transform: translate(0, 0) scale(1);
-        opacity: 0.6
-      }
-
-      33% {
-        transform: translate(40px, -30px) scale(1.08);
-        opacity: 0.8
-      }
-
-      66% {
-        transform: translate(-20px, 20px) scale(0.95);
-        opacity: 0.65
-      }
-
-      100% {
-        transform: translate(0, 0) scale(1);
-        opacity: 0.6
-      }
+      0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+      33% { transform: translate(10%, 15%) scale(1.1) rotate(120deg); }
+      66% { transform: translate(-5%, 10%) scale(0.9) rotate(240deg); }
+      100% { transform: translate(0, 0) scale(1) rotate(360deg); }
     }
 
     @keyframes nebula-drift2 {
@@ -511,15 +563,90 @@
     }
 
     @keyframes vignette-breathe {
+      0%, 100% { opacity: 0.85 }
+      50% { opacity: 0.92 }
+    }
 
-      0%,
-      100% {
-        opacity: 0.85
-      }
+    @keyframes view-blur-in {
+      from { filter: blur(20px); opacity: 0; transform: scale(1.02); }
+      to { filter: blur(0); opacity: 1; transform: scale(1); }
+    }
 
-      50% {
-        opacity: 0.92
-      }
+    .view-transition {
+      animation: view-blur-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+
+    /* ── Estilos Timeline Mañana ────────────────────────── */
+    .manana-timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      padding: 20px 0;
+      position: relative;
+    }
+    .manana-timeline::before {
+      content: '';
+      position: absolute;
+      left: 120px;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.1) 10%, rgba(255,255,255,0.1) 90%, transparent);
+    }
+    .timeline-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 30px;
+      padding: 15px 0;
+      position: relative;
+    }
+    .timeline-time {
+      width: 90px;
+      text-align: right;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--cyan);
+      opacity: 0.8;
+      padding-top: 10px;
+    }
+    .timeline-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--bc);
+      box-shadow: 0 0 15px var(--bc);
+      margin-top: 16px;
+      position: relative;
+      z-index: 2;
+    }
+    .timeline-card {
+      flex: 1;
+      background: rgba(255,255,255,0.03);
+      border: 0.5px solid rgba(255,255,255,0.12);
+      border-radius: 20px;
+      padding: 16px 24px;
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      transition: transform 0.3s;
+      box-shadow: inset 0 0 10px rgba(255,255,255,0.01);
+    }
+    .timeline-card:hover {
+      transform: translateX(5px);
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(255,255,255,0.2);
+    }
+    .timeline-barber-tag {
+      font-size: 0.6rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      color: var(--bc);
+      background: rgba(255,255,255,0.05);
+      padding: 4px 10px;
+      border-radius: 10px;
+      border: 0.5px solid var(--bc);
     }
 
     @keyframes ticker-move {
@@ -592,9 +719,13 @@
       display: flex;
     }
 
+    .action-modal.open .action-box {
+      animation: modal-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
     .action-box {
-      background: rgba(10, 15, 25, 0.7);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(10, 15, 25, 0.5);
+      border: 0.5px solid rgba(255, 255, 255, 0.25);
       padding: 32px 40px;
       min-width: 380px;
       max-width: 520px;
@@ -603,8 +734,9 @@
       max-height: 92vh;
       overflow-y: auto;
       border-radius: 40px;
-      backdrop-filter: blur(40px) saturate(180%);
-      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(60px) saturate(210%);
+      -webkit-backdrop-filter: blur(60px) saturate(210%);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), inset 0 0 0 1px rgba(255,255,255,0.05);
     }
 
     .action-box.reag-box {
@@ -682,7 +814,8 @@
     .ainp {
       width: 100%;
       background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 0.5px solid rgba(255, 255, 255, 0.18);
+      box-shadow: inset 0 0 15px rgba(255,255,255,0.01), 0 10px 30px rgba(0,0,0,0.2);
       color: #fff;
       padding: 12px 20px;
       font-family: 'Outfit', sans-serif;
@@ -718,7 +851,8 @@
 
     .barber-sel-btn {
       padding: 8px 18px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 0.5px solid rgba(255, 255, 255, 0.18);
+      box-shadow: inset 0 0 15px rgba(255,255,255,0.01), 0 10px 30px rgba(0,0,0,0.2);
       background: rgba(255, 255, 255, 0.03);
       color: rgba(255, 255, 255, 0.4);
       font-family: 'Outfit', sans-serif;
@@ -885,17 +1019,20 @@
     .pause-btn {
       display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 5px 12px;
-      border: 1px solid rgba(255, 214, 0, 0.25);
-      background: rgba(255, 214, 0, 0.04);
-      color: rgba(255, 214, 0, 0.6);
-      font-family: 'Inter', monospace;
-      font-size: 0.48rem;
-      letter-spacing: 0.12em;
+      gap: 8px;
+      padding: 6px 18px;
+      border: 0.5px solid rgba(255, 214, 0, 0.3);
+      background: rgba(255, 214, 0, 0.05);
+      color: rgba(255, 214, 0, 0.8);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.5rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      border-radius: 999px;
+      backdrop-filter: blur(10px);
     }
 
     .pause-btn:hover {
@@ -1055,9 +1192,8 @@
       color: rgba(0, 245, 255, 0.65);
       font-family: 'Inter', monospace;
       font-size: 0.58rem;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.05em;
       cursor: pointer;
-      text-transform: uppercase;
       transition: all 0.2s;
       white-space: nowrap;
     }
@@ -1111,7 +1247,7 @@
     .bg-base {
       position: fixed;
       inset: 0;
-      z-index: 0;
+      z-index: -2;
       background: radial-gradient(ellipse 120% 80% at 50% -10%, #030b18 0%, #020408 60%, #010206 100%);
     }
 
@@ -1147,52 +1283,6 @@
       opacity: 0.045;
     }
 
-    .orb {
-      position: fixed;
-      border-radius: 50%;
-      filter: blur(80px); /* Optimizado: 140px -> 80px para mejor rendimiento en tablets */
-      pointer-events: none;
-      z-index: 0;
-      will-change: transform, opacity;
-      transform: translateZ(0); /* Forzar aceleracion GPU */
-    }
-
-    .orb1 {
-      width: 1100px;
-      height: 800px;
-      background: radial-gradient(ellipse, rgba(0, 245, 255, 0.09) 0%, rgba(0, 80, 200, 0.05) 40%, transparent 70%);
-      top: -350px;
-      left: -350px;
-      animation: nebula-drift 22s ease-in-out infinite;
-    }
-
-    .orb2 {
-      width: 900px;
-      height: 900px;
-      background: radial-gradient(ellipse, rgba(255, 0, 110, 0.07) 0%, rgba(120, 0, 80, 0.04) 40%, transparent 70%);
-      bottom: -350px;
-      right: -350px;
-      animation: nebula-drift2 26s ease-in-out infinite;
-    }
-
-    .orb3 {
-      width: 700px;
-      height: 600px;
-      background: radial-gradient(ellipse, rgba(176, 110, 255, 0.07) 0%, rgba(60, 20, 140, 0.03) 40%, transparent 70%);
-      top: 25%;
-      left: 50%;
-      transform: translateX(-50%);
-      animation: nebula-drift3 32s ease-in-out infinite;
-    }
-
-    .orb4 {
-      width: 600px;
-      height: 500px;
-      background: radial-gradient(ellipse, rgba(0, 255, 120, 0.055) 0%, rgba(0, 80, 40, 0.025) 40%, transparent 70%);
-      bottom: 5%;
-      left: 5%;
-      animation: nebula-drift 18s ease-in-out infinite reverse;
-    }
 
     #star-canvas {
       position: fixed;
@@ -1518,20 +1608,19 @@
     }
 
     .brand-name {
-      font-family: 'Outfit', monospace;
+      font-family: 'Outfit', sans-serif;
       font-size: 1.4rem;
       font-weight: 900;
-      letter-spacing: 0.15em;
+      letter-spacing: 0.08em;
       color: var(--cyan);
-      text-shadow: 0 0 24px var(--glow-c);
     }
 
     .brand-sub {
-      font-family: 'Inter', monospace;
+      font-family: 'Inter', sans-serif;
       font-size: 0.52rem;
-      color: rgba(0, 245, 255, 0.35);
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
+      color: var(--cyan);
+      opacity: 0.45;
+      letter-spacing: 0.1em;
       margin-top: 2px;
     }
 
@@ -1540,22 +1629,20 @@
     }
 
     .clock-time {
-      font-family: 'Outfit', monospace;
+      font-family: 'Outfit', sans-serif;
       font-size: 2.2rem;
       font-weight: 700;
       color: var(--cyan);
       letter-spacing: 0.08em;
-      text-shadow: 0 0 30px var(--glow-c);
       line-height: 1;
     }
 
     .clock-date {
-      font-family: 'Inter', monospace;
+      font-family: 'Inter', sans-serif;
       font-size: 0.54rem;
       color: rgba(0, 245, 255, 0.4);
-      letter-spacing: 0.18em;
+      letter-spacing: 0.1em;
       margin-top: 4px;
-      text-transform: uppercase;
     }
 
     .header-right {
@@ -1568,14 +1655,17 @@
     .hpill {
       display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 5px 10px;
-      border: 1px solid;
-      font-family: 'Inter', monospace;
-      font-size: 0.48rem;
-      letter-spacing: 0.1em;
+      gap: 7px;
+      padding: 6px 16px;
+      border: 0.5px solid;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.5rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-      transition: all 0.4s;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      border-radius: 999px;
+      backdrop-filter: blur(10px);
     }
 
     .hpill-sys {
@@ -1633,16 +1723,19 @@
     }
 
     .fs-btn {
-      background: rgba(0, 245, 255, 0.05);
-      border: 1px solid rgba(0, 245, 255, 0.15);
-      color: rgba(0, 245, 255, 0.5);
-      padding: 5px 10px;
-      font-family: 'Inter', monospace;
-      font-size: 0.48rem;
-      letter-spacing: 0.12em;
+      background: rgba(0, 245, 255, 0.08);
+      border: 0.5px solid rgba(0, 245, 255, 0.25);
+      color: rgba(0, 245, 255, 0.8);
+      padding: 6px 16px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.5rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
       cursor: pointer;
       text-transform: uppercase;
-      transition: all 0.2s;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      border-radius: 999px;
+      backdrop-filter: blur(10px);
     }
 
     .fs-btn:hover {
@@ -1694,7 +1787,8 @@
       align-items: center;
       gap: 4px;
       background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 0.5px solid rgba(255, 255, 255, 0.18);
+      box-shadow: inset 0 0 15px rgba(255,255,255,0.01), 0 10px 30px rgba(0,0,0,0.2);
       padding: 5px;
       backdrop-filter: blur(40px) saturate(180%);
       -webkit-backdrop-filter: blur(40px) saturate(180%);
@@ -1703,7 +1797,7 @@
       transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s;
     }
     .mode-bar.hidden {
-      transform: translateX(-50%) translateY(120px);
+      transform: translateX(-50%) translateY(100px);
       opacity: 0;
       pointer-events: none;
     }
@@ -1721,19 +1815,19 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 8px 20px;
+      padding: 10px 24px;
       border: none;
       font-family: 'Outfit', sans-serif;
-      font-size: 0.52rem;
-      font-weight: 600;
-      letter-spacing: 0.05em;
+      font-size: 0.58rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.4);
+      color: rgba(255, 255, 255, 0.45);
       background: transparent;
       cursor: pointer;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       white-space: nowrap;
-      border-radius: 30px;
+      border-radius: 999px;
     }
 
     .mode-btn:hover {
@@ -1766,7 +1860,8 @@
       transform: translateX(-50%);
       z-index: 51;
       background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 0.5px solid rgba(255, 255, 255, 0.18);
+      box-shadow: inset 0 0 15px rgba(255,255,255,0.01), 0 10px 30px rgba(0,0,0,0.2);
       padding: 12px;
       backdrop-filter: blur(24px) saturate(180%);
       -webkit-backdrop-filter: blur(24px) saturate(180%);
@@ -1891,16 +1986,29 @@
     }
 
     .tv-card {
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      background: rgba(255, 255, 255, 0.03);
+      border: 0.5px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 15px 45px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255,255,255,0.03);
+      background: rgba(255, 255, 255, 0.02);
       display: flex;
       flex-direction: column;
       overflow: hidden;
       position: relative;
-      backdrop-filter: blur(24px) saturate(180%);
-      -webkit-backdrop-filter: blur(24px) saturate(180%);
-      border-radius: 32px;
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(32px) saturate(200%);
+      -webkit-backdrop-filter: blur(32px) saturate(200%);
+      border-radius: 36px;
+    }
+
+    .tv-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+      animation: scan 10s infinite ease-in-out;
+      pointer-events: none;
+      z-index: 5;
     }
 
     .tv-card::before {
@@ -2007,8 +2115,7 @@
       font-family: 'Rajdhani', sans-serif;
       font-weight: 700;
       color: #fff;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
+      letter-spacing: 0.05em;
       text-align: center;
       white-space: nowrap;
       overflow: hidden;
@@ -2038,8 +2145,7 @@
       font-family: 'Inter', monospace;
       font-size: 0.52rem;
       color: var(--gold);
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
+      letter-spacing: 0.12em;
     }
 
     .tv-card-footer {
@@ -2153,6 +2259,8 @@
     .tv-ticker-track {
       flex: 1;
       overflow: hidden;
+      mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+      -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
     }
 
     .tv-ticker-inner {
@@ -2255,7 +2363,9 @@
       align-items: center;
       padding: 30px 24px;
       position: relative;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      overflow: hidden;
+      border: 0.5px solid rgba(255, 255, 255, 0.18);
+      box-shadow: inset 0 0 15px rgba(255,255,255,0.01), 0 10px 30px rgba(0,0,0,0.2);
       background: rgba(255, 255, 255, 0.03);
       backdrop-filter: blur(24px) saturate(180%);
       -webkit-backdrop-filter: blur(24px) saturate(180%);
@@ -2263,6 +2373,19 @@
       margin: 10px;
       flex-shrink: 0;
       box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5);
+    }
+
+    .silla-zone::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.04), transparent);
+      animation: scan 15s infinite ease-in-out;
+      pointer-events: none;
+      z-index: 5;
     }
 
     .layout-solo .silla-zone {
@@ -2326,12 +2449,12 @@
       font-family: 'Outfit', sans-serif;
       font-weight: 900;
       color: var(--bc, var(--cyan));
-      text-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-      line-height: 1;
-      letter-spacing: -0.02em;
+      line-height: 0.9;
+      letter-spacing: -0.05em;
       position: relative;
       z-index: 1;
       transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      filter: drop-shadow(0 5px 15px rgba(0,0,0,0.4));
     }
     /* Eliminada animación hero-pulse neón */
 
@@ -2378,40 +2501,38 @@
       letter-spacing: 0.12em;
       text-transform: uppercase;
       text-align: center;
-      margin-top: 2px;
+      margin-top: 4px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       max-width: 100%;
+      line-height: 1.2;
     }
 
     .layout-solo .silla-name {
-      font-size: 1.5rem;
+      font-size: clamp(1rem, 2.5vw, 1.5rem);
+      margin-bottom: 4px;
     }
 
     .layout-multi .silla-name.n1 {
-      font-size: 1.5rem;
+      font-size: clamp(1rem, 3vw, 1.5rem);
     }
-
     .layout-multi .silla-name.n2 {
-      font-size: 1.2rem;
+      font-size: clamp(0.9rem, 2.5vw, 1.2rem);
     }
-
     .layout-multi .silla-name.n3 {
-      font-size: 1rem;
+      font-size: clamp(0.8rem, 2vw, 1rem);
     }
-
     .layout-multi .silla-name.n4 {
-      font-size: 0.88rem;
+      font-size: clamp(0.7rem, 1.8vw, 0.88rem);
     }
-
     .layout-multi .silla-name.n5 {
-      font-size: 0.78rem;
+      font-size: clamp(0.6rem, 1.5vw, 0.78rem);
     }
 
     .silla-service {
-      margin-top: 10px;
-      padding: 6px 20px;
+      margin-top: 6px;
+      padding: 4px 16px;
       border-radius: 20px;
       background: rgba(255, 214, 0, 0.1);
       font-family: 'Outfit', monospace;
@@ -2469,11 +2590,12 @@
 
     /* ── BOTTOM ZONE ── */
     .bottom-zone {
-      padding: 12px 18px 14px;
+      padding: 10px 18px 18px;
       display: flex;
       flex-direction: column;
-      gap: 9px;
+      gap: 8px;
       flex-shrink: 0;
+      background: rgba(0, 0, 0, 0.2);
     }
 
     .next-strip {
@@ -2481,11 +2603,13 @@
       grid-template-columns: auto 1fr auto;
       align-items: center;
       gap: 12px;
-      padding: 12px 20px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 14px 22px;
+      border: 0.5px solid rgba(255, 255, 255, 0.22);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255,255,255,0.03);
       background: rgba(255, 255, 255, 0.03);
-      backdrop-filter: blur(20px);
-      border-radius: 24px;
+      backdrop-filter: blur(30px) saturate(180%);
+      -webkit-backdrop-filter: blur(30px) saturate(180%);
+      border-radius: 28px;
       position: relative;
       margin: 4px 0;
     }
@@ -2568,7 +2692,7 @@
 
     .btn-siguiente {
       width: 100%;
-      padding: 14px 0;
+      padding: 12px 0;
       background: linear-gradient(135deg, rgba(0, 255, 120, 0.15), rgba(0, 245, 255, 0.08));
       border: 1px solid rgba(0, 255, 120, 0.4);
       color: var(--green);
@@ -2585,6 +2709,7 @@
       border-radius: 40px;
       flex-shrink: 0;
       -webkit-tap-highlight-color: transparent;
+      margin-bottom: 8px;
     }
 
     .btn-siguiente:hover {
@@ -2748,20 +2873,20 @@
     }
 
     .stat-card {
-      padding: 12px 16px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 8px 16px;
+      border: 0.5px solid rgba(255, 255, 255, 0.18);
+      box-shadow: inset 0 0 15px rgba(255,255,255,0.01), 0 10px 30px rgba(0,0,0,0.2);
       background: rgba(255, 255, 255, 0.03);
       backdrop-filter: blur(20px);
-      border-radius: 40px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      border-radius: 20px;
     }
 
     .stat-val {
       font-family: 'Outfit', monospace;
-      font-size: 1.45rem;
+      font-size: 1.15rem;
       font-weight: 800;
       color: var(--cyan);
-      line-height: 1;
+      line-height: 1.1;
     }
 
     .stat-val.gold {
@@ -2929,7 +3054,7 @@
 
     .q-col-header {
       display: grid;
-      grid-template-columns: 68px 1fr 96px 84px 96px;
+      grid-template-columns: 50px 1fr 1fr 60px 84px 100px;
       padding: 8px 16px;
       font-family: 'Inter', monospace;
       font-size: 0.5rem;
@@ -2941,20 +3066,22 @@
 
     .q-item {
       display: grid;
-      grid-template-columns: 68px 1fr 96px 84px 96px;
+      grid-template-columns: 50px 1fr 1fr 60px 84px 100px;
       align-items: center;
-      padding: 12px 16px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      background: rgba(255, 255, 255, 0.02);
-      backdrop-filter: blur(10px);
+      padding: 14px 20px;
+      border: 0.5px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(30px) saturate(180%);
+      -webkit-backdrop-filter: blur(30px) saturate(180%);
       position: relative;
       overflow: hidden;
       transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
       animation: item-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
       opacity: 0;
-      border-radius: 24px;
-      margin-bottom: 4px;
+      border-radius: 28px;
+      margin-bottom: 6px;
       cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     }
     .q-item:hover {
       transform: scale(1.01) translateX(5px);
@@ -2994,9 +3121,9 @@
 
     .q-num {
       font-family: 'Outfit', monospace;
-      font-size: 1.2rem;
+      font-size: 1.25rem;
       font-weight: 700;
-      color: rgba(0, 245, 255, 0.28);
+      color: rgba(0, 245, 255, 0.6);
     }
 
     .q-item.s-active .q-num {
@@ -3012,11 +3139,10 @@
 
     .q-name {
       font-family: 'Rajdhani', sans-serif;
-      font-size: 0.98rem;
+      font-size: 1.0rem;
       font-weight: 600;
       color: #fff;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+      letter-spacing: 0.04em;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -3027,7 +3153,8 @@
       font-size: 0.52rem;
       color: rgba(255, 245, 200, 0.75);
       font-weight: 500;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.05em;
+      text-align: center;
       text-transform: uppercase;
     }
 
@@ -3144,15 +3271,17 @@
     }
 
     .q-mini {
-      padding: 10px 12px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      background: rgba(255, 255, 255, 0.02);
-      backdrop-filter: blur(10px);
+      padding: 12px 14px;
+      border: 0.5px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(20px) saturate(160%);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
       position: relative;
       overflow: hidden;
       animation: mini-in 0.3s ease forwards;
       opacity: 0;
-      border-radius: 12px;
+      border-radius: 18px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
     .q-mini.ms-wait {
@@ -3251,16 +3380,19 @@
       grid-template-columns: 32px 1fr auto;
       align-items: center;
       gap: 10px;
-      padding: 10px 14px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      background: rgba(255, 255, 255, 0.02);
+      padding: 12px 16px;
+      border: 0.5px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(20px) saturate(150%);
+      -webkit-backdrop-filter: blur(20px) saturate(150%);
       position: relative;
       overflow: hidden;
       animation: item-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       opacity: 0;
       flex-shrink: 0;
-      min-height: 48px;
-      border-radius: 16px;
+      min-height: 52px;
+      border-radius: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
     .mq-row.mn {
@@ -3501,7 +3633,8 @@
       align-items: center;
       padding: 30px 24px;
       position: relative;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 0.5px solid rgba(255, 255, 255, 0.18);
+      box-shadow: inset 0 0 15px rgba(255,255,255,0.01), 0 10px 30px rgba(0,0,0,0.2);
       background: rgba(255, 255, 255, 0.03);
       backdrop-filter: blur(24px);
       border-radius: 40px;
@@ -3675,9 +3808,9 @@
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 12px;
       min-height: 0;
-      padding-right: 4px;
+      padding: 4px 8px 20px 4px;
     }
 
     .my-queue-list::-webkit-scrollbar {
@@ -3695,10 +3828,10 @@
 
     .my-q-item {
       display: grid;
-      grid-template-columns: 38px minmax(0, 1fr) auto;
+      grid-template-columns: 44px minmax(120px,1.2fr) minmax(80px,1fr) auto 90px;
       align-items: center;
-      gap: 7px;
-      padding: 10px 16px;
+      gap: 12px;
+      padding: 12px 20px;
       border: 1px solid rgba(255, 255, 255, 0.08);
       background: rgba(255, 255, 255, 0.02);
       backdrop-filter: blur(10px);
@@ -3707,14 +3840,14 @@
       animation: item-in 0.4s forwards;
       opacity: 0;
       border-radius: 24px;
-      margin-bottom: 4px;
+      margin-bottom: 8px;
     }
 
     .my-q-item.mqi-active {
-      border-left: 3px solid var(--cyan);
-      background: rgba(0, 245, 255, 0.055);
-      box-shadow: inset 0 0 20px rgba(0, 245, 255, 0.04);
-      padding: 7px 10px;
+      border-left: 4px solid var(--cyan);
+      background: rgba(0, 245, 255, 0.08);
+      box-shadow: inset 0 0 30px rgba(0, 245, 255, 0.06);
+      padding: 16px 20px;
     }
 
     .my-q-item.mqi-next {
@@ -3744,15 +3877,19 @@
 
     .mqi-num {
       font-family: 'Outfit', monospace;
-      font-size: 0.88rem;
+      font-size: 0.95rem;
       font-weight: 700;
-      color: rgba(0, 245, 255, 0.28);
+      color: rgba(0, 245, 255, 0.55);
+      line-height: 1;
+      width: 36px;
+      flex-shrink: 0;
     }
 
     .my-q-item.mqi-active .mqi-num {
       font-size: 1.25rem;
       color: var(--cyan);
       text-shadow: 0 0 10px rgba(0, 245, 255, 0.5);
+      width: 44px;
     }
 
     .my-q-item.mqi-next .mqi-num {
@@ -3765,48 +3902,63 @@
     }
 
     .mqi-name {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 0.88rem;
-      font-weight: 600;
-      color: rgba(255, 255, 255, 0.8);
-      letter-spacing: 0.08em;
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(1.1rem, 2vw, 1.45rem);
+      font-weight: 900;
+      color: #ffffff;
+      letter-spacing: 0.02em;
       text-transform: uppercase;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      line-height: 1;
+      text-shadow: 0 0 12px rgba(255, 255, 255, 0.25), 0 2px 4px rgba(0,0,0,0.5);
     }
 
     .my-q-item.mqi-active .mqi-name {
-      font-size: 1.1rem;
-      color: #fff;
+      font-size: clamp(1.5rem, 3.2vw, 2.5rem);
+      text-shadow: 0 0 20px rgba(255, 255, 255, 0.4), 0 0 40px rgba(0, 245, 255, 0.2);
+      letter-spacing: 0.05em;
     }
 
     .my-q-item.mqi-next .mqi-name {
-      font-size: 0.95rem;
+      font-size: clamp(1.2rem, 2.2vw, 1.8rem);
+      text-shadow: 0 0 15px rgba(255, 214, 0, 0.2);
     }
 
     .mqi-svc {
       font-family: 'Inter', monospace;
-      font-size: 0.52rem;
-      color: rgba(255, 245, 200, 0.75);
-      margin-top: 1px;
-      font-weight: 500;
-      letter-spacing: 0.08em;
+      font-size: 0.85rem;
+      color: #ffffff;
+      font-weight: 800;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
+      text-align: left;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
     }
 
     .my-q-item.mqi-active .mqi-svc {
-      font-size: 0.58rem;
-      color: rgba(255, 250, 220, 0.9);
-      font-weight: 600;
+      font-size: 0.95rem;
+      color: #ffffff;
+      font-weight: 900;
+      letter-spacing: 0.18em;
+      text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
     }
 
-    .mqi-right {
+    .mqi-name-wrap {
+      min-width: 0;
+      overflow: hidden;
       display: flex;
       flex-direction: column;
-      align-items: flex-end;
-      gap: 3px;
-      min-width: 68px;
+      justify-content: center;
+      gap: 2px;
+    }
+
+    .mqi-svc-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 0;
     }
 
     .mqi-time {
@@ -3820,14 +3972,15 @@
 
     .mqi-tag {
       font-family: 'Outfit', monospace;
-      font-size: 0.4rem;
-      padding: 3px 12px;
+      font-size: clamp(0.32rem, 1vw, 0.4rem);
+      padding: 2px 8px;
       border: 1px solid;
       border-radius: 20px;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
       text-align: center;
       backdrop-filter: blur(8px);
+      white-space: nowrap;
     }
 
     .mqi-tag.a {
@@ -4049,7 +4202,7 @@
     /* ── LISTA DE TURNOS — JERARQUÍA VISUAL ── */
     /* Base: mqi-wait (3ra fila en adelante) — compacto pero legible */
     .my-q-item {
-      grid-template-columns: 40px minmax(0, 1fr) auto;
+      grid-template-columns: 40px minmax(100px,1fr) minmax(80px,1fr) auto auto;
       gap: 7px;
       padding: 6px 12px;
     }
@@ -4082,12 +4235,16 @@
     .mqi-right {
       min-width: 60px;
       flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: center;
       gap: 3px;
     }
 
     /* 2do turno (próximo) — mediano */
     .my-q-item.mqi-next {
-      grid-template-columns: 48px minmax(0, 1fr) auto;
+      grid-template-columns: 48px minmax(100px,1fr) minmax(80px,1fr) auto auto;
       gap: 9px;
       padding: 9px 14px;
       background: rgba(255, 214, 0, 0.05);
@@ -4123,7 +4280,7 @@
 
     /* 1er turno (en silla) — grande y prominente */
     .my-q-item.mqi-active {
-      grid-template-columns: 56px minmax(0, 1fr) auto;
+      grid-template-columns: 56px minmax(100px,1fr) minmax(80px,1fr) auto auto;
       gap: 10px;
       padding: 14px 16px;
       background: rgba(0, 245, 255, 0.07);
@@ -4205,16 +4362,18 @@
     .barb-slot {
       display: flex;
       align-items: center;
-      gap: 5px;
-      padding: 4px 11px;
-      border: 1px solid rgba(0, 245, 255, 0.14);
-      background: rgba(0, 245, 255, 0.03);
-      font-family: 'Inter', monospace;
+      gap: 7px;
+      padding: 6px 16px;
+      border: 0.5px solid rgba(0, 245, 255, 0.18);
+      background: rgba(0, 245, 255, 0.05);
+      font-family: 'Outfit', sans-serif;
       font-size: 0.52rem;
-      color: rgba(0, 245, 255, 0.35);
-      letter-spacing: 0.1em;
+      font-weight: 700;
+      color: rgba(0, 245, 255, 0.45);
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-      transition: all 0.3s;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      border-radius: 999px;
     }
 
     .barb-slot.active {
@@ -4247,12 +4406,14 @@
     .day-progress {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 10px 18px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      gap: 14px;
+      padding: 10px 22px;
+      border: 0.5px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255,255,255,0.02);
       background: rgba(255, 255, 255, 0.03);
-      backdrop-filter: blur(10px);
-      border-radius: 20px;
+      backdrop-filter: blur(30px) saturate(180%);
+      -webkit-backdrop-filter: blur(30px) saturate(180%);
+      border-radius: 999px;
       flex-shrink: 0;
       margin-bottom: 8px;
     }
@@ -4303,14 +4464,18 @@
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      padding: 3px 10px;
-      border: 1px solid rgba(255, 214, 0, 0.5);
-      background: rgba(255, 214, 0, 0.07);
+      padding: 2px 10px;
+      border: 0.5px solid rgba(255, 214, 0, 0.15);
+      background: rgba(255, 214, 0, 0.06);
       font-family: 'Outfit', monospace;
-      font-size: 0.65rem;
-      font-weight: 700;
-      color: rgba(255, 214, 0, 0.96);
+      font-size: clamp(0.46rem, 0.75vw, 0.58rem);
+      font-weight: 600;
+      color: rgba(255, 214, 0, 0.45);
       letter-spacing: 0.06em;
+      border-radius: 999px;
+      backdrop-filter: blur(4px);
+      width: fit-content;
+      transition: all 0.3s;
     }
 
     .eta-live.urgent {
@@ -4374,17 +4539,20 @@
     }
 
     .util-btn {
-      background: rgba(0, 245, 255, 0.04);
-      border: 1px solid rgba(0, 245, 255, 0.12);
+      background: rgba(0, 245, 255, 0.06);
+      border: 0.5px solid rgba(0, 245, 255, 0.2);
       color: rgba(0, 245, 255, 0.6);
-      padding: 4px 9px;
-      font-family: 'Inter', monospace;
-      font-size: 0.44rem;
-      letter-spacing: 0.12em;
+      padding: 6px 14px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.48rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
       cursor: pointer;
       text-transform: uppercase;
-      transition: all 0.2s;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       white-space: nowrap;
+      border-radius: 999px;
+      backdrop-filter: blur(8px);
     }
 
     .util-btn:hover {
@@ -5342,16 +5510,29 @@
   <canvas id="star-canvas"></canvas>
   <canvas id="hex-canvas"></canvas>
   <canvas id="grain-canvas"></canvas>
-  <div class="orb orb1"></div>
-  <div class="orb orb2"></div>
-  <div class="orb orb3"></div>
-  <div class="orb orb4"></div>
+  <div class="orbs-container">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+    <div class="orb orb4"></div>
+  </div>
   <div class="scanline"></div>
   <div class="vignette"></div>
   <div class="corner-frame cf-tl"></div>
   <div class="corner-frame cf-tr"></div>
   <div class="corner-frame cf-bl"></div>
   <div class="corner-frame cf-br"></div>
+
+  <!-- SVG Filters para Apple Mesh Background -->
+  <svg style="display:none">
+    <defs>
+      <filter id="gooey">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -10" result="gooey" />
+        <feComposite in="SourceGraphic" in2="gooey" operator="atop" />
+      </filter>
+    </defs>
+  </svg>
 
   <div class="app">
     <header>
@@ -5395,8 +5576,8 @@
     </footer>
   </div>
 
-  <div class="mode-bar-trigger" onclick="showModeBar()"></div>
-  <div class="mode-bar" id="mode-bar" role="tablist" aria-label="Modos de vista">
+  <div class="mode-bar-trigger" onclick="showModeBar(true)"></div>
+  <div class="mode-bar hidden" id="mode-bar" role="tablist" aria-label="Modos de vista">
     <button class="mode-btn" id="mbtn-tv" onclick="setMode('tv')" role="tab" aria-selected="false"
       aria-label="Modo TV - Pantalla de espera">📺 TV</button>
     <div class="mode-sep"></div>
@@ -5567,21 +5748,20 @@
 
   <script>
     // ── Auto-hide Mode Bar ──
+    // ── Mode Bar: Solo visible al tocar el pie de página ──
     let _modeBarTimeout = null;
-    function showModeBar() {
+    function showModeBar(force = false) {
       const el = document.getElementById('mode-bar');
       if (!el) return;
       el.classList.remove('hidden');
       if (_modeBarTimeout) clearTimeout(_modeBarTimeout);
       _modeBarTimeout = setTimeout(() => {
-        // No ocultar si hay un modal abierto o el picker de barbero
         const picker = document.getElementById('barber-picker');
         if (picker && picker.classList.contains('open')) return;
         el.classList.add('hidden');
-      }, 3500);
+      }, 4000);
     }
-    ['mousemove','click','touchstart'].forEach(ev => document.addEventListener(ev, showModeBar));
-    setTimeout(showModeBar, 1000);
+    // Eliminados listeners globales para mantener limpia la interfaz
 
     // ════════════════════════════════════════════════════
     //  BarberOS Display v9 — Bugs corregidos + Pausar + Transferir
@@ -5665,6 +5845,16 @@
     const SLUG = resolveSlug();
     let DUR = 45;
     let TV_BG = '';
+
+    // Pro Finish Helper: Capitalización inteligente (Apple Style)
+    const cap = s => {
+      if (!s) return '';
+      // Si el texto está en Mayúsculas puras y no es una sigla corta, lo corregimos
+      if (s === s.toUpperCase() && s.length > 3) {
+        return s.charAt(0) + s.slice(1).toLowerCase().replace(/(?:^|\s)\S/g, l => l.toUpperCase());
+      }
+      return s;
+    };
     try { TV_BG = localStorage.getItem('barberos_tv_bg') || ''; } catch(_) {}
 
     // FIX BUG 6: guardar hora_inicio/hora_fin de la shop
@@ -5807,7 +5997,8 @@
       if (foto) {
         return `<img src="${foto}" width="${sizePx}" height="${sizePx}"
           style="width:${sizePx}px;height:${sizePx}px;border-radius:50%;object-fit:cover;
-                 border:2px solid rgba(0,245,255,0.4);flex-shrink:0;"
+                 border:2px solid rgba(0,245,255,0.4);flex-shrink:0;box-shadow:0 0 15px rgba(0,245,255,0.1);
+                 animation: avatar-pulse 3s ease-in-out infinite;"
           onerror="this.outerHTML='<div style=\\'width:${sizePx}px;height:${sizePx}px;border-radius:50%;border:2px solid rgba(0,245,255,0.4);background:rgba(0,245,255,0.08);display:flex;align-items:center;justify-content:center;font-family:Orbitron,monospace;font-size:${fs}px;font-weight:700;color:var(--cyan);flex-shrink:0;\\'>${nombre.charAt(0)}</div>'">`;
       }
       return `<div style="width:${sizePx}px;height:${sizePx}px;border-radius:50%;border:2px solid rgba(0,245,255,0.4);background:rgba(0,245,255,0.08);display:flex;align-items:center;justify-content:center;font-family:'Outfit',monospace;font-size:${fs}px;font-weight:700;color:var(--cyan);flex-shrink:0;">${nombre.charAt(0)}</div>`;
@@ -5923,8 +6114,8 @@
       const prev = S.citas.length;
       S.citas = rows.map(c => ({
         id: c.id,
-        name: (c.nombre || 'CLIENTE').toUpperCase(),
-        time: parsearHora(c.hora),   // FIX BUG 1
+        name: (c.nombre || 'CLIENTE'),
+        time: parsearHora(c.hora),
         servicio: (c.servicio || 'CORTE').toUpperCase(),
         barbero: (c.barbero || 'CUALQUIERA').toUpperCase(),
         estado: c.estado || 'Confirmada'
@@ -6175,15 +6366,15 @@
           const remaining = Math.max(0, citas.length - currentTurn + 1);
           const color = BC[idx % BC.length]; const bid = safeId(name);
           cardsHtml += `<div class="tv-card bc-${idx % 5}${remaining === 0 ? ' libre' : ''}" style="--bc:${color};--bc-glow:${hexGlow(color)};">
-        <div class="tv-card-head"><div class="tv-barber-name" style="display:flex;align-items:center;gap:7px;">${barbAvatar(name, 26)}✂ ${name}</div><div class="tv-status-badge ${remaining > 0 ? 'activo' : 'libre'}">${remaining > 0 ? remaining + ' en espera' : 'LIBRE'}</div></div>
+        <div class="tv-card-head"><div class="tv-barber-name" style="display:flex;align-items:center;gap:7px;">${barbAvatar(name, 26)}✂ ${cap(name)}</div><div class="tv-status-badge ${remaining > 0 ? 'activo' : 'libre'}">${remaining > 0 ? remaining + ' en espera' : 'LIBRE'}</div></div>
         <div class="tv-card-body">
           <div class="tv-num" id="hn-${bid}">${cur ? String(currentTurn).padStart(2, '0') : '—'}</div>
-          <div class="tv-name">${cur ? cur.name : 'SIN CLIENTE'}</div>
-          ${cur ? `<div class="tv-service">${cur.servicio}</div>` : ''}
+          <div class="tv-name">${cur ? cap(cur.name) : 'SIN CLIENTE'}</div>
+          ${cur ? `<div class="tv-service">${cap(cur.servicio)}</div>` : ''}
         </div>
         <div class="tv-card-footer">
           <div><div class="tv-next-label">PRÓXIMO</div><div class="tv-next-num">${nxt ? String(currentTurn + 1).padStart(2, '0') : '—'}</div></div>
-          <div class="tv-next-name">${nxt ? nxt.name : 'Sin reserva'}</div>
+          <div class="tv-next-name">${nxt ? cap(nxt.name) : 'Sin reserva'}</div>
           <div class="tv-next-time">${nxt ? fmt12(nxt.time) : '—:—'}</div>
         </div>
       </div>`;
@@ -6266,9 +6457,9 @@
           <div class="hero-ghost">${cur ? String(currentTurn).padStart(2, '0') : '—'}</div>
           <div class="hero-num" id="hn-${bid}">${cur ? String(currentTurn).padStart(2, '0') : '—'}</div>
         </div>
-        <div class="silla-name${cur ? ' typing' : ''}" id="sn-${bid}">${cur ? cur.name : 'SIN CLIENTES'}</div>
-        <div class="silla-service">${cur ? cur.servicio : '—'}</div>
-        <div class="silla-barber"><div class="barber-dot"></div><span>✂ ${barber}</span></div>
+        <div class="silla-name${cur ? ' typing' : ''}" id="sn-${bid}">${cur ? cap(cur.name) : 'SIN CLIENTES'}</div>
+        <div class="silla-service">${cur ? cap(cur.servicio) : '—'}</div>
+        <div class="silla-barber"><div class="barber-dot"></div><span>✂ ${cap(barber)}</span></div>
         ${cur ? `<div class="silla-timer" id="timer-${bid}"><div class="timer-dot"></div><span id="timer-txt-${bid}">0m</span></div>` : ''}
         <div class="swipe-flash" id="fl-${bid}"></div>
       </div>
@@ -6315,17 +6506,28 @@
             </div>`;
           })() : ''}
           ${zoneA.length ? `<div class="zone-a">
-            <div class="q-col-header"><span>#</span><span>CLIENTE</span><span style="text-align:center">BARBERO</span><span style="text-align:center">HORA</span><span>ESTADO</span></div>
+            <div class="q-col-header"><span>#</span><span>CLIENTE</span><span style="text-align:center">SERVICIO</span><span style="text-align:center">PROF.</span><span style="text-align:center">HORA</span><span>ESTADO</span></div>
             ${zoneA.map((c, idx) => {
         const num = c.originalIdx + 1; const eta = c.pos > 0 ? calcLiveETA(c.pos, barber) : null; const { rc, tc, tl } = statusClasses(c.status);
         // FEATURE: botón transferir en cada fila pendiente
         const tBtn = c.id && c.status !== 'done' ? `<button class="btn-transfer" onclick="openTransferirCita('${c.id}','${c.name.replace(/'/g, "\\'")}','${c.time}','${barber.replace(/'/g, "\\'")}',${num})">↔</button>` : '';
-        return `<div class="q-item ${rc}" style="animation-delay:${idx * 0.05}s"><div class="q-num">${String(num).padStart(2, '0')}</div><div><div class="q-name">${c.name}${eta ? `<span class="wait-eta">⏱${eta}</span>` : ''}</div><div class="q-svc">${c.servicio}</div></div><div class="q-barber">${tBtn}</div><div class="q-time">${fmt12(c.time)}</div><div><span class="status-tag ${tc}"><span class="tag-dot"></span>${tl}</span></div></div>`;
+        return `<div class="q-item ${rc}" style="animation-delay:${idx * 0.05}s">
+                  <div class="q-num">${String(num).padStart(2, '0')}</div>
+                  <div class="q-name-wrap" style="min-width:0; overflow:hidden;">
+                    <div class="q-name">${cap(c.name)}${eta ? `<span class="wait-eta">⏱${eta}</span>` : ''}</div>
+                  </div>
+                  <div class="q-svc-wrap">
+                    <div class="q-svc">${cap(c.servicio)}</div>
+                  </div>
+                  <div class="q-barber">${tBtn}</div>
+                  <div class="q-time">${fmt12(c.time)}</div>
+                  <div><span class="status-tag ${tc}"><span class="tag-dot"></span>${tl}</span></div>
+                </div>`;
       }).join('')}
           </div>` : ''}
           ${zoneB.length ? `<div class="zone-b-header"><span>EN ESPERA</span><span class="zone-b-count">${zoneB.length}</span></div><div class="zone-b">${zoneB.map((c, idx) => {
         const num = c.originalIdx + 1; const eta = c.pos > 0 ? calcLiveETA(c.pos, barber) : null;
-        return `<div class="q-mini ${c.status === 'alert' ? 'ms-alert' : 'ms-wait'}" style="animation-delay:${idx * 0.025}s">${conflictIdx.has(c.originalIdx) ? '<div style="position:absolute;top:2px;right:3px;width:4px;height:4px;border-radius:50%;background:var(--magenta);box-shadow:0 0 4px var(--magenta);"></div>' : ''}<div class="q-mini-num">${String(num).padStart(2, '0')}</div><div class="q-mini-name">${c.name}</div><div class="q-mini-meta"><div class="q-mini-time">${eta || fmt12(c.time)}</div><div class="q-mini-barb">${barber}</div></div></div>`;
+        return `<div class="q-mini ${c.status === 'alert' ? 'ms-alert' : 'ms-wait'}" style="animation-delay:${idx * 0.025}s">${conflictIdx.has(c.originalIdx) ? '<div style="position:absolute;top:2px;right:3px;width:4px;height:4px;border-radius:50%;background:var(--magenta);box-shadow:0 0 4px var(--magenta);"></div>' : ''}<div class="q-mini-num">${String(num).padStart(2, '0')}</div><div class="q-mini-name">${cap(c.name)}</div><div class="q-mini-meta"><div class="q-mini-time">${eta || fmt12(c.time)}</div><div class="q-mini-barb">${cap(barber)}</div></div></div>`;
       }).join('')}</div>` : ''}
         </div>
       </div>`}
@@ -6343,23 +6545,23 @@
       const pending = citas.slice(currentTurn).filter(c => c.estado !== 'Completada' && c.estado !== 'No-Show' && c.estado !== 'Cancelada'); const remaining = Math.max(0, pending.length + (cur && cur.estado === 'Confirmada' ? 1 : 0));
       if (remaining === 0) col.classList.add('libre'); else col.classList.remove('libre');
       col.innerHTML =
-        '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 12px;border-bottom:1px solid rgba(0,245,255,0.08);background:rgba(2,4,8,0.7);flex-shrink:0;position:relative;">'
-        + '<div style="font-family:\'Orbitron\',monospace;font-size:0.68rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--bc);text-shadow:0 0 10px var(--bc);">✂ ' + barber + '</div>'
-        + '<span style="font-family:\'Share Tech Mono\',monospace;font-size:0.42rem;letter-spacing:0.1em;text-transform:uppercase;padding:2px 7px;border:1px solid var(--bc);color:var(--bc);opacity:0.6;">' + (remaining > 0 ? remaining + ' EN ESPERA' : 'LIBRE') + '</span>'
-        + '<div style="position:absolute;bottom:-1px;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--bc),transparent);opacity:0.4;"></div></div>'
+        '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.04);background:rgba(255,255,255,0.01);flex-shrink:0;position:relative;">'
+        + '<div style="font-family:\'Outfit\',sans-serif;font-size:0.75rem;font-weight:800;letter-spacing:0.02em;color:var(--bc);text-shadow:0 0 15px var(--bc-glow);">✂ ' + cap(barber) + '</div>'
+        + '<span style="font-family:\'Inter\',sans-serif;font-size:0.46rem;font-weight:600;letter-spacing:0.04em;padding:3px 8px;border-radius:100px;border:1px solid var(--bc);color:var(--bc);opacity:0.8;">' + (remaining > 0 ? remaining + ' EN ESPERA' : 'LIBRE') + '</span>'
+        + '<div style="position:absolute;bottom:-1px;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--bc),transparent);opacity:0.2;"></div></div>'
         + '<div class="silla-zone"><div class="now-label">EN SILLA</div>'
         + '<div class="hero-num-wrap"><div class="hero-num ' + nsz + '" id="hn-' + bid + '">' + (cur ? String(currentTurn).padStart(2, '0') : '—') + '</div></div>'
-        + '<div class="silla-name ' + nsz + '">' + (cur ? cur.name : 'SIN CLIENTE') + '</div>'
-        + (cur ? '<div class="silla-service">' + cur.servicio + '</div>' : '')
+        + '<div class="silla-name ' + nsz + '">' + (cur ? cap(cur.name) : 'SIN CLIENTE') + '</div>'
+        + (cur ? '<div class="silla-service">' + cap(cur.servicio) + '</div>' : '')
         + '<div class="swipe-flash" id="fl-' + bid + '"></div></div>'
         + '<div class="multi-next"><div class="mn-n">' + (nxt ? String(currentTurn + 1).padStart(2, '0') : '—') + '</div>'
-        + '<div class="mn-wrap"><div class="mn-nom">' + (nxt ? nxt.name : 'Sin reserva') + '</div><div class="mn-svc">' + (nxt ? nxt.servicio : '') + '</div></div>'
+        + '<div class="mn-wrap"><div class="mn-nom">' + (nxt ? cap(nxt.name) : 'Sin reserva') + '</div><div class="mn-svc">' + (nxt ? cap(nxt.servicio) : '') + '</div></div>'
         + '<div class="mn-time">' + (nxt ? fmt12(nxt.time) : '—:—') + '</div></div>'
         + '<div class="multi-queue">'
         + (pending.length ? pending.map((c, i) => {
           const pos = i + 2; const eta = calcLiveETA(pos - 1, barber); const cls = i === 0 ? 'mn' : i === 1 ? 'ma' : 'mw'; const num = currentTurn + i + 1;
           return '<div class="mq-row ' + cls + '" style="animation-delay:' + i * 0.04 + 's"><div class="mq-n">' + String(num).padStart(2, '0') + '</div>'
-            + '<div class="mq-info"><div class="mq-name">' + c.name + '</div><div class="mq-svc">' + c.servicio + '</div></div>'
+            + '<div class="mq-info"><div class="mq-name">' + cap(c.name) + '</div><div class="mq-svc">' + cap(c.servicio) + '</div></div>'
             + '<div class="mq-r"><div class="mq-time">' + fmt12(c.time) + '</div>' + (eta ? '<div class="mq-eta">⏱' + eta + '</div>' : '')
             // FEATURE: transferir en multi
             + '<button class="btn-transfer" style="font-size:0.36rem;padding:2px 6px;" onclick="openTransferirCita(\'' + c.id + '\',\'' + c.name.replace(/'/g, '\\\'') + '\'  ,\'' + c.time + '\',\'' + barber.replace(/'/g, '\\\'') + '\'  ,' + num + ')">↔</button>'
@@ -6385,10 +6587,8 @@
       const cur = allC[ctFinal - 1]; const nxt = allC[ctFinal];
       const remaining = Math.max(0, allC.length - ctFinal + 1);
       const doneCitas = allC.slice(0, ctFinal - 1).slice(-3);
-      const toggleHtml = '';
       const queueItems = [];
       // Solo activo + pendientes — los completados ya están arriba en "LISTOS"
-      // FIX: filtrar por estado Confirmada/Pendiente para no mostrar canceladas que quedaron en allC
       allC.slice(ctFinal - 1).filter(c => c.estado !== 'Cancelada' && c.estado !== 'Completada' && c.estado !== 'No-Show').forEach((c, i) => { queueItems.push({ c, i: ctFinal - 1 + i, status: i === 0 ? 'active' : i === 1 ? 'next' : 'wait' }); });
 
       c.innerHTML = `<div class="my-wrap">
@@ -6411,8 +6611,8 @@
             </div>
           </div>
           <div class="hero-num-wrap"><div class="hero-ghost">${String(ctFinal).padStart(2, '00')}</div><div class="my-hero-num" id="my-hn">${String(ctFinal).padStart(2, '00')}</div></div>
-          <div class="my-client-name typing" id="my-cn">${cur.name}</div>
-          <div class="my-service">${cur.servicio}</div>
+          <div class="my-client-name typing" id="my-cn">${cap(cur.name)}</div>
+          <div class="my-service">${cap(cur.servicio)}</div>
           <div class="silla-timer" id="timer-my"><div class="timer-dot"></div><span id="timer-txt-my">0m</span></div>
           <div class="swipe-flash" id="fl-${bid}"></div>
         </div>`: isActive ? `<div class="libre-banner">
@@ -6429,7 +6629,7 @@
         <div class="my-bottom">
           ${nxt ? `<div class="next-strip" style="border-color:rgba(0,245,255,0.15);">
             <div class="next-n" style="color:rgba(0,245,255,0.4);">${String(ctFinal + 1).padStart(2, '00')}</div>
-            <div class="next-info"><div class="next-nom">${nxt.name}</div><div class="next-barber">⏱ ${fmt12(nxt.time)}</div></div>
+            <div class="next-info"><div class="next-nom">${cap(nxt.name)}</div><div class="next-barber">⏱ ${fmt12(nxt.time)}</div></div>
             <div class="next-time-badge">${calcLiveETA(1, barber) || fmt12(nxt.time)}</div>
           </div>`: ''}
           <button class="btn-my-sig${!isActive ? ' loading' : ''}" id="btn-my" onclick="siguienteTurno('${barber.replace(/'/g, "\\'")}','btn-my')" ${!isActive ? 'disabled' : ''}>
@@ -6450,7 +6650,7 @@
           </div>
           <div class="done-strip" style="flex-shrink:0;">
             <div class="done-strip-label">✓ LISTOS</div>
-            <div class="done-pills">${doneCitas.length ? doneCitas.map((c, i) => `<div class="done-pill" style="animation-delay:${i * 0.06}s"><div class="done-pill-num">${String(allC.indexOf(c) + 1).padStart(2, '0')}</div><div class="done-pill-name">${c.name}</div><div class="done-pill-check">✓</div></div>`).join('') : '<span class="done-strip-empty">— ninguno aún —</span>'}</div>
+            <div class="done-pills">${doneCitas.length ? doneCitas.map((c, i) => `<div class="done-pill" style="animation-delay:${i * 0.06}s"><div class="done-pill-num">${String(allC.indexOf(c) + 1).padStart(2, '0')}</div><div class="done-pill-name">${cap(c.name)}</div><div class="done-pill-check">✓</div></div>`).join('') : '<span class="done-strip-empty">— ninguno aún —</span>'}</div>
             ${doneCitas.length ? `<button type="button" class="btn-recuperar" onclick="openRecuperarModal('${barber.replace(/'/g, "\\'")}')">↺</button>` : ''}
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 16px;font-family:'Inter',monospace;font-size:0.54rem;letter-spacing:0.2em;color:rgba(0,245,255,0.72);text-transform:uppercase;border-top:1px solid rgba(0,245,255,0.1);border-bottom:1px solid rgba(0,245,255,0.22);font-weight:700;flex-shrink:0;">
@@ -6474,10 +6674,20 @@
             const pos = i - (ctFinal - 1); const eta = pos > 0 ? calcLiveETA(pos, barber) : null; const urgent = eta && parseInt(eta) <= 5;
             const rBtn = c.id ? `<button onclick="openReagendar('${c.id}','${c.name.replace(/'/g, "\\'")}','${c.time}','${barber.replace(/'/g, "\\'")}')" style="padding:5px 8px;border:1px solid rgba(176,110,255,0.3);background:rgba(176,110,255,0.05);color:rgba(176,110,255,0.7);font-family:'Inter',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;flex-shrink:0;" onmouseover="this.style.background='rgba(176,110,255,0.15)';this.style.color='rgba(176,110,255,1)';" onmouseout="this.style.background='rgba(176,110,255,0.05)';this.style.color='rgba(176,110,255,0.7)';" title="Reagendar">↻</button>` : '';
             const tBtn = c.id ? `<button onclick="openTransferirCita('${c.id}','${c.name.replace(/'/g, "\\'")}','${c.time}','${barber.replace(/'/g, "\\'")}',${i + 1})" style="padding:5px 8px;border:1px solid rgba(176,110,255,0.3);background:rgba(176,110,255,0.05);color:rgba(176,110,255,0.7);font-family:'Inter',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;flex-shrink:0;" onmouseover="this.style.background='rgba(176,110,255,0.15)';this.style.color='rgba(176,110,255,1)';" onmouseout="this.style.background='rgba(176,110,255,0.05)';this.style.color='rgba(176,110,255,0.7)';" title="Transferir">↔</button>` : '';
-            return `<div class="my-q-item ${cls}" style="animation-delay:${rowIdx * 0.04}s;grid-template-columns:44px minmax(0,1fr) ${c.id ? 'auto auto ' : ''} auto;">
+            return `<div class="my-q-item ${cls}" style="animation-delay:${rowIdx * 0.04}s;">
                   <div class="mqi-num">${String(i + 1).padStart(2, '00')}</div>
-                  <div style="min-width:0;overflow:hidden;"><div class="mqi-name">${c.name}</div><div class="mqi-svc">${c.servicio}</div>${eta ? `<div class="eta-live${urgent ? ' urgent' : ''}">⏱ ${eta}</div>` : ''}</div>
-                  ${rBtn}${tBtn}
+                  <div class="mqi-name-wrap">
+                    <div style="display:flex;align-items:center;gap:7px;flex-wrap:nowrap;min-width:0;">
+                      <div class="mqi-name">${cap(c.name)}</div>
+                      ${eta ? `<div class="eta-live${urgent ? ' urgent' : ''}">⏱ ${eta}</div>` : ''}
+                    </div>
+                  </div>
+                  <div class="mqi-svc-wrap">
+                    <div class="mqi-svc">${cap(c.servicio)}</div>
+                  </div>
+                  <div class="mqi-actions" style="display:flex; gap:6px; flex-shrink:0; align-items:center;">
+                    ${rBtn}${tBtn}
+                  </div>
                   <div class="mqi-right"><div class="mqi-time">${fmt12(c.time)}</div>${tag}</div>
                 </div>`;
           }).join('');
@@ -6493,7 +6703,7 @@
             const pos = i - (ctFinal - 1); const eta = calcLiveETA(pos, barber);
             return `<div class="q-mini ms-wait" style="animation-delay:${idx2 * 0.025}s;">
                       <div class="q-mini-num">${String(i + 1).padStart(2, '00')}</div>
-                      <div class="q-mini-name">${c.name}</div>
+                      <div class="q-mini-name">${cap(c.name)}</div>
                       <div class="q-mini-meta">
                         <div class="q-mini-time">${eta || fmt12(c.time)}</div>
                         <button onclick="openTransferirCita('${c.id}','${c.name.replace(/'/g, "\\'")}','${c.time}','${barber.replace(/'/g, "\\'")}',${i + 1})" style="padding:1px 5px;border:1px solid rgba(0,245,255,0.12);background:transparent;color:rgba(0,245,255,0.3);font-family:'Inter',monospace;font-size:0.34rem;cursor:pointer;">↔</button>
@@ -6526,7 +6736,7 @@
         const rows = await sbGet('citas', 'shop_id=eq.' + S.shopId + '&fecha=eq.' + fechaM + '&estado=neq.Cancelada&order=hora.asc');
         S.citasMañana = rows.map(c => ({
           id: c.id,
-          name: (c.nombre || 'CLIENTE').toUpperCase(),
+          name: (c.nombre || 'CLIENTE'),
           time: parsearHora(c.hora),
           servicio: (c.servicio || 'CORTE').toUpperCase(),
           barbero: (c.barbero || 'CUALQUIERA').toUpperCase(),
@@ -6545,67 +6755,93 @@
       const months = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
       const diaLabel = days[manana.getDay()] + ' ' + manana.getDate() + ' ' + months[manana.getMonth()];
       const total = S.citasMañana.length;
-      const byBarber = {};
-      S.citasMañana.forEach(cita => { if (!byBarber[cita.barbero]) byBarber[cita.barbero] = []; byBarber[cita.barbero].push(cita); });
-      const barbOrder = S.barberos.filter(b => b.activo).map(b => b.nombre);
-      const barbList = [...barbOrder.filter(n => byBarber[n]), ...Object.keys(byBarber).filter(n => !barbOrder.includes(n))];
-      let groupsHtml = '';
+
       if (!total) {
-        groupsHtml = '<div class="manana-empty"><div style="font-size:2.5rem;opacity:0.2;margin-bottom:16px;">📅</div><div class="manana-empty-txt">SIN CITAS PARA MAÑANA</div><div class="manana-empty-sub">No hay reservas agendadas aún</div></div>';
-      } else {
-        barbList.forEach((barber, gi) => {
-          const citas = byBarber[barber] || []; if (!citas.length) return;
-          const idx = S.barberos.findIndex(b => b.nombre === barber);
-          const color = BC[idx >= 0 ? idx % BC.length : gi % BC.length];
-          groupsHtml += `<div class="manana-group" style="--bc:${color};--bc-glow:${hexGlow(color)};">
-        <div class="manana-group-header">
-          <div class="manana-barber-name">✂ ${barber}</div>
-          <div class="manana-count">${citas.length} CITA${citas.length > 1 ? 'S' : ''}</div>
-        </div>
-        <div class="manana-group-body">
-          ${citas.map((cita, i) => `<div class="manana-item" style="animation-delay:${i * 0.05}s;">
-            <div class="manana-num">${String(i + 1).padStart(2, '0')}</div>
-            <div class="manana-info"><div class="manana-name">${cita.name}</div><div class="manana-svc">${cita.servicio}</div></div>
-            <div class="manana-time">${fmt12(cita.time)}</div>
-            <div class="manana-estado">${cita.estado === 'Confirmada' ? '✓ CONF.' : cita.estado.toUpperCase()}</div>
-          </div>`).join('')}
-        </div>
-      </div>`;
-        });
+        c.innerHTML = `<div class="manana-wrap view-transition">
+          <div class="manana-header">
+            <div>
+              <div class="manana-title">📅 CITAS — MAÑANA</div>
+              <div class="manana-subtitle">${diaLabel}</div>
+            </div>
+          </div>
+          <div class="manana-empty">
+            <div style="font-size:2.5rem;opacity:0.2;margin-bottom:16px;">📅</div>
+            <div class="manana-empty-txt">SIN CITAS PARA MAÑANA</div>
+            <div class="manana-empty-sub">No hay reservas agendadas aún</div>
+          </div>
+        </div>`;
+        return;
       }
-      const nConf = S.citasMañana.filter(ct => ct.estado === 'Confirmada').length;
-      const nBarb = barbList.filter(n => byBarber[n]?.length).length;
-      c.innerHTML = `<div class="manana-wrap">
-    <div class="manana-header">
-      <div>
-        <div class="manana-title">📅 CITAS — MAÑANA</div>
-        <div class="manana-subtitle">${diaLabel} · ${total} RESERVA${total !== 1 ? 'S' : ''} AGENDADA${total !== 1 ? 'S' : ''}</div>
-      </div>
-      <div class="manana-stats">
-        <div class="manana-stat"><span class="manana-stat-val">${total}</span><span class="manana-stat-lbl">TOTAL</span></div>
-        <div class="manana-stat"><span class="manana-stat-val" style="color:var(--green)">${nConf}</span><span class="manana-stat-lbl">CONF.</span></div>
-        <div class="manana-stat"><span class="manana-stat-val" style="color:var(--purple)">${nBarb}</span><span class="manana-stat-lbl">BARBEROS</span></div>
-      </div>
-    </div>
-    <div class="manana-body">${groupsHtml}</div>
-    <div class="manana-footer">Al comenzar el día, estas citas aparecerán automáticamente en Barbería · Mi Turno · TV</div>
-  </div>`;
+
+      // Ordenar por hora para el timeline
+      const sorted = [...S.citasMañana].sort((a,b) => a.time.localeCompare(b.time));
+
+      const timelineHtml = sorted.map((cita, i) => {
+        const bIdx = S.barberos.findIndex(b => b.nombre === cita.barbero);
+        const color = BC[bIdx >= 0 ? bIdx % BC.length : i % BC.length];
+        return `
+          <div class="timeline-row" style="animation: item-in 0.5s ease forwards; animation-delay: ${i*0.05}s; --bc:${color};">
+            <div class="timeline-time">${fmt12(cita.time)}</div>
+            <div class="timeline-dot"></div>
+            <div class="timeline-card">
+              <div style="flex:1">
+                <div class="manana-name" style="font-size:1.1rem; margin-bottom:2px;">${cap(cita.name)}</div>
+                <div class="manana-svc" style="opacity:0.6">${cap(cita.servicio)}</div>
+              </div>
+              <div class="timeline-barber-tag">✂ ${cap(cita.barbero)}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      c.innerHTML = `
+        <div class="manana-wrap view-transition" style="padding: 40px 60px;">
+          <div class="manana-header" style="margin-bottom: 40px;">
+            <div>
+              <div class="manana-title" style="font-size:1.8rem;">📅 CITAS — MAÑANA</div>
+              <div class="manana-subtitle" style="font-size:0.9rem;">${diaLabel} · ${total} RESERVAS AGENDADAS</div>
+            </div>
+            <div class="manana-stats">
+              <div class="manana-stat"><span class="manana-stat-val">${total}</span><span class="manana-stat-lbl">TOTAL</span></div>
+              <div class="manana-stat"><span class="manana-stat-val" style="color:var(--green)">${sorted.filter(x => x.estado === 'Confirmada').length}</span><span class="manana-stat-lbl">CONF.</span></div>
+            </div>
+          </div>
+          <div class="manana-timeline">
+            ${timelineHtml}
+          </div>
+        </div>
+      `;
     }
 
     function setMode(m, barber) {
-      MODE = m; if (m === 'my' && barber) MY_BARBER = barber;
-      ['tv', 'shop', 'my', 'manana'].forEach(id => { const btn = document.getElementById('mbtn-' + id); if (btn) btn.classList.remove('active', 'mode-barber-active', 'mode-manana-active'); });
-      const modeClass = { tv: 'active', shop: 'active', my: 'mode-barber-active', manana: 'mode-manana-active' };
-      const ab = document.getElementById('mbtn-' + (m === 'my' ? 'my' : m)); if (ab) ab.classList.add(modeClass[m] || 'active');
-      document.getElementById('brand-sub').textContent = { tv: 'Vista Global · TV', shop: 'Vista Barbería', my: MY_BARBER ? '✂ ' + MY_BARBER : 'Vista Personal', manana: 'Citas para Mañana' }[m] || 'Sistema de Turnos · AuraOS';
-      
-      // Control de visibilidad del botón Walk-In
-      const wfab = document.getElementById('walkin-fab');
-      if (wfab) wfab.style.display = (m === 'tv' || m === 'manana') ? 'none' : 'flex';
+      const content = document.getElementById('content');
+      // Aplicar blur de salida
+      content.style.transition = 'filter 0.3s ease, opacity 0.3s ease';
+      content.style.filter = 'blur(15px)';
+      content.style.opacity = '0';
 
-      if (m === 'manana') loadCitasMañana().catch(() => { }).then(() => render());
-      _lastRenderHtml = '';
-      document.getElementById('content').innerHTML = ''; render();
+      setTimeout(() => {
+        MODE = m; if (m === 'my' && barber) MY_BARBER = barber;
+        ['tv', 'shop', 'my', 'manana'].forEach(id => { const btn = document.getElementById('mbtn-' + id); if (btn) btn.classList.remove('active', 'mode-barber-active', 'mode-manana-active'); });
+        const modeClass = { tv: 'active', shop: 'active', my: 'mode-barber-active', manana: 'mode-manana-active' };
+        const ab = document.getElementById('mbtn-' + (m === 'my' ? 'my' : m)); if (ab) ab.classList.add(modeClass[m] || 'active');
+        document.getElementById('brand-sub').textContent = { tv: 'Vista Global · TV', shop: 'Vista Barbería', my: MY_BARBER ? '✂ ' + MY_BARBER : 'Vista Personal', manana: 'Citas para Mañana' }[m] || 'Sistema de Turnos · AuraOS';
+        
+        const wfab = document.getElementById('walkin-fab');
+        if (wfab) wfab.style.display = (m === 'tv' || m === 'manana') ? 'none' : 'flex';
+
+        if (m === 'manana') loadCitasMañana().catch(() => { }).then(() => render());
+        _lastRenderHtml = '';
+        content.innerHTML = ''; 
+        render();
+
+        // Aplicar animación de entrada
+        content.classList.remove('view-transition');
+        void content.offsetWidth; // Trigger reflow
+        content.classList.add('view-transition');
+        content.style.filter = '';
+        content.style.opacity = '';
+      }, 300);
     }
 
     function openBarberPicker() { renderBarberPicker(); document.getElementById('barber-picker').classList.toggle('open'); }
@@ -7224,7 +7460,7 @@
 
     function renderBarberosBar() {
       const bar = document.getElementById('barberos-bar'); bar.innerHTML = '';
-      S.barberos.forEach(b => { const s = document.createElement('div'); s.className = 'barb-slot' + (b.activo ? ' active' : ''); s.innerHTML = '<div class="barb-slot-dot"></div>' + b.nombre; bar.appendChild(s); });
+      S.barberos.forEach(b => { const s = document.createElement('div'); s.className = 'barb-slot' + (b.activo ? ' active' : ''); s.innerHTML = '<div class="barb-slot-dot"></div>' + cap(b.nombre); bar.appendChild(s); });
     }
     function setDb(t, l) { document.getElementById('db-pill').className = 'hpill hpill-db ' + t; document.getElementById('db-lbl').textContent = l; }
     function setRt(t, l) { document.getElementById('rt-pill').className = 'hpill hpill-rt ' + (t === 'ok' ? '' : t); document.getElementById('rt-lbl').textContent = l; }
