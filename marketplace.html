@@ -86,10 +86,64 @@
             transform: rotate(-45deg); box-shadow: 0 0 20px var(--accent);
         }
         .marker-pin.elite { background: var(--elite); box-shadow: 0 0 25px var(--elite); }
+        .marker-pin.elite::after {
+            content: ''; position: absolute; inset: -5px; border-radius: 50%;
+            border: 2px solid var(--elite); animation: pulse-ring 2s infinite; pointer-events: none;
+        }
+        @keyframes pulse-ring { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
+
+        /* Apple Style Sheet */
+        .detail-sheet {
+            position: fixed; bottom: -100%; left: 50%; transform: translateX(-50%);
+            width: 100%; max-width: 500px; height: 75vh;
+            background: rgba(10,10,10,0.85); backdrop-filter: blur(50px); -webkit-backdrop-filter: blur(50px);
+            border: 1px solid var(--border); border-radius: 40px 40px 0 0;
+            z-index: 2000; transition: bottom 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+            padding: 40px; box-shadow: 0 -20px 80px rgba(0,0,0,0.9);
+        }
+        .detail-sheet.active { bottom: 0; }
+        .sheet-handle { width: 50px; height: 5px; background: rgba(255,255,255,0.1); border-radius: 10px; margin: -20px auto 30px; }
+        .sheet-close { position: absolute; top: 25px; right: 25px; background: rgba(255,255,255,0.05); border: none; color: #fff; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+        .hours-list { margin-top: 30px; }
+        .hour-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; }
+        .hour-row.today { color: var(--accent); font-weight: 700; }
+
+        /* Detail Sheet Improvements */
+        .sheet-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.5; margin: 30px 0 15px; font-weight: 800; }
+        
+        .gallery-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; height: 220px; border-radius: 25px; overflow: hidden; margin-bottom: 25px; }
+        .gallery-main { width: 100%; height: 100%; object-fit: cover; }
+        .gallery-side { display: grid; grid-template-rows: 1fr 1fr; gap: 10px; }
+        .gallery-side img { width: 100%; height: 100%; object-fit: cover; }
+
+        .staff-list { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 10px; }
+        .staff-list::-webkit-scrollbar { display: none; }
+        .staff-item { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 70px; }
+        .avatar { width: 60px; height: 60px; border-radius: 50%; background: var(--surface); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; color: var(--accent); }
+        .staff-item span { font-size: 0.75rem; opacity: 0.8; }
+
+        .action-btns { position: absolute; top: 25px; right: 80px; display: flex; gap: 10px; }
+        .action-btn { background: rgba(255,255,255,0.05); border: none; color: #fff; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+        .action-btn:hover { background: rgba(212,175,55,0.2); color: var(--accent); }
+
+        /* Improved Header (Booksy Style) */
+        nav {
+            height: 90px; padding: 0 40px; background: #000; border-bottom: 1px solid var(--border);
+        }
+        .search-group { display: flex; background: var(--surface); border-radius: 15px; border: 1px solid var(--border); overflow: hidden; width: 60%; }
+        .search-input-wrap { display: flex; align-items: center; padding: 0 15px; flex: 1; border-right: 1px solid var(--border); }
+        .search-input-wrap:last-child { border-right: none; }
+        .search-input-wrap input { background: transparent; border: none; color: #fff; padding: 12px; outline: none; width: 100%; font-size: 0.85rem; }
+
+        /* Overlay */
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 1999; display: none; }
+        .overlay.active { display: block; }
 
         @media (max-width: 900px) {
             main { grid-template-columns: 1fr; }
             #map { height: 350px; order: -1; }
+            .search-group { width: 100%; display: none; }
         }
     </style>
 </head>
@@ -98,7 +152,24 @@
 
     <nav>
         <div class="logo font-outfit" style="font-weight: 900; color: var(--accent); font-size: 1.4rem;">AuraOS <span style="font-weight: 300; opacity: 0.5;">Marketplace</span></div>
-        <div style="font-size: 0.75rem; color: var(--accent); border: 1px solid var(--accent); padding: 5px 15px; border-radius: 50px; cursor: pointer;">Publicar mi Barbería</div>
+        
+        <div class="search-group">
+            <div class="search-input-wrap">
+                <i data-lucide="search" size="16" color="#666"></i>
+                <input type="text" id="searchInput" placeholder="¿Qué buscas? (Corte, Barba...)">
+            </div>
+            <div class="search-input-wrap">
+                <i data-lucide="map-pin" size="16" color="#666"></i>
+                <input type="text" placeholder="¿Dónde? (Santo Domingo...)">
+            </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <span style="font-size: 0.8rem; font-weight: 600; cursor: pointer;">Acceso Negocios</span>
+            <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border); display: flex; align-items:center; justify-content:center;">
+                <i data-lucide="user" size="18"></i>
+            </div>
+        </div>
     </nav>
 
     <main>
@@ -107,10 +178,27 @@
                 <i data-lucide="search" size="18" color="gray"></i>
                 <input type="text" id="searchInput" placeholder="Busca por nombre, ciudad o servicios...">
             </div>
+            <div class="filter-chips">
+                <div class="chip active" onclick="filterShops('all', this)">Todas</div>
+                <div class="chip" onclick="filterShops('elite', this)">💎 Premium</div>
+                <div class="chip" onclick="filterShops('near', this)">📍 Cerca de mí</div>
+            </div>
             <div id="shopsContainer"></div>
         </section>
         <section id="map"></section>
     </main>
+
+    <div class="overlay" id="overlay" onclick="closeSheet()"></div>
+
+    <div class="detail-sheet" id="detailSheet">
+        <div class="sheet-handle"></div>
+        <div class="action-btns">
+            <button class="action-btn"><i data-lucide="share-2" size="16"></i></button>
+            <button class="action-btn"><i data-lucide="heart" size="16"></i></button>
+        </div>
+        <button class="sheet-close" onclick="closeSheet()"><i data-lucide="x" size="18"></i></button>
+        <div id="sheetContent" style="overflow-y:auto; height:100%; padding-bottom:100px;"></div>
+    </div>
 
     <script>
         const SB_URL = 'https://mmokunpuslcfphalrwot.supabase.co';
@@ -145,25 +233,94 @@
 
         function renderShops(shops) {
             const container = document.getElementById('shopsContainer');
-            container.innerHTML = shops.map(s => `
-                <div class="card ${s.plan === 'elite' ? 'elite' : ''}" onclick="focusShop(${s.lat}, ${s.lng})">
-                    <img src="${s.foto_url || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400'}" class="card-img">
-                    <div class="card-body">
-                        <div class="badge-row">
-                            <span class="badge badge-live">● EN VIVO</span>
-                            ${s.plan === 'elite' ? '<span class="badge badge-deal">OFERTA ACTIVA</span>' : ''}
-                        </div>
-                        <h3 class="card-title font-outfit">${s.nombre}</h3>
-                        <p class="card-meta"><i data-lucide="map-pin" size="12"></i> ${s.direccion || 'Santo Domingo'}</p>
-                        
-                        <div class="btn-row">
-                            <button class="btn btn-primary" onclick="event.stopPropagation(); window.open('https://wa.me/${s.whatsapp}')">Agendar</button>
-                            <button class="btn btn-ghost" onclick="event.stopPropagation(); window.open('/sala/${s.slug}')">Monitor</button>
+            container.innerHTML = shops.map(s => {
+                const busyLevel = Math.random() > 0.5 ? 'Muy concurrido' : 'Poco concurrido';
+                const busyColor = busyLevel === 'Muy concurrido' ? '#ff3232' : '#00ff64';
+                
+                return `
+                    <div class="card ${s.plan === 'elite' ? 'elite' : ''}" onclick="openShopDetail('${s.id}')">
+                        <img src="${s.foto_url || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400'}" class="card-img">
+                        <div class="card-body">
+                            <div class="badge-row">
+                                <span class="badge" style="background: ${busyColor}1a; color: ${busyColor}; border: 1px solid ${busyColor}33;">
+                                    ● ${busyLevel}
+                                </span>
+                                ${s.plan === 'elite' ? '<span class="badge badge-deal">PREMIUM</span>' : ''}
+                            </div>
+                            <h3 class="card-title font-outfit">${s.nombre}</h3>
+                            <p class="card-meta"><i data-lucide="map-pin" size="12"></i> ${s.direccion || 'Distrito Nacional'}</p>
+                            
+                            <div class="btn-row">
+                                <button class="btn btn-primary" onclick="event.stopPropagation(); window.open('https://wa.me/${s.whatsapp}')">Agendar</button>
+                                <button class="btn btn-ghost" title="Cómo llegar" onclick="event.stopPropagation(); window.open('https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}')">
+                                    <i data-lucide="navigation" size="14"></i>
+                                </button>
+                                <button class="btn btn-ghost" onclick="event.stopPropagation(); window.open('/sala/${s.slug}')">Monitor</button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
             lucide.createIcons();
+        }
+
+        async function openShopDetail(id) {
+            const shop = allShops.find(s => s.id === id);
+            if(!shop) return;
+
+            focusShop(shop.lat, shop.lng);
+            
+            // Simular carga de staff y galería
+            const content = document.getElementById('sheetContent');
+            content.innerHTML = `
+                <div class="gallery-grid">
+                    <img src="${shop.foto_url}" class="gallery-main">
+                    <div class="gallery-side">
+                        <img src="https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=200">
+                        <img src="https://images.unsplash.com/photo-1621605815841-28d944683b83?w=200">
+                    </div>
+                </div>
+
+                <h2 class="font-outfit" style="font-size:2.2rem; letter-spacing:-0.04em;">${shop.nombre}</h2>
+                <p style="color:var(--text-dim); font-size:0.9rem; margin-top:5px;">${shop.direccion}</p>
+                
+                <h4 class="sheet-label">Sobre nosotros</h4>
+                <p style="font-size:0.9rem; line-height:1.6; opacity:0.7;">
+                    Desde 2015 cuidando la imagen de cada uno de nuestros clientes, ofreciendo servicios de alta calidad con las últimas tendencias en corte y barbería.
+                </p>
+
+                <h4 class="sheet-label">Nuestro Equipo</h4>
+                <div class="staff-list">
+                    <div class="staff-item"><div class="avatar">JS</div><span>Juan S.</span></div>
+                    <div class="staff-item"><div class="avatar">ML</div><span>Marcos L.</span></div>
+                    <div class="staff-item"><div class="avatar">DL</div><span>Dani L.</span></div>
+                    <div class="staff-item"><div class="avatar">RC</div><span>Ricardo C.</span></div>
+                    <div class="staff-item"><div class="avatar">AM</div><span>Andrés M.</span></div>
+                </div>
+
+                <div class="hours-list">
+                    <h4 class="sheet-label">Horario de atención</h4>
+                    <div class="hour-row today"><span>Lunes (Hoy)</span> <span>9:00 AM - 8:00 PM</span></div>
+                    <div class="hour-row"><span>Martes</span> <span>9:00 AM - 8:00 PM</span></div>
+                    <div class="hour-row"><span>Miércoles</span> <span>9:00 AM - 8:00 PM</span></div>
+                    <div class="hour-row"><span>Jueves</span> <span>9:00 AM - 8:00 PM</span></div>
+                </div>
+
+                <div style="position:fixed; bottom:0; left:0; right:0; padding:25px; background:linear-gradient(transparent, #0a0a0a 20%);">
+                    <div style="display:flex; gap:15px; max-width:500px; margin:0 auto;">
+                        <button class="btn btn-primary" style="height:60px; font-size:1.1rem;" onclick="window.open('https://wa.me/${shop.whatsapp}')">Reservar mi turno</button>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('detailSheet').classList.add('active');
+            document.getElementById('overlay').classList.add('active');
+            lucide.createIcons();
+        }
+
+        function closeSheet() {
+            document.getElementById('detailSheet').classList.remove('active');
+            document.getElementById('overlay').classList.remove('active');
         }
 
         function addMapMarkers(shops) {
@@ -185,6 +342,23 @@
             if (!lat || !lng) return;
             map.flyTo([lat, lng], 16, { duration: 1.5 });
         }
+
+        function filterShops(type, el) {
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            
+            let filtered = allShops;
+            if(type === 'elite') filtered = allShops.filter(s => s.plan === 'elite');
+            renderShops(filtered);
+            addMapMarkers(filtered);
+        }
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const q = e.target.value.toLowerCase();
+            const filtered = allShops.filter(s => s.nombre.toLowerCase().includes(q) || (s.direccion && s.direccion.toLowerCase().includes(q)));
+            renderShops(filtered);
+            addMapMarkers(filtered);
+        });
 
         initMap();
         loadShops();
