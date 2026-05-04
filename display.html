@@ -3598,6 +3598,36 @@
       width: 2px;
     }
 
+    /* --- Responsive Tablet Fixes --- */
+    @media (max-width: 1150px) {
+      .my-left { flex: 0 0 320px; }
+      .my-silla-zone { padding: 25px 18px; margin: 15px; }
+    }
+
+    @media (max-width: 950px) {
+      .my-layout { flex-direction: column; }
+      .my-left { 
+        flex: 0 0 auto; 
+        border-right: none; 
+        border-bottom: 1px solid rgba(0, 245, 255, 0.08); 
+        max-height: 45vh; 
+      }
+      .my-right { padding: 10px 14px; }
+      .my-q-item { 
+        grid-template-columns: 40px minmax(110px, 1.2fr) 1fr auto 85px; 
+        gap: 10px; 
+        padding: 10px 15px;
+      }
+      .mqi-name { font-size: 0.95rem; }
+      .mqi-svc { font-size: 0.75rem; }
+    }
+
+    @media (max-height: 600px) and (orientation: landscape) {
+      .my-left { flex: 0 0 280px; }
+      .my-silla-zone { padding: 10px 15px; margin: 5px; min-height: 140px; }
+      .my-hero-num { font-size: 5rem; }
+    }
+
     .my-left::-webkit-scrollbar-thumb {
       background: rgba(0, 245, 255, 0.15);
       border-radius: 2px;
