@@ -577,76 +577,217 @@
     }
 
     /* ── Estilos Timeline Mañana ────────────────────────── */
+    /* ── Estilos Timeline Mañana ────────────────────────── */
+    .manana-wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .manana-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      flex-shrink: 0;
+    }
+    .manana-title {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 900;
+      letter-spacing: 0.1em;
+      color: #fff;
+      text-transform: uppercase;
+    }
+    .manana-subtitle {
+      font-family: 'Inter', sans-serif;
+      color: rgba(255,255,255,0.4);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-top: 5px;
+    }
+    .manana-stats {
+      display: flex;
+      gap: 15px;
+    }
+    .manana-stat {
+      background: rgba(255,255,255,0.04);
+      border: 0.5px solid rgba(255,255,255,0.1);
+      padding: 10px 20px;
+      border-radius: 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 100px;
+    }
+    .manana-stat-val {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--cyan);
+    }
+    .manana-stat-lbl {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.5rem;
+      color: rgba(255,255,255,0.3);
+      letter-spacing: 0.15em;
+    }
+
     .manana-timeline {
       display: flex;
       flex-direction: column;
-      gap: 0;
-      padding: 20px 0;
+      gap: 20px;
+      padding: 40px 10px 100px 0;
       position: relative;
+      flex: 1;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(0, 245, 255, 0.2) transparent;
     }
+    .manana-timeline::-webkit-scrollbar { width: 4px; }
+    .manana-timeline::-webkit-scrollbar-thumb { background: rgba(0, 245, 255, 0.2); border-radius: 10px; }
+
     .manana-timeline::before {
       content: '';
       position: absolute;
-      left: 120px;
+      left: 110px;
       top: 0;
       bottom: 0;
-      width: 1px;
-      background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.1) 10%, rgba(255,255,255,0.1) 90%, transparent);
+      width: 2px;
+      background: linear-gradient(to bottom, transparent, rgba(0,245,255,0.2) 10%, rgba(0,245,255,0.2) 90%, transparent);
+      box-shadow: 0 0 15px rgba(0,245,255,0.1);
+    }
+    .hour-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+      padding-left: 85px;
+      margin-bottom: 5px;
+    }
+    .hour-label {
+      position: absolute;
+      left: 0;
+      width: 75px;
+      text-align: right;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.6);
+      padding-top: 5px;
+    }
+    .hour-items-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 8px;
+      width: 100%;
     }
     .timeline-row {
       display: flex;
-      align-items: flex-start;
-      gap: 30px;
-      padding: 15px 0;
+      align-items: center;
+      gap: 15px;
       position: relative;
     }
-    .timeline-time {
-      width: 90px;
-      text-align: right;
-      font-family: 'Outfit', sans-serif;
-      font-weight: 700;
-      font-size: 1rem;
-      color: var(--cyan);
-      opacity: 0.8;
-      padding-top: 10px;
-    }
     .timeline-dot {
-      width: 12px;
-      height: 12px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
       background: var(--bc);
       box-shadow: 0 0 15px var(--bc);
-      margin-top: 16px;
-      position: relative;
+      position: absolute;
+      left: -24px;
+      top: 50%;
+      transform: translateY(-50%);
       z-index: 2;
+      border: 2px solid var(--bg);
     }
     .timeline-card {
       flex: 1;
-      background: rgba(255,255,255,0.03);
-      border: 0.5px solid rgba(255,255,255,0.12);
-      border-radius: 20px;
-      padding: 16px 24px;
-      backdrop-filter: blur(10px);
+      background: rgba(255,255,255,0.02);
+      border: 0.5px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 10px 16px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       display: flex;
       align-items: center;
-      gap: 20px;
-      transition: transform 0.3s;
-      box-shadow: inset 0 0 10px rgba(255,255,255,0.01);
+      gap: 12px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      min-width: 0;
     }
     .timeline-card:hover {
-      transform: translateX(5px);
-      background: rgba(255,255,255,0.05);
-      border-color: rgba(255,255,255,0.2);
+      transform: translateY(-3px) scale(1.02);
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(255,255,255,0.25);
+    }
+
+    /* Ultra Compact mode for high density */
+    .manana-wrap.is-compact .hour-items-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px; }
+    .manana-wrap.is-compact .timeline-card { padding: 6px 12px; border-radius: 12px; }
+    .manana-wrap.is-compact .manana-avatar { width: 28px; height: 28px; font-size: 0.65rem; }
+    .manana-wrap.is-compact .manana-name { font-size: 0.85rem; }
+    .manana-wrap.is-compact .manana-svc { font-size: 0.5rem; }
+    .manana-wrap.is-compact .timeline-barber-tag { padding: 2px 6px; font-size: 0.48rem; border-radius: 8px; }
+    .manana-wrap.is-compact .hour-label { font-size: 0.75rem; width: 65px; }
+    .manana-wrap.is-compact .hour-group { padding-left: 75px; }
+    .manana-wrap.is-compact .timeline-dot { width: 6px; height: 6px; left: -20px; }
+    .manana-wrap.is-compact .manana-timeline::before { left: 80px; }
+
+    .manana-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--bc);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      color: #000;
+      font-size: 0.85rem;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      flex-shrink: 0;
+    }
+    .manana-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .manana-name {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 1rem;
+      color: #fff;
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .manana-svc {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.58rem;
+      color: rgba(255,255,255,0.35);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 1px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .timeline-barber-tag {
-      font-size: 0.6rem;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.54rem;
       font-weight: 800;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.05em;
       color: var(--bc);
-      background: rgba(255,255,255,0.05);
+      background: rgba(255,255,255,0.04);
       padding: 4px 10px;
       border-radius: 10px;
       border: 0.5px solid var(--bc);
+      text-transform: uppercase;
+      flex-shrink: 0;
     }
 
     @keyframes ticker-move {
@@ -6818,7 +6959,7 @@
         c.innerHTML = `<div class="manana-wrap view-transition">
           <div class="manana-header">
             <div>
-              <div class="manana-title">📅 CITAS — MAÑANA</div>
+              <div class="manana-title" style="font-size:1.8rem;">📅 CITAS — MAÑANA</div>
               <div class="manana-subtitle">${diaLabel}</div>
             </div>
           </div>
@@ -6831,37 +6972,64 @@
         return;
       }
 
-      // Ordenar por hora para el timeline
+      // Ordenar por hora
       const sorted = [...S.citasMañana].sort((a,b) => a.time.localeCompare(b.time));
+      
+      // Agrupar por hora
+      const groups = {};
+      sorted.forEach(cita => {
+        const h = cita.time;
+        if (!groups[h]) groups[h] = [];
+        groups[h].push(cita);
+      });
 
-      const timelineHtml = sorted.map((cita, i) => {
-        const bIdx = S.barberos.findIndex(b => b.nombre === cita.barbero);
-        const color = BC[bIdx >= 0 ? bIdx % BC.length : i % BC.length];
-        return `
-          <div class="timeline-row" style="animation: item-in 0.5s ease forwards; animation-delay: ${i*0.05}s; --bc:${color};">
-            <div class="timeline-time">${fmt12(cita.time)}</div>
-            <div class="timeline-dot"></div>
-            <div class="timeline-card">
-              <div style="flex:1">
-                <div class="manana-name" style="font-size:1.1rem; margin-bottom:2px;">${cap(cita.name)}</div>
-                <div class="manana-svc" style="opacity:0.6">${cap(cita.servicio)}</div>
+      // Si hay más de 12 citas, activamos modo compacto para que quepan más en pantalla
+      const isCompact = total > 12;
+
+      let delayIdx = 0;
+      const timelineHtml = Object.keys(groups).sort().map(h => {
+        const hourHtml = groups[h].map(cita => {
+          const bIdx = S.barberos.findIndex(b => b.nombre === cita.barbero);
+          const color = BC[bIdx >= 0 ? bIdx % BC.length : delayIdx % BC.length];
+          const initials = cita.barbero.substring(0,2).toUpperCase();
+          const rowHtml = `
+            <div class="timeline-row" style="animation: item-in 0.5s ease both; animation-delay: ${delayIdx * 0.05}s; --bc:${color};">
+              <div class="timeline-dot"></div>
+              <div class="timeline-card">
+                <div class="manana-avatar" style="--bc:${color}">${initials}</div>
+                <div class="manana-info">
+                  <div class="manana-name">${cap(cita.name)}</div>
+                  <div class="manana-svc">${cap(cita.servicio)}</div>
+                </div>
+                <div class="timeline-barber-tag">✂ ${cap(cita.barbero)}</div>
               </div>
-              <div class="timeline-barber-tag">✂ ${cap(cita.barbero)}</div>
+            </div>
+          `;
+          delayIdx++;
+          return rowHtml;
+        }).join('');
+
+        return `
+          <div class="hour-group">
+            <div class="hour-label">${fmt12(h)}</div>
+            <div class="hour-items-grid">
+              ${hourHtml}
             </div>
           </div>
         `;
       }).join('');
 
       c.innerHTML = `
-        <div class="manana-wrap view-transition" style="padding: 40px 60px;">
-          <div class="manana-header" style="margin-bottom: 40px;">
+        <div class="manana-wrap view-transition ${isCompact ? 'is-compact' : ''}" style="padding: 30px 20px 0 20px; height: calc(100vh - 80px);">
+          <div class="manana-header" style="margin-bottom: 15px; padding-left: 20px; padding-right: 20px;">
             <div>
               <div class="manana-title" style="font-size:1.8rem;">📅 CITAS — MAÑANA</div>
-              <div class="manana-subtitle" style="font-size:0.9rem;">${diaLabel} · ${total} RESERVAS AGENDADAS</div>
+              <div class="manana-subtitle">${diaLabel}</div>
             </div>
             <div class="manana-stats">
               <div class="manana-stat"><span class="manana-stat-val">${total}</span><span class="manana-stat-lbl">TOTAL</span></div>
               <div class="manana-stat"><span class="manana-stat-val" style="color:var(--green)">${sorted.filter(x => x.estado === 'Confirmada').length}</span><span class="manana-stat-lbl">CONF.</span></div>
+              <div class="manana-stat"><span class="manana-stat-val" style="color:var(--gold)">${Object.keys(groups).length}</span><span class="manana-stat-lbl">HORARIOS</span></div>
             </div>
           </div>
           <div class="manana-timeline">
