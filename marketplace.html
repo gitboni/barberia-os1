@@ -1,0 +1,194 @@
+<!-- Archivo: marketplace.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuraOS — Marketplace Pro</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            --bg: #050505; --surface: #0f0f0f; --accent: #D4AF37; --text: #fff;
+            --border: rgba(255,255,255,0.08); --elite: #F5E050;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; overflow: hidden; }
+        .font-outfit { font-family: 'Outfit', sans-serif; }
+
+        /* Aurora */
+        .aurora { position: fixed; inset: 0; z-index: -1; filter: blur(120px); opacity: 0.15; }
+        .orb { position: absolute; width: 60vw; height: 60vw; background: radial-gradient(circle, var(--accent) 0%, transparent 70%); top: -20%; right: -20%; }
+
+        nav {
+            height: 70px; padding: 0 30px; display: flex; align-items: center; justify-content: space-between;
+            background: rgba(5,5,5,0.8); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; z-index: 1000;
+        }
+        main { display: grid; grid-template-columns: 500px 1fr; height: calc(100vh - 70px); }
+
+        .feed { padding: 30px; overflow-y: auto; background: var(--bg); }
+        .feed::-webkit-scrollbar { width: 4px; }
+        .feed::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+        .search-box {
+            background: var(--surface); border: 1px solid var(--border);
+            padding: 12px 20px; border-radius: 15px; margin-bottom: 25px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .search-box input { background: transparent; border: none; color: #fff; width: 100%; outline: none; }
+
+        /* Elite Card Styling */
+        .card {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 24px;
+            padding: 22px; margin-bottom: 20px; display: flex; gap: 18px;
+            transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1); cursor: pointer;
+            position: relative;
+        }
+        .card.elite {
+            border-color: rgba(245, 224, 80, 0.3);
+            box-shadow: 0 10px 40px rgba(245, 224, 80, 0.05);
+        }
+        .card.elite::before {
+            content: 'PREMIUM'; position: absolute; top: -10px; right: 20px;
+            background: var(--elite); color: #000; font-size: 0.55rem; font-weight: 900;
+            padding: 4px 12px; border-radius: 50px; letter-spacing: 0.1em;
+        }
+        .card:hover { border-color: var(--accent); transform: translateY(-3px); background: #121212; }
+
+        .card-img { width: 120px; height: 120px; border-radius: 16px; object-fit: cover; background: #222; flex-shrink: 0; }
+        .card-body { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        
+        .badge-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        .badge { font-size: 0.55rem; font-weight: 800; padding: 3px 10px; border-radius: 50px; text-transform: uppercase; }
+        .badge-live { background: rgba(0,255,100,0.1); color: #00ff64; border: 1px solid rgba(0,255,100,0.2); }
+        .badge-deal { background: rgba(255,50,50,0.1); color: #ff3232; border: 1px solid rgba(255,50,50,0.2); }
+
+        .btn-row { display: flex; gap: 10px; margin-top: 15px; }
+        .btn {
+            padding: 10px 16px; border-radius: 12px; font-weight: 700; font-size: 0.8rem;
+            cursor: pointer; transition: 0.2s; border: 1px solid var(--border); flex: 1;
+        }
+        .btn-primary { background: var(--accent); color: #000; border: none; }
+        .btn-primary:hover { transform: scale(1.05); background: var(--elite); }
+        .btn-ghost { background: transparent; color: #fff; }
+        .btn-ghost:hover { background: rgba(255,255,255,0.05); border-color: #fff; }
+
+        #map { width: 100%; height: 100%; background: #080808; z-index: 10; }
+
+        .marker-pin {
+            width: 35px; height: 35px; background: var(--accent);
+            border: 3px solid #000; border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg); box-shadow: 0 0 20px var(--accent);
+        }
+        .marker-pin.elite { background: var(--elite); box-shadow: 0 0 25px var(--elite); }
+
+        @media (max-width: 900px) {
+            main { grid-template-columns: 1fr; }
+            #map { height: 350px; order: -1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="aurora"><div class="orb"></div></div>
+
+    <nav>
+        <div class="logo font-outfit" style="font-weight: 900; color: var(--accent); font-size: 1.4rem;">AuraOS <span style="font-weight: 300; opacity: 0.5;">Marketplace</span></div>
+        <div style="font-size: 0.75rem; color: var(--accent); border: 1px solid var(--accent); padding: 5px 15px; border-radius: 50px; cursor: pointer;">Publicar mi Barbería</div>
+    </nav>
+
+    <main>
+        <section class="feed">
+            <div class="search-box">
+                <i data-lucide="search" size="18" color="gray"></i>
+                <input type="text" id="searchInput" placeholder="Busca por nombre, ciudad o servicios...">
+            </div>
+            <div id="shopsContainer"></div>
+        </section>
+        <section id="map"></section>
+    </main>
+
+    <script>
+        const SB_URL = 'https://mmokunpuslcfphalrwot.supabase.co';
+        const SB_KEY = 'sb_publishable_aETz_9ECH5RcBMjmRhUnfw_g71zRdwT';
+
+        let map, markers = [], allShops = [];
+
+        function initMap() {
+            map = L.map('map').setView([18.4861, -69.9312], 13);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; AuraOS Systems'
+            }).addTo(map);
+        }
+
+        async function loadShops() {
+            try {
+                // Obtenemos tiendas ordenadas por plan (Elite > Pro > Free)
+                const res = await fetch(`${SB_URL}/rest/v1/shops?select=*&activo=eq.true&order=plan.desc`, {
+                    headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+                });
+                allShops = await res.json();
+                
+                // Filtro opcional por URL (ej: marketplace.html?shop=elite-cuts)
+                const urlParams = new URLSearchParams(window.search);
+                const shopFilter = urlParams.get('shop');
+                if(shopFilter) allShops = allShops.filter(s => s.slug === shopFilter);
+
+                renderShops(allShops);
+                addMapMarkers(allShops);
+            } catch (e) { console.error(e); }
+        }
+
+        function renderShops(shops) {
+            const container = document.getElementById('shopsContainer');
+            container.innerHTML = shops.map(s => `
+                <div class="card ${s.plan === 'elite' ? 'elite' : ''}" onclick="focusShop(${s.lat}, ${s.lng})">
+                    <img src="${s.foto_url || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400'}" class="card-img">
+                    <div class="card-body">
+                        <div class="badge-row">
+                            <span class="badge badge-live">● EN VIVO</span>
+                            ${s.plan === 'elite' ? '<span class="badge badge-deal">OFERTA ACTIVA</span>' : ''}
+                        </div>
+                        <h3 class="card-title font-outfit">${s.nombre}</h3>
+                        <p class="card-meta"><i data-lucide="map-pin" size="12"></i> ${s.direccion || 'Santo Domingo'}</p>
+                        
+                        <div class="btn-row">
+                            <button class="btn btn-primary" onclick="event.stopPropagation(); window.open('https://wa.me/${s.whatsapp}')">Agendar</button>
+                            <button class="btn btn-ghost" onclick="event.stopPropagation(); window.open('/sala/${s.slug}')">Monitor</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function addMapMarkers(shops) {
+            markers.forEach(m => map.removeLayer(m));
+            markers = [];
+            shops.forEach(s => {
+                if (!s.lat || !s.lng) return;
+                const icon = L.divIcon({
+                    className: 'custom-div-icon',
+                    html: `<div class='marker-pin ${s.plan === 'elite' ? 'elite' : ''}'></div>`,
+                    iconSize: [35, 45], iconAnchor: [17, 45]
+                });
+                const marker = L.marker([s.lat, s.lng], { icon }).addTo(map);
+                markers.push(marker);
+            });
+        }
+
+        function focusShop(lat, lng) {
+            if (!lat || !lng) return;
+            map.flyTo([lat, lng], 16, { duration: 1.5 });
+        }
+
+        initMap();
+        loadShops();
+        lucide.createIcons();
+    </script>
+</body>
+</html>
