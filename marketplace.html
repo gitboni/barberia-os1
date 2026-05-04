@@ -1,375 +1,1058 @@
-<!-- Archivo: marketplace.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AuraOS — Marketplace Pro</title>
-    
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <meta name="theme-color" content="#050505" media="(prefers-color-scheme: dark)">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <script src="https://unpkg.com/lucide@0.263.1"></script>
 
     <style>
+        /* ─── Variables & Reset ─── */
         :root {
-            --bg: #050505; --surface: #0f0f0f; --accent: #D4AF37; --text: #fff;
-            --border: rgba(255,255,255,0.08); --elite: #F5E050;
+            --bg: #050505; --surface: #0f0f0f; --surface2: #141414;
+            --accent: #D4AF37; --elite: #F5E050;
+            --text: #fff; --text-dim: rgba(255,255,255,0.45);
+            --border: rgba(255,255,255,0.08);
+            --green: #00ff64; --red: #ff3232;
+            --radius: 20px;
         }
         * { margin:0; padding:0; box-sizing:border-box; }
-        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; overflow: hidden; }
-        .font-outfit { font-family: 'Outfit', sans-serif; }
+        body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; }
+        .font-outfit { font-family:'Outfit',sans-serif; }
 
-        /* Aurora */
-        .aurora { position: fixed; inset: 0; z-index: -1; filter: blur(120px); opacity: 0.15; }
-        .orb { position: absolute; width: 60vw; height: 60vw; background: radial-gradient(circle, var(--accent) 0%, transparent 70%); top: -20%; right: -20%; }
+        /* ─── Aurora ─── */
+        .aurora { position:fixed; inset:0; z-index:-1; filter:blur(120px); opacity:0.12; pointer-events:none; }
+        .orb { position:absolute; width:60vw; height:60vw; background:radial-gradient(circle,var(--accent) 0%,transparent 70%); top:-20%; right:-20%; }
 
+        /* ─── Nav ─── */
         nav {
-            height: 70px; padding: 0 30px; display: flex; align-items: center; justify-content: space-between;
-            background: rgba(5,5,5,0.8); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border);
-            position: sticky; top: 0; z-index: 1000;
+            height:70px; padding:0 30px; display:flex; align-items:center; justify-content:space-between;
+            background:#000; -webkit-backdrop-filter:blur(20px); backdrop-filter:blur(20px);
+            border-bottom:1px solid var(--border); position:sticky; top:0; z-index:1000;
         }
-        main { display: grid; grid-template-columns: 500px 1fr; height: calc(100vh - 70px); }
+        .logo { font-family:'Outfit',sans-serif; font-weight:900; color:var(--accent); font-size:1.4rem; }
+        .logo span { font-weight:300; opacity:0.5; }
 
-        .feed { padding: 30px; overflow-y: auto; background: var(--bg); }
-        .feed::-webkit-scrollbar { width: 4px; }
-        .feed::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+        .search-group { display:flex; background:var(--surface); border-radius:15px; border:1px solid var(--border); overflow:hidden; width:60%; }
+        .search-input-wrap { display:flex; align-items:center; padding:0 15px; flex:1; border-right:1px solid var(--border); }
+        .search-input-wrap:last-child { border-right:none; }
+        .search-input-wrap input { background:transparent; border:none; color:#fff; padding:12px; outline:none; width:100%; font-size:0.85rem; }
 
-        .search-box {
-            background: var(--surface); border: 1px solid var(--border);
-            padding: 12px 20px; border-radius: 15px; margin-bottom: 25px;
-            display: flex; align-items: center; gap: 10px;
-        }
-        .search-box input { background: transparent; border: none; color: #fff; width: 100%; outline: none; }
+        .nav-actions { display:flex; align-items:center; gap:16px; }
+        .nav-btn { background:transparent; border:none; color:var(--text-dim); cursor:pointer; display:flex; align-items:center; gap:6px; font-size:0.8rem; font-weight:600; transition:color 0.2s; }
+        .nav-btn:hover { color:#fff; }
+        .avatar-btn { width:40px; height:40px; border-radius:50%; background:var(--surface); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:border-color 0.2s; }
+        .avatar-btn:hover { border-color:var(--accent); }
 
-        /* Elite Card Styling */
+        /* ─── Layout ─── */
+        main { display:grid; grid-template-columns:500px 1fr; height:calc(100vh - 70px); }
+
+        /* ─── Feed ─── */
+        .feed { padding:25px; overflow-y:auto; background:var(--bg); display:flex; flex-direction:column; gap:0; }
+        .feed::-webkit-scrollbar { width:4px; }
+        .feed::-webkit-scrollbar-thumb { background:var(--border); border-radius:10px; }
+
+        /* Search box (móvil only) */
+        .search-box { background:var(--surface); border:1px solid var(--border); padding:12px 20px; border-radius:15px; margin-bottom:20px; display:none; align-items:center; gap:10px; }
+        .search-box input { background:transparent; border:none; color:#fff; width:100%; outline:none; }
+
+        /* ─── Toolbar (chips + sort + filter btn) ─── */
+        .toolbar { display:flex; align-items:center; gap:10px; margin-bottom:20px; flex-wrap:nowrap; overflow-x:auto; padding-bottom:5px; }
+        .toolbar::-webkit-scrollbar { display:none; }
+        .chip { padding:8px 16px; border-radius:50px; font-size:0.75rem; font-weight:600; cursor:pointer; border:1px solid var(--border); background:var(--surface); color:var(--text-dim); transition:0.2s; white-space:nowrap; }
+        .chip.active, .chip:hover { background:var(--accent); color:#000; border-color:var(--accent); }
+
+        .sort-select { background:var(--surface); border:1px solid var(--border); color:#fff; padding:8px 12px; border-radius:50px; font-size:0.75rem; font-weight:600; outline:none; cursor:pointer; margin-left:auto; }
+        .filter-btn { background:var(--surface); border:1px solid var(--border); color:#fff; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:0.2s; flex-shrink:0; }
+        .filter-btn:hover, .filter-btn.has-filters { background:var(--accent); color:#000; border-color:var(--accent); }
+
+        /* ─── Cards ─── */
         .card {
-            background: var(--surface); border: 1px solid var(--border); border-radius: 24px;
-            padding: 22px; margin-bottom: 20px; display: flex; gap: 18px;
-            transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1); cursor: pointer;
-            position: relative;
+            background:var(--surface); border:1px solid var(--border); border-radius:24px;
+            padding:20px; margin-bottom:16px; display:flex; gap:16px;
+            transition:0.4s cubic-bezier(0.16,1,0.3,1); cursor:pointer; position:relative;
         }
-        .card.elite {
-            border-color: rgba(245, 224, 80, 0.3);
-            box-shadow: 0 10px 40px rgba(245, 224, 80, 0.05);
-        }
-        .card.elite::before {
-            content: 'PREMIUM'; position: absolute; top: -10px; right: 20px;
-            background: var(--elite); color: #000; font-size: 0.55rem; font-weight: 900;
-            padding: 4px 12px; border-radius: 50px; letter-spacing: 0.1em;
-        }
-        .card:hover { border-color: var(--accent); transform: translateY(-3px); background: #121212; }
+        .card.elite { border-color:rgba(245,224,80,0.3); box-shadow:0 10px 40px rgba(245,224,80,0.05); }
+        .card.elite::before { content:'PREMIUM'; position:absolute; top:-10px; right:20px; background:var(--elite); color:#000; font-size:0.55rem; font-weight:900; padding:4px 12px; border-radius:50px; letter-spacing:0.1em; }
+        .card:hover { border-color:var(--accent); transform:translateY(-3px); background:#121212; }
 
-        .card-img { width: 120px; height: 120px; border-radius: 16px; object-fit: cover; background: #222; flex-shrink: 0; }
-        .card-body { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
-        
-        .badge-row { display: flex; gap: 8px; margin-bottom: 8px; }
-        .badge { font-size: 0.55rem; font-weight: 800; padding: 3px 10px; border-radius: 50px; text-transform: uppercase; }
-        .badge-live { background: rgba(0,255,100,0.1); color: #00ff64; border: 1px solid rgba(0,255,100,0.2); }
-        .badge-deal { background: rgba(255,50,50,0.1); color: #ff3232; border: 1px solid rgba(255,50,50,0.2); }
+        .card-img { width:110px; height:110px; border-radius:16px; object-fit:cover; background:#222; flex-shrink:0; }
+        .card-body { flex:1; display:flex; flex-direction:column; justify-content:space-between; min-width:0; }
+        .card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
+        .card-title { font-size:1rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .card-meta { font-size:0.78rem; color:var(--text-dim); display:flex; align-items:center; gap:4px; margin-top:3px; }
+        .fav-btn { background:transparent; border:none; color:var(--text-dim); cursor:pointer; padding:2px; flex-shrink:0; transition:color 0.2s; }
+        .fav-btn.active { color:#ff3232; }
 
-        .btn-row { display: flex; gap: 10px; margin-top: 15px; }
-        .btn {
-            padding: 10px 16px; border-radius: 12px; font-weight: 700; font-size: 0.8rem;
-            cursor: pointer; transition: 0.2s; border: 1px solid var(--border); flex: 1;
+        .badge-row { display:flex; gap:6px; margin:8px 0; flex-wrap:wrap; }
+        .badge { font-size:0.6rem; font-weight:800; padding:3px 10px; border-radius:50px; text-transform:uppercase; }
+        .badge-open { background:rgba(0,255,100,0.1); color:var(--green); border:1px solid rgba(0,255,100,0.2); }
+        .badge-closed { background:rgba(255,50,50,0.1); color:var(--red); border:1px solid rgba(255,50,50,0.2); }
+        .badge-promo { background:rgba(212,175,55,0.15); color:var(--accent); border:1px solid rgba(212,175,55,0.3); }
+        .badge-wait { background:rgba(255,255,255,0.06); color:#fff; border:1px solid var(--border); }
+
+        .rating-row { display:flex; align-items:center; gap:6px; font-size:0.78rem; }
+        .stars { color:var(--accent); letter-spacing:-1px; }
+        .rating-count { color:var(--text-dim); }
+
+        .btn-row { display:flex; gap:8px; margin-top:10px; }
+        .btn { padding:8px 14px; border-radius:12px; font-weight:700; font-size:0.75rem; cursor:pointer; transition:0.2s; border:1px solid var(--border); }
+        .btn-primary { background:var(--accent); color:#000; border:none; flex:1; }
+        .btn-primary:hover { background:var(--elite); transform:scale(1.02); }
+        .btn-ghost { background:transparent; color:#fff; padding:8px 12px; }
+        .btn-ghost:hover { background:rgba(255,255,255,0.06); border-color:#fff; }
+
+        /* ─── Skeleton Loading ─── */
+        @keyframes shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+        .skeleton { background:#1a1a1a; border-radius:12px; position:relative; overflow:hidden; }
+        .skeleton::after { content:''; position:absolute; inset:0; background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.05) 50%,transparent 100%); animation:shimmer 1.5s infinite; will-change:transform; }
+        .sk-card { background:var(--surface); border:1px solid var(--border); border-radius:24px; padding:20px; margin-bottom:16px; display:flex; gap:16px; }
+        .sk-img { width:110px; height:110px; border-radius:16px; flex-shrink:0; }
+        .sk-body { flex:1; display:flex; flex-direction:column; gap:10px; }
+        .sk-line { height:14px; border-radius:6px; }
+        .sk-line.w80 { width:80%; }
+        .sk-line.w50 { width:50%; }
+        .sk-line.w30 { width:30%; }
+
+        /* ─── Load More ─── */
+        .load-more { text-align:center; padding:20px 0; }
+        .load-more-btn { background:var(--surface); border:1px solid var(--border); color:#fff; padding:12px 30px; border-radius:50px; cursor:pointer; font-size:0.85rem; font-weight:600; transition:0.2s; }
+        .load-more-btn:hover { border-color:var(--accent); color:var(--accent); }
+        #sentinel { height:1px; }
+
+        /* ─── Map ─── */
+        #map { width:100%; height:100%; background:#080808; z-index:10; }
+        .marker-pin { width:35px; height:35px; background:var(--accent); border:3px solid #000; border-radius:50% 50% 50% 0; transform:rotate(-45deg); box-shadow:0 0 20px var(--accent); }
+        .marker-pin.elite { background:var(--elite); box-shadow:0 0 25px var(--elite); }
+        .marker-pin.elite::after { content:''; position:absolute; inset:-5px; border-radius:50%; border:2px solid var(--elite); animation:pulse-ring 2s infinite; pointer-events:none; will-change:transform,opacity; }
+        .user-pin { width:16px; height:16px; background:#4a9eff; border:3px solid #fff; border-radius:50%; box-shadow:0 0 15px rgba(74,158,255,0.6); }
+        @keyframes pulse-ring { 0%{transform:scale(0.5);opacity:1} 100%{transform:scale(2.5);opacity:0} }
+
+        /* ─── Filter Panel ─── */
+        .filter-panel {
+            position:fixed; top:0; left:-380px; width:360px; height:100vh;
+            background:rgba(10,10,10,0.98); -webkit-backdrop-filter:blur(40px); backdrop-filter:blur(40px);
+            border-right:1px solid var(--border); z-index:3000; transition:left 0.4s cubic-bezier(0.16,1,0.3,1);
+            overflow-y:auto; padding:30px;
         }
-        .btn-primary { background: var(--accent); color: #000; border: none; }
-        .btn-primary:hover { transform: scale(1.05); background: var(--elite); }
-        .btn-ghost { background: transparent; color: #fff; }
-        .btn-ghost:hover { background: rgba(255,255,255,0.05); border-color: #fff; }
+        .filter-panel.open { left:0; }
+        .filter-panel::-webkit-scrollbar { display:none; }
+        .fp-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; }
+        .fp-title { font-family:'Outfit',sans-serif; font-size:1.4rem; font-weight:800; }
+        .fp-close { background:rgba(255,255,255,0.08); border:1px solid var(--border); color:#fff; width:36px; height:36px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+        .fp-section { margin-bottom:30px; }
+        .fp-section h4 { font-size:0.7rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent); margin-bottom:14px; }
+        .fp-toggle { display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border); }
+        .fp-toggle label { font-size:0.9rem; cursor:pointer; }
+        .toggle-sw { position:relative; width:44px; height:24px; }
+        .toggle-sw input { opacity:0; width:0; height:0; }
+        .toggle-sw .knob { position:absolute; inset:0; background:#333; border-radius:24px; cursor:pointer; transition:0.3s; }
+        .toggle-sw .knob::before { content:''; position:absolute; width:18px; height:18px; left:3px; top:3px; background:#fff; border-radius:50%; transition:0.3s; }
+        .toggle-sw input:checked + .knob { background:var(--accent); }
+        .toggle-sw input:checked + .knob::before { transform:translateX(20px); }
+        .star-filter { display:flex; gap:8px; }
+        .star-opt { background:var(--surface); border:1px solid var(--border); color:var(--text-dim); padding:6px 14px; border-radius:50px; cursor:pointer; font-size:0.8rem; transition:0.2s; }
+        .star-opt.active { background:var(--accent); color:#000; border-color:var(--accent); }
+        .fp-apply { width:100%; padding:14px; background:var(--accent); color:#000; border:none; border-radius:15px; font-weight:700; font-size:1rem; cursor:pointer; transition:0.2s; margin-top:10px; }
+        .fp-apply:hover { background:var(--elite); }
+        .fp-reset { width:100%; padding:12px; background:transparent; color:var(--text-dim); border:1px solid var(--border); border-radius:15px; font-weight:600; font-size:0.9rem; cursor:pointer; margin-top:10px; transition:0.2s; }
+        .fp-reset:hover { color:#fff; border-color:#fff; }
 
-        #map { width: 100%; height: 100%; background: #080808; z-index: 10; }
-
-        .marker-pin {
-            width: 35px; height: 35px; background: var(--accent);
-            border: 3px solid #000; border-radius: 50% 50% 50% 0;
-            transform: rotate(-45deg); box-shadow: 0 0 20px var(--accent);
-        }
-        .marker-pin.elite { background: var(--elite); box-shadow: 0 0 25px var(--elite); }
-        .marker-pin.elite::after {
-            content: ''; position: absolute; inset: -5px; border-radius: 50%;
-            border: 2px solid var(--elite); animation: pulse-ring 2s infinite; pointer-events: none;
-        }
-        @keyframes pulse-ring { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
-
-        /* Apple Style Modal */
+        /* ─── Modal / Detail Sheet ─── */
         .detail-sheet {
-            position: fixed; top: 50%; left: 50%; 
-            transform: translate(-50%, 100%); /* Comienza abajo */
-            width: 95%; max-width: 850px; height: 85vh;
-            background: rgba(10,10,10,0.95); backdrop-filter: blur(60px); -webkit-backdrop-filter: blur(60px);
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 40px;
-            z-index: 2000; transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-            overflow: hidden; opacity: 0; pointer-events: none;
+            position:fixed; top:50%; left:50%;
+            transform:translate(-50%,100%);
+            width:95%; max-width:900px; height:88vh;
+            background:rgba(8,8,8,0.97); -webkit-backdrop-filter:blur(60px); backdrop-filter:blur(60px);
+            border:1px solid rgba(255,255,255,0.1); border-radius:40px;
+            z-index:2000; transition:all 0.7s cubic-bezier(0.16,1,0.3,1);
+            overflow:hidden; opacity:0; pointer-events:none;
         }
-        .detail-sheet.active { transform: translate(-50%, -50%); opacity: 1; pointer-events: auto; }
-        
-        .sheet-body { height: 100%; overflow-y: auto; padding: 40px; scrollbar-width: none; }
-        .sheet-body::-webkit-scrollbar { display: none; }
-        
-        .sheet-close { position: absolute; top: 25px; right: 25px; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); border: none; color: #fff; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; z-index: 10; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.1); }
+        .detail-sheet.active { transform:translate(-50%,-50%); opacity:1; pointer-events:auto; }
+        .sheet-body { height:100%; overflow-y:auto; scrollbar-width:none; }
+        .sheet-body::-webkit-scrollbar { display:none; }
+        .sheet-close { position:absolute; top:20px; right:20px; background:rgba(0,0,0,0.6); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1); color:#fff; width:42px; height:42px; border-radius:50%; cursor:pointer; z-index:10; display:flex; align-items:center; justify-content:center; transition:background 0.2s; }
+        .sheet-close:hover { background:rgba(255,255,255,0.1); }
 
-        .gallery-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 5px; height: 400px; margin: -40px -40px 40px -40px; overflow: hidden; }
-        .gallery-main { width: 100%; height: 100%; object-fit: cover; }
-        .gallery-side { display: grid; grid-template-rows: 1fr 1fr; gap: 5px; }
-        .gallery-side img { width: 100%; height: 100%; object-fit: cover; }
+        .gallery-grid { display:grid; grid-template-columns:2fr 1fr; gap:4px; height:380px; overflow:hidden; }
+        .gallery-main { width:100%; height:100%; object-fit:cover; }
+        .gallery-side { display:grid; grid-template-rows:1fr 1fr; gap:4px; }
+        .gallery-side img { width:100%; height:100%; object-fit:cover; }
 
-        .staff-list { display: flex; gap: 25px; overflow-x: auto; padding: 10px 0; }
-        .staff-list::-webkit-scrollbar { display: none; }
-        .staff-item { display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 80px; }
-        .avatar { width: 70px; height: 70px; border-radius: 50%; background: linear-gradient(135deg, #1a1a1a, #0a0a0a); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; color: var(--accent); box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
-        .staff-item span { font-size: 0.8rem; opacity: 0.6; font-weight: 500; }
+        .sheet-content { padding:35px; }
+        .sheet-label { font-size:0.65rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--accent); margin-bottom:14px; display:block; }
 
-        .action-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .action-btns-inner { display: flex; gap: 12px; }
-        .action-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); color: #fff; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
-        .action-btn:hover { background: var(--accent); color: #000; }
+        .action-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:25px; gap:20px; }
+        .shop-title { font-size:2.4rem; letter-spacing:-0.05em; line-height:1; }
+        .shop-subtitle { color:var(--text-dim); font-size:0.95rem; margin-top:8px; display:flex; align-items:center; gap:6px; }
+        .action-btns-inner { display:flex; gap:10px; flex-shrink:0; }
+        .action-btn { background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); color:#fff; width:46px; height:46px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.3s; }
+        .action-btn:hover { background:var(--accent); color:#000; border-color:var(--accent); }
+        .action-btn.active { background:var(--red); color:#fff; border-color:var(--red); }
 
-        /* Improved Header (Booksy Style) */
-        nav {
-            height: 90px; padding: 0 40px; background: #000; border-bottom: 1px solid var(--border);
-        }
-        .search-group { display: flex; background: var(--surface); border-radius: 15px; border: 1px solid var(--border); overflow: hidden; width: 60%; }
-        .search-input-wrap { display: flex; align-items: center; padding: 0 15px; flex: 1; border-right: 1px solid var(--border); }
-        .search-input-wrap:last-child { border-right: none; }
-        .search-input-wrap input { background: transparent; border: none; color: #fff; padding: 12px; outline: none; width: 100%; font-size: 0.85rem; }
+        .sheet-grid { display:grid; grid-template-columns:1.5fr 1fr; gap:35px; margin-top:35px; }
 
-        /* Overlay */
-        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 1999; display: none; }
-        .overlay.active { display: block; }
+        .staff-list { display:flex; gap:20px; overflow-x:auto; padding:8px 0; }
+        .staff-list::-webkit-scrollbar { display:none; }
+        .staff-item { display:flex; flex-direction:column; align-items:center; gap:8px; min-width:70px; }
+        .avatar { width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg,#1a1a1a,#0a0a0a); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.85rem; color:var(--accent); }
+        .staff-name { font-size:0.75rem; opacity:0.6; font-weight:500; text-align:center; }
 
-        @media (max-width: 900px) {
-            main { grid-template-columns: 1fr; }
-            #map { height: 350px; order: -1; }
-            .search-group { width: 100%; display: none; }
+        .hour-row { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); font-size:0.88rem; }
+        .hour-row:last-child { border-bottom:none; }
+        .hour-row.today { color:var(--accent); font-weight:600; }
+        .hour-row.today .day-label::after { content:' (Hoy)'; font-size:0.7em; opacity:0.7; }
+
+        /* Disponibilidad de turnos */
+        .slots-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:5px; }
+        .slot { padding:8px; border-radius:10px; text-align:center; font-size:0.78rem; font-weight:600; border:1px solid var(--border); cursor:pointer; transition:0.2s; }
+        .slot.free { background:rgba(0,255,100,0.06); color:var(--green); border-color:rgba(0,255,100,0.2); }
+        .slot.free:hover { background:rgba(0,255,100,0.15); }
+        .slot.taken { background:rgba(255,50,50,0.06); color:var(--red); border-color:rgba(255,50,50,0.15); cursor:default; text-decoration:line-through; opacity:0.5; }
+        .slot.past { background:transparent; color:var(--text-dim); cursor:default; opacity:0.3; }
+        .slot.selected { background:var(--accent); color:#000; border-color:var(--accent); }
+
+        /* Servicios / Precios */
+        .services-list { display:flex; flex-direction:column; gap:8px; }
+        .service-row { display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:rgba(255,255,255,0.03); border-radius:12px; border:1px solid var(--border); font-size:0.88rem; }
+        .service-price { color:var(--accent); font-weight:700; }
+
+        /* Reseñas */
+        .reviews-list { display:flex; flex-direction:column; gap:12px; }
+        .review-item { background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:16px; padding:16px; }
+        .review-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+        .review-author { font-weight:600; font-size:0.88rem; }
+        .review-date { font-size:0.75rem; color:var(--text-dim); }
+        .review-text { font-size:0.85rem; line-height:1.6; color:rgba(255,255,255,0.75); }
+
+        /* Promociones */
+        .promo-banner { background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(245,224,80,0.05)); border:1px solid rgba(212,175,55,0.3); border-radius:16px; padding:16px; display:flex; align-items:center; gap:14px; margin-bottom:12px; }
+        .promo-icon { font-size:1.5rem; }
+        .promo-title { font-weight:700; font-size:0.9rem; color:var(--accent); }
+        .promo-desc { font-size:0.8rem; color:var(--text-dim); margin-top:3px; }
+
+        /* Sheet bottom CTA */
+        .sheet-cta { display:flex; gap:15px; align-items:center; padding:30px 35px; border-top:1px solid var(--border); position:sticky; bottom:0; background:rgba(8,8,8,0.95); -webkit-backdrop-filter:blur(20px); backdrop-filter:blur(20px); }
+        .cta-main { flex:1; height:60px; font-size:1.1rem; border-radius:18px; }
+        .cta-icon { width:60px; height:60px; border-radius:18px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+
+        /* ─── Toast ─── */
+        .toast-container { position:fixed; bottom:30px; left:50%; transform:translateX(-50%); z-index:9999; display:flex; flex-direction:column; gap:10px; align-items:center; pointer-events:none; }
+        .toast { background:rgba(20,20,20,0.95); border:1px solid var(--border); -webkit-backdrop-filter:blur(20px); backdrop-filter:blur(20px); color:#fff; padding:12px 24px; border-radius:50px; font-size:0.85rem; font-weight:500; white-space:nowrap; animation:toastIn 0.4s cubic-bezier(0.16,1,0.3,1); will-change:transform,opacity; }
+        @keyframes toastIn { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+        /* ─── Overlay ─── */
+        .overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); -webkit-backdrop-filter:blur(5px); backdrop-filter:blur(5px); z-index:1999; display:none; }
+        .overlay.active { display:block; }
+
+        /* ─── History bar ─── */
+        .history-bar { background:var(--surface2); border:1px solid var(--border); border-radius:16px; padding:14px 18px; margin-bottom:18px; display:none; }
+        .history-bar.visible { display:block; }
+        .history-title { font-size:0.65rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-dim); margin-bottom:10px; }
+        .history-chips { display:flex; gap:8px; overflow-x:auto; }
+        .history-chips::-webkit-scrollbar { display:none; }
+        .history-chip { background:var(--bg); border:1px solid var(--border); padding:6px 14px; border-radius:50px; font-size:0.78rem; white-space:nowrap; cursor:pointer; transition:0.2s; }
+        .history-chip:hover { border-color:var(--accent); color:var(--accent); }
+
+        /* ─── Responsive ─── */
+        @media (max-width:900px) {
+            main { grid-template-columns:1fr; height:auto; }
+            #map { height:300px; order:-1; }
+            .search-group { display:none; }
+            .search-box { display:flex; }
+            .gallery-grid { height:220px; }
+            .sheet-grid { grid-template-columns:1fr; }
+            .slots-grid { grid-template-columns:repeat(3,1fr); }
+            .shop-title { font-size:1.8rem; }
         }
     </style>
 </head>
 <body>
-    <div class="aurora"><div class="orb"></div></div>
+<div class="aurora"><div class="orb"></div></div>
 
-    <nav>
-        <div class="logo font-outfit" style="font-weight: 900; color: var(--accent); font-size: 1.4rem;">AuraOS <span style="font-weight: 300; opacity: 0.5;">Marketplace</span></div>
-        
-        <div class="search-group">
-            <div class="search-input-wrap">
-                <i data-lucide="search" size="16" color="#666"></i>
-                <input type="text" id="searchInput" placeholder="¿Qué buscas? (Corte, Barba...)">
-            </div>
-            <div class="search-input-wrap">
-                <i data-lucide="map-pin" size="16" color="#666"></i>
-                <input type="text" placeholder="¿Dónde? (Santo Domingo...)">
-            </div>
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Nav -->
+<nav>
+    <div class="logo">AuraOS <span>Marketplace</span></div>
+
+    <div class="search-group">
+        <div class="search-input-wrap">
+            <i data-lucide="search" size="16" color="#666"></i>
+            <input type="text" id="searchInputNav" placeholder="¿Qué buscas? (Corte, Barba...)">
         </div>
-
-        <div style="display: flex; align-items: center; gap: 20px;">
-            <span style="font-size: 0.8rem; font-weight: 600; cursor: pointer;">Acceso Negocios</span>
-            <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border); display: flex; align-items:center; justify-content:center;">
-                <i data-lucide="user" size="18"></i>
-            </div>
+        <div class="search-input-wrap">
+            <i data-lucide="map-pin" size="16" color="#666"></i>
+            <input type="text" id="locationInput" placeholder="¿Dónde? (Santo Domingo...)">
         </div>
-    </nav>
-
-    <main>
-        <section class="feed">
-            <div class="search-box">
-                <i data-lucide="search" size="18" color="gray"></i>
-                <input type="text" id="searchInput" placeholder="Busca por nombre, ciudad o servicios...">
-            </div>
-            <div class="filter-chips">
-                <div class="chip active" onclick="filterShops('all', this)">Todas</div>
-                <div class="chip" onclick="filterShops('elite', this)">💎 Premium</div>
-                <div class="chip" onclick="filterShops('near', this)">📍 Cerca de mí</div>
-            </div>
-            <div id="shopsContainer"></div>
-        </section>
-        <section id="map"></section>
-    </main>
-
-    <div class="overlay" id="overlay" onclick="closeSheet()"></div>
-
-    <div class="detail-sheet" id="detailSheet">
-        <button class="sheet-close" onclick="closeSheet()"><i data-lucide="x" size="20"></i></button>
-        <div id="sheetContent" class="sheet-body"></div>
     </div>
 
-    <script>
-        const SB_URL = 'https://mmokunpuslcfphalrwot.supabase.co';
-        const SB_KEY = 'sb_publishable_aETz_9ECH5RcBMjmRhUnfw_g71zRdwT';
+    <div class="nav-actions">
+        <button class="nav-btn" onclick="openFavoritesFilter()">
+            <i data-lucide="heart" size="16"></i> Guardados
+        </button>
+        <button class="nav-btn">Acceso Negocios</button>
+        <div class="avatar-btn" aria-label="Perfil">
+            <i data-lucide="user" size="18"></i>
+        </div>
+    </div>
+</nav>
 
-        let map, markers = [], allShops = [];
+<main>
+    <section class="feed">
+        <!-- Búsqueda móvil -->
+        <div class="search-box">
+            <i data-lucide="search" size="18" color="gray"></i>
+            <input type="text" id="searchInputMobile" placeholder="Busca por nombre, ciudad o servicios...">
+        </div>
 
-        function initMap() {
-            map = L.map('map').setView([18.4861, -69.9312], 13);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; AuraOS Systems'
-            }).addTo(map);
-        }
+        <!-- Historial -->
+        <div class="history-bar" id="historyBar">
+            <div class="history-title">Visitados recientemente</div>
+            <div class="history-chips" id="historyChips"></div>
+        </div>
 
-        async function loadShops() {
-            try {
-                // Obtenemos tiendas ordenadas por plan (Elite > Pro > Free)
-                const res = await fetch(`${SB_URL}/rest/v1/shops?select=*&activo=eq.true&order=plan.desc`, {
-                    headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
-                });
-                allShops = await res.json();
-                
-                // Filtro opcional por URL (ej: marketplace.html?shop=elite-cuts)
-                const urlParams = new URLSearchParams(window.search);
-                const shopFilter = urlParams.get('shop');
-                if(shopFilter) allShops = allShops.filter(s => s.slug === shopFilter);
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <div class="chip active" data-filter="all" onclick="filterShops('all',this)">Todas</div>
+            <div class="chip" data-filter="elite" onclick="filterShops('elite',this)">💎 Premium</div>
+            <div class="chip" data-filter="open" onclick="filterShops('open',this)">🟢 Abiertos</div>
+            <div class="chip" data-filter="near" onclick="filterShops('near',this)">📍 Cerca</div>
+            <div class="chip" data-filter="favorites" onclick="filterShops('favorites',this)">❤️ Guardados</div>
+            <select class="sort-select" id="sortSelect" onchange="applySort()" aria-label="Ordenar resultados" title="Ordenar resultados">
+                <option value="default">Ordenar: Relevancia</option>
+                <option value="rating">⭐ Mejor valorados</option>
+                <option value="near">📍 Más cercanos</option>
+                <option value="wait">⏱ Menor espera</option>
+            </select>
+            <button type="button" class="filter-btn" id="filterBtn" onclick="openFilterPanel()" title="Filtros avanzados" aria-label="Filtros avanzados">
+                <i data-lucide="sliders-horizontal" size="16"></i>
+            </button>
+        </div>
 
-                renderShops(allShops);
-                addMapMarkers(allShops);
-            } catch (e) { console.error(e); }
-        }
+        <div id="shopsContainer"></div>
+        <div id="sentinel"></div>
+        <div class="load-more" id="loadMoreArea" style="display:none;">
+            <button type="button" class="load-more-btn" onclick="loadMoreShops()">Cargar más</button>
+        </div>
+    </section>
 
-        function renderShops(shops) {
-            const container = document.getElementById('shopsContainer');
-            container.innerHTML = shops.map(s => {
-                const busyLevel = Math.random() > 0.5 ? 'Muy concurrido' : 'Poco concurrido';
-                const busyColor = busyLevel === 'Muy concurrido' ? '#ff3232' : '#00ff64';
-                
-                return `
-                    <div class="card ${s.plan === 'elite' ? 'elite' : ''}" onclick="openShopDetail('${s.id}')">
-                        <img src="${s.foto_url || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400'}" class="card-img">
-                        <div class="card-body">
-                            <div class="badge-row">
-                                <span class="badge" style="background: ${busyColor}1a; color: ${busyColor}; border: 1px solid ${busyColor}33;">
-                                    ● ${busyLevel}
-                                </span>
-                                ${s.plan === 'elite' ? '<span class="badge badge-deal">PREMIUM</span>' : ''}
-                            </div>
-                            <h3 class="card-title font-outfit">${s.nombre}</h3>
-                            <p class="card-meta"><i data-lucide="map-pin" size="12"></i> ${s.direccion || 'Distrito Nacional'}</p>
-                            
-                            <div class="btn-row">
-                                <button class="btn btn-primary" onclick="event.stopPropagation(); window.open('https://wa.me/${s.whatsapp}')">Agendar</button>
-                                <button class="btn btn-ghost" title="Cómo llegar" onclick="event.stopPropagation(); window.open('https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}')">
-                                    <i data-lucide="navigation" size="14"></i>
-                                </button>
-                                <button class="btn btn-ghost" onclick="event.stopPropagation(); window.open('/sala/${s.slug}')">Monitor</button>
-                            </div>
-                        </div>
+    <section id="map" aria-label="Mapa de barberías"></section>
+</main>
+
+<!-- Overlay -->
+<div class="overlay" id="overlay" onclick="handleOverlayClick()"></div>
+
+<!-- Filter Panel -->
+<div class="filter-panel" id="filterPanel" role="dialog" aria-label="Filtros avanzados">
+    <div class="fp-header">
+        <span class="fp-title">Filtros</span>
+        <button class="fp-close" onclick="closeFilterPanel()" aria-label="Cerrar filtros">
+            <i data-lucide="x" size="18"></i>
+        </button>
+    </div>
+
+    <div class="fp-section">
+        <h4>Calificación mínima</h4>
+        <div class="star-filter">
+            <div class="star-opt" data-rating="0" onclick="setRatingFilter(0,this)">Todas</div>
+            <div class="star-opt" data-rating="3" onclick="setRatingFilter(3,this)">3+ ⭐</div>
+            <div class="star-opt" data-rating="4" onclick="setRatingFilter(4,this)">4+ ⭐</div>
+            <div class="star-opt active" data-rating="0" onclick="setRatingFilter(0,this)">Todas</div>
+        </div>
+    </div>
+
+    <div class="fp-section">
+        <h4>Estado</h4>
+        <div class="fp-toggle">
+            <label for="toggleOpen">Solo abiertos ahora</label>
+            <label class="toggle-sw">
+                <input type="checkbox" id="toggleOpen">
+                <span class="knob"></span>
+            </label>
+        </div>
+        <div class="fp-toggle">
+            <label for="togglePromo">Con promociones activas</label>
+            <label class="toggle-sw">
+                <input type="checkbox" id="togglePromo">
+                <span class="knob"></span>
+            </label>
+        </div>
+        <div class="fp-toggle">
+            <label for="toggleElite">Solo Premium</label>
+            <label class="toggle-sw">
+                <input type="checkbox" id="toggleElite">
+                <span class="knob"></span>
+            </label>
+        </div>
+    </div>
+
+    <div class="fp-section">
+        <h4>Tiempo de espera máximo</h4>
+        <div class="star-filter">
+            <div class="star-opt" data-wait="999" onclick="setWaitFilter(999,this)">Cualquiera</div>
+            <div class="star-opt" data-wait="15" onclick="setWaitFilter(15,this)">-15 min</div>
+            <div class="star-opt" data-wait="30" onclick="setWaitFilter(30,this)">-30 min</div>
+        </div>
+    </div>
+
+    <button type="button" class="fp-apply" onclick="applyFilters()">Aplicar filtros</button>
+    <button type="button" class="fp-reset" onclick="resetFilters()">Limpiar filtros</button>
+</div>
+
+<!-- Detail Sheet -->
+<div class="detail-sheet" id="detailSheet" role="dialog" aria-modal="true" aria-labelledby="sheetShopName">
+    <button type="button" class="sheet-close" onclick="closeSheet()" aria-label="Cerrar">
+        <i data-lucide="x" size="20"></i>
+    </button>
+    <div class="sheet-body">
+        <div id="sheetContent"></div>
+    </div>
+</div>
+
+<script>
+// ─── Config ───────────────────────────────────────────────────────────────────
+// ADVERTENCIA: mover SB_KEY a un backend/proxy antes de producción
+const SB_URL = 'https://mmokunpuslcfphalrwot.supabase.co';
+const SB_KEY = 'sb_publishable_aETz_9ECH5RcBMjmRhUnfw_g71zRdwT';
+const PAGE_SIZE = 10;
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let map, clusterGroup, userMarker, searchCircle;
+let allShops = [], filteredShops = [], currentPage = 0;
+let userCoords = null;
+let activeFilter = 'all', activeSort = 'default';
+let minRating = 0, maxWait = 999, filterOpen = false, filterPromo = false, filterElite = false;
+
+// ─── Utils ────────────────────────────────────────────────────────────────────
+const esc = str => str == null ? '' : String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+const DAYS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const getDayName = i => DAYS[i];
+const todayName = getDayName(new Date().getDay());
+
+function isOpenNow(horario) {
+    if (!Array.isArray(horario)) return null;
+    const h = horario.find(d => d.dia === todayName);
+    if (!h || h.cerrado) return false;
+    const now = new Date().getHours() * 60 + new Date().getMinutes();
+    const [oh,om] = (h.apertura||'').split(':').map(Number);
+    const [ch,cm] = (h.cierre||'').split(':').map(Number);
+    return now >= oh*60+om && now <= ch*60+cm;
+}
+
+function starsHtml(rating) {
+    if (!rating) return '';
+    const full = Math.floor(rating);
+    const half = rating - full >= 0.5 ? 1 : 0;
+    return '★'.repeat(full) + (half ? '½' : '') + '☆'.repeat(5 - full - half);
+}
+
+function distanceTo(lat, lng) {
+    if (!userCoords || !lat || !lng) return Infinity;
+    const R = 6371;
+    const dLat = (lat - userCoords.lat) * Math.PI / 180;
+    const dLng = (lng - userCoords.lng) * Math.PI / 180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(userCoords.lat*Math.PI/180) * Math.cos(lat*Math.PI/180) * Math.sin(dLng/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function showToast(msg, duration = 2500) {
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.textContent = msg;
+    document.getElementById('toastContainer').appendChild(t);
+    setTimeout(() => t.remove(), duration);
+}
+
+// ─── Favorites ────────────────────────────────────────────────────────────────
+function getFavorites() { return JSON.parse(localStorage.getItem('aura_favs') || '[]'); }
+function isFav(id) { return getFavorites().includes(String(id)); }
+function toggleFav(id, e) {
+    if (e) { e.stopPropagation(); }
+    const favs = getFavorites();
+    const sid = String(id);
+    const idx = favs.indexOf(sid);
+    if (idx === -1) { favs.push(sid); showToast('❤️ Guardado en favoritos'); }
+    else { favs.splice(idx, 1); showToast('Eliminado de guardados'); }
+    localStorage.setItem('aura_favs', JSON.stringify(favs));
+    document.querySelectorAll(`.fav-btn[data-id="${sid}"]`).forEach(btn => {
+        btn.classList.toggle('active', idx === -1);
+        btn.setAttribute('aria-label', idx === -1 ? 'Quitar de favoritos' : 'Guardar en favoritos');
+    });
+    // Actualizar el botón del modal si está abierto
+    const sheetFav = document.getElementById('sheetFavBtn');
+    if (sheetFav && sheetFav.dataset.id === sid) sheetFav.classList.toggle('active', idx === -1);
+}
+
+// ─── History ─────────────────────────────────────────────────────────────────
+function getHistory() { return JSON.parse(localStorage.getItem('aura_history') || '[]'); }
+function addToHistory(shopId) {
+    let h = getHistory().filter(id => id !== String(shopId));
+    h.unshift(String(shopId));
+    localStorage.setItem('aura_history', JSON.stringify(h.slice(0, 5)));
+    renderHistory();
+}
+function renderHistory() {
+    const ids = getHistory();
+    const bar = document.getElementById('historyBar');
+    const chips = document.getElementById('historyChips');
+    if (!ids.length) { bar.classList.remove('visible'); return; }
+    const shops = ids.map(id => allShops.find(s => String(s.id) === id)).filter(Boolean);
+    if (!shops.length) { bar.classList.remove('visible'); return; }
+    bar.classList.add('visible');
+    chips.innerHTML = shops.map(s =>
+        `<div class="history-chip" onclick="openShopDetail('${esc(s.id)}')">${esc(s.nombre)}</div>`
+    ).join('');
+}
+
+// ─── Map ─────────────────────────────────────────────────────────────────────
+function initMap() {
+    map = L.map('map', { zoomControl: true }).setView([18.4861, -69.9312], 13);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; AuraOS'
+    }).addTo(map);
+    clusterGroup = L.markerClusterGroup({ maxClusterRadius: 60 });
+    map.addLayer(clusterGroup);
+}
+
+function addMapMarkers(shops) {
+    clusterGroup.clearLayers();
+    shops.forEach(s => {
+        if (!s.lat || !s.lng) return;
+        const icon = L.divIcon({
+            className: 'custom-div-icon',
+            html: `<div class="marker-pin ${s.plan === 'elite' ? 'elite' : ''}" title="${esc(s.nombre)}"></div>`,
+            iconSize: [35, 45], iconAnchor: [17, 45]
+        });
+        const marker = L.marker([s.lat, s.lng], { icon });
+        marker.on('click', () => openShopDetail(s.id));
+        clusterGroup.addLayer(marker);
+    });
+}
+
+function showUserOnMap(lat, lng) {
+    if (userMarker) map.removeLayer(userMarker);
+    if (searchCircle) map.removeLayer(searchCircle);
+    userMarker = L.marker([lat, lng], {
+        icon: L.divIcon({ className:'custom-div-icon', html:`<div class="user-pin"></div>`, iconSize:[16,16], iconAnchor:[8,8] })
+    }).addTo(map).bindPopup('Tu ubicación');
+    searchCircle = L.circle([lat, lng], { radius: 2000, color: '#4a9eff', fillColor: '#4a9eff', fillOpacity: 0.06, weight: 1 }).addTo(map);
+    map.flyTo([lat, lng], 14, { duration: 1.5 });
+}
+
+function focusShop(lat, lng) {
+    if (!lat || !lng) return;
+    map.flyTo([lat, lng], 16, { duration: 1.2 });
+}
+
+// ─── Data Loading ─────────────────────────────────────────────────────────────
+function renderSkeletons(n = 4) {
+    return Array(n).fill(0).map(() => `
+        <div class="sk-card">
+            <div class="sk-img skeleton"></div>
+            <div class="sk-body">
+                <div class="sk-line skeleton w80"></div>
+                <div class="sk-line skeleton w50"></div>
+                <div class="sk-line skeleton w30"></div>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function loadShops() {
+    document.getElementById('shopsContainer').innerHTML = renderSkeletons();
+    try {
+        const res = await fetch(`${SB_URL}/rest/v1/shops?select=*&activo=eq.true&order=plan.desc`, {
+            headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+        });
+        allShops = await res.json();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const shopFilter = urlParams.get('shop');
+        if (shopFilter) allShops = allShops.filter(s => s.slug === shopFilter);
+
+        filteredShops = [...allShops];
+        currentPage = 0;
+        renderShops(true);
+        addMapMarkers(filteredShops);
+        renderHistory();
+
+        // Abrir modal si viene ?open=id en la URL
+        const openId = urlParams.get('open');
+        if (openId) openShopDetail(openId);
+
+    } catch (e) {
+        console.error('Error cargando shops:', e);
+        document.getElementById('shopsContainer').innerHTML =
+            '<p style="color:var(--text-dim);text-align:center;margin-top:40px;">Error al cargar. Intenta de nuevo.</p>';
+    }
+}
+
+// ─── Rendering ────────────────────────────────────────────────────────────────
+function renderShops(reset = false) {
+    const container = document.getElementById('shopsContainer');
+    if (reset) { container.innerHTML = ''; currentPage = 0; }
+
+    if (!filteredShops.length) {
+        container.innerHTML = '<p style="color:var(--text-dim);text-align:center;margin-top:40px;">No se encontraron resultados.</p>';
+        document.getElementById('loadMoreArea').style.display = 'none';
+        return;
+    }
+
+    const start = currentPage * PAGE_SIZE;
+    const slice = filteredShops.slice(start, start + PAGE_SIZE);
+
+    slice.forEach(s => {
+        const open = isOpenNow(s.horario);
+        const fav = isFav(s.id);
+        const dist = userCoords ? ` · ${distanceTo(s.lat, s.lng).toFixed(1)} km` : '';
+        const promo = Array.isArray(s.promociones) && s.promociones.length;
+        const wait = s.tiempo_espera != null ? `~${s.tiempo_espera} min` : null;
+
+        const card = document.createElement('div');
+        card.className = `card ${s.plan === 'elite' ? 'elite' : ''}`;
+        card.setAttribute('role', 'article');
+        card.setAttribute('tabindex', '0');
+        card.onclick = () => openShopDetail(s.id);
+        card.onkeydown = e => { if (e.key === 'Enter') openShopDetail(s.id); };
+
+        card.innerHTML = `
+            <img src="${esc(s.foto_url) || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400'}"
+                 class="card-img" alt="Foto de ${esc(s.nombre)}"
+                 onerror="this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400'">
+            <div class="card-body">
+                <div class="card-top">
+                    <div style="min-width:0">
+                        <h3 class="card-title font-outfit">${esc(s.nombre)}</h3>
+                        <p class="card-meta"><i data-lucide="map-pin" size="11"></i> ${esc(s.direccion) || 'Distrito Nacional'}${dist}</p>
                     </div>
-                `;
-            }).join('');
-            lucide.createIcons();
-        }
-
-        async function openShopDetail(id) {
-            const shop = allShops.find(s => s.id === id);
-            if(!shop) return;
-
-            focusShop(shop.lat, shop.lng);
-            
-            // Simular carga de staff y galería
-            const content = document.getElementById('sheetContent');
-            content.innerHTML = `
-                <div class="gallery-grid">
-                    <img src="${shop.foto_url}" class="gallery-main">
-                    <div class="gallery-side">
-                        <img src="https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=400">
-                        <img src="https://images.unsplash.com/photo-1621605815841-28d944683b83?w=400">
-                    </div>
-                </div>
-
-                <div class="action-header">
-                    <div>
-                        <h2 class="font-outfit" style="font-size:2.8rem; letter-spacing:-0.05em; line-height:1;">${shop.nombre}</h2>
-                        <p style="color:var(--text-dim); font-size:1rem; margin-top:10px;"><i data-lucide="map-pin" size="14"></i> ${shop.direccion}</p>
-                    </div>
-                    <div class="action-btns-inner">
-                        <button class="action-btn"><i data-lucide="share-2" size="18"></i></button>
-                        <button class="action-btn"><i data-lucide="heart" size="18"></i></button>
-                    </div>
-                </div>
-                
-                <div style="display:grid; grid-template-columns: 1.5fr 1fr; gap: 40px; margin-top:40px;">
-                    <div>
-                        <h4 class="sheet-label">Sobre nosotros</h4>
-                        <p style="font-size:1rem; line-height:1.7; opacity:0.8;">
-                            Desde 2015 cuidando la imagen de cada uno de nuestros clientes, ofreciendo servicios de alta calidad con las últimas tendencias en corte y barbería. Nuestro compromiso es la excelencia y tu satisfacción.
-                        </p>
-
-                        <h4 class="sheet-label" style="margin-top:40px;">Nuestro Equipo</h4>
-                        <div class="staff-list">
-                            <div class="staff-item"><div class="avatar">JS</div><span>Juan S.</span></div>
-                            <div class="staff-item"><div class="avatar">ML</div><span>Marcos L.</span></div>
-                            <div class="staff-item"><div class="avatar">DL</div><span>Dani L.</span></div>
-                            <div class="staff-item"><div class="avatar">RC</div><span>Ricardo C.</span></div>
-                            <div class="staff-item"><div class="avatar">AM</div><span>Andrés M.</span></div>
-                        </div>
-                    </div>
-
-                    <div style="background: rgba(255,255,255,0.03); padding:30px; border-radius:30px; border: 1px solid var(--border);">
-                        <h4 class="sheet-label" style="margin-top:0;">Horario</h4>
-                        <div class="hour-row today" style="border:none"><span>Lunes (Hoy)</span> <span>9:00 - 20:00</span></div>
-                        <div class="hour-row"><span>Martes</span> <span>9:00 - 20:00</span></div>
-                        <div class="hour-row"><span>Miércoles</span> <span>9:00 - 20:00</span></div>
-                        <div class="hour-row"><span>Jueves</span> <span>9:00 - 20:00</span></div>
-                        <div class="hour-row" style="border:none; opacity:0.5;"><span>Viernes</span> <span>9:00 - 20:00</span></div>
-                    </div>
-                </div>
-
-                <div style="margin-top:50px; display:flex; gap:20px; align-items:center; padding-top:30px; border-top: 1px solid var(--border);">
-                    <button class="btn btn-primary" style="height:70px; font-size:1.3rem; border-radius:20px;" onclick="window.open('https://wa.me/${shop.whatsapp}')">Reservar Turno Ahora</button>
-                    <button class="btn btn-ghost" style="width:70px; height:70px; border-radius:20px; flex:none;" onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${shop.lat},${shop.lng}')">
-                        <i data-lucide="navigation" size="24"></i>
+                    <button class="fav-btn ${fav ? 'active' : ''}" data-id="${esc(s.id)}"
+                            aria-label="${fav ? 'Quitar de favoritos' : 'Guardar en favoritos'}"
+                            onclick="toggleFav('${esc(s.id)}',event)">
+                        <i data-lucide="heart" size="17" fill="${fav ? '#ff3232' : 'none'}"></i>
                     </button>
                 </div>
-            `;
-            
-            document.getElementById('detailSheet').classList.add('active');
-            document.getElementById('overlay').classList.add('active');
-            lucide.createIcons();
+                <div class="badge-row">
+                    ${open === true ? '<span class="badge badge-open">● Abierto</span>' : open === false ? '<span class="badge badge-closed">● Cerrado</span>' : ''}
+                    ${promo ? '<span class="badge badge-promo">🏷 Oferta</span>' : ''}
+                    ${wait ? `<span class="badge badge-wait">⏱ ${wait}</span>` : ''}
+                </div>
+                ${s.rating ? `<div class="rating-row"><span class="stars">${starsHtml(s.rating)}</span><span class="rating-count">${s.rating.toFixed(1)} (${s.total_reseñas || 0})</span></div>` : ''}
+                <div class="btn-row">
+                    <button class="btn btn-primary" onclick="event.stopPropagation();window.open('https://wa.me/${esc(s.whatsapp)}')">Agendar</button>
+                    <button class="btn btn-ghost" title="Cómo llegar" aria-label="Cómo llegar"
+                            onclick="event.stopPropagation();window.open('https://www.google.com/maps/dir/?api=1&destination=${esc(s.lat)},${esc(s.lng)}')">
+                        <i data-lucide="navigation" size="13"></i>
+                    </button>
+                    <button class="btn btn-ghost" onclick="event.stopPropagation();window.open('/sala/${esc(s.slug)}')">Monitor</button>
+                </div>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+
+    lucide.createIcons();
+    currentPage++;
+
+    const hasMore = currentPage * PAGE_SIZE < filteredShops.length;
+    document.getElementById('loadMoreArea').style.display = hasMore ? 'block' : 'none';
+}
+
+function loadMoreShops() { renderShops(false); }
+
+// ─── Search ───────────────────────────────────────────────────────────────────
+function handleSearch(query) {
+    const q = query.toLowerCase().trim();
+    filteredShops = applyActiveFilters(
+        q ? allShops.filter(s =>
+            s.nombre?.toLowerCase().includes(q) ||
+            s.direccion?.toLowerCase().includes(q) ||
+            (Array.isArray(s.servicios) && s.servicios.some(sv => sv.nombre?.toLowerCase().includes(q)))
+        ) : allShops
+    );
+    applySortTo(filteredShops);
+    renderShops(true);
+    addMapMarkers(filteredShops);
+}
+
+// ─── Filter & Sort ───────────────────────────────────────────────────────────
+function applyActiveFilters(shops) {
+    let result = shops;
+    if (activeFilter === 'elite') result = result.filter(s => s.plan === 'elite');
+    if (activeFilter === 'open')  result = result.filter(s => isOpenNow(s.horario) === true);
+    if (activeFilter === 'favorites') result = result.filter(s => isFav(s.id));
+    if (filterOpen)  result = result.filter(s => isOpenNow(s.horario) === true);
+    if (filterPromo) result = result.filter(s => Array.isArray(s.promociones) && s.promociones.length);
+    if (filterElite) result = result.filter(s => s.plan === 'elite');
+    if (minRating > 0) result = result.filter(s => (s.rating || 0) >= minRating);
+    if (maxWait < 999) result = result.filter(s => s.tiempo_espera != null && s.tiempo_espera <= maxWait);
+    return result;
+}
+
+function filterShops(type, el) {
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    activeFilter = type;
+
+    if (type === 'near') {
+        if (!navigator.geolocation) { showToast('Tu navegador no soporta geolocalización.'); return; }
+        navigator.geolocation.getCurrentPosition(pos => {
+            userCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            showUserOnMap(userCoords.lat, userCoords.lng);
+            filteredShops = applyActiveFilters(allShops);
+            document.getElementById('sortSelect').value = 'near';
+            activeSort = 'near';
+            applySortTo(filteredShops);
+            renderShops(true);
+            addMapMarkers(filteredShops);
+        }, () => showToast('No se pudo obtener tu ubicación.'));
+        return;
+    }
+
+    filteredShops = applyActiveFilters(allShops);
+    applySortTo(filteredShops);
+    renderShops(true);
+    addMapMarkers(filteredShops);
+}
+
+function applySort() {
+    activeSort = document.getElementById('sortSelect').value;
+    applySortTo(filteredShops);
+    renderShops(true);
+}
+
+function applySortTo(arr) {
+    if (activeSort === 'rating') arr.sort((a,b) => (b.rating||0) - (a.rating||0));
+    else if (activeSort === 'near') arr.sort((a,b) => distanceTo(a.lat,a.lng) - distanceTo(b.lat,b.lng));
+    else if (activeSort === 'wait') arr.sort((a,b) => (a.tiempo_espera??999) - (b.tiempo_espera??999));
+}
+
+// ─── Filter Panel ─────────────────────────────────────────────────────────────
+function openFilterPanel() {
+    document.getElementById('filterPanel').classList.add('open');
+    document.getElementById('overlay').classList.add('active');
+}
+function closeFilterPanel() {
+    document.getElementById('filterPanel').classList.remove('open');
+    if (!document.getElementById('detailSheet').classList.contains('active'))
+        document.getElementById('overlay').classList.remove('active');
+}
+
+function setRatingFilter(val, el) {
+    document.querySelectorAll('.star-opt').forEach(o => o.classList.remove('active'));
+    el.classList.add('active');
+    minRating = val;
+}
+function setWaitFilter(val, el) {
+    document.querySelectorAll('[data-wait]').forEach(o => o.classList.remove('active'));
+    el.classList.add('active');
+    maxWait = val;
+}
+
+function applyFilters() {
+    filterOpen  = document.getElementById('toggleOpen').checked;
+    filterPromo = document.getElementById('togglePromo').checked;
+    filterElite = document.getElementById('toggleElite').checked;
+    const hasFilters = filterOpen || filterPromo || filterElite || minRating > 0 || maxWait < 999;
+    document.getElementById('filterBtn').classList.toggle('has-filters', hasFilters);
+    filteredShops = applyActiveFilters(allShops);
+    applySortTo(filteredShops);
+    renderShops(true);
+    addMapMarkers(filteredShops);
+    closeFilterPanel();
+    showToast(hasFilters ? 'Filtros aplicados' : 'Filtros limpiados');
+}
+
+function resetFilters() {
+    filterOpen = filterPromo = filterElite = false;
+    minRating = 0; maxWait = 999;
+    document.getElementById('toggleOpen').checked = false;
+    document.getElementById('togglePromo').checked = false;
+    document.getElementById('toggleElite').checked = false;
+    document.querySelectorAll('.star-opt').forEach((o,i) => o.classList.toggle('active', i === 0));
+    document.querySelectorAll('[data-wait]').forEach((o,i) => o.classList.toggle('active', i === 0));
+    document.getElementById('filterBtn').classList.remove('has-filters');
+}
+
+function openFavoritesFilter() {
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    document.querySelector('[data-filter="favorites"]').classList.add('active');
+    filterShops('favorites', document.querySelector('[data-filter="favorites"]'));
+}
+
+// ─── Detail Modal ─────────────────────────────────────────────────────────────
+function openShopDetail(id) {
+    const shop = allShops.find(s => String(s.id) === String(id));
+    if (!shop) return;
+
+    focusShop(shop.lat, shop.lng);
+    addToHistory(shop.id);
+
+    // Update URL sin recargar
+    const url = new URL(window.location);
+    url.searchParams.set('open', shop.id);
+    history.replaceState(null, '', url);
+
+    const open = isOpenNow(shop.horario);
+    const fav = isFav(shop.id);
+    const dist = userCoords ? `${distanceTo(shop.lat, shop.lng).toFixed(1)} km` : null;
+
+    // Galería
+    const extraImgs = Array.isArray(shop.galeria) && shop.galeria.length >= 2 ? shop.galeria : [
+        'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=400',
+        'https://images.unsplash.com/photo-1621605815841-28d944683b83?w=400'
+    ];
+
+    // Horario
+    const horarioHtml = Array.isArray(shop.horario) && shop.horario.length
+        ? shop.horario.map(h => `
+            <div class="hour-row ${h.dia === todayName ? 'today' : ''}">
+                <span class="day-label">${esc(h.dia)}</span>
+                <span>${h.cerrado ? '<span style="color:var(--red)">Cerrado</span>' : `${esc(h.apertura)} – ${esc(h.cierre)}`}</span>
+            </div>`).join('')
+        : DAYS.slice(1).map(d => `
+            <div class="hour-row ${d === todayName ? 'today' : ''}">
+                <span class="day-label">${d}</span><span style="color:var(--text-dim)">—</span>
+            </div>`).join('');
+
+    // Staff
+    const staffHtml = Array.isArray(shop.staff) && shop.staff.length
+        ? shop.staff.map(st => `
+            <div class="staff-item">
+                <div class="avatar">${esc((st.iniciales || st.nombre?.slice(0,2) || '??').toUpperCase())}</div>
+                <span class="staff-name">${esc(st.nombre)}</span>
+                ${st.especialidad ? `<span class="staff-name" style="font-size:0.65rem;color:var(--accent)">${esc(st.especialidad)}</span>` : ''}
+            </div>`).join('')
+        : '<p style="color:var(--text-dim);font-size:0.85rem;">Información no disponible.</p>';
+
+    // Servicios / Precios
+    const serviciosHtml = Array.isArray(shop.servicios) && shop.servicios.length
+        ? `<div class="services-list">${shop.servicios.map(sv => `
+            <div class="service-row">
+                <span>${esc(sv.nombre)}</span>
+                <span class="service-price">${sv.precio ? `RD$${Number(sv.precio).toLocaleString()}` : '—'}</span>
+            </div>`).join('')}</div>`
+        : '<p style="color:var(--text-dim);font-size:0.85rem;">Lista de precios no disponible.</p>';
+
+    // Slots de disponibilidad (hoy)
+    const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+    const todaySched = Array.isArray(shop.horario) ? shop.horario.find(h => h.dia === todayName) : null;
+    const takenSlots = Array.isArray(shop.slots_tomados) ? shop.slots_tomados : [];
+    let slotsHtml = '<p style="color:var(--text-dim);font-size:0.85rem;">Contacta por WhatsApp para verificar disponibilidad.</p>';
+    if (todaySched && !todaySched.cerrado && todaySched.apertura && todaySched.cierre) {
+        const [oh,om] = todaySched.apertura.split(':').map(Number);
+        const [ch,cm] = todaySched.cierre.split(':').map(Number);
+        const slots = [];
+        for (let m = oh*60+om; m < ch*60+cm; m += 30) {
+            const hStr = String(Math.floor(m/60)).padStart(2,'0') + ':' + String(m%60).padStart(2,'0');
+            slots.push(hStr);
         }
+        slotsHtml = `<div class="slots-grid">${slots.map(sl => {
+            const [sh,sm] = sl.split(':').map(Number);
+            const slMin = sh*60+sm;
+            const past = slMin < nowMin;
+            const taken = takenSlots.includes(sl);
+            const cls = past ? 'past' : taken ? 'taken' : 'free';
+            return `<div class="slot ${cls}" onclick="selectSlot(this,'${sl}')" title="${taken?'Ocupado':past?'Pasado':'Disponible'}">${sl}</div>`;
+        }).join('')}</div>`;
+    }
 
-        function closeSheet() {
-            document.getElementById('detailSheet').classList.remove('active');
-            document.getElementById('overlay').classList.remove('active');
-        }
+    // Reseñas
+    const reviewsHtml = Array.isArray(shop.reseñas) && shop.reseñas.length
+        ? `<div class="reviews-list">${shop.reseñas.slice(0,3).map(r => `
+            <div class="review-item">
+                <div class="review-header">
+                    <div>
+                        <span class="review-author">${esc(r.autor)}</span>
+                        <span class="stars" style="font-size:0.75rem;margin-left:8px;color:var(--accent)">${starsHtml(r.rating)}</span>
+                    </div>
+                    <span class="review-date">${esc(r.fecha || '')}</span>
+                </div>
+                <p class="review-text">${esc(r.texto)}</p>
+            </div>`).join('')}</div>`
+        : '<p style="color:var(--text-dim);font-size:0.85rem;">Sin reseñas todavía.</p>';
 
-        function addMapMarkers(shops) {
-            markers.forEach(m => map.removeLayer(m));
-            markers = [];
-            shops.forEach(s => {
-                if (!s.lat || !s.lng) return;
-                const icon = L.divIcon({
-                    className: 'custom-div-icon',
-                    html: `<div class='marker-pin ${s.plan === 'elite' ? 'elite' : ''}'></div>`,
-                    iconSize: [35, 45], iconAnchor: [17, 45]
-                });
-                const marker = L.marker([s.lat, s.lng], { icon }).addTo(map);
-                markers.push(marker);
-            });
-        }
+    // Promociones
+    const promosHtml = Array.isArray(shop.promociones) && shop.promociones.length
+        ? shop.promociones.map(p => `
+            <div class="promo-banner">
+                <div class="promo-icon">🏷</div>
+                <div>
+                    <div class="promo-title">${esc(p.titulo)}${p.descuento ? ` — ${esc(p.descuento)}% OFF` : ''}</div>
+                    ${p.descripcion ? `<div class="promo-desc">${esc(p.descripcion)}</div>` : ''}
+                </div>
+            </div>`).join('')
+        : '';
 
-        function focusShop(lat, lng) {
-            if (!lat || !lng) return;
-            map.flyTo([lat, lng], 16, { duration: 1.5 });
-        }
+    document.getElementById('sheetContent').innerHTML = `
+        <div class="gallery-grid">
+            <img src="${esc(shop.foto_url) || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800'}"
+                 class="gallery-main" alt="Interior de ${esc(shop.nombre)}"
+                 onerror="this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800'">
+            <div class="gallery-side">
+                <img src="${esc(extraImgs[0])}" alt="Galería" onerror="this.src='https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=400'">
+                <img src="${esc(extraImgs[1])}" alt="Galería" onerror="this.src='https://images.unsplash.com/photo-1621605815841-28d944683b83?w=400'">
+            </div>
+        </div>
 
-        function filterShops(type, el) {
-            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-            el.classList.add('active');
-            
-            let filtered = allShops;
-            if(type === 'elite') filtered = allShops.filter(s => s.plan === 'elite');
-            renderShops(filtered);
-            addMapMarkers(filtered);
-        }
+        <div class="sheet-content">
+            <div class="action-header">
+                <div style="min-width:0">
+                    <h2 id="sheetShopName" class="shop-title font-outfit">${esc(shop.nombre)}</h2>
+                    <p class="shop-subtitle">
+                        <i data-lucide="map-pin" size="13"></i> ${esc(shop.direccion) || 'Distrito Nacional'}
+                        ${dist ? `<span>· ${dist}</span>` : ''}
+                        ${open === true ? '<span class="badge badge-open" style="margin-left:6px">● Abierto</span>' : open === false ? '<span class="badge badge-closed" style="margin-left:6px">● Cerrado</span>' : ''}
+                    </p>
+                    ${shop.rating ? `<div class="rating-row" style="margin-top:8px"><span class="stars" style="font-size:1rem">${starsHtml(shop.rating)}</span><span class="rating-count">${shop.rating.toFixed(1)} · ${shop.total_reseñas || 0} reseñas</span></div>` : ''}
+                </div>
+                <div class="action-btns-inner">
+                    <button class="action-btn" onclick="shareShop('${esc(shop.id)}')" aria-label="Compartir">
+                        <i data-lucide="share-2" size="18"></i>
+                    </button>
+                    <button id="sheetFavBtn" class="action-btn ${fav ? 'active' : ''}" data-id="${esc(shop.id)}"
+                            aria-label="${fav ? 'Quitar de favoritos' : 'Guardar'}"
+                            onclick="toggleFav('${esc(shop.id)}')">
+                        <i data-lucide="heart" size="18" fill="${fav ? '#fff' : 'none'}"></i>
+                    </button>
+                </div>
+            </div>
 
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            const q = e.target.value.toLowerCase();
-            const filtered = allShops.filter(s => s.nombre.toLowerCase().includes(q) || (s.direccion && s.direccion.toLowerCase().includes(q)));
-            renderShops(filtered);
-            addMapMarkers(filtered);
-        });
+            ${promosHtml}
 
-        initMap();
-        loadShops();
-        lucide.createIcons();
-    </script>
+            <div class="sheet-grid">
+                <div>
+                    ${shop.descripcion ? `
+                        <span class="sheet-label">Sobre nosotros</span>
+                        <p style="font-size:0.95rem;line-height:1.7;opacity:0.8;margin-bottom:35px">${esc(shop.descripcion)}</p>
+                    ` : ''}
+
+                    <span class="sheet-label">Disponibilidad hoy</span>
+                    ${slotsHtml}
+
+                    <span class="sheet-label" style="margin-top:35px;display:block">Nuestro equipo</span>
+                    <div class="staff-list">${staffHtml}</div>
+
+                    <span class="sheet-label" style="margin-top:35px;display:block">Servicios & Precios</span>
+                    ${serviciosHtml}
+
+                    <span class="sheet-label" style="margin-top:35px;display:block">Reseñas</span>
+                    ${reviewsHtml}
+                </div>
+
+                <div style="background:rgba(255,255,255,0.03);padding:25px;border-radius:25px;border:1px solid var(--border);align-self:start;position:sticky;top:20px">
+                    <span class="sheet-label" style="margin-top:0">Horario</span>
+                    ${horarioHtml}
+                    ${shop.tiempo_espera != null ? `
+                        <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--border)">
+                            <span class="sheet-label" style="margin:0 0 8px">Espera actual</span>
+                            <p style="font-size:1.6rem;font-weight:800;font-family:'Outfit',sans-serif;color:var(--accent)">~${shop.tiempo_espera} min</p>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
+
+        <div class="sheet-cta">
+            <button class="btn btn-primary cta-main" onclick="window.open('https://wa.me/${esc(shop.whatsapp)}')">
+                Reservar Turno Ahora
+            </button>
+            <button class="btn btn-ghost cta-icon" aria-label="Cómo llegar"
+                    onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${esc(shop.lat)},${esc(shop.lng)}')">
+                <i data-lucide="navigation" size="22"></i>
+            </button>
+            <button class="btn btn-ghost cta-icon" aria-label="Compartir" onclick="shareShop('${esc(shop.id)}')">
+                <i data-lucide="share-2" size="22"></i>
+            </button>
+        </div>
+    `;
+
+    document.getElementById('detailSheet').classList.add('active');
+    document.getElementById('overlay').classList.add('active');
+    document.querySelector('.sheet-close').focus();
+    lucide.createIcons();
+}
+
+function closeSheet() {
+    document.getElementById('detailSheet').classList.remove('active');
+    document.getElementById('overlay').classList.remove('active');
+    const url = new URL(window.location);
+    url.searchParams.delete('open');
+    history.replaceState(null, '', url);
+}
+
+function handleOverlayClick() {
+    if (document.getElementById('filterPanel').classList.contains('open')) closeFilterPanel();
+    else closeSheet();
+}
+
+function selectSlot(el, time) {
+    if (el.classList.contains('past') || el.classList.contains('taken')) return;
+    document.querySelectorAll('.slot.selected').forEach(s => s.classList.remove('selected'));
+    el.classList.add('selected');
+    showToast(`Turno ${time} seleccionado — confirma por WhatsApp`);
+}
+
+// ─── Share ────────────────────────────────────────────────────────────────────
+async function shareShop(id) {
+    const shop = allShops.find(s => String(s.id) === String(id));
+    if (!shop) return;
+    const shareUrl = `${location.origin}${location.pathname}?open=${shop.id}`;
+    if (navigator.share) {
+        try {
+            await navigator.share({ title: shop.nombre, text: `Reserva en ${shop.nombre}`, url: shareUrl });
+        } catch (e) { /* usuario canceló */ }
+    } else {
+        navigator.clipboard.writeText(shareUrl).then(() => showToast('🔗 Link copiado al portapapeles'));
+    }
+}
+
+// ─── Keyboard ─────────────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        if (document.getElementById('filterPanel').classList.contains('open')) closeFilterPanel();
+        else closeSheet();
+    }
+});
+
+// ─── Search listeners ─────────────────────────────────────────────────────────
+let searchDebounce;
+const onSearch = e => {
+    clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(() => handleSearch(e.target.value), 250);
+};
+document.getElementById('searchInputNav').addEventListener('input', onSearch);
+document.getElementById('searchInputMobile').addEventListener('input', onSearch);
+
+// ─── Infinite scroll (IntersectionObserver) ────────────────────────────────
+const sentinel = document.getElementById('sentinel');
+const observer = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting && currentPage * PAGE_SIZE < filteredShops.length) loadMoreShops();
+}, { rootMargin: '100px' });
+observer.observe(sentinel);
+
+// ─── PWA Service Worker ───────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+initMap();
+loadShops();
+lucide.createIcons();
+</script>
 </body>
 </html>
