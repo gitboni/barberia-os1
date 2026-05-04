@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=Share+Tech+Mono&display=swap&font-display=swap"
     rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <style>
@@ -20,77 +20,59 @@
       box-sizing: border-box;
     }
 
-    /* ── Global Apple Scrollbar ── */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 10px;
-      border: 1px solid transparent;
-      background-clip: padding-box;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: rgba(255, 255, 255, 0.2);
-    }
-
     :root {
-      --bg: #000000;
-      --bg2: #0A0A0A;
-      --cyan: #98C1D9; /* Azul Glaciar - Calma y Profesionalismo */
-      --magenta: #B298DC; /* Lavanda Suave - Elegancia Beauty */
-      --gold: #D4AF37; /* Oro Champagne - Lujo */
-      --green: #A9BFA1; /* Verde Salvia - Bienestar / Spa */
-      --purple: #9F9FED; /* Periwinkle - Modernidad Soft */
-      --glow-c: rgba(152, 193, 217, 0.1);
-      --glow-m: rgba(178, 152, 220, 0.1);
-      --glow-g: rgba(169, 191, 161, 0.1);
-      --glow-p: rgba(159, 159, 237, 0.1);
+      --cyan: #D4A017;
+      --magenta: #FF006E;
+      --gold: #F5E050;
+      --green: #3ECF8E;
+      --purple: #B06EFF;
+      --bg: #020408;
+      --bg2: #060C14;
+      --glow-c: rgba(212, 160, 23, 0.45);
+      --glow-m: rgba(255, 0, 110, 0.5);
+      --glow-g: rgba(62, 207, 142, 0.5);
+      --glow-p: rgba(176, 110, 255, 0.5);
     }
 
     /* ── v86: Tema light — Salón de Belleza ─────────────────────────────── */
     html.tema-light {
-      --cyan: #2D3142;
-      --magenta: #9F9FED;
-      --gold: #D4AF37;
-      --green: #A9BFA1;
-      --purple: #8E8E93;
-      --bg: #FCFCFC;
-      --bg2: #F2F2F7;
-      --glow-c: rgba(45, 49, 66, 0.05);
-      --glow-m: rgba(159, 159, 237, 0.1);
-      --glow-g: rgba(169, 191, 161, 0.1);
-      --glow-p: rgba(142, 142, 147, 0.1);
+      --cyan: #6B21A8;
+      --magenta: #DB2777;
+      --gold: #C084FC;
+      --green: #86EFAC;
+      --purple: #A855F7;
+      --bg: #FAF7F5;
+      --bg2: #F0EBE8;
+      --glow-c: rgba(107, 33, 168, 0.18);
+      --glow-m: rgba(219, 39, 119, 0.25);
+      --glow-g: rgba(134, 239, 172, 0.4);
+      --glow-p: rgba(168, 85, 247, 0.3);
     }
     html.tema-light body { background: var(--bg); color: var(--cyan); }
     html.tema-light .grid-line,
-    html.tema-light .scanline { opacity: 0.02; }
+    html.tema-light .scanline { opacity: 0.04; }
     html.tema-light .barber-pole-wrap,
-    html.tema-light .shop-icon-circle { filter: drop-shadow(0 0 15px rgba(30,27,75,0.1)); }
+    html.tema-light .shop-icon-circle { filter: drop-shadow(0 0 18px rgba(107,33,168,0.25)); }
 
     /* ── v86: Tema zen — Spa / Estética ─────────────────────────────────── */
     html.tema-zen {
-      --cyan: #4A5759;
-      --magenta: #B298DC;
-      --gold: #D4AF37;
-      --green: #A9BFA1;
-      --purple: #778DA9;
-      --bg: #EDF2F4;
-      --bg2: #D8E2DC;
-      --glow-c: rgba(74, 87, 89, 0.05);
-      --glow-m: rgba(178, 152, 220, 0.1);
-      --glow-g: rgba(169, 191, 161, 0.1);
-      --glow-p: rgba(119, 141, 169, 0.1);
+      --cyan: #065F46;
+      --magenta: #0891B2;
+      --gold: #34D399;
+      --green: #6EE7B7;
+      --purple: #67E8F9;
+      --bg: #F0FDF4;
+      --bg2: #DCFCE7;
+      --glow-c: rgba(6, 95, 70, 0.18);
+      --glow-m: rgba(8, 145, 178, 0.25);
+      --glow-g: rgba(52, 211, 153, 0.4);
+      --glow-p: rgba(103, 232, 249, 0.3);
     }
     html.tema-zen body { background: var(--bg); color: var(--cyan); }
     html.tema-zen .grid-line,
-    html.tema-zen .scanline { opacity: 0.02; }
+    html.tema-zen .scanline { opacity: 0.03; }
     html.tema-zen .barber-pole-wrap,
-    html.tema-zen .shop-icon-circle { filter: drop-shadow(0 0 15px rgba(6,78,59,0.1)); }
+    html.tema-zen .shop-icon-circle { filter: drop-shadow(0 0 18px rgba(6,95,70,0.22)); }
     /* ─────────────────────────────────────────────────────────────────────── */
 
     html,
@@ -99,7 +81,7 @@
       height: 100%;
       background: var(--bg);
       color: var(--cyan);
-      font-family: 'Outfit', sans-serif;
+      font-family: 'Rajdhani', sans-serif;
       overflow: hidden;
     }
 
@@ -306,40 +288,49 @@
     }
 
     @keyframes item-in {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(10px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
     }
 
     @keyframes pill-in {
-      from { opacity: 0; transform: translateX(-8px) scale(0.9); }
-      to { opacity: 1; transform: translateX(0) scale(1); }
+      from {
+        opacity: 0;
+        transform: translateX(-8px) scale(0.9)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0) scale(1)
+      }
     }
 
     @keyframes mini-in {
-      from { opacity: 0; transform: scale(0.93); }
-      to { opacity: 1; transform: scale(1); }
-    }
+      from {
+        opacity: 0;
+        transform: scale(0.93)
+      }
 
-    @keyframes modal-pop {
-      0% { opacity: 0; transform: scale(0.9) translateY(20px); }
-      100% { opacity: 1; transform: scale(1) translateY(0); }
-    }
-
-    @keyframes avatar-pulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(0, 245, 255, 0.4); }
-      50% { box-shadow: 0 0 0 8px rgba(0, 245, 255, 0); }
+      to {
+        opacity: 1;
+        transform: scale(1)
+      }
     }
 
     @keyframes scan {
-      0% { left: -100%; opacity: 0; }
-      20% { opacity: 0.4; }
-      80% { opacity: 0.4; }
-      100% { left: 100%; opacity: 0; }
-    }
+      0% {
+        left: -80%
+      }
 
-    @keyframes qr-breathe {
-      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(255,255,255,0.1)); }
-      50% { transform: scale(1.02); filter: drop-shadow(0 0 15px rgba(255,255,255,0.2)); }
+      100% {
+        left: 180%
+      }
     }
 
     @keyframes alert-row {
@@ -446,69 +437,26 @@
       }
     }
 
-    @keyframes view-blur-in {
-      from { filter: blur(30px); opacity: 0; transform: scale(0.96); }
-      to { filter: blur(0); opacity: 1; transform: scale(1); }
-    }
-
-    .view-transition {
-      animation: view-blur-in 0.5s cubic-bezier(0.2, 1, 0.3, 1) forwards;
-    }
-
-    /* ── Apple-style Aurora Mesh ── */
-    .orbs-container {
-      position: fixed;
-      inset: 0;
-      z-index: -1;
-      filter: url(#gooey) blur(60px);
-      pointer-events: none;
-      overflow: hidden;
-    }
-
-    .orb {
-      position: absolute;
-      border-radius: 50%;
-      mix-blend-mode: screen;
-      will-change: transform;
-    }
-
-    .orb1 {
-      width: 80vw; height: 80vw;
-      background: radial-gradient(circle, var(--cyan) 0%, transparent 70%);
-      top: -10%; left: -10%;
-      animation: nebula-drift 25s ease-in-out infinite;
-      opacity: 0.15;
-    }
-
-    .orb2 {
-      width: 70vw; height: 70vw;
-      background: radial-gradient(circle, var(--purple) 0%, transparent 70%);
-      bottom: -10%; right: -10%;
-      animation: nebula-drift2 30s ease-in-out infinite alternate;
-      opacity: 0.12;
-    }
-
-    .orb3 {
-      width: 60vw; height: 60vw;
-      background: radial-gradient(circle, var(--magenta) 0%, transparent 70%);
-      top: 20%; right: 20%;
-      animation: nebula-drift3 22s ease-in-out infinite;
-      opacity: 0.1;
-    }
-
-    .orb4 {
-      width: 90vw; height: 90vw;
-      background: radial-gradient(circle, var(--green) 0%, transparent 70%);
-      bottom: 10%; left: 10%;
-      animation: nebula-drift 35s ease-in-out infinite reverse;
-      opacity: 0.08;
-    }
-
     @keyframes nebula-drift {
-      0% { transform: translate(0, 0) scale(1) rotate(0deg); }
-      33% { transform: translate(10%, 15%) scale(1.1) rotate(120deg); }
-      66% { transform: translate(-5%, 10%) scale(0.9) rotate(240deg); }
-      100% { transform: translate(0, 0) scale(1) rotate(360deg); }
+      0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 0.6
+      }
+
+      33% {
+        transform: translate(40px, -30px) scale(1.08);
+        opacity: 0.8
+      }
+
+      66% {
+        transform: translate(-20px, 20px) scale(0.95);
+        opacity: 0.65
+      }
+
+      100% {
+        transform: translate(0, 0) scale(1);
+        opacity: 0.6
+      }
     }
 
     @keyframes nebula-drift2 {
@@ -563,90 +511,15 @@
     }
 
     @keyframes vignette-breathe {
-      0%, 100% { opacity: 0.85 }
-      50% { opacity: 0.92 }
-    }
 
-    @keyframes view-blur-in {
-      from { filter: blur(20px); opacity: 0; transform: scale(1.02); }
-      to { filter: blur(0); opacity: 1; transform: scale(1); }
-    }
+      0%,
+      100% {
+        opacity: 0.85
+      }
 
-    .view-transition {
-      animation: view-blur-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-    }
-
-    /* ── Estilos Timeline Mañana ────────────────────────── */
-    .manana-timeline {
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      padding: 20px 0;
-      position: relative;
-    }
-    .manana-timeline::before {
-      content: '';
-      position: absolute;
-      left: 120px;
-      top: 0;
-      bottom: 0;
-      width: 1px;
-      background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.1) 10%, rgba(255,255,255,0.1) 90%, transparent);
-    }
-    .timeline-row {
-      display: flex;
-      align-items: flex-start;
-      gap: 30px;
-      padding: 15px 0;
-      position: relative;
-    }
-    .timeline-time {
-      width: 90px;
-      text-align: right;
-      font-family: 'Outfit', sans-serif;
-      font-weight: 700;
-      font-size: 1rem;
-      color: var(--cyan);
-      opacity: 0.8;
-      padding-top: 10px;
-    }
-    .timeline-dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: var(--bc);
-      box-shadow: 0 0 15px var(--bc);
-      margin-top: 16px;
-      position: relative;
-      z-index: 2;
-    }
-    .timeline-card {
-      flex: 1;
-      background: rgba(255,255,255,0.03);
-      border: 0.5px solid rgba(255,255,255,0.12);
-      border-radius: 20px;
-      padding: 16px 24px;
-      backdrop-filter: blur(10px);
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      transition: transform 0.3s;
-      box-shadow: inset 0 0 10px rgba(255,255,255,0.01);
-    }
-    .timeline-card:hover {
-      transform: translateX(5px);
-      background: rgba(255,255,255,0.05);
-      border-color: rgba(255,255,255,0.2);
-    }
-    .timeline-barber-tag {
-      font-size: 0.6rem;
-      font-weight: 800;
-      letter-spacing: 0.1em;
-      color: var(--bc);
-      background: rgba(255,255,255,0.05);
-      padding: 4px 10px;
-      border-radius: 10px;
-      border: 0.5px solid var(--bc);
+      50% {
+        opacity: 0.92
+      }
     }
 
     @keyframes ticker-move {
@@ -675,7 +548,7 @@
       padding: 4px 14px;
       border: 1px solid rgba(0, 255, 120, 0.2);
       background: rgba(0, 255, 120, 0.03);
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 0.72rem;
       font-weight: 600;
       color: rgba(0, 255, 120, 0.55);
@@ -719,24 +592,16 @@
       display: flex;
     }
 
-    .action-modal.open .action-box {
-      animation: modal-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-    }
-
     .action-box {
-      background: rgba(10, 15, 25, 0.5);
-      border: 0.5px solid rgba(255, 255, 255, 0.25);
-      padding: 32px 40px;
-      min-width: 380px;
-      max-width: 520px;
+      background: var(--bg2);
+      border: 1px solid rgba(0, 245, 255, 0.15);
+      padding: 28px 32px;
+      min-width: 360px;
+      max-width: 500px;
       width: 92%;
       position: relative;
       max-height: 92vh;
       overflow-y: auto;
-      border-radius: 40px;
-      backdrop-filter: blur(60px) saturate(210%);
-      -webkit-backdrop-filter: blur(60px) saturate(210%);
-      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), inset 0 0 0 1px rgba(255,255,255,0.05);
     }
 
     .action-box.reag-box {
@@ -763,11 +628,11 @@
     }
 
     .action-title {
-      font-family: 'Outfit', sans-serif;
-      font-size: 1.25rem;
-      font-weight: 800;
-      letter-spacing: 0.05em;
-      color: #fff;
+      font-family: 'Orbitron', monospace;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      color: var(--cyan);
       text-transform: uppercase;
       margin-bottom: 5px;
     }
@@ -781,12 +646,12 @@
     }
 
     .action-sub {
-      font-family: 'Inter', sans-serif;
-      font-size: 0.65rem;
-      color: rgba(255, 255, 255, 0.4);
-      letter-spacing: 0.05em;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.58rem;
+      color: rgba(0, 245, 255, 0.5);
+      letter-spacing: 0.16em;
       text-transform: uppercase;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
 
     .action-box.purple-modal .action-sub {
@@ -802,7 +667,7 @@
     }
 
     .afield label {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.6rem;
       color: rgba(0, 245, 255, 0.6);
       letter-spacing: 0.22em;
@@ -813,19 +678,17 @@
 
     .ainp {
       width: 100%;
-      background: rgba(255, 255, 255, 0.05);
-      border: 0.5px solid rgba(255, 255, 255, 0.18);
-      box-shadow: inset 0 0 15px rgba(255,255,255,0.01), 0 10px 30px rgba(0,0,0,0.2);
-      color: #fff;
-      padding: 12px 20px;
-      font-family: 'Outfit', sans-serif;
+      background: rgba(0, 245, 255, 0.03);
+      border: 1px solid rgba(0, 245, 255, 0.12);
+      color: var(--cyan);
+      padding: 9px 13px;
+      font-family: 'Rajdhani', sans-serif;
       font-size: 0.92rem;
-      font-weight: 500;
-      letter-spacing: 0.02em;
+      font-weight: 600;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
       outline: none;
-      transition: all 0.2s;
-      border-radius: 30px;
+      transition: border-color 0.2s;
     }
 
     .ainp:focus {
@@ -850,29 +713,27 @@
     }
 
     .barber-sel-btn {
-      padding: 8px 18px;
-      border: 0.5px solid rgba(255, 255, 255, 0.18);
-      box-shadow: inset 0 0 15px rgba(255,255,255,0.01), 0 10px 30px rgba(0,0,0,0.2);
-      background: rgba(255, 255, 255, 0.03);
-      color: rgba(255, 255, 255, 0.4);
-      font-family: 'Outfit', sans-serif;
-      font-size: 0.55rem;
-      letter-spacing: 0.08em;
+      padding: 6px 14px;
+      border: 1px solid rgba(0, 245, 255, 0.12);
+      background: transparent;
+      color: rgba(0, 245, 255, 0.38);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.46rem;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
       cursor: pointer;
       transition: all 0.2s;
-      border-radius: 30px;
     }
 
     .barber-sel-btn:hover {
-      background: rgba(255, 255, 255, 0.08);
-      color: #fff;
+      border-color: rgba(0, 245, 255, 0.3);
+      color: rgba(0, 245, 255, 0.7);
     }
 
     .barber-sel-btn.sel {
-      border-color: var(--magenta);
-      background: rgba(251, 113, 133, 0.15);
-      color: var(--magenta);
+      border-color: var(--cyan);
+      background: rgba(0, 245, 255, 0.1);
+      color: var(--cyan);
     }
 
     .time-slots {
@@ -897,7 +758,7 @@
       border: 1px solid rgba(0, 245, 255, 0.08);
       background: rgba(0, 245, 255, 0.01);
       color: rgba(0, 245, 255, 0.65);
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.68rem;
       text-align: center;
       cursor: pointer;
@@ -946,7 +807,7 @@
     .abtn {
       flex: 1;
       padding: 11px;
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 0.6rem;
       font-weight: 700;
       letter-spacing: 0.18em;
@@ -1019,20 +880,17 @@
     .pause-btn {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 6px 18px;
-      border: 0.5px solid rgba(255, 214, 0, 0.3);
-      background: rgba(255, 214, 0, 0.05);
-      color: rgba(255, 214, 0, 0.8);
-      font-family: 'Outfit', sans-serif;
-      font-size: 0.5rem;
-      font-weight: 700;
-      letter-spacing: 0.14em;
+      gap: 6px;
+      padding: 5px 12px;
+      border: 1px solid rgba(255, 214, 0, 0.25);
+      background: rgba(255, 214, 0, 0.04);
+      color: rgba(255, 214, 0, 0.6);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.48rem;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
       cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      border-radius: 999px;
-      backdrop-filter: blur(10px);
+      transition: all 0.2s;
     }
 
     .pause-btn:hover {
@@ -1104,7 +962,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 0.7rem;
       font-weight: 700;
       color: var(--cyan);
@@ -1121,7 +979,7 @@
     }
 
     .btb-citas {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.42rem;
       color: rgba(0, 245, 255, 0.4);
       margin-top: 1px;
@@ -1129,7 +987,7 @@
 
     .btb-badge {
       margin-left: auto;
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.4rem;
       padding: 2px 7px;
       border: 1px solid;
@@ -1161,7 +1019,7 @@
     }
 
     .transfer-num {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 1.8rem;
       font-weight: 700;
       color: var(--cyan);
@@ -1178,7 +1036,7 @@
     }
 
     .transfer-meta {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.46rem;
       color: rgba(0, 245, 255, 0.4);
       margin-top: 3px;
@@ -1190,10 +1048,11 @@
       border: 1px solid rgba(0, 245, 255, 0.25);
       background: rgba(0, 245, 255, 0.04);
       color: rgba(0, 245, 255, 0.65);
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.58rem;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.1em;
       cursor: pointer;
+      text-transform: uppercase;
       transition: all 0.2s;
       white-space: nowrap;
     }
@@ -1218,7 +1077,7 @@
       background: rgba(0, 255, 120, 0.1);
       border: 1px solid rgba(0, 255, 120, 0.4);
       color: var(--green);
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 0.55rem;
       letter-spacing: 0.14em;
       text-transform: uppercase;
@@ -1247,7 +1106,7 @@
     .bg-base {
       position: fixed;
       inset: 0;
-      z-index: -2;
+      z-index: 0;
       background: radial-gradient(ellipse 120% 80% at 50% -10%, #030b18 0%, #020408 60%, #010206 100%);
     }
 
@@ -1283,6 +1142,52 @@
       opacity: 0.045;
     }
 
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px); /* Optimizado: 140px -> 80px para mejor rendimiento en tablets */
+      pointer-events: none;
+      z-index: 0;
+      will-change: transform, opacity;
+      transform: translateZ(0); /* Forzar aceleracion GPU */
+    }
+
+    .orb1 {
+      width: 1100px;
+      height: 800px;
+      background: radial-gradient(ellipse, rgba(0, 245, 255, 0.09) 0%, rgba(0, 80, 200, 0.05) 40%, transparent 70%);
+      top: -350px;
+      left: -350px;
+      animation: nebula-drift 22s ease-in-out infinite;
+    }
+
+    .orb2 {
+      width: 900px;
+      height: 900px;
+      background: radial-gradient(ellipse, rgba(255, 0, 110, 0.07) 0%, rgba(120, 0, 80, 0.04) 40%, transparent 70%);
+      bottom: -350px;
+      right: -350px;
+      animation: nebula-drift2 26s ease-in-out infinite;
+    }
+
+    .orb3 {
+      width: 700px;
+      height: 600px;
+      background: radial-gradient(ellipse, rgba(176, 110, 255, 0.07) 0%, rgba(60, 20, 140, 0.03) 40%, transparent 70%);
+      top: 25%;
+      left: 50%;
+      transform: translateX(-50%);
+      animation: nebula-drift3 32s ease-in-out infinite;
+    }
+
+    .orb4 {
+      width: 600px;
+      height: 500px;
+      background: radial-gradient(ellipse, rgba(0, 255, 120, 0.055) 0%, rgba(0, 80, 40, 0.025) 40%, transparent 70%);
+      bottom: 5%;
+      left: 5%;
+      animation: nebula-drift 18s ease-in-out infinite reverse;
+    }
 
     #star-canvas {
       position: fixed;
@@ -1608,19 +1513,20 @@
     }
 
     .brand-name {
-      font-family: 'Outfit', sans-serif;
+      font-family: 'Orbitron', monospace;
       font-size: 1.4rem;
       font-weight: 900;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.15em;
       color: var(--cyan);
+      text-shadow: 0 0 24px var(--glow-c);
     }
 
     .brand-sub {
-      font-family: 'Inter', sans-serif;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.52rem;
-      color: var(--cyan);
-      opacity: 0.45;
-      letter-spacing: 0.1em;
+      color: rgba(0, 245, 255, 0.35);
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
       margin-top: 2px;
     }
 
@@ -1629,20 +1535,22 @@
     }
 
     .clock-time {
-      font-family: 'Outfit', sans-serif;
+      font-family: 'Orbitron', monospace;
       font-size: 2.2rem;
       font-weight: 700;
       color: var(--cyan);
       letter-spacing: 0.08em;
+      text-shadow: 0 0 30px var(--glow-c);
       line-height: 1;
     }
 
     .clock-date {
-      font-family: 'Inter', sans-serif;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.54rem;
       color: rgba(0, 245, 255, 0.4);
-      letter-spacing: 0.1em;
+      letter-spacing: 0.18em;
       margin-top: 4px;
+      text-transform: uppercase;
     }
 
     .header-right {
@@ -1655,17 +1563,14 @@
     .hpill {
       display: flex;
       align-items: center;
-      gap: 7px;
-      padding: 6px 16px;
-      border: 0.5px solid;
-      font-family: 'Outfit', sans-serif;
-      font-size: 0.5rem;
-      font-weight: 700;
-      letter-spacing: 0.12em;
+      gap: 6px;
+      padding: 5px 10px;
+      border: 1px solid;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.48rem;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
-      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-      border-radius: 999px;
-      backdrop-filter: blur(10px);
+      transition: all 0.4s;
     }
 
     .hpill-sys {
@@ -1723,19 +1628,16 @@
     }
 
     .fs-btn {
-      background: rgba(0, 245, 255, 0.08);
-      border: 0.5px solid rgba(0, 245, 255, 0.25);
-      color: rgba(0, 245, 255, 0.8);
-      padding: 6px 16px;
-      font-family: 'Outfit', sans-serif;
-      font-size: 0.5rem;
-      font-weight: 700;
-      letter-spacing: 0.14em;
+      background: rgba(0, 245, 255, 0.05);
+      border: 1px solid rgba(0, 245, 255, 0.15);
+      color: rgba(0, 245, 255, 0.5);
+      padding: 5px 10px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.48rem;
+      letter-spacing: 0.12em;
       cursor: pointer;
       text-transform: uppercase;
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      border-radius: 999px;
-      backdrop-filter: blur(10px);
+      transition: all 0.2s;
     }
 
     .fs-btn:hover {
@@ -1779,75 +1681,64 @@
     /* ── MODO BAR ── */
     .mode-bar {
       position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%) translateY(0);
-      z-index: 200;
+      bottom: 16px;
+      left: 68%;
+      transform: translateX(-50%);
+      z-index: 50;
       display: flex;
       align-items: center;
-      gap: 4px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 0.5px solid rgba(255, 255, 255, 0.18);
-      box-shadow: inset 0 0 15px rgba(255,255,255,0.01), 0 10px 30px rgba(0,0,0,0.2);
-      padding: 5px;
-      backdrop-filter: blur(40px) saturate(180%);
-      -webkit-backdrop-filter: blur(40px) saturate(180%);
-      border-radius: 40px;
-      box-shadow: 0 15px 45px rgba(0, 0, 0, 0.4);
-      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s;
+      gap: 3px;
+      background: rgba(2, 4, 8, 0.85);
+      border: 1px solid rgba(0, 245, 255, 0.12);
+      padding: 4px 6px;
+      backdrop-filter: blur(12px);
+      opacity: 0.22;
+      transition: opacity 0.3s;
     }
-    .mode-bar.hidden {
-      transform: translateX(-50%) translateY(100px);
-      opacity: 0;
-      pointer-events: none;
-    }
-    .mode-bar-trigger {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 40px;
-      z-index: 199;
-      cursor: pointer;
+
+    .mode-bar:hover {
+      opacity: 1;
     }
 
     .mode-btn {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 10px 24px;
-      border: none;
-      font-family: 'Outfit', sans-serif;
-      font-size: 0.58rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
+      gap: 5px;
+      padding: 6px 14px;
+      border: 1px solid transparent;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.48rem;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.45);
+      color: rgba(0, 245, 255, 0.4);
       background: transparent;
       cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: all 0.25s;
       white-space: nowrap;
-      border-radius: 999px;
     }
 
     .mode-btn:hover {
-      background: rgba(255, 255, 255, 0.08);
-      color: #fff;
-      transform: translateY(-1px);
+      color: var(--cyan);
+      border-color: rgba(0, 245, 255, 0.5);
+      background: rgba(0, 245, 255, 0.1);
     }
-    .mode-btn:active {
-      transform: scale(0.95);
-    }
+
     .mode-btn.active {
-      background: rgba(255, 255, 255, 1);
-      color: #000;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-      font-weight: 800;
-      transform: scale(1.05);
+      color: var(--cyan);
+      border-color: rgba(0, 245, 255, 0.4);
+      background: rgba(0, 245, 255, 0.07);
+    }
+
+    .mode-btn.mode-barber-active {
+      color: var(--purple);
+      border-color: rgba(176, 110, 255, 0.4);
+      background: rgba(176, 110, 255, 0.07);
     }
 
     .mode-sep {
-      display: none;
+      width: 1px;
+      height: 14px;
+      background: rgba(0, 245, 255, 0.1);
     }
 
     .barber-picker {
@@ -1860,8 +1751,7 @@
       transform: translateX(-50%);
       z-index: 51;
       background: rgba(255, 255, 255, 0.03);
-      border: 0.5px solid rgba(255, 255, 255, 0.18);
-      box-shadow: inset 0 0 15px rgba(255,255,255,0.01), 0 10px 30px rgba(0,0,0,0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       padding: 12px;
       backdrop-filter: blur(24px) saturate(180%);
       -webkit-backdrop-filter: blur(24px) saturate(180%);
@@ -1875,7 +1765,7 @@
     }
 
     .bp-title {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.4rem;
       letter-spacing: 0.28em;
       color: rgba(176, 110, 255, 0.4);
@@ -1914,7 +1804,7 @@
     }
 
     .bp-status {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.4rem;
       color: rgba(0, 255, 120, 0.5);
       letter-spacing: 0.1em;
@@ -1925,7 +1815,7 @@
     }
 
     .bp-toggle {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 0.38rem;
       padding: 4px 12px;
       border: 1px solid;
@@ -1986,29 +1876,16 @@
     }
 
     .tv-card {
-      border: 0.5px solid rgba(255, 255, 255, 0.2);
-      box-shadow: 0 15px 45px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255,255,255,0.03);
-      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.03);
       display: flex;
       flex-direction: column;
       overflow: hidden;
       position: relative;
-      backdrop-filter: blur(32px) saturate(200%);
-      -webkit-backdrop-filter: blur(32px) saturate(200%);
-      border-radius: 36px;
-    }
-
-    .tv-card::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
-      animation: scan 10s infinite ease-in-out;
-      pointer-events: none;
-      z-index: 5;
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border-radius: 32px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
     }
 
     .tv-card::before {
@@ -2040,7 +1917,7 @@
     }
 
     .tv-barber-name {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 0.7rem;
       font-weight: 700;
       letter-spacing: 0.2em;
@@ -2050,7 +1927,7 @@
     }
 
     .tv-status-badge {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.38rem;
       padding: 2px 7px;
       border: 1px solid;
@@ -2081,7 +1958,7 @@
     }
 
     .tv-num {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-weight: 900;
       color: var(--bc, var(--cyan));
       line-height: 1;
@@ -2115,7 +1992,8 @@
       font-family: 'Rajdhani', sans-serif;
       font-weight: 700;
       color: #fff;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
       text-align: center;
       white-space: nowrap;
       overflow: hidden;
@@ -2142,10 +2020,11 @@
       padding: 3px 12px;
       border: 1px solid rgba(255, 214, 0, 0.25);
       background: rgba(255, 214, 0, 0.04);
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.52rem;
       color: var(--gold);
-      letter-spacing: 0.12em;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
     }
 
     .tv-card-footer {
@@ -2162,7 +2041,7 @@
     }
 
     .tv-next-label {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.38rem;
       letter-spacing: 0.22em;
       color: rgba(0, 245, 255, 0.22);
@@ -2170,7 +2049,7 @@
     }
 
     .tv-next-num {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 0.9rem;
       font-weight: 700;
       color: rgba(0, 245, 255, 0.32);
@@ -2189,7 +2068,7 @@
     }
 
     .tv-next-time {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 0.75rem;
       color: var(--gold);
       opacity: 0.7;
@@ -2202,7 +2081,7 @@
       border: 1px solid rgba(0, 255, 120, 0.35);
       border-top: none;
       color: var(--green);
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 0.65rem;
       font-weight: 700;
       letter-spacing: 0.24em;
@@ -2226,41 +2105,30 @@
     }
 
     .tv-ticker {
-      height: 48px;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      background: rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(40px) saturate(200%);
-      -webkit-backdrop-filter: blur(40px) saturate(200%);
+      height: 32px;
+      border-top: 1px solid rgba(0, 245, 255, 0.07);
+      background: rgba(2, 4, 8, 0.7);
       display: flex;
       align-items: center;
       overflow: hidden;
       flex-shrink: 0;
-      position: relative;
     }
 
     .tv-ticker-label {
-      padding: 0 20px;
-      font-family: 'Outfit', sans-serif;
-      font-size: 0.58rem;
-      font-weight: 800;
-      color: rgba(255, 255, 255, 0.9);
-      letter-spacing: 0.15em;
+      padding: 0 14px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.42rem;
+      color: rgba(0, 245, 255, 0.25);
+      letter-spacing: 0.22em;
       text-transform: uppercase;
       white-space: nowrap;
-      background: rgba(255, 255, 255, 0.05);
-      height: 100%;
-      display: flex;
-      align-items: center;
-      border-right: 1px solid rgba(255, 255, 255, 0.1);
+      border-right: 1px solid rgba(0, 245, 255, 0.07);
       flex-shrink: 0;
-      z-index: 10;
     }
 
     .tv-ticker-track {
       flex: 1;
       overflow: hidden;
-      mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
-      -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
     }
 
     .tv-ticker-inner {
@@ -2272,39 +2140,33 @@
     .tv-ticker-item {
       display: inline-flex;
       align-items: center;
-      gap: 12px;
-      padding: 0 35px;
-      font-family: 'Outfit', sans-serif;
-      font-size: 0.55rem;
-      font-weight: 500;
-      color: rgba(255, 255, 255, 0.4);
-      letter-spacing: 0.05em;
+      gap: 8px;
+      padding: 0 20px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.44rem;
+      color: rgba(0, 245, 255, 0.3);
+      letter-spacing: 0.1em;
       text-transform: uppercase;
-      border-right: 1px solid rgba(255, 255, 255, 0.08);
-      height: 48px;
+      border-right: 1px solid rgba(0, 245, 255, 0.05);
     }
 
     .tv-ticker-item .t-n {
-      font-family: 'Outfit', sans-serif;
-      font-size: 0.65rem;
-      font-weight: 800;
-      color: rgba(255, 255, 255, 0.25);
+      font-family: 'Orbitron', monospace;
+      font-size: 0.55rem;
+      color: rgba(0, 245, 255, 0.5);
     }
 
     .tv-ticker-item .t-b {
       color: var(--purple);
-      opacity: 0.7;
-      font-weight: 700;
+      opacity: 0.6;
     }
 
     .tv-ticker-item.active {
-      background: rgba(0, 255, 120, 0.05);
-      color: #fff;
+      color: rgba(0, 255, 120, 0.5);
     }
 
     .tv-ticker-item.active .t-n {
       color: var(--green);
-      text-shadow: 0 0 15px var(--green);
     }
 
     /* ── LAYOUT SOLO / MULTI ── */
@@ -2363,9 +2225,7 @@
       align-items: center;
       padding: 30px 24px;
       position: relative;
-      overflow: hidden;
-      border: 0.5px solid rgba(255, 255, 255, 0.18);
-      box-shadow: inset 0 0 15px rgba(255,255,255,0.01), 0 10px 30px rgba(0,0,0,0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       background: rgba(255, 255, 255, 0.03);
       backdrop-filter: blur(24px) saturate(180%);
       -webkit-backdrop-filter: blur(24px) saturate(180%);
@@ -2373,19 +2233,6 @@
       margin: 10px;
       flex-shrink: 0;
       box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5);
-    }
-
-    .silla-zone::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.04), transparent);
-      animation: scan 15s infinite ease-in-out;
-      pointer-events: none;
-      z-index: 5;
     }
 
     .layout-solo .silla-zone {
@@ -2398,24 +2245,22 @@
     }
 
     .now-label {
-      font-family: 'Outfit', sans-serif;
-      font-size: 0.52rem;
-      font-weight: 700;
-      letter-spacing: 0.15em;
-      color: rgba(255, 255, 255, 0.95);
+      font-family: 'Orbitron', monospace;
+      font-size: 0.55rem;
+      letter-spacing: 0.25em;
+      color: rgba(255, 255, 255, 0.85);
       text-transform: uppercase;
       margin-bottom: 14px;
-      padding: 6px 20px;
-      border-radius: 40px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 0.5px solid rgba(255, 255, 255, 0.2);
+      padding: 6px 18px;
+      border-radius: 30px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       text-align: center;
-      backdrop-filter: blur(25px) saturate(180%);
-      -webkit-backdrop-filter: blur(25px) saturate(180%);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
       display: inline-flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
     .now-label::before, .now-label::after {
       content: '';
@@ -2433,7 +2278,7 @@
     }
 
     .hero-ghost {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-weight: 900;
       color: transparent;
       -webkit-text-stroke: 1px rgba(0, 245, 255, 0.05);
@@ -2446,17 +2291,17 @@
     }
 
     .hero-num {
-      font-family: 'Outfit', sans-serif;
+      font-family: 'Orbitron', monospace;
       font-weight: 900;
       color: var(--bc, var(--cyan));
-      line-height: 0.9;
-      letter-spacing: -0.05em;
+      text-shadow: 0 0 30px var(--bc-glow, var(--glow-c)), 0 0 80px var(--bc-glow, rgba(0, 245, 255, 0.25));
+      line-height: 1;
+      letter-spacing: 0.06em;
       position: relative;
       z-index: 1;
-      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-      filter: drop-shadow(0 5px 15px rgba(0,0,0,0.4));
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      animation: hero-pulse 3s ease-in-out infinite;
     }
-    /* Eliminada animación hero-pulse neón */
 
     .hero-num.flip {
       animation: flip-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -2501,41 +2346,43 @@
       letter-spacing: 0.12em;
       text-transform: uppercase;
       text-align: center;
-      margin-top: 4px;
+      margin-top: 2px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       max-width: 100%;
-      line-height: 1.2;
     }
 
     .layout-solo .silla-name {
-      font-size: clamp(1rem, 2.5vw, 1.5rem);
-      margin-bottom: 4px;
+      font-size: 1.5rem;
     }
 
     .layout-multi .silla-name.n1 {
-      font-size: clamp(1rem, 3vw, 1.5rem);
+      font-size: 1.5rem;
     }
+
     .layout-multi .silla-name.n2 {
-      font-size: clamp(0.9rem, 2.5vw, 1.2rem);
+      font-size: 1.2rem;
     }
+
     .layout-multi .silla-name.n3 {
-      font-size: clamp(0.8rem, 2vw, 1rem);
+      font-size: 1rem;
     }
+
     .layout-multi .silla-name.n4 {
-      font-size: clamp(0.7rem, 1.8vw, 0.88rem);
+      font-size: 0.88rem;
     }
+
     .layout-multi .silla-name.n5 {
-      font-size: clamp(0.6rem, 1.5vw, 0.78rem);
+      font-size: 0.78rem;
     }
 
     .silla-service {
-      margin-top: 6px;
-      padding: 4px 16px;
+      margin-top: 10px;
+      padding: 6px 20px;
       border-radius: 20px;
       background: rgba(255, 214, 0, 0.1);
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 0.55rem;
       letter-spacing: 0.15em;
       color: var(--gold);
@@ -2553,7 +2400,7 @@
       padding: 3px 12px;
       border: 1px solid rgba(176, 110, 255, 0.25);
       background: rgba(176, 110, 255, 0.05);
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.58rem;
       letter-spacing: 0.18em;
       color: var(--purple);
@@ -2590,12 +2437,11 @@
 
     /* ── BOTTOM ZONE ── */
     .bottom-zone {
-      padding: 10px 18px 18px;
+      padding: 12px 18px 14px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 9px;
       flex-shrink: 0;
-      background: rgba(0, 0, 0, 0.2);
     }
 
     .next-strip {
@@ -2603,13 +2449,11 @@
       grid-template-columns: auto 1fr auto;
       align-items: center;
       gap: 12px;
-      padding: 14px 22px;
-      border: 0.5px solid rgba(255, 255, 255, 0.22);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255,255,255,0.03);
+      padding: 12px 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
       background: rgba(255, 255, 255, 0.03);
-      backdrop-filter: blur(30px) saturate(180%);
-      -webkit-backdrop-filter: blur(30px) saturate(180%);
-      border-radius: 28px;
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
       position: relative;
       margin: 4px 0;
     }
@@ -2621,14 +2465,14 @@
       left: 12px;
       background: var(--bg);
       padding: 0 7px;
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.44rem;
       letter-spacing: 0.28em;
       color: rgba(0, 245, 255, 0.28);
     }
 
     .next-n {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 2rem;
       font-weight: 700;
       color: rgba(0, 245, 255, 0.4);
@@ -2650,13 +2494,13 @@
     }
 
     .next-barber {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.52rem;
       color: rgba(176, 110, 255, 0.5);
     }
 
     .next-time-badge {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 0.85rem;
       color: var(--gold);
     }
@@ -2668,7 +2512,7 @@
       padding: 6px 12px;
       border: 1px solid rgba(0, 255, 120, 0.12);
       background: rgba(0, 255, 120, 0.025);
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.5rem;
       letter-spacing: 0.12em;
       color: rgba(0, 255, 120, 0.4);
@@ -2692,11 +2536,11 @@
 
     .btn-siguiente {
       width: 100%;
-      padding: 12px 0;
+      padding: 14px 0;
       background: linear-gradient(135deg, rgba(0, 255, 120, 0.15), rgba(0, 245, 255, 0.08));
       border: 1px solid rgba(0, 255, 120, 0.4);
       color: var(--green);
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 0.72rem;
       font-weight: 700;
       letter-spacing: 0.26em;
@@ -2709,15 +2553,6 @@
       border-radius: 40px;
       flex-shrink: 0;
       -webkit-tap-highlight-color: transparent;
-      margin-bottom: 8px;
-    }
-
-    .btn-siguiente:hover {
-      box-shadow: 0 15px 45px rgba(0, 255, 120, 0.25);
-      transform: translateY(-3px) scale(1.02);
-    }
-    .btn-siguiente:active {
-      transform: scale(0.96) translateY(0);
     }
 
     .layout-multi .btn-siguiente {
@@ -2806,7 +2641,7 @@
     .swipe-hint {
       text-align: center;
       padding: 2px 0;
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.36rem;
       color: rgba(0, 245, 255, 0.13);
       letter-spacing: 0.16em;
@@ -2851,7 +2686,7 @@
     }
 
     .queue-title {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 0.74rem;
       font-weight: 600;
       letter-spacing: 0.2em;
@@ -2860,7 +2695,7 @@
     }
 
     .queue-meta {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.7rem;
       color: rgba(0, 245, 255, 0.65);
     }
@@ -2873,20 +2708,20 @@
     }
 
     .stat-card {
-      padding: 8px 16px;
-      border: 0.5px solid rgba(255, 255, 255, 0.18);
-      box-shadow: inset 0 0 15px rgba(255,255,255,0.01), 0 10px 30px rgba(0,0,0,0.2);
+      padding: 12px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
       background: rgba(255, 255, 255, 0.03);
       backdrop-filter: blur(20px);
-      border-radius: 20px;
+      border-radius: 40px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     }
 
     .stat-val {
-      font-family: 'Outfit', monospace;
-      font-size: 1.15rem;
+      font-family: 'Orbitron', monospace;
+      font-size: 1.45rem;
       font-weight: 800;
       color: var(--cyan);
-      line-height: 1.1;
+      line-height: 1;
     }
 
     .stat-val.gold {
@@ -2902,7 +2737,7 @@
     }
 
     .stat-lbl {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.6rem;
       color: rgba(0, 245, 255, 0.65);
       letter-spacing: 0.2em;
@@ -2962,7 +2797,7 @@
     }
 
     .done-strip-label {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.6rem;
       letter-spacing: 0.28em;
       color: rgba(0, 255, 120, 0.7);
@@ -2994,7 +2829,7 @@
     }
 
     .done-pill-num {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 0.62rem;
       font-weight: 700;
       color: rgba(0, 255, 120, 0.5);
@@ -3016,7 +2851,7 @@
     }
 
     .done-strip-empty {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.44rem;
       color: rgba(0, 255, 120, 0.18);
       letter-spacing: 0.15em;
@@ -3030,7 +2865,7 @@
       border: 1px solid rgba(0, 255, 120, 0.4);
       background: rgba(0, 255, 120, 0.06);
       color: rgba(0, 255, 120, 0.85);
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.8rem;
       cursor: pointer;
       transition: all 0.18s;
@@ -3054,9 +2889,9 @@
 
     .q-col-header {
       display: grid;
-      grid-template-columns: 50px 1fr 1fr 60px 84px 100px;
+      grid-template-columns: 68px 1fr 96px 84px 96px;
       padding: 8px 16px;
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.5rem;
       letter-spacing: 0.2em;
       color: rgba(255, 255, 255, 0.3);
@@ -3066,27 +2901,19 @@
 
     .q-item {
       display: grid;
-      grid-template-columns: 50px 1fr 1fr 60px 84px 100px;
+      grid-template-columns: 68px 1fr 96px 84px 96px;
       align-items: center;
-      padding: 14px 20px;
-      border: 0.5px solid rgba(255, 255, 255, 0.15);
-      background: rgba(255, 255, 255, 0.03);
-      backdrop-filter: blur(30px) saturate(180%);
-      -webkit-backdrop-filter: blur(30px) saturate(180%);
+      padding: 12px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.02);
+      backdrop-filter: blur(10px);
       position: relative;
       overflow: hidden;
-      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-      animation: item-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      animation: item-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
       opacity: 0;
-      border-radius: 28px;
-      margin-bottom: 6px;
-      cursor: pointer;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    }
-    .q-item:hover {
-      transform: scale(1.01) translateX(5px);
-      background: rgba(255, 255, 255, 0.05);
-      border-color: rgba(255, 255, 255, 0.15);
+      border-radius: 24px;
+      margin-bottom: 4px;
     }
 
     .q-item.s-active {
@@ -3120,10 +2947,10 @@
     }
 
     .q-num {
-      font-family: 'Outfit', monospace;
-      font-size: 1.25rem;
+      font-family: 'Orbitron', monospace;
+      font-size: 1.2rem;
       font-weight: 700;
-      color: rgba(0, 245, 255, 0.6);
+      color: rgba(0, 245, 255, 0.28);
     }
 
     .q-item.s-active .q-num {
@@ -3139,27 +2966,27 @@
 
     .q-name {
       font-family: 'Rajdhani', sans-serif;
-      font-size: 1.0rem;
+      font-size: 0.98rem;
       font-weight: 600;
       color: #fff;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
     .q-svc {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.52rem;
       color: rgba(255, 245, 200, 0.75);
       font-weight: 500;
-      letter-spacing: 0.05em;
-      text-align: center;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
     }
 
     .q-barber {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.53rem;
       color: rgba(176, 110, 255, 0.42);
       text-align: center;
@@ -3170,7 +2997,7 @@
     }
 
     .q-time {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 0.8rem;
       color: var(--gold);
       text-align: center;
@@ -3181,40 +3008,42 @@
       align-items: center;
       gap: 4px;
       padding: 3px 7px;
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.44rem;
       letter-spacing: 0.12em;
       text-transform: uppercase;
     }
 
     .tag-active, .tag-next, .tag-alert, .tag-wait {
-      border-radius: 40px;
-      padding: 5px 16px;
-      backdrop-filter: blur(25px) saturate(180%);
-      -webkit-backdrop-filter: blur(25px) saturate(180%);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-      border: 0.5px solid rgba(255, 255, 255, 0.15);
+      border-radius: 30px;
+      padding: 4px 14px;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
 
     .tag-active {
-      background: rgba(255, 255, 255, 0.1);
-      color: #fff;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--cyan);
+      border: 1px solid rgba(0, 245, 255, 0.2);
     }
 
     .tag-next {
-      background: rgba(255, 214, 0, 0.1);
+      background: rgba(255, 255, 255, 0.03);
       color: var(--gold);
+      border: 1px solid rgba(255, 214, 0, 0.2);
     }
 
     .tag-alert {
-      background: rgba(255, 214, 0, 0.15);
+      background: rgba(255, 255, 255, 0.03);
       color: var(--gold);
+      border: 1px solid rgba(255, 214, 0, 0.2);
       animation: tag-blink 1.5s ease-in-out infinite;
     }
 
     .tag-wait {
-      background: rgba(255, 255, 255, 0.05);
-      color: rgba(255, 255, 255, 0.6);
+      background: rgba(255, 255, 255, 0.03);
+      color: rgba(255, 255, 255, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.15);
     }
 
     .tag-dot {
@@ -3231,7 +3060,7 @@
       gap: 7px;
       padding: 3px 0 2px;
       flex-shrink: 0;
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.6rem;
       letter-spacing: 0.28em;
       color: rgba(0, 245, 255, 0.65);
@@ -3249,7 +3078,7 @@
       background: rgba(0, 245, 255, 0.05);
       border: 1px solid rgba(0, 245, 255, 0.12);
       padding: 1px 6px;
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 0.44rem;
       color: rgba(0, 245, 255, 0.35);
     }
@@ -3271,17 +3100,15 @@
     }
 
     .q-mini {
-      padding: 12px 14px;
-      border: 0.5px solid rgba(255, 255, 255, 0.15);
-      background: rgba(255, 255, 255, 0.03);
-      backdrop-filter: blur(20px) saturate(160%);
-      -webkit-backdrop-filter: blur(20px) saturate(160%);
+      padding: 10px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.02);
+      backdrop-filter: blur(10px);
       position: relative;
       overflow: hidden;
       animation: mini-in 0.3s ease forwards;
       opacity: 0;
-      border-radius: 18px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      border-radius: 12px;
     }
 
     .q-mini.ms-wait {
@@ -3293,7 +3120,7 @@
     }
 
     .q-mini-num {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 0.78rem;
       font-weight: 700;
       color: rgba(0, 245, 255, 0.65);
@@ -3321,13 +3148,13 @@
     }
 
     .q-mini-time {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 0.65rem;
       color: rgba(255, 214, 0, 0.75);
     }
 
     .q-mini-barb {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.55rem;
       color: rgba(176, 110, 255, 0.72);
       text-transform: uppercase;
@@ -3345,7 +3172,7 @@
       margin-left: 8px;
       border: 1px solid rgba(255, 214, 0, 0.2);
       background: rgba(255, 214, 0, 0.04);
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.5rem;
       color: rgba(255, 214, 0, 0.55);
       vertical-align: middle;
@@ -3356,15 +3183,11 @@
     .multi-queue {
       flex: 1;
       overflow-y: auto;
-      padding: 10px 12px;
+      padding: 5px 7px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 3px;
       min-height: 0;
-      scrollbar-width: none; /* Firefox */
-    }
-    .multi-queue::-webkit-scrollbar {
-      display: none; /* Chrome/Safari */
     }
 
     .multi-queue::-webkit-scrollbar {
@@ -3377,22 +3200,16 @@
 
     .mq-row {
       display: grid;
-      grid-template-columns: 32px 1fr auto;
+      grid-template-columns: 28px 1fr auto;
       align-items: center;
-      gap: 10px;
-      padding: 12px 16px;
-      border: 0.5px solid rgba(255, 255, 255, 0.12);
-      background: rgba(255, 255, 255, 0.03);
-      backdrop-filter: blur(20px) saturate(150%);
-      -webkit-backdrop-filter: blur(20px) saturate(150%);
+      gap: 5px;
+      padding: 7px 8px;
+      border: 1px solid rgba(0, 245, 255, 0.07);
+      background: rgba(0, 245, 255, 0.015);
       position: relative;
       overflow: hidden;
-      animation: item-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      animation: item-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
       opacity: 0;
-      flex-shrink: 0;
-      min-height: 52px;
-      border-radius: 20px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
     .mq-row.mn {
@@ -3410,7 +3227,7 @@
     }
 
     .mq-n {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 0.9rem;
       font-weight: 700;
       color: rgba(0, 245, 255, 0.25);
@@ -3433,7 +3250,7 @@
     }
 
     .mq-info .mq-svc {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.38rem;
       color: rgba(255, 255, 255, 0.18);
       margin-top: 1px;
@@ -3447,13 +3264,13 @@
     }
 
     .mq-time {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 0.68rem;
       color: var(--gold);
     }
 
     .mq-eta {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.36rem;
       color: rgba(255, 214, 0, 0.38);
     }
@@ -3475,14 +3292,14 @@
       left: 9px;
       background: var(--bg);
       padding: 0 5px;
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.36rem;
       letter-spacing: 0.28em;
       color: rgba(0, 245, 255, 0.22);
     }
 
     .mn-n {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 1.3rem;
       font-weight: 700;
       color: rgba(0, 245, 255, 0.28);
@@ -3506,14 +3323,14 @@
     }
 
     .mn-svc {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.36rem;
       color: rgba(255, 255, 255, 0.18);
       margin-top: 1px;
     }
 
     .mn-time {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 0.7rem;
       color: var(--gold);
     }
@@ -3552,14 +3369,14 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 1rem;
       font-weight: 700;
       color: var(--cyan);
     }
 
     .my-barber-name {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 0.9rem;
       font-weight: 700;
       letter-spacing: 0.18em;
@@ -3568,7 +3385,7 @@
     }
 
     .my-sub {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.62rem;
       color: rgba(0, 245, 255, 0.75);
       letter-spacing: 0.2em;
@@ -3596,36 +3413,6 @@
 
     .my-left::-webkit-scrollbar {
       width: 2px;
-    }
-
-    /* --- Responsive Tablet Fixes --- */
-    @media (max-width: 1150px) {
-      .my-left { flex: 0 0 320px; }
-      .my-silla-zone { padding: 25px 18px; margin: 15px; }
-    }
-
-    @media (max-width: 950px) {
-      .my-layout { flex-direction: column; }
-      .my-left { 
-        flex: 0 0 auto; 
-        border-right: none; 
-        border-bottom: 1px solid rgba(0, 245, 255, 0.08); 
-        max-height: 45vh; 
-      }
-      .my-right { padding: 10px 14px; }
-      .my-q-item { 
-        grid-template-columns: 40px minmax(110px, 1.2fr) 1fr auto 85px; 
-        gap: 10px; 
-        padding: 10px 15px;
-      }
-      .mqi-name { font-size: 0.95rem; }
-      .mqi-svc { font-size: 0.75rem; }
-    }
-
-    @media (max-height: 600px) and (orientation: landscape) {
-      .my-left { flex: 0 0 280px; }
-      .my-silla-zone { padding: 10px 15px; margin: 5px; min-height: 140px; }
-      .my-hero-num { font-size: 5rem; }
     }
 
     .my-left::-webkit-scrollbar-thumb {
@@ -3663,8 +3450,7 @@
       align-items: center;
       padding: 30px 24px;
       position: relative;
-      border: 0.5px solid rgba(255, 255, 255, 0.18);
-      box-shadow: inset 0 0 15px rgba(255,255,255,0.01), 0 10px 30px rgba(0,0,0,0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       background: rgba(255, 255, 255, 0.03);
       backdrop-filter: blur(24px);
       border-radius: 40px;
@@ -3681,7 +3467,7 @@
     }
 
     .my-hero-num {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: clamp(3.5rem, 12vh, 9rem);
       font-weight: 900;
       color: var(--cyan);
@@ -3711,7 +3497,7 @@
       padding: 3px 12px;
       border: 1px solid rgba(0, 245, 255, 0.25);
       background: rgba(0, 245, 255, 0.04);
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.58rem;
       letter-spacing: 0.2em;
       color: var(--cyan);
@@ -3738,7 +3524,7 @@
       background: linear-gradient(135deg, rgba(0, 245, 255, 0.15), rgba(0, 245, 255, 0.08));
       border: 1px solid rgba(0, 245, 255, 0.4);
       color: var(--cyan);
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 0.72rem;
       font-weight: 700;
       letter-spacing: 0.26em;
@@ -3798,7 +3584,7 @@
     }
 
     .my-queue-title {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 0.74rem;
       font-weight: 600;
       letter-spacing: 0.2em;
@@ -3826,7 +3612,7 @@
     }
 
     .my-queue-meta {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.7rem;
       color: rgba(0, 245, 255, 0.65);
       float: right;
@@ -3838,9 +3624,9 @@
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 6px;
       min-height: 0;
-      padding: 4px 8px 20px 4px;
+      padding-right: 4px;
     }
 
     .my-queue-list::-webkit-scrollbar {
@@ -3858,10 +3644,10 @@
 
     .my-q-item {
       display: grid;
-      grid-template-columns: 44px minmax(120px,1.2fr) minmax(80px,1fr) auto 90px;
+      grid-template-columns: 38px minmax(0, 1fr) auto;
       align-items: center;
-      gap: 12px;
-      padding: 12px 20px;
+      gap: 7px;
+      padding: 10px 16px;
       border: 1px solid rgba(255, 255, 255, 0.08);
       background: rgba(255, 255, 255, 0.02);
       backdrop-filter: blur(10px);
@@ -3870,14 +3656,14 @@
       animation: item-in 0.4s forwards;
       opacity: 0;
       border-radius: 24px;
-      margin-bottom: 8px;
+      margin-bottom: 4px;
     }
 
     .my-q-item.mqi-active {
-      border-left: 4px solid var(--cyan);
-      background: rgba(0, 245, 255, 0.08);
-      box-shadow: inset 0 0 30px rgba(0, 245, 255, 0.06);
-      padding: 16px 20px;
+      border-left: 3px solid var(--cyan);
+      background: rgba(0, 245, 255, 0.055);
+      box-shadow: inset 0 0 20px rgba(0, 245, 255, 0.04);
+      padding: 7px 10px;
     }
 
     .my-q-item.mqi-next {
@@ -3906,20 +3692,16 @@
     }
 
     .mqi-num {
-      font-family: 'Outfit', monospace;
-      font-size: 0.95rem;
+      font-family: 'Orbitron', monospace;
+      font-size: 0.88rem;
       font-weight: 700;
-      color: rgba(0, 245, 255, 0.55);
-      line-height: 1;
-      width: 36px;
-      flex-shrink: 0;
+      color: rgba(0, 245, 255, 0.28);
     }
 
     .my-q-item.mqi-active .mqi-num {
       font-size: 1.25rem;
       color: var(--cyan);
       text-shadow: 0 0 10px rgba(0, 245, 255, 0.5);
-      width: 44px;
     }
 
     .my-q-item.mqi-next .mqi-num {
@@ -3932,67 +3714,52 @@
     }
 
     .mqi-name {
-      font-family: 'Outfit', sans-serif;
-      font-size: clamp(1.1rem, 2vw, 1.45rem);
-      font-weight: 900;
-      color: #ffffff;
-      letter-spacing: 0.02em;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.8);
+      letter-spacing: 0.08em;
       text-transform: uppercase;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      line-height: 1;
-      text-shadow: 0 0 12px rgba(255, 255, 255, 0.25), 0 2px 4px rgba(0,0,0,0.5);
     }
 
     .my-q-item.mqi-active .mqi-name {
-      font-size: clamp(1.5rem, 3.2vw, 2.5rem);
-      text-shadow: 0 0 20px rgba(255, 255, 255, 0.4), 0 0 40px rgba(0, 245, 255, 0.2);
-      letter-spacing: 0.05em;
+      font-size: 1.1rem;
+      color: #fff;
     }
 
     .my-q-item.mqi-next .mqi-name {
-      font-size: clamp(1.2rem, 2.2vw, 1.8rem);
-      text-shadow: 0 0 15px rgba(255, 214, 0, 0.2);
+      font-size: 0.95rem;
     }
 
     .mqi-svc {
-      font-family: 'Inter', monospace;
-      font-size: 0.85rem;
-      color: #ffffff;
-      font-weight: 800;
-      letter-spacing: 0.12em;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.52rem;
+      color: rgba(255, 245, 200, 0.75);
+      margin-top: 1px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
-      text-align: left;
-      text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
     }
 
     .my-q-item.mqi-active .mqi-svc {
-      font-size: 0.95rem;
-      color: #ffffff;
-      font-weight: 900;
-      letter-spacing: 0.18em;
-      text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+      font-size: 0.58rem;
+      color: rgba(255, 250, 220, 0.9);
+      font-weight: 600;
     }
 
-    .mqi-name-wrap {
-      min-width: 0;
-      overflow: hidden;
+    .mqi-right {
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      gap: 2px;
-    }
-
-    .mqi-svc-wrap {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 0;
+      align-items: flex-end;
+      gap: 3px;
+      min-width: 68px;
     }
 
     .mqi-time {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 0.82rem;
       font-weight: 700;
       color: var(--gold);
@@ -4001,16 +3768,15 @@
     }
 
     .mqi-tag {
-      font-family: 'Outfit', monospace;
-      font-size: clamp(0.32rem, 1vw, 0.4rem);
-      padding: 2px 8px;
+      font-family: 'Orbitron', monospace;
+      font-size: 0.4rem;
+      padding: 3px 12px;
       border: 1px solid;
       border-radius: 20px;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
       text-align: center;
       backdrop-filter: blur(8px);
-      white-space: nowrap;
     }
 
     .mqi-tag.a {
@@ -4102,7 +3868,7 @@
       animation: idle-scissors 3.6s ease-in-out infinite;
     }
     .libre-txt {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 1.1rem;
       font-weight: 700;
       color: rgba(0, 245, 255, 0.35);
@@ -4113,7 +3879,7 @@
       animation: idle-breathe 3s ease-in-out infinite;
     }
     .libre-sub {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.5rem;
       color: rgba(0, 245, 255, 0.22);
       letter-spacing: 0.2em;
@@ -4144,7 +3910,7 @@
       margin-bottom: 12px;
     }
     .idle-title {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 0.82rem;
       font-weight: 700;
       color: rgba(0,245,255,0.35);
@@ -4156,7 +3922,7 @@
       margin-bottom: 6px;
     }
     .idle-sub-txt {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.46rem;
       color: rgba(0,245,255,0.2);
       letter-spacing: 0.22em;
@@ -4193,7 +3959,7 @@
       pointer-events: none;
     }
     .idle-qr-label {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.42rem;
       color: rgba(0,245,255,0.45);
       letter-spacing: 0.2em;
@@ -4232,7 +3998,7 @@
     /* ── LISTA DE TURNOS — JERARQUÍA VISUAL ── */
     /* Base: mqi-wait (3ra fila en adelante) — compacto pero legible */
     .my-q-item {
-      grid-template-columns: 40px minmax(100px,1fr) minmax(80px,1fr) auto auto;
+      grid-template-columns: 40px minmax(0, 1fr) auto;
       gap: 7px;
       padding: 6px 12px;
     }
@@ -4265,16 +4031,12 @@
     .mqi-right {
       min-width: 60px;
       flex-shrink: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      justify-content: center;
       gap: 3px;
     }
 
     /* 2do turno (próximo) — mediano */
     .my-q-item.mqi-next {
-      grid-template-columns: 48px minmax(100px,1fr) minmax(80px,1fr) auto auto;
+      grid-template-columns: 48px minmax(0, 1fr) auto;
       gap: 9px;
       padding: 9px 14px;
       background: rgba(255, 214, 0, 0.05);
@@ -4310,7 +4072,7 @@
 
     /* 1er turno (en silla) — grande y prominente */
     .my-q-item.mqi-active {
-      grid-template-columns: 56px minmax(100px,1fr) minmax(80px,1fr) auto auto;
+      grid-template-columns: 56px minmax(0, 1fr) auto;
       gap: 10px;
       padding: 14px 16px;
       background: rgba(0, 245, 255, 0.07);
@@ -4392,18 +4154,16 @@
     .barb-slot {
       display: flex;
       align-items: center;
-      gap: 7px;
-      padding: 6px 16px;
-      border: 0.5px solid rgba(0, 245, 255, 0.18);
-      background: rgba(0, 245, 255, 0.05);
-      font-family: 'Outfit', sans-serif;
+      gap: 5px;
+      padding: 4px 11px;
+      border: 1px solid rgba(0, 245, 255, 0.14);
+      background: rgba(0, 245, 255, 0.03);
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.52rem;
-      font-weight: 700;
-      color: rgba(0, 245, 255, 0.45);
-      letter-spacing: 0.12em;
+      color: rgba(0, 245, 255, 0.35);
+      letter-spacing: 0.1em;
       text-transform: uppercase;
-      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-      border-radius: 999px;
+      transition: all 0.3s;
     }
 
     .barb-slot.active {
@@ -4426,7 +4186,7 @@
     }
 
     .footer-version {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.47rem;
       color: rgba(0, 245, 255, 0.16);
       letter-spacing: 0.2em;
@@ -4436,20 +4196,18 @@
     .day-progress {
       display: flex;
       align-items: center;
-      gap: 14px;
-      padding: 10px 22px;
-      border: 0.5px solid rgba(255, 255, 255, 0.2);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255,255,255,0.02);
+      gap: 12px;
+      padding: 10px 18px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
       background: rgba(255, 255, 255, 0.03);
-      backdrop-filter: blur(30px) saturate(180%);
-      -webkit-backdrop-filter: blur(30px) saturate(180%);
-      border-radius: 999px;
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
       flex-shrink: 0;
       margin-bottom: 8px;
     }
 
     .day-prog-label {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.58rem;
       letter-spacing: 0.2em;
       color: rgba(0, 245, 255, 0.6);
@@ -4474,7 +4232,7 @@
     }
 
     .day-prog-pct {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 0.72rem;
       font-weight: 700;
       color: rgba(0, 245, 255, 0.8);
@@ -4482,7 +4240,7 @@
     }
 
     .day-prog-avg {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.62rem;
       color: rgba(176, 110, 255, 0.8);
       white-space: nowrap;
@@ -4494,18 +4252,14 @@
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      padding: 2px 10px;
-      border: 0.5px solid rgba(255, 214, 0, 0.15);
-      background: rgba(255, 214, 0, 0.06);
-      font-family: 'Outfit', monospace;
-      font-size: clamp(0.46rem, 0.75vw, 0.58rem);
-      font-weight: 600;
-      color: rgba(255, 214, 0, 0.45);
+      padding: 3px 10px;
+      border: 1px solid rgba(255, 214, 0, 0.5);
+      background: rgba(255, 214, 0, 0.07);
+      font-family: 'Orbitron', monospace;
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: rgba(255, 214, 0, 0.96);
       letter-spacing: 0.06em;
-      border-radius: 999px;
-      backdrop-filter: blur(4px);
-      width: fit-content;
-      transition: all 0.3s;
     }
 
     .eta-live.urgent {
@@ -4569,20 +4323,17 @@
     }
 
     .util-btn {
-      background: rgba(0, 245, 255, 0.06);
-      border: 0.5px solid rgba(0, 245, 255, 0.2);
+      background: rgba(0, 245, 255, 0.04);
+      border: 1px solid rgba(0, 245, 255, 0.12);
       color: rgba(0, 245, 255, 0.6);
-      padding: 6px 14px;
-      font-family: 'Outfit', sans-serif;
-      font-size: 0.48rem;
-      font-weight: 700;
-      letter-spacing: 0.14em;
+      padding: 4px 9px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.44rem;
+      letter-spacing: 0.12em;
       cursor: pointer;
       text-transform: uppercase;
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: all 0.2s;
       white-space: nowrap;
-      border-radius: 999px;
-      backdrop-filter: blur(8px);
     }
 
     .util-btn:hover {
@@ -4601,7 +4352,7 @@
       border: 1px solid rgba(0, 245, 255, 0.1);
       color: rgba(0, 245, 255, 0.5);
       padding: 5px 14px;
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.46rem;
       cursor: pointer;
       transition: all 0.2s;
@@ -4623,7 +4374,7 @@
       background: var(--bg2);
       border: 1px solid rgba(0, 255, 120, 0.35);
       padding: 9px 22px;
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.58rem;
       letter-spacing: 0.16em;
       color: var(--green);
@@ -4666,7 +4417,7 @@
       background: rgba(255, 0, 110, 0.12);
       border-bottom: 1px solid rgba(255, 0, 110, 0.3);
       text-align: center;
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.58rem;
       color: rgba(255, 0, 110, 0.7);
       letter-spacing: 0.18em;
@@ -4686,7 +4437,7 @@
       border: 1px solid rgba(0, 245, 255, 0.12);
       color: var(--cyan);
       padding: 4px 10px;
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.46rem;
       letter-spacing: 0.14em;
       cursor: pointer;
@@ -4735,7 +4486,7 @@
     }
 
     .modal-title {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 0.85rem;
       font-weight: 700;
       color: var(--cyan);
@@ -4749,7 +4500,7 @@
     }
 
     .modal-lbl {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.46rem;
       color: rgba(0, 245, 255, 0.35);
       letter-spacing: 0.22em;
@@ -4764,7 +4515,7 @@
       border: 1px solid rgba(0, 245, 255, 0.12);
       color: var(--cyan);
       padding: 8px 12px;
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.65rem;
       outline: none;
       transition: border-color 0.2s;
@@ -4783,7 +4534,7 @@
     .mbtn {
       flex: 1;
       padding: 10px;
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 0.6rem;
       font-weight: 700;
       letter-spacing: 0.18em;
@@ -5237,7 +4988,7 @@
     }
 
     .manana-title {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 1rem;
       font-weight: 700;
       letter-spacing: 0.2em;
@@ -5247,7 +4998,7 @@
     }
 
     .manana-subtitle {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.56rem;
       color: rgba(255, 214, 0, 0.45);
       letter-spacing: 0.2em;
@@ -5271,7 +5022,7 @@
     }
 
     .manana-stat-val {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 1.4rem;
       font-weight: 800;
       color: var(--gold);
@@ -5279,7 +5030,7 @@
     }
 
     .manana-stat-lbl {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.44rem;
       color: rgba(255, 214, 0, 0.45);
       letter-spacing: 0.22em;
@@ -5328,7 +5079,7 @@
     }
 
     .manana-barber-name {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 0.72rem;
       font-weight: 700;
       letter-spacing: 0.2em;
@@ -5337,7 +5088,7 @@
     }
 
     .manana-count {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.46rem;
       padding: 2px 8px;
       border: 1px solid rgba(255, 214, 0, 0.2);
@@ -5365,7 +5116,7 @@
     }
 
     .manana-num {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 1.1rem;
       font-weight: 700;
       color: rgba(255, 214, 0, 0.35);
@@ -5381,7 +5132,7 @@
     }
 
     .manana-svc {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.5rem;
       color: rgba(255, 245, 200, 0.6);
       margin-top: 2px;
@@ -5390,7 +5141,7 @@
     }
 
     .manana-time {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 0.88rem;
       font-weight: 700;
       color: var(--gold);
@@ -5398,7 +5149,7 @@
     }
 
     .manana-estado {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 0.42rem;
       padding: 3px 12px;
       border: 1px solid rgba(0, 255, 120, 0.2);
@@ -5422,7 +5173,7 @@
     }
 
     .manana-empty-txt {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: 0.9rem;
       font-weight: 700;
       color: rgba(255, 214, 0, 0.3);
@@ -5431,7 +5182,7 @@
     }
 
     .manana-empty-sub {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.5rem;
       color: rgba(255, 214, 0, 0.18);
       letter-spacing: 0.2em;
@@ -5442,7 +5193,7 @@
     .manana-footer {
       flex-shrink: 0;
       text-align: center;
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.46rem;
       color: rgba(255, 214, 0, 0.22);
       letter-spacing: 0.14em;
@@ -5468,14 +5219,14 @@
       gap: 28px; animation: cierre-fade-in 0.8s ease;
     }
     .cierre-title {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: clamp(1.2rem, 3.5vw, 2.6rem);
       font-weight: 900; color: var(--gold);
       letter-spacing: 0.22em; text-transform: uppercase;
       text-shadow: 0 0 40px rgba(255,214,0,0.5);
     }
     .cierre-sub {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: clamp(0.55rem, 1.8vw, 0.9rem);
       color: rgba(255,255,255,0.45); letter-spacing: 0.2em; text-transform: uppercase;
     }
@@ -5486,18 +5237,18 @@
       padding: 18px 28px; border-radius: 8px; min-width: 110px;
     }
     .cierre-stat-val {
-      font-family: 'Outfit', monospace;
+      font-family: 'Orbitron', monospace;
       font-size: clamp(1.4rem, 3.5vw, 2.4rem);
       font-weight: 900; color: var(--gold);
       text-shadow: 0 0 20px rgba(255,214,0,0.5);
     }
     .cierre-stat-lbl {
-      font-family: 'Inter', monospace;
+      font-family: 'Share Tech Mono', monospace;
       font-size: 0.48rem; color: rgba(255,214,0,0.5);
       letter-spacing: 0.16em; text-transform: uppercase;
     }
     .cierre-dismiss {
-      font-family: 'Inter', monospace; font-size: 0.48rem;
+      font-family: 'Share Tech Mono', monospace; font-size: 0.48rem;
       color: rgba(255,255,255,0.25); letter-spacing: 0.2em; text-transform: uppercase;
       cursor: pointer; padding: 8px 22px;
       border: 1px solid rgba(255,255,255,0.1); background: transparent;
@@ -5509,25 +5260,10 @@
     .footer-msg { transition: opacity 0.6s ease; }
 
     /* ── TV background media ── */
-    .tv-bg-container {
-      position: absolute;
-      inset: 0;
-      z-index: 0;
-      overflow: hidden;
-      pointer-events: none;
-    }
     .tv-bg-media {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      opacity: 0;
-      transition: opacity 2.5s ease-in-out;
-      filter: blur(4px) saturate(1.1);
-    }
-    .tv-bg-media.active {
-      opacity: 0.25;
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; z-index: 0; opacity: 0.18; filter: blur(3px);
+      pointer-events: none;
     }
     .tv-wrap { position: relative; }
     .tv-wrap > .tv-cards, .tv-wrap > .tv-ticker { position: relative; z-index: 1; }
@@ -5540,29 +5276,16 @@
   <canvas id="star-canvas"></canvas>
   <canvas id="hex-canvas"></canvas>
   <canvas id="grain-canvas"></canvas>
-  <div class="orbs-container">
-    <div class="orb orb1"></div>
-    <div class="orb orb2"></div>
-    <div class="orb orb3"></div>
-    <div class="orb orb4"></div>
-  </div>
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="orb orb3"></div>
+  <div class="orb orb4"></div>
   <div class="scanline"></div>
   <div class="vignette"></div>
   <div class="corner-frame cf-tl"></div>
   <div class="corner-frame cf-tr"></div>
   <div class="corner-frame cf-bl"></div>
   <div class="corner-frame cf-br"></div>
-
-  <!-- SVG Filters para Apple Mesh Background -->
-  <svg style="display:none">
-    <defs>
-      <filter id="gooey">
-        <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
-        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -10" result="gooey" />
-        <feComposite in="SourceGraphic" in2="gooey" operator="atop" />
-      </filter>
-    </defs>
-  </svg>
 
   <div class="app">
     <header>
@@ -5606,8 +5329,7 @@
     </footer>
   </div>
 
-  <div class="mode-bar-trigger" onclick="showModeBar(true)"></div>
-  <div class="mode-bar hidden" id="mode-bar" role="tablist" aria-label="Modos de vista">
+  <div class="mode-bar" id="mode-bar" role="tablist" aria-label="Modos de vista">
     <button class="mode-btn" id="mbtn-tv" onclick="setMode('tv')" role="tab" aria-selected="false"
       aria-label="Modo TV - Pantalla de espera">📺 TV</button>
     <div class="mode-sep"></div>
@@ -5647,7 +5369,7 @@
       <div class="afield">
         <label>Servicio</label>
         <div class="barber-sel" id="wi-svc-sel"><span
-            style="font-family:'Inter',monospace;font-size:0.5rem;color:rgba(0,245,255,0.3);">Cargando...</span>
+            style="font-family:'Share Tech Mono',monospace;font-size:0.5rem;color:rgba(0,245,255,0.3);">Cargando...</span>
         </div>
       </div>
       <div class="afield">
@@ -5669,7 +5391,7 @@
       <div class="afield">
         <label>Nuevo horario</label>
         <div
-          style="display:flex;gap:10px;margin-bottom:6px;font-family:'Inter',monospace;font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;">
+          style="display:flex;gap:10px;margin-bottom:6px;font-family:'Share Tech Mono',monospace;font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;">
           <span style="display:flex;align-items:center;gap:4px;color:rgba(0,245,255,0.6);"><span
               style="width:8px;height:8px;border:1px solid rgba(0,245,255,0.5);display:inline-block;"></span>LIBRE</span>
           <span style="display:flex;align-items:center;gap:4px;color:rgba(255,0,110,0.85);"><span
@@ -5777,22 +5499,6 @@
   </div>
 
   <script>
-    // ── Auto-hide Mode Bar ──
-    // ── Mode Bar: Solo visible al tocar el pie de página ──
-    let _modeBarTimeout = null;
-    function showModeBar(force = false) {
-      const el = document.getElementById('mode-bar');
-      if (!el) return;
-      el.classList.remove('hidden');
-      if (_modeBarTimeout) clearTimeout(_modeBarTimeout);
-      _modeBarTimeout = setTimeout(() => {
-        const picker = document.getElementById('barber-picker');
-        if (picker && picker.classList.contains('open')) return;
-        el.classList.add('hidden');
-      }, 4000);
-    }
-    // Eliminados listeners globales para mantener limpia la interfaz
-
     // ════════════════════════════════════════════════════
     //  BarberOS Display v9 — Bugs corregidos + Pausar + Transferir
     // ════════════════════════════════════════════════════
@@ -5875,16 +5581,6 @@
     const SLUG = resolveSlug();
     let DUR = 45;
     let TV_BG = '';
-
-    // Pro Finish Helper: Capitalización inteligente (Apple Style)
-    const cap = s => {
-      if (!s) return '';
-      // Si el texto está en Mayúsculas puras y no es una sigla corta, lo corregimos
-      if (s === s.toUpperCase() && s.length > 3) {
-        return s.charAt(0) + s.slice(1).toLowerCase().replace(/(?:^|\s)\S/g, l => l.toUpperCase());
-      }
-      return s;
-    };
     try { TV_BG = localStorage.getItem('barberos_tv_bg') || ''; } catch(_) {}
 
     // FIX BUG 6: guardar hora_inicio/hora_fin de la shop
@@ -6009,7 +5705,7 @@
     function showDisplaySuspended(nombre) {
       setDb('err', 'SUSPENDIDA'); setRt('error', 'INACTIVA');
       const app = document.querySelector('.app'); if (!app) return;
-      app.innerHTML = `<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px;position:relative;z-index:10;"><div style="font-size:4rem;margin-bottom:24px;opacity:0.4;">🔒</div><div style="font-family:'Outfit',monospace;font-size:clamp(1.2rem,4vw,2.2rem);font-weight:900;letter-spacing:0.2em;color:rgba(255,0,110,0.8);text-transform:uppercase;margin-bottom:12px;text-shadow:0 0 40px rgba(255,0,110,0.3);">SERVICIO PAUSADO</div><div style="font-family:'Rajdhani',sans-serif;font-size:clamp(1rem,3vw,1.4rem);font-weight:600;color:rgba(255,255,255,0.5);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:36px;">${nombre}</div></div>`;
+      app.innerHTML = `<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px;position:relative;z-index:10;"><div style="font-size:4rem;margin-bottom:24px;opacity:0.4;">🔒</div><div style="font-family:'Orbitron',monospace;font-size:clamp(1.2rem,4vw,2.2rem);font-weight:900;letter-spacing:0.2em;color:rgba(255,0,110,0.8);text-transform:uppercase;margin-bottom:12px;text-shadow:0 0 40px rgba(255,0,110,0.3);">SERVICIO PAUSADO</div><div style="font-family:'Rajdhani',sans-serif;font-size:clamp(1rem,3vw,1.4rem);font-weight:600;color:rgba(255,255,255,0.5);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:36px;">${nombre}</div></div>`;
     }
 
     async function loadBarberos() {
@@ -6027,11 +5723,10 @@
       if (foto) {
         return `<img src="${foto}" width="${sizePx}" height="${sizePx}"
           style="width:${sizePx}px;height:${sizePx}px;border-radius:50%;object-fit:cover;
-                 border:2px solid rgba(0,245,255,0.4);flex-shrink:0;box-shadow:0 0 15px rgba(0,245,255,0.1);
-                 animation: avatar-pulse 3s ease-in-out infinite;"
+                 border:2px solid rgba(0,245,255,0.4);flex-shrink:0;"
           onerror="this.outerHTML='<div style=\\'width:${sizePx}px;height:${sizePx}px;border-radius:50%;border:2px solid rgba(0,245,255,0.4);background:rgba(0,245,255,0.08);display:flex;align-items:center;justify-content:center;font-family:Orbitron,monospace;font-size:${fs}px;font-weight:700;color:var(--cyan);flex-shrink:0;\\'>${nombre.charAt(0)}</div>'">`;
       }
-      return `<div style="width:${sizePx}px;height:${sizePx}px;border-radius:50%;border:2px solid rgba(0,245,255,0.4);background:rgba(0,245,255,0.08);display:flex;align-items:center;justify-content:center;font-family:'Outfit',monospace;font-size:${fs}px;font-weight:700;color:var(--cyan);flex-shrink:0;">${nombre.charAt(0)}</div>`;
+      return `<div style="width:${sizePx}px;height:${sizePx}px;border-radius:50%;border:2px solid rgba(0,245,255,0.4);background:rgba(0,245,255,0.08);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:${fs}px;font-weight:700;color:var(--cyan);flex-shrink:0;">${nombre.charAt(0)}</div>`;
     }
 
     // ── Frases rotativas en el footer ──
@@ -6144,8 +5839,8 @@
       const prev = S.citas.length;
       S.citas = rows.map(c => ({
         id: c.id,
-        name: (c.nombre || 'CLIENTE'),
-        time: parsearHora(c.hora),
+        name: (c.nombre || 'CLIENTE').toUpperCase(),
+        time: parsearHora(c.hora),   // FIX BUG 1
         servicio: (c.servicio || 'CORTE').toUpperCase(),
         barbero: (c.barbero || 'CUALQUIERA').toUpperCase(),
         estado: c.estado || 'Confirmada'
@@ -6323,59 +6018,6 @@
       _lastRenderHtml = newHtml;
     }
 
-    const ATMOSPHERIC_VIDEOS = [
-      'https://assets.mixkit.co/videos/preview/mixkit-abstract-gold-liquid-moving-slowly-34533-large.mp4',
-      'https://assets.mixkit.co/videos/preview/mixkit-blue-ink-spreading-in-water-4334-large.mp4',
-      'https://assets.mixkit.co/videos/preview/mixkit-abstract-form-of-silver-liquid-moving-34543-large.mp4',
-      'https://assets.mixkit.co/videos/preview/mixkit-slow-motion-of-colorful-smoke-32860-large.mp4'
-    ];
-    let _atmoIdx = 0;
-    let _atmoInterval = null;
-
-    function updateAtmosphericBG() {
-      if (MODE !== 'tv') {
-        if (_atmoInterval) { clearInterval(_atmoInterval); _atmoInterval = null; }
-        return;
-      }
-      
-      const wrap = document.getElementById('tv-bg-layer');
-      if (!wrap) return;
-
-      if (!_atmoInterval) {
-        _atmoInterval = setInterval(rotateAtmoBG, 45000); // Rotar cada 45s
-      }
-
-      const current = wrap.querySelector('.tv-bg-media.active');
-      if (!current) rotateAtmoBG();
-    }
-
-    function rotateAtmoBG() {
-      const wrap = document.getElementById('tv-bg-layer');
-      if (!wrap || MODE !== 'tv') return;
-
-      const nextUrl = TV_BG || ATMOSPHERIC_VIDEOS[_atmoIdx];
-      if (!TV_BG) _atmoIdx = (_atmoIdx + 1) % ATMOSPHERIC_VIDEOS.length;
-
-      const vid = document.createElement('video');
-      vid.className = 'tv-bg-media';
-      vid.src = nextUrl;
-      vid.autoplay = true;
-      vid.loop = true;
-      vid.muted = true;
-      vid.playsInline = true;
-      
-      wrap.appendChild(vid);
-
-      setTimeout(() => {
-        const old = wrap.querySelector('.tv-bg-media.active');
-        if (old) {
-          old.classList.remove('active');
-          setTimeout(() => old.remove(), 2100);
-        }
-        vid.classList.add('active');
-      }, 100);
-    }
-
     function renderTV(c) {
       const bnames = Object.keys(S.queues);
       const nc = Math.min(bnames.length || 1, 5);
@@ -6396,22 +6038,25 @@
           const remaining = Math.max(0, citas.length - currentTurn + 1);
           const color = BC[idx % BC.length]; const bid = safeId(name);
           cardsHtml += `<div class="tv-card bc-${idx % 5}${remaining === 0 ? ' libre' : ''}" style="--bc:${color};--bc-glow:${hexGlow(color)};">
-        <div class="tv-card-head"><div class="tv-barber-name" style="display:flex;align-items:center;gap:7px;">${barbAvatar(name, 26)}✂ ${cap(name)}</div><div class="tv-status-badge ${remaining > 0 ? 'activo' : 'libre'}">${remaining > 0 ? remaining + ' en espera' : 'LIBRE'}</div></div>
+        <div class="tv-card-head"><div class="tv-barber-name" style="display:flex;align-items:center;gap:7px;">${barbAvatar(name, 26)}✂ ${name}</div><div class="tv-status-badge ${remaining > 0 ? 'activo' : 'libre'}">${remaining > 0 ? remaining + ' en espera' : 'LIBRE'}</div></div>
         <div class="tv-card-body">
           <div class="tv-num" id="hn-${bid}">${cur ? String(currentTurn).padStart(2, '0') : '—'}</div>
-          <div class="tv-name">${cur ? cap(cur.name) : 'SIN CLIENTE'}</div>
-          ${cur ? `<div class="tv-service">${cap(cur.servicio)}</div>` : ''}
+          <div class="tv-name">${cur ? cur.name : 'SIN CLIENTE'}</div>
+          ${cur ? `<div class="tv-service">${cur.servicio}</div>` : ''}
         </div>
         <div class="tv-card-footer">
           <div><div class="tv-next-label">PRÓXIMO</div><div class="tv-next-num">${nxt ? String(currentTurn + 1).padStart(2, '0') : '—'}</div></div>
-          <div class="tv-next-name">${nxt ? cap(nxt.name) : 'Sin reserva'}</div>
+          <div class="tv-next-name">${nxt ? nxt.name : 'Sin reserva'}</div>
           <div class="tv-next-time">${nxt ? fmt12(nxt.time) : '—:—'}</div>
         </div>
+        <button class="tv-btn" id="btn-${bid}" onclick="siguienteTurno('${name.replace(/'/g, "\\'")}','btn-${bid}')">▶ SIGUIENTE TURNO</button>
       </div>`;
         });
       }
-      c.innerHTML = `<div class="tv-wrap"><div id="tv-bg-layer" class="tv-bg-container"></div><div class="tv-cards n${nc}">${cardsHtml}</div><div class="tv-ticker"><div class="tv-ticker-label">◈ HOY</div><div class="tv-ticker-track"><div class="tv-ticker-inner" style="animation-duration:${tickerDur}s;">${tickerHtml + tickerHtml}</div></div></div></div>`;
-      setTimeout(updateAtmosphericBG, 50);
+      const tvBgEl = TV_BG ? (TV_BG.match(/\.(mp4|webm|ogg)$/i)
+        ? `<video class="tv-bg-media" src="${TV_BG}" autoplay loop muted playsinline></video>`
+        : `<img class="tv-bg-media" src="${TV_BG}" alt="">`) : '';
+      c.innerHTML = `<div class="tv-wrap">${tvBgEl}<div class="tv-cards n${nc}">${cardsHtml}</div><div class="tv-ticker"><div class="tv-ticker-label">◈ HOY</div><div class="tv-ticker-track"><div class="tv-ticker-inner" style="animation-duration:${tickerDur}s;">${tickerHtml + tickerHtml}</div></div></div></div>`;
     }
 
     function renderShop(c) {
@@ -6487,9 +6132,9 @@
           <div class="hero-ghost">${cur ? String(currentTurn).padStart(2, '0') : '—'}</div>
           <div class="hero-num" id="hn-${bid}">${cur ? String(currentTurn).padStart(2, '0') : '—'}</div>
         </div>
-        <div class="silla-name${cur ? ' typing' : ''}" id="sn-${bid}">${cur ? cap(cur.name) : 'SIN CLIENTES'}</div>
-        <div class="silla-service">${cur ? cap(cur.servicio) : '—'}</div>
-        <div class="silla-barber"><div class="barber-dot"></div><span>✂ ${cap(barber)}</span></div>
+        <div class="silla-name${cur ? ' typing' : ''}" id="sn-${bid}">${cur ? cur.name : 'SIN CLIENTES'}</div>
+        <div class="silla-service">${cur ? cur.servicio : '—'}</div>
+        <div class="silla-barber"><div class="barber-dot"></div><span>✂ ${barber}</span></div>
         ${cur ? `<div class="silla-timer" id="timer-${bid}"><div class="timer-dot"></div><span id="timer-txt-${bid}">0m</span></div>` : ''}
         <div class="swipe-flash" id="fl-${bid}"></div>
       </div>
@@ -6529,35 +6174,24 @@
             return `<div class="idle-screen" style="position:relative;height:160px;overflow:hidden;border-radius:4px;margin-bottom:6px;">
               ${dots}
               <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:8px;">
-                <div style="font-family:'Inter',monospace;font-size:0.42rem;letter-spacing:0.2em;color:rgba(0,245,255,0.55);">${allC.length > 0 ? '✓ TODOS LOS TURNOS COMPLETADOS' : 'SIN CLIENTES REGISTRADOS HOY'}</div>
+                <div style="font-family:'Share Tech Mono',monospace;font-size:0.42rem;letter-spacing:0.2em;color:rgba(0,245,255,0.55);">${allC.length > 0 ? '✓ TODOS LOS TURNOS COMPLETADOS' : 'SIN CLIENTES REGISTRADOS HOY'}</div>
                 <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent('barberos://registro?shop='+SLUG)}&bgcolor=060C14&color=FFFFFF&margin=8" width="80" height="80" style="border-radius:4px;opacity:0.8;" onerror="this.style.display='none'">
-                <div style="font-family:'Inter',monospace;font-size:0.35rem;letter-spacing:0.14em;color:rgba(0,245,255,0.28);">ESCANEA PARA RESERVAR TU TURNO</div>
+                <div style="font-family:'Share Tech Mono',monospace;font-size:0.35rem;letter-spacing:0.14em;color:rgba(0,245,255,0.28);">ESCANEA PARA RESERVAR TU TURNO</div>
               </div>
             </div>`;
           })() : ''}
           ${zoneA.length ? `<div class="zone-a">
-            <div class="q-col-header"><span>#</span><span>CLIENTE</span><span style="text-align:center">SERVICIO</span><span style="text-align:center">PROF.</span><span style="text-align:center">HORA</span><span>ESTADO</span></div>
+            <div class="q-col-header"><span>#</span><span>CLIENTE</span><span style="text-align:center">BARBERO</span><span style="text-align:center">HORA</span><span>ESTADO</span></div>
             ${zoneA.map((c, idx) => {
         const num = c.originalIdx + 1; const eta = c.pos > 0 ? calcLiveETA(c.pos, barber) : null; const { rc, tc, tl } = statusClasses(c.status);
         // FEATURE: botón transferir en cada fila pendiente
         const tBtn = c.id && c.status !== 'done' ? `<button class="btn-transfer" onclick="openTransferirCita('${c.id}','${c.name.replace(/'/g, "\\'")}','${c.time}','${barber.replace(/'/g, "\\'")}',${num})">↔</button>` : '';
-        return `<div class="q-item ${rc}" style="animation-delay:${idx * 0.05}s">
-                  <div class="q-num">${String(num).padStart(2, '0')}</div>
-                  <div class="q-name-wrap" style="min-width:0; overflow:hidden;">
-                    <div class="q-name">${cap(c.name)}${eta ? `<span class="wait-eta">⏱${eta}</span>` : ''}</div>
-                  </div>
-                  <div class="q-svc-wrap">
-                    <div class="q-svc">${cap(c.servicio)}</div>
-                  </div>
-                  <div class="q-barber">${tBtn}</div>
-                  <div class="q-time">${fmt12(c.time)}</div>
-                  <div><span class="status-tag ${tc}"><span class="tag-dot"></span>${tl}</span></div>
-                </div>`;
+        return `<div class="q-item ${rc}" style="animation-delay:${idx * 0.05}s"><div class="q-num">${String(num).padStart(2, '0')}</div><div><div class="q-name">${c.name}${eta ? `<span class="wait-eta">⏱${eta}</span>` : ''}</div><div class="q-svc">${c.servicio}</div></div><div class="q-barber">${tBtn}</div><div class="q-time">${fmt12(c.time)}</div><div><span class="status-tag ${tc}"><span class="tag-dot"></span>${tl}</span></div></div>`;
       }).join('')}
           </div>` : ''}
           ${zoneB.length ? `<div class="zone-b-header"><span>EN ESPERA</span><span class="zone-b-count">${zoneB.length}</span></div><div class="zone-b">${zoneB.map((c, idx) => {
         const num = c.originalIdx + 1; const eta = c.pos > 0 ? calcLiveETA(c.pos, barber) : null;
-        return `<div class="q-mini ${c.status === 'alert' ? 'ms-alert' : 'ms-wait'}" style="animation-delay:${idx * 0.025}s">${conflictIdx.has(c.originalIdx) ? '<div style="position:absolute;top:2px;right:3px;width:4px;height:4px;border-radius:50%;background:var(--magenta);box-shadow:0 0 4px var(--magenta);"></div>' : ''}<div class="q-mini-num">${String(num).padStart(2, '0')}</div><div class="q-mini-name">${cap(c.name)}</div><div class="q-mini-meta"><div class="q-mini-time">${eta || fmt12(c.time)}</div><div class="q-mini-barb">${cap(barber)}</div></div></div>`;
+        return `<div class="q-mini ${c.status === 'alert' ? 'ms-alert' : 'ms-wait'}" style="animation-delay:${idx * 0.025}s">${conflictIdx.has(c.originalIdx) ? '<div style="position:absolute;top:2px;right:3px;width:4px;height:4px;border-radius:50%;background:var(--magenta);box-shadow:0 0 4px var(--magenta);"></div>' : ''}<div class="q-mini-num">${String(num).padStart(2, '0')}</div><div class="q-mini-name">${c.name}</div><div class="q-mini-meta"><div class="q-mini-time">${eta || fmt12(c.time)}</div><div class="q-mini-barb">${barber}</div></div></div>`;
       }).join('')}</div>` : ''}
         </div>
       </div>`}
@@ -6575,29 +6209,29 @@
       const pending = citas.slice(currentTurn).filter(c => c.estado !== 'Completada' && c.estado !== 'No-Show' && c.estado !== 'Cancelada'); const remaining = Math.max(0, pending.length + (cur && cur.estado === 'Confirmada' ? 1 : 0));
       if (remaining === 0) col.classList.add('libre'); else col.classList.remove('libre');
       col.innerHTML =
-        '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.04);background:rgba(255,255,255,0.01);flex-shrink:0;position:relative;">'
-        + '<div style="font-family:\'Outfit\',sans-serif;font-size:0.75rem;font-weight:800;letter-spacing:0.02em;color:var(--bc);text-shadow:0 0 15px var(--bc-glow);">✂ ' + cap(barber) + '</div>'
-        + '<span style="font-family:\'Inter\',sans-serif;font-size:0.46rem;font-weight:600;letter-spacing:0.04em;padding:3px 8px;border-radius:100px;border:1px solid var(--bc);color:var(--bc);opacity:0.8;">' + (remaining > 0 ? remaining + ' EN ESPERA' : 'LIBRE') + '</span>'
-        + '<div style="position:absolute;bottom:-1px;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--bc),transparent);opacity:0.2;"></div></div>'
+        '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 12px;border-bottom:1px solid rgba(0,245,255,0.08);background:rgba(2,4,8,0.7);flex-shrink:0;position:relative;">'
+        + '<div style="font-family:\'Orbitron\',monospace;font-size:0.68rem;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--bc);text-shadow:0 0 10px var(--bc);">✂ ' + barber + '</div>'
+        + '<span style="font-family:\'Share Tech Mono\',monospace;font-size:0.42rem;letter-spacing:0.1em;text-transform:uppercase;padding:2px 7px;border:1px solid var(--bc);color:var(--bc);opacity:0.6;">' + (remaining > 0 ? remaining + ' EN ESPERA' : 'LIBRE') + '</span>'
+        + '<div style="position:absolute;bottom:-1px;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--bc),transparent);opacity:0.4;"></div></div>'
         + '<div class="silla-zone"><div class="now-label">EN SILLA</div>'
         + '<div class="hero-num-wrap"><div class="hero-num ' + nsz + '" id="hn-' + bid + '">' + (cur ? String(currentTurn).padStart(2, '0') : '—') + '</div></div>'
-        + '<div class="silla-name ' + nsz + '">' + (cur ? cap(cur.name) : 'SIN CLIENTE') + '</div>'
-        + (cur ? '<div class="silla-service">' + cap(cur.servicio) + '</div>' : '')
+        + '<div class="silla-name ' + nsz + '">' + (cur ? cur.name : 'SIN CLIENTE') + '</div>'
+        + (cur ? '<div class="silla-service">' + cur.servicio + '</div>' : '')
         + '<div class="swipe-flash" id="fl-' + bid + '"></div></div>'
         + '<div class="multi-next"><div class="mn-n">' + (nxt ? String(currentTurn + 1).padStart(2, '0') : '—') + '</div>'
-        + '<div class="mn-wrap"><div class="mn-nom">' + (nxt ? cap(nxt.name) : 'Sin reserva') + '</div><div class="mn-svc">' + (nxt ? cap(nxt.servicio) : '') + '</div></div>'
+        + '<div class="mn-wrap"><div class="mn-nom">' + (nxt ? nxt.name : 'Sin reserva') + '</div><div class="mn-svc">' + (nxt ? nxt.servicio : '') + '</div></div>'
         + '<div class="mn-time">' + (nxt ? fmt12(nxt.time) : '—:—') + '</div></div>'
         + '<div class="multi-queue">'
         + (pending.length ? pending.map((c, i) => {
           const pos = i + 2; const eta = calcLiveETA(pos - 1, barber); const cls = i === 0 ? 'mn' : i === 1 ? 'ma' : 'mw'; const num = currentTurn + i + 1;
           return '<div class="mq-row ' + cls + '" style="animation-delay:' + i * 0.04 + 's"><div class="mq-n">' + String(num).padStart(2, '0') + '</div>'
-            + '<div class="mq-info"><div class="mq-name">' + cap(c.name) + '</div><div class="mq-svc">' + cap(c.servicio) + '</div></div>'
+            + '<div class="mq-info"><div class="mq-name">' + c.name + '</div><div class="mq-svc">' + c.servicio + '</div></div>'
             + '<div class="mq-r"><div class="mq-time">' + fmt12(c.time) + '</div>' + (eta ? '<div class="mq-eta">⏱' + eta + '</div>' : '')
             // FEATURE: transferir en multi
             + '<button class="btn-transfer" style="font-size:0.36rem;padding:2px 6px;" onclick="openTransferirCita(\'' + c.id + '\',\'' + c.name.replace(/'/g, '\\\'') + '\'  ,\'' + c.time + '\',\'' + barber.replace(/'/g, '\\\'') + '\'  ,' + num + ')">↔</button>'
             + '</div></div>';
         }).join('')
-          : '<div style="padding:40px 10px;text-align:center;font-family:\'Inter\',sans-serif;font-size:0.5rem;color:rgba(255,255,255,0.15);letter-spacing:0.15em;text-transform:uppercase;">Sin pendientes</div>')
+          : '<div style="padding:18px 8px;text-align:center;font-family:\'Share Tech Mono\',monospace;font-size:0.4rem;color:rgba(0,245,255,0.14);letter-spacing:0.2em;">SIN PENDIENTES</div>')
         + '</div><div class="swipe-hint">⟵ desliza o ▶ siguiente</div>'
         + '<button class="btn-siguiente" id="btn-' + bid + '" onclick="siguienteTurno(\'' + barber.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + '\',\'btn-' + bid + '\')">' + scHtml() + '▶ &nbsp; SIGUIENTE TURNO</button>';
     }
@@ -6617,8 +6251,10 @@
       const cur = allC[ctFinal - 1]; const nxt = allC[ctFinal];
       const remaining = Math.max(0, allC.length - ctFinal + 1);
       const doneCitas = allC.slice(0, ctFinal - 1).slice(-3);
+      const toggleHtml = '';
       const queueItems = [];
       // Solo activo + pendientes — los completados ya están arriba en "LISTOS"
+      // FIX: filtrar por estado Confirmada/Pendiente para no mostrar canceladas que quedaron en allC
       allC.slice(ctFinal - 1).filter(c => c.estado !== 'Cancelada' && c.estado !== 'Completada' && c.estado !== 'No-Show').forEach((c, i) => { queueItems.push({ c, i: ctFinal - 1 + i, status: i === 0 ? 'active' : i === 1 ? 'next' : 'wait' }); });
 
       c.innerHTML = `<div class="my-wrap">
@@ -6627,13 +6263,13 @@
         ${isActive && cur ? `<div class="my-silla-zone">
           <div style="margin-bottom: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,245,255,0.02); border: 1px solid rgba(0,245,255,0.15); padding: 8px; border-radius: 6px; min-width:106px; min-height:106px;">
             <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent('barberos://registro?shop=' + SLUG)}&bgcolor=060C14&color=FFFFFF&margin=8" width="90" height="90" style="display:block; border-radius:4px; opacity:0.92; filter: drop-shadow(0 0 6px rgba(0,245,255,0.35));" onerror="this.style.display='none'">
-            <div style="font-family:'Inter',monospace;font-size:0.42rem;color:rgba(0,245,255,0.5);letter-spacing:0.15em;margin-top:5px;text-transform:uppercase;">QR APP</div>
+            <div style="font-family:'Share Tech Mono',monospace;font-size:0.42rem;color:rgba(0,245,255,0.5);letter-spacing:0.15em;margin-top:5px;text-transform:uppercase;">QR APP</div>
           </div>
           <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
             ${barbAvatar(barber, 52)}
             <div style="display:flex;flex-direction:column;">
-              <div style="font-family:'Outfit',monospace;font-size:0.82rem;font-weight:700;color:var(--cyan);letter-spacing:0.18em;text-shadow:0 0 10px rgba(0,245,255,0.5);">✂ ${barber}</div>
-              <div style="font-family:'Inter',monospace;font-size:0.62rem;color:rgba(0,245,255,0.7);letter-spacing:0.28em;text-transform:uppercase;margin-top:4px;text-shadow:0 0 8px rgba(0,245,255,0.3); display:flex; align-items:center; gap:6px;">
+              <div style="font-family:'Orbitron',monospace;font-size:0.82rem;font-weight:700;color:var(--cyan);letter-spacing:0.18em;text-shadow:0 0 10px rgba(0,245,255,0.5);">✂ ${barber}</div>
+              <div style="font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:rgba(0,245,255,0.7);letter-spacing:0.28em;text-transform:uppercase;margin-top:4px;text-shadow:0 0 8px rgba(0,245,255,0.3); display:flex; align-items:center; gap:6px;">
                 <span style="width:4px; height:4px; border-radius:50%; background:var(--cyan); box-shadow:0 0 8px var(--cyan);"></span>
                 EN SILLA AHORA
                 <span style="width:4px; height:4px; border-radius:50%; background:var(--cyan); box-shadow:0 0 8px var(--cyan);"></span>
@@ -6641,8 +6277,8 @@
             </div>
           </div>
           <div class="hero-num-wrap"><div class="hero-ghost">${String(ctFinal).padStart(2, '00')}</div><div class="my-hero-num" id="my-hn">${String(ctFinal).padStart(2, '00')}</div></div>
-          <div class="my-client-name typing" id="my-cn">${cap(cur.name)}</div>
-          <div class="my-service">${cap(cur.servicio)}</div>
+          <div class="my-client-name typing" id="my-cn">${cur.name}</div>
+          <div class="my-service">${cur.servicio}</div>
           <div class="silla-timer" id="timer-my"><div class="timer-dot"></div><span id="timer-txt-my">0m</span></div>
           <div class="swipe-flash" id="fl-${bid}"></div>
         </div>`: isActive ? `<div class="libre-banner">
@@ -6659,7 +6295,7 @@
         <div class="my-bottom">
           ${nxt ? `<div class="next-strip" style="border-color:rgba(0,245,255,0.15);">
             <div class="next-n" style="color:rgba(0,245,255,0.4);">${String(ctFinal + 1).padStart(2, '00')}</div>
-            <div class="next-info"><div class="next-nom">${cap(nxt.name)}</div><div class="next-barber">⏱ ${fmt12(nxt.time)}</div></div>
+            <div class="next-info"><div class="next-nom">${nxt.name}</div><div class="next-barber">⏱ ${fmt12(nxt.time)}</div></div>
             <div class="next-time-badge">${calcLiveETA(1, barber) || fmt12(nxt.time)}</div>
           </div>`: ''}
           <button class="btn-my-sig${!isActive ? ' loading' : ''}" id="btn-my" onclick="siguienteTurno('${barber.replace(/'/g, "\\'")}','btn-my')" ${!isActive ? 'disabled' : ''}>
@@ -6673,25 +6309,25 @@
             ⬡ MIS TURNOS HOY
             <span class="my-queue-meta">${allC.length} REGISTRADOS · ${remaining} EN ESPERA</span>
             <span style="margin-left:auto;display:flex;gap:16px;align-items:center;">
-              <span style="display:flex;flex-direction:column;align-items:center;"><span style="font-family:'Outfit',monospace;font-size:1.1rem;font-weight:800;color:var(--gold);line-height:1;">${remaining}</span><span style="font-family:'Inter',monospace;font-size:0.44rem;color:rgba(255,214,0,0.6);letter-spacing:0.14em;margin-top:2px;">RESTANTES</span></span>
-              <span style="display:flex;flex-direction:column;align-items:center;"><span style="font-family:'Outfit',monospace;font-size:1.1rem;font-weight:800;color:rgba(62,207,142,0.95);line-height:1;">${remaining > 0 ? (calcLiveETA(remaining, barber) || remaining * getAvgTime(barber) + 'm') : '0m'}</span><span style="font-family:'Inter',monospace;font-size:0.44rem;color:rgba(62,207,142,0.55);letter-spacing:0.14em;margin-top:2px;">ESPERA</span></span>
-              <span style="display:flex;flex-direction:column;align-items:center;"><span style="font-family:'Outfit',monospace;font-size:1.1rem;font-weight:800;color:rgba(176,110,255,0.95);line-height:1;">${getAvgTime(barber)}m</span><span style="font-family:'Inter',monospace;font-size:0.44rem;color:rgba(176,110,255,0.55);letter-spacing:0.14em;margin-top:2px;">PROM.</span></span>
+              <span style="display:flex;flex-direction:column;align-items:center;"><span style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:800;color:var(--gold);line-height:1;">${remaining}</span><span style="font-family:'Share Tech Mono',monospace;font-size:0.44rem;color:rgba(255,214,0,0.6);letter-spacing:0.14em;margin-top:2px;">RESTANTES</span></span>
+              <span style="display:flex;flex-direction:column;align-items:center;"><span style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:800;color:rgba(62,207,142,0.95);line-height:1;">${remaining > 0 ? (calcLiveETA(remaining, barber) || remaining * getAvgTime(barber) + 'm') : '0m'}</span><span style="font-family:'Share Tech Mono',monospace;font-size:0.44rem;color:rgba(62,207,142,0.55);letter-spacing:0.14em;margin-top:2px;">ESPERA</span></span>
+              <span style="display:flex;flex-direction:column;align-items:center;"><span style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:800;color:rgba(176,110,255,0.95);line-height:1;">${getAvgTime(barber)}m</span><span style="font-family:'Share Tech Mono',monospace;font-size:0.44rem;color:rgba(176,110,255,0.55);letter-spacing:0.14em;margin-top:2px;">PROM.</span></span>
             </span>
           </div>
           <div class="done-strip" style="flex-shrink:0;">
             <div class="done-strip-label">✓ LISTOS</div>
-            <div class="done-pills">${doneCitas.length ? doneCitas.map((c, i) => `<div class="done-pill" style="animation-delay:${i * 0.06}s"><div class="done-pill-num">${String(allC.indexOf(c) + 1).padStart(2, '0')}</div><div class="done-pill-name">${cap(c.name)}</div><div class="done-pill-check">✓</div></div>`).join('') : '<span class="done-strip-empty">— ninguno aún —</span>'}</div>
+            <div class="done-pills">${doneCitas.length ? doneCitas.map((c, i) => `<div class="done-pill" style="animation-delay:${i * 0.06}s"><div class="done-pill-num">${String(allC.indexOf(c) + 1).padStart(2, '0')}</div><div class="done-pill-name">${c.name}</div><div class="done-pill-check">✓</div></div>`).join('') : '<span class="done-strip-empty">— ninguno aún —</span>'}</div>
             ${doneCitas.length ? `<button type="button" class="btn-recuperar" onclick="openRecuperarModal('${barber.replace(/'/g, "\\'")}')">↺</button>` : ''}
           </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 16px;font-family:'Inter',monospace;font-size:0.54rem;letter-spacing:0.2em;color:rgba(0,245,255,0.72);text-transform:uppercase;border-top:1px solid rgba(0,245,255,0.1);border-bottom:1px solid rgba(0,245,255,0.22);font-weight:700;flex-shrink:0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 16px;font-family:'Share Tech Mono',monospace;font-size:0.54rem;letter-spacing:0.2em;color:rgba(0,245,255,0.72);text-transform:uppercase;border-top:1px solid rgba(0,245,255,0.1);border-bottom:1px solid rgba(0,245,255,0.22);font-weight:700;flex-shrink:0;">
             <span>✦ TURNO · CLIENTE</span><span>HORA · ESTADO</span>
           </div>
           <div class="my-queue-list">
             ${(() => {
           if (queueItems.length === 0) return `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:32px 20px;gap:10px;position:relative;overflow:hidden;">
             <div style="font-size:2rem;animation:idle-scissors 3.6s ease-in-out infinite;">✂</div>
-            <div style="font-family:'Outfit',monospace;font-size:0.6rem;font-weight:700;color:rgba(0,245,255,0.3);letter-spacing:0.24em;animation:idle-breathe 3s ease-in-out infinite;">SIN CITAS HOY</div>
-            <div style="font-family:'Inter',monospace;font-size:0.44rem;color:rgba(0,245,255,0.18);letter-spacing:0.18em;">Los turnos asignados aparecerán aquí</div>
+            <div style="font-family:'Orbitron',monospace;font-size:0.6rem;font-weight:700;color:rgba(0,245,255,0.3);letter-spacing:0.24em;animation:idle-breathe 3s ease-in-out infinite;">SIN CITAS HOY</div>
+            <div style="font-family:'Share Tech Mono',monospace;font-size:0.44rem;color:rgba(0,245,255,0.18);letter-spacing:0.18em;">Los turnos asignados aparecerán aquí</div>
           </div>`;
           // Primeros 5: filas grandes. El resto: mini grid
           const filas = queueItems.slice(0, 5);
@@ -6702,30 +6338,20 @@
             const cls = isAct ? 'mqi-active' : isNxt ? 'mqi-next' : 'mqi-wait';
             const tag = isAct ? '<span class="mqi-tag a">EN SILLA</span>' : isNxt ? '<span class="mqi-tag n">PRÓXIMO</span>' : '<span class="mqi-tag w">ESPERA</span>';
             const pos = i - (ctFinal - 1); const eta = pos > 0 ? calcLiveETA(pos, barber) : null; const urgent = eta && parseInt(eta) <= 5;
-            const rBtn = c.id ? `<button onclick="openReagendar('${c.id}','${c.name.replace(/'/g, "\\'")}','${c.time}','${barber.replace(/'/g, "\\'")}')" style="padding:5px 8px;border:1px solid rgba(176,110,255,0.3);background:rgba(176,110,255,0.05);color:rgba(176,110,255,0.7);font-family:'Inter',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;flex-shrink:0;" onmouseover="this.style.background='rgba(176,110,255,0.15)';this.style.color='rgba(176,110,255,1)';" onmouseout="this.style.background='rgba(176,110,255,0.05)';this.style.color='rgba(176,110,255,0.7)';" title="Reagendar">↻</button>` : '';
-            const tBtn = c.id ? `<button onclick="openTransferirCita('${c.id}','${c.name.replace(/'/g, "\\'")}','${c.time}','${barber.replace(/'/g, "\\'")}',${i + 1})" style="padding:5px 8px;border:1px solid rgba(176,110,255,0.3);background:rgba(176,110,255,0.05);color:rgba(176,110,255,0.7);font-family:'Inter',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;flex-shrink:0;" onmouseover="this.style.background='rgba(176,110,255,0.15)';this.style.color='rgba(176,110,255,1)';" onmouseout="this.style.background='rgba(176,110,255,0.05)';this.style.color='rgba(176,110,255,0.7)';" title="Transferir">↔</button>` : '';
-            return `<div class="my-q-item ${cls}" style="animation-delay:${rowIdx * 0.04}s;">
+            const rBtn = c.id ? `<button onclick="openReagendar('${c.id}','${c.name.replace(/'/g, "\\'")}','${c.time}','${barber.replace(/'/g, "\\'")}')" style="padding:5px 8px;border:1px solid rgba(176,110,255,0.3);background:rgba(176,110,255,0.05);color:rgba(176,110,255,0.7);font-family:'Share Tech Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;flex-shrink:0;" onmouseover="this.style.background='rgba(176,110,255,0.15)';this.style.color='rgba(176,110,255,1)';" onmouseout="this.style.background='rgba(176,110,255,0.05)';this.style.color='rgba(176,110,255,0.7)';" title="Reagendar">↻</button>` : '';
+            const tBtn = c.id ? `<button onclick="openTransferirCita('${c.id}','${c.name.replace(/'/g, "\\'")}','${c.time}','${barber.replace(/'/g, "\\'")}',${i + 1})" style="padding:5px 8px;border:1px solid rgba(176,110,255,0.3);background:rgba(176,110,255,0.05);color:rgba(176,110,255,0.7);font-family:'Share Tech Mono',monospace;font-size:0.7rem;cursor:pointer;transition:all 0.2s;flex-shrink:0;" onmouseover="this.style.background='rgba(176,110,255,0.15)';this.style.color='rgba(176,110,255,1)';" onmouseout="this.style.background='rgba(176,110,255,0.05)';this.style.color='rgba(176,110,255,0.7)';" title="Transferir">↔</button>` : '';
+            return `<div class="my-q-item ${cls}" style="animation-delay:${rowIdx * 0.04}s;grid-template-columns:44px minmax(0,1fr) ${c.id ? 'auto auto ' : ''} auto;">
                   <div class="mqi-num">${String(i + 1).padStart(2, '00')}</div>
-                  <div class="mqi-name-wrap">
-                    <div style="display:flex;align-items:center;gap:7px;flex-wrap:nowrap;min-width:0;">
-                      <div class="mqi-name">${cap(c.name)}</div>
-                      ${eta ? `<div class="eta-live${urgent ? ' urgent' : ''}">⏱ ${eta}</div>` : ''}
-                    </div>
-                  </div>
-                  <div class="mqi-svc-wrap">
-                    <div class="mqi-svc">${cap(c.servicio)}</div>
-                  </div>
-                  <div class="mqi-actions" style="display:flex; gap:6px; flex-shrink:0; align-items:center;">
-                    ${rBtn}${tBtn}
-                  </div>
+                  <div style="min-width:0;overflow:hidden;"><div class="mqi-name">${c.name}</div><div class="mqi-svc">${c.servicio}</div>${eta ? `<div class="eta-live${urgent ? ' urgent' : ''}">⏱ ${eta}</div>` : ''}</div>
+                  ${rBtn}${tBtn}
                   <div class="mqi-right"><div class="mqi-time">${fmt12(c.time)}</div>${tag}</div>
                 </div>`;
           }).join('');
           // Mini grid: todos los que pasan del 5to
           const miniHtml = mini.length ? `
-                <div style="display:flex;align-items:center;gap:7px;padding:6px 0 3px;font-family:'Inter',monospace;font-size:0.4rem;letter-spacing:0.28em;color:rgba(0,245,255,0.2);text-transform:uppercase;flex-shrink:0;">
+                <div style="display:flex;align-items:center;gap:7px;padding:6px 0 3px;font-family:'Share Tech Mono',monospace;font-size:0.4rem;letter-spacing:0.28em;color:rgba(0,245,255,0.2);text-transform:uppercase;flex-shrink:0;">
                   EN ESPERA
-                  <span style="background:rgba(0,245,255,0.05);border:1px solid rgba(0,245,255,0.12);padding:1px 6px;font-family:'Outfit',monospace;font-size:0.44rem;color:rgba(0,245,255,0.35);">${mini.length}</span>
+                  <span style="background:rgba(0,245,255,0.05);border:1px solid rgba(0,245,255,0.12);padding:1px 6px;font-family:'Orbitron',monospace;font-size:0.44rem;color:rgba(0,245,255,0.35);">${mini.length}</span>
                   <span style="flex:1;height:1px;background:rgba(0,245,255,0.06);display:block;"></span>
                 </div>
                 <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:3px;flex-shrink:0;">
@@ -6733,10 +6359,10 @@
             const pos = i - (ctFinal - 1); const eta = calcLiveETA(pos, barber);
             return `<div class="q-mini ms-wait" style="animation-delay:${idx2 * 0.025}s;">
                       <div class="q-mini-num">${String(i + 1).padStart(2, '00')}</div>
-                      <div class="q-mini-name">${cap(c.name)}</div>
+                      <div class="q-mini-name">${c.name}</div>
                       <div class="q-mini-meta">
                         <div class="q-mini-time">${eta || fmt12(c.time)}</div>
-                        <button onclick="openTransferirCita('${c.id}','${c.name.replace(/'/g, "\\'")}','${c.time}','${barber.replace(/'/g, "\\'")}',${i + 1})" style="padding:1px 5px;border:1px solid rgba(0,245,255,0.12);background:transparent;color:rgba(0,245,255,0.3);font-family:'Inter',monospace;font-size:0.34rem;cursor:pointer;">↔</button>
+                        <button onclick="openTransferirCita('${c.id}','${c.name.replace(/'/g, "\\'")}','${c.time}','${barber.replace(/'/g, "\\'")}',${i + 1})" style="padding:1px 5px;border:1px solid rgba(0,245,255,0.12);background:transparent;color:rgba(0,245,255,0.3);font-family:'Share Tech Mono',monospace;font-size:0.34rem;cursor:pointer;">↔</button>
                       </div>
                     </div>`;
           }).join('')}
@@ -6766,7 +6392,7 @@
         const rows = await sbGet('citas', 'shop_id=eq.' + S.shopId + '&fecha=eq.' + fechaM + '&estado=neq.Cancelada&order=hora.asc');
         S.citasMañana = rows.map(c => ({
           id: c.id,
-          name: (c.nombre || 'CLIENTE'),
+          name: (c.nombre || 'CLIENTE').toUpperCase(),
           time: parsearHora(c.hora),
           servicio: (c.servicio || 'CORTE').toUpperCase(),
           barbero: (c.barbero || 'CUALQUIERA').toUpperCase(),
@@ -6785,93 +6411,62 @@
       const months = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
       const diaLabel = days[manana.getDay()] + ' ' + manana.getDate() + ' ' + months[manana.getMonth()];
       const total = S.citasMañana.length;
-
+      const byBarber = {};
+      S.citasMañana.forEach(cita => { if (!byBarber[cita.barbero]) byBarber[cita.barbero] = []; byBarber[cita.barbero].push(cita); });
+      const barbOrder = S.barberos.filter(b => b.activo).map(b => b.nombre);
+      const barbList = [...barbOrder.filter(n => byBarber[n]), ...Object.keys(byBarber).filter(n => !barbOrder.includes(n))];
+      let groupsHtml = '';
       if (!total) {
-        c.innerHTML = `<div class="manana-wrap view-transition">
-          <div class="manana-header">
-            <div>
-              <div class="manana-title">📅 CITAS — MAÑANA</div>
-              <div class="manana-subtitle">${diaLabel}</div>
-            </div>
-          </div>
-          <div class="manana-empty">
-            <div style="font-size:2.5rem;opacity:0.2;margin-bottom:16px;">📅</div>
-            <div class="manana-empty-txt">SIN CITAS PARA MAÑANA</div>
-            <div class="manana-empty-sub">No hay reservas agendadas aún</div>
-          </div>
-        </div>`;
-        return;
-      }
-
-      // Ordenar por hora para el timeline
-      const sorted = [...S.citasMañana].sort((a,b) => a.time.localeCompare(b.time));
-
-      const timelineHtml = sorted.map((cita, i) => {
-        const bIdx = S.barberos.findIndex(b => b.nombre === cita.barbero);
-        const color = BC[bIdx >= 0 ? bIdx % BC.length : i % BC.length];
-        return `
-          <div class="timeline-row" style="animation: item-in 0.5s ease forwards; animation-delay: ${i*0.05}s; --bc:${color};">
-            <div class="timeline-time">${fmt12(cita.time)}</div>
-            <div class="timeline-dot"></div>
-            <div class="timeline-card">
-              <div style="flex:1">
-                <div class="manana-name" style="font-size:1.1rem; margin-bottom:2px;">${cap(cita.name)}</div>
-                <div class="manana-svc" style="opacity:0.6">${cap(cita.servicio)}</div>
-              </div>
-              <div class="timeline-barber-tag">✂ ${cap(cita.barbero)}</div>
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      c.innerHTML = `
-        <div class="manana-wrap view-transition" style="padding: 40px 60px;">
-          <div class="manana-header" style="margin-bottom: 40px;">
-            <div>
-              <div class="manana-title" style="font-size:1.8rem;">📅 CITAS — MAÑANA</div>
-              <div class="manana-subtitle" style="font-size:0.9rem;">${diaLabel} · ${total} RESERVAS AGENDADAS</div>
-            </div>
-            <div class="manana-stats">
-              <div class="manana-stat"><span class="manana-stat-val">${total}</span><span class="manana-stat-lbl">TOTAL</span></div>
-              <div class="manana-stat"><span class="manana-stat-val" style="color:var(--green)">${sorted.filter(x => x.estado === 'Confirmada').length}</span><span class="manana-stat-lbl">CONF.</span></div>
-            </div>
-          </div>
-          <div class="manana-timeline">
-            ${timelineHtml}
-          </div>
+        groupsHtml = '<div class="manana-empty"><div style="font-size:2.5rem;opacity:0.2;margin-bottom:16px;">📅</div><div class="manana-empty-txt">SIN CITAS PARA MAÑANA</div><div class="manana-empty-sub">No hay reservas agendadas aún</div></div>';
+      } else {
+        barbList.forEach((barber, gi) => {
+          const citas = byBarber[barber] || []; if (!citas.length) return;
+          const idx = S.barberos.findIndex(b => b.nombre === barber);
+          const color = BC[idx >= 0 ? idx % BC.length : gi % BC.length];
+          groupsHtml += `<div class="manana-group" style="--bc:${color};--bc-glow:${hexGlow(color)};">
+        <div class="manana-group-header">
+          <div class="manana-barber-name">✂ ${barber}</div>
+          <div class="manana-count">${citas.length} CITA${citas.length > 1 ? 'S' : ''}</div>
         </div>
-      `;
+        <div class="manana-group-body">
+          ${citas.map((cita, i) => `<div class="manana-item" style="animation-delay:${i * 0.05}s;">
+            <div class="manana-num">${String(i + 1).padStart(2, '0')}</div>
+            <div class="manana-info"><div class="manana-name">${cita.name}</div><div class="manana-svc">${cita.servicio}</div></div>
+            <div class="manana-time">${fmt12(cita.time)}</div>
+            <div class="manana-estado">${cita.estado === 'Confirmada' ? '✓ CONF.' : cita.estado.toUpperCase()}</div>
+          </div>`).join('')}
+        </div>
+      </div>`;
+        });
+      }
+      const nConf = S.citasMañana.filter(ct => ct.estado === 'Confirmada').length;
+      const nBarb = barbList.filter(n => byBarber[n]?.length).length;
+      c.innerHTML = `<div class="manana-wrap">
+    <div class="manana-header">
+      <div>
+        <div class="manana-title">📅 CITAS — MAÑANA</div>
+        <div class="manana-subtitle">${diaLabel} · ${total} RESERVA${total !== 1 ? 'S' : ''} AGENDADA${total !== 1 ? 'S' : ''}</div>
+      </div>
+      <div class="manana-stats">
+        <div class="manana-stat"><span class="manana-stat-val">${total}</span><span class="manana-stat-lbl">TOTAL</span></div>
+        <div class="manana-stat"><span class="manana-stat-val" style="color:var(--green)">${nConf}</span><span class="manana-stat-lbl">CONF.</span></div>
+        <div class="manana-stat"><span class="manana-stat-val" style="color:var(--purple)">${nBarb}</span><span class="manana-stat-lbl">BARBEROS</span></div>
+      </div>
+    </div>
+    <div class="manana-body">${groupsHtml}</div>
+    <div class="manana-footer">Al comenzar el día, estas citas aparecerán automáticamente en Barbería · Mi Turno · TV</div>
+  </div>`;
     }
 
     function setMode(m, barber) {
-      const content = document.getElementById('content');
-      // Aplicar blur de salida
-      content.style.transition = 'filter 0.3s ease, opacity 0.3s ease';
-      content.style.filter = 'blur(15px)';
-      content.style.opacity = '0';
-
-      setTimeout(() => {
-        MODE = m; if (m === 'my' && barber) MY_BARBER = barber;
-        ['tv', 'shop', 'my', 'manana'].forEach(id => { const btn = document.getElementById('mbtn-' + id); if (btn) btn.classList.remove('active', 'mode-barber-active', 'mode-manana-active'); });
-        const modeClass = { tv: 'active', shop: 'active', my: 'mode-barber-active', manana: 'mode-manana-active' };
-        const ab = document.getElementById('mbtn-' + (m === 'my' ? 'my' : m)); if (ab) ab.classList.add(modeClass[m] || 'active');
-        document.getElementById('brand-sub').textContent = { tv: 'Vista Global · TV', shop: 'Vista Barbería', my: MY_BARBER ? '✂ ' + MY_BARBER : 'Vista Personal', manana: 'Citas para Mañana' }[m] || 'Sistema de Turnos · AuraOS';
-        
-        const wfab = document.getElementById('walkin-fab');
-        if (wfab) wfab.style.display = (m === 'tv' || m === 'manana') ? 'none' : 'flex';
-
-        if (m === 'manana') loadCitasMañana().catch(() => { }).then(() => render());
-        _lastRenderHtml = '';
-        content.innerHTML = ''; 
-        render();
-
-        // Aplicar animación de entrada
-        content.classList.remove('view-transition');
-        void content.offsetWidth; // Trigger reflow
-        content.classList.add('view-transition');
-        content.style.filter = '';
-        content.style.opacity = '';
-      }, 300);
+      MODE = m; if (m === 'my' && barber) MY_BARBER = barber;
+      ['tv', 'shop', 'my', 'manana'].forEach(id => { const btn = document.getElementById('mbtn-' + id); if (btn) btn.classList.remove('active', 'mode-barber-active', 'mode-manana-active'); });
+      const modeClass = { tv: 'active', shop: 'active', my: 'mode-barber-active', manana: 'mode-manana-active' };
+      const ab = document.getElementById('mbtn-' + (m === 'my' ? 'my' : m)); if (ab) ab.classList.add(modeClass[m] || 'active');
+      document.getElementById('brand-sub').textContent = { tv: 'Vista Global · TV', shop: 'Vista Barbería', my: MY_BARBER ? '✂ ' + MY_BARBER : 'Vista Personal', manana: 'Citas para Mañana' }[m] || 'Sistema de Turnos · AuraOS';
+      if (m === 'manana') loadCitasMañana().catch(() => { }).then(() => render());
+      _lastRenderHtml = '';
+      document.getElementById('content').innerHTML = ''; render();
     }
 
     function openBarberPicker() { renderBarberPicker(); document.getElementById('barber-picker').classList.toggle('open'); }
@@ -7364,12 +6959,12 @@
         const num = q.citas.indexOf(c) + 1;
         const esc = n => n.replace(/'/g, "\\'");
         return `<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid rgba(0,255,120,0.15);background:rgba(0,255,120,0.03);">
-      <div style="font-family:'Outfit',monospace;font-size:0.7rem;font-weight:700;color:rgba(0,255,120,0.5);min-width:26px;">${String(num).padStart(2, '0')}</div>
+      <div style="font-family:'Orbitron',monospace;font-size:0.7rem;font-weight:700;color:rgba(0,255,120,0.5);min-width:26px;">${String(num).padStart(2, '0')}</div>
       <div style="flex:1;">
         <div style="font-family:'Rajdhani',sans-serif;font-size:0.9rem;font-weight:700;color:rgba(255,255,255,0.85);text-transform:uppercase;">${c.name}</div>
-        <div style="font-family:'Inter',monospace;font-size:0.5rem;color:rgba(255,255,255,0.35);letter-spacing:0.1em;">${c.servicio} · ${fmt12(c.time)}</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:0.5rem;color:rgba(255,255,255,0.35);letter-spacing:0.1em;">${c.servicio} · ${fmt12(c.time)}</div>
       </div>
-      <button onclick="deshacerCita('${c.id}','${esc(barber)}')" style="padding:6px 14px;border:1px solid rgba(0,255,120,0.4);background:rgba(0,255,120,0.07);color:rgba(0,255,120,0.9);font-family:'Inter',monospace;font-size:0.55rem;letter-spacing:0.1em;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(0,255,120,0.18)'" onmouseout="this.style.background='rgba(0,255,120,0.07)'">↺ RECUPERAR</button>
+      <button onclick="deshacerCita('${c.id}','${esc(barber)}')" style="padding:6px 14px;border:1px solid rgba(0,255,120,0.4);background:rgba(0,255,120,0.07);color:rgba(0,255,120,0.9);font-family:'Share Tech Mono',monospace;font-size:0.55rem;letter-spacing:0.1em;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(0,255,120,0.18)'" onmouseout="this.style.background='rgba(0,255,120,0.07)'">↺ RECUPERAR</button>
     </div>`;
       }).join('');
       document.getElementById('recuperar-modal').classList.add('open');
@@ -7490,7 +7085,7 @@
 
     function renderBarberosBar() {
       const bar = document.getElementById('barberos-bar'); bar.innerHTML = '';
-      S.barberos.forEach(b => { const s = document.createElement('div'); s.className = 'barb-slot' + (b.activo ? ' active' : ''); s.innerHTML = '<div class="barb-slot-dot"></div>' + cap(b.nombre); bar.appendChild(s); });
+      S.barberos.forEach(b => { const s = document.createElement('div'); s.className = 'barb-slot' + (b.activo ? ' active' : ''); s.innerHTML = '<div class="barb-slot-dot"></div>' + b.nombre; bar.appendChild(s); });
     }
     function setDb(t, l) { document.getElementById('db-pill').className = 'hpill hpill-db ' + t; document.getElementById('db-lbl').textContent = l; }
     function setRt(t, l) { document.getElementById('rt-pill').className = 'hpill hpill-rt ' + (t === 'ok' ? '' : t); document.getElementById('rt-lbl').textContent = l; }
