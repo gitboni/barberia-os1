@@ -10,8 +10,8 @@
   "categories": ["business", "utilities"],
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%23020408'/><text x='96' y='130' font-size='100' text-anchor='middle' fill='%2300F5FF'>✂</text></svg>",
-      "sizes": "192x192",
+      "src": "auraos-logo.svg",
+      "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }

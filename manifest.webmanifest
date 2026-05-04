@@ -1,0 +1,16 @@
+{
+  "name": "AuraOS Marketplace",
+  "short_name": "AuraOS",
+  "description": "Encuentra y reserva en las mejores barberías cerca de ti.",
+  "start_url": "/marketplace.html",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#050505",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "screenshots": [],
+  "categories": ["lifestyle", "business"]
+}
