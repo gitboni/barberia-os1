@@ -633,7 +633,13 @@ initSupabase();
 
 function resolverHorarioSD(shop) {
     const d = new Intl.DateTimeFormat('en-US', { timeZone: APP_TIMEZONE, weekday: 'numeric' }).format(new Date());
-    const diaNum = parseInt(d); // 0=Dom, 1=Lun...
+    // weekday 'numeric' en en-US: Sunday=0, Monday=1...
+    let diaNum = parseInt(d);
+    if (isNaN(diaNum)) {
+        // Fallback si el formato falla: usar getDay() local pero ajustado a la zona horaria no es trivial, 
+        // pero Intl es lo más seguro.
+        diaNum = new Date(new Date().toLocaleString('en-US', {timeZone: APP_TIMEZONE})).getDay();
+    }
     
     // 1. Verificar si el día está habilitado
     const diasAtencion = Array.isArray(shop.dias_atencion) ? shop.dias_atencion : [1,2,3,4,5,6];
@@ -1301,9 +1307,15 @@ async function openBookingModal(shopId) {
         const { data: citas } = await sb.from('citas').select('hora, barbero_id').eq('shop_id', shop.id).eq('fecha', today).not('estado', 'in', '(Cancelada,No-Show)');
         shopCitasHoy = citas || [];
 
-        // Si hay barberos, seleccionar el primero por defecto para mostrar horarios rápido
+        // 4. Seleccionar primer barbero y servicio por defecto para mostrar slots de inmediato
         if (shopBarberos.length > 0) {
-            selectBookingBarber(shopBarberos[0].id);
+            currentBookingBarber = shopBarberos[0];
+            if (currentBookingShop.servicios?.length > 0) {
+                currentBookingService = currentBookingShop.servicios[0];
+            }
+            renderBookingBarbers();
+            renderBookingServices();
+            calculateAvailableSlots();
         }
 
         // Realtime subscription
