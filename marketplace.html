@@ -336,9 +336,11 @@
         <div class="toolbar">
             <div class="toolbar-scroll">
                 <div class="chip active" data-filter="all" onclick="filterShops('all',this)">Todas</div>
+                <div class="chip" data-filter="barberia" onclick="filterShops('barberia',this)">✂️ Barbería</div>
+                <div class="chip" data-filter="nails" onclick="filterShops('nails',this)">💅 Nails</div>
+                <div class="chip" data-filter="spa" onclick="filterShops('spa',this)">💆 Spa</div>
                 <div class="chip" data-filter="elite" onclick="filterShops('elite',this)">💎 Premium</div>
                 <div class="chip" data-filter="open" onclick="filterShops('open',this)">🟢 Abiertos</div>
-                <div class="chip" data-filter="near" onclick="filterShops('near',this)">📍 Cerca</div>
                 <div class="chip" data-filter="favorites" onclick="filterShops('favorites',this)">❤️ Guardados</div>
             </div>
             <select class="sort-select" id="sortSelect" onchange="applySort()" aria-label="Ordenar resultados" title="Ordenar resultados">
@@ -486,6 +488,17 @@ function showToast(msg, duration = 2500) {
     setTimeout(() => t.remove(), duration);
 }
 
+function getSmartWhatsApp(shop, serviceName = null) {
+    let msg = `¡Hola! 👋 Vi a *${shop.nombre}* en AuraOS.\n\n`;
+    if (serviceName) {
+        msg += `Me gustaría agendar un turno para el servicio: *${serviceName}*.\n\n`;
+    } else {
+        msg += `Me gustaría agendar un turno. `;
+    }
+    msg += `¿Tienen disponibilidad hoy?`;
+    return `https://wa.me/${shop.whatsapp}?text=${encodeURIComponent(msg)}`;
+}
+
 // ─── Favorites ────────────────────────────────────────────────────────────────
 function getFavorites() { return JSON.parse(localStorage.getItem('aura_favs') || '[]'); }
 function isFav(id) { return getFavorites().includes(String(id)); }
@@ -584,18 +597,48 @@ function renderSkeletons(n = 4) {
 async function loadShops() {
     const container = document.getElementById('shopsContainer');
     container.innerHTML = renderSkeletons();
-    try {
-        // Usar el proxy seguro en lugar de fetch directo a Supabase
-        let result;
+        // Datos de prueba (Mock Data) para visualización inmediata si la API falla
+        const MOCK_SHOPS = [
+            {
+                id: '1', nombre: 'King Cuts Elite', slug: 'king-cuts', plan: 'elite', activo: true, categoria: 'barberia',
+                foto_url: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800',
+                direccion: 'Av. Winston Churchill 145', ciudad: 'Santo Domingo',
+                rating: 4.9, total_reseñas: 124, tiempo_espera: 15, whatsapp: '18091234567',
+                lat: 18.4735, lng: -69.9400,
+                descripcion: 'La experiencia definitiva en barbería clásica con un toque moderno.',
+                servicios: [{nombre: 'Corte Premium', precio: 800}, {nombre: 'Barba Ritual', precio: 500}]
+            },
+            {
+                id: '2', nombre: 'The Barber Post', slug: 'barber-post', plan: 'pro', activo: true, categoria: 'barberia',
+                foto_url: 'https://images.unsplash.com/photo-1621605815841-28d944683b83?w=800',
+                direccion: 'Calle El Conde 256', ciudad: 'Santo Domingo',
+                rating: 4.7, total_reseñas: 89, tiempo_espera: 0, whatsapp: '18097654321',
+                lat: 18.4715, lng: -69.8850,
+                descripcion: 'Especialistas en degradados y cortes urbanos.',
+                servicios: [{nombre: 'Corte Caballero', precio: 600}, {nombre: 'Corte Niño', precio: 400}]
+            },
+            {
+                id: '3', nombre: 'Aura Studio Nails & Hair', slug: 'aura-studio', plan: 'elite', activo: true, categoria: 'nails',
+                foto_url: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800',
+                direccion: 'Blue Mall, Nivel 2', ciudad: 'Santo Domingo',
+                rating: 5.0, total_reseñas: 210, tiempo_espera: 5, whatsapp: '18299998877',
+                lat: 18.4740, lng: -69.9390,
+                descripcion: 'Salón de belleza integral con los más altos estándares de calidad.',
+                servicios: [{nombre: 'Manicura Pro', precio: 1200}, {nombre: 'Balayage', precio: 4500}]
+            }
+        ];
+
         try {
             const response = await fetch(PROXY_URL);
             result = await response.json();
+            if (!result.shops || result.shops.length === 0) {
+                console.log('API retornó 0 shops, usando Mock Data.');
+                result = { success: true, shops: MOCK_SHOPS };
+            }
         } catch(e) {
-            console.warn('Proxy no disponible (probable entorno local). Cargando fallback...');
-            result = { success: true, shops: [] }; // O cargar datos hardcoded para pruebas
+            console.warn('Proxy no disponible (entorno local). Cargando Mock Data...');
+            result = { success: true, shops: MOCK_SHOPS };
         }
-        
-        if (!result || !result.success) throw new Error(result?.error || 'Error en el proxy');
         
         allShops = result.shops || [];
 
@@ -691,7 +734,7 @@ function renderShops(reset = false) {
                 </div>
                 ${s.rating ? `<div class="rating-row"><span class="stars">${starsHtml(s.rating)}</span><span class="rating-count">${s.rating.toFixed(1)} (${s.total_reseñas || 0})</span></div>` : ''}
                 <div class="btn-row">
-                    <button class="btn btn-primary" onclick="event.stopPropagation();window.open('https://wa.me/${esc(s.whatsapp)}')">Agendar</button>
+                    <button class="btn btn-primary" onclick="event.stopPropagation();window.open(getSmartWhatsApp(${JSON.stringify(s).replace(/"/g, '&quot;')}))">Agendar</button>
                     <button class="btn btn-ghost" title="Cómo llegar" aria-label="Cómo llegar"
                             onclick="event.stopPropagation();window.open('https://www.google.com/maps/dir/?api=1&destination=${esc(s.lat)},${esc(s.lng)}')">
                         <i data-lucide="navigation" size="13"></i>
@@ -742,6 +785,8 @@ function handleSearch() {
 // ─── Filter & Sort ───────────────────────────────────────────────────────────
 function applyActiveFilters(shops) {
     let result = shops;
+    const CATEGORIES = ['barberia', 'nails', 'spa', 'estetica', 'hair'];
+    if (CATEGORIES.includes(activeFilter)) result = result.filter(s => s.categoria === activeFilter);
     if (activeFilter === 'elite') result = result.filter(s => s.plan === 'elite');
     if (activeFilter === 'open')  result = result.filter(s => isOpenNow(s.horario) === true);
     if (activeFilter === 'favorites') result = result.filter(s => isFav(s.id));
