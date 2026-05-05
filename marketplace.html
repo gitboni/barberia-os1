@@ -1000,17 +1000,28 @@ function openShopDetail(id) {
     url.searchParams.set('open', shop.id);
     history.replaceState(null, '', url);
 
+    // Mostrar modal con skeletons mientras carga la data real
+    renderShopDetail(shop, true);
+
+    // Cargar data real de Supabase
+    Promise.all([
+        sb.from('servicios').select('*').eq('shop_id', shop.id).eq('activo', true).order('orden'),
+        sb.from('barberos').select('*').eq('shop_id', shop.id).eq('activo', true).order('orden'),
+        sb.from('citas').select('hora, fecha').eq('shop_id', shop.id).eq('fecha', new Date().toISOString().split('T')[0])
+    ]).then(([{data: svcs}, {data: barbs}, {data: citas}]) => {
+        shop.servicios = svcs || [];
+        shop.staff = barbs || [];
+        shop.slots_tomados = (citas || []).map(c => c.hora.substring(0,5));
+        renderShopDetail(shop, false);
+    });
+}
+
+function renderShopDetail(shop, isLoading) {
     const open = isOpenNow(shop.horario);
     const fav = isFav(shop.id);
     const dist = userCoords ? `${distanceTo(shop.lat, shop.lng).toFixed(1)} km` : null;
 
-    // Galería
-    const extraImgs = Array.isArray(shop.galeria) && shop.galeria.length >= 2 ? shop.galeria : [
-        'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=400',
-        'https://images.unsplash.com/photo-1621605815841-28d944683b83?w=400'
-    ];
-
-    // Horario
+    // Horario detallado
     const horarioHtml = Array.isArray(shop.horario) && shop.horario.length
         ? shop.horario.map(h => `
             <div class="hour-row ${h.dia === todayName ? 'today' : ''}">
@@ -1019,83 +1030,32 @@ function openShopDetail(id) {
             </div>`).join('')
         : DAYS.slice(1).map(d => `
             <div class="hour-row ${d === todayName ? 'today' : ''}">
-                <span class="day-label">${d}</span><span style="color:var(--text-dim)">—</span>
+                <span class="day-label">${d}</span><span style="color:var(--text-dim)">${shop.hora_inicio ? `${shop.hora_inicio}:00 - ${shop.hora_fin}:00` : '—'}</span>
             </div>`).join('');
 
     // Staff
-    const staffHtml = Array.isArray(shop.staff) && shop.staff.length
+    const staffHtml = isLoading ? '<div class="skeleton" style="height:60px; width:100%; border-radius:15px;"></div>' : (Array.isArray(shop.staff) && shop.staff.length
         ? shop.staff.map(st => `
             <div class="staff-item">
-                <div class="avatar">${esc((st.iniciales || st.nombre?.slice(0,2) || '??').toUpperCase())}</div>
+                <div class="avatar">${esc((st.nombre?.slice(0,2) || '??').toUpperCase())}</div>
                 <span class="staff-name">${esc(st.nombre)}</span>
-                ${st.especialidad ? `<span class="staff-name" style="font-size:0.65rem;color:var(--accent)">${esc(st.especialidad)}</span>` : ''}
             </div>`).join('')
-        : '<p style="color:var(--text-dim);font-size:0.85rem;">Información no disponible.</p>';
+        : '<p style="color:var(--text-dim);font-size:0.85rem;">Información no disponible.</p>');
 
-    // Servicios / Precios con botón de agendar directo
-    const serviciosHtml = Array.isArray(shop.servicios) && shop.servicios.length
+    // Servicios
+    const serviciosHtml = isLoading ? '<div class="skeleton" style="height:100px; width:100%; border-radius:15px;"></div>' : (Array.isArray(shop.servicios) && shop.servicios.length
         ? `<div class="services-list">${shop.servicios.map(sv => `
-            <div class="service-row" style="cursor:pointer" onclick="window.open(getSmartWhatsAppById('${esc(shop.id)}', '${esc(sv.nombre)}'))">
-                <div style="display:flex; flex-direction:column">
-                    <span style="font-weight:600">${esc(sv.nombre)}</span>
-                    ${sv.duracion ? `<span style="font-size:0.7rem; color:var(--text-dim)">${sv.duracion} min</span>` : ''}
-                </div>
-                <div style="display:flex; align-items:center; gap:12px">
-                    <span class="service-price">${sv.precio ? `RD$${Number(sv.precio).toLocaleString()}` : '—'}</span>
-                    <i data-lucide="chevron-right" size="14" color="var(--accent)"></i>
-                </div>
+            <div class="service-row">
+                <span>${esc(sv.nombre)}</span>
+                <span class="service-price">${sv.precio ? `RD$${Number(sv.precio).toLocaleString()}` : '—'}</span>
             </div>`).join('')}</div>`
-        : '<p style="color:var(--text-dim);font-size:0.85rem;">Lista de precios no disponible.</p>';
+        : '<p style="color:var(--text-dim);font-size:0.85rem;">Lista de precios no disponible.</p>');
 
-    // Slots de disponibilidad (hoy)
-    const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
-    const todaySched = Array.isArray(shop.horario) ? shop.horario.find(h => h.dia === todayName) : null;
-    const takenSlots = Array.isArray(shop.slots_tomados) ? shop.slots_tomados : [];
-    let slotsHtml = '<p style="color:var(--text-dim);font-size:0.85rem;">Contacta por WhatsApp para verificar disponibilidad.</p>';
-    if (todaySched && !todaySched.cerrado && todaySched.apertura && todaySched.cierre) {
-        const [oh,om] = todaySched.apertura.split(':').map(Number);
-        const [ch,cm] = todaySched.cierre.split(':').map(Number);
-        const slots = [];
-        for (let m = oh*60+om; m < ch*60+cm; m += 30) {
-            const hStr = String(Math.floor(m/60)).padStart(2,'0') + ':' + String(m%60).padStart(2,'0');
-            slots.push(hStr);
-        }
-        slotsHtml = `<div class="slots-grid">${slots.map(sl => {
-            const [sh,sm] = sl.split(':').map(Number);
-            const slMin = sh*60+sm;
-            const past = slMin < nowMin;
-            const taken = takenSlots.includes(sl);
-            const cls = past ? 'past' : taken ? 'taken' : 'free';
-            return `<div class="slot ${cls}" onclick="selectSlot(this,'${sl}')" title="${taken?'Ocupado':past?'Pasado':'Disponible'}">${sl}</div>`;
-        }).join('')}</div>`;
+    // Slots Hoy
+    let slotsHtml = isLoading ? '<div class="skeleton" style="height:80px; width:100%; border-radius:15px;"></div>' : '<p style="color:var(--text-dim);font-size:0.85rem;">Contacta por WhatsApp para verificar disponibilidad.</p>';
+    if (!isLoading && shop.staff?.length > 0) {
+        slotsHtml = `<p style="color:var(--accent); font-weight:600; font-size:0.85rem;">✓ Turnos disponibles hoy. Pulsa Reservar para ver horarios.</p>`;
     }
-
-    // Reseñas
-    const reviewsHtml = Array.isArray(shop.reseñas) && shop.reseñas.length
-        ? `<div class="reviews-list">${shop.reseñas.slice(0,3).map(r => `
-            <div class="review-item">
-                <div class="review-header">
-                    <div>
-                        <span class="review-author">${esc(r.autor)}</span>
-                        <span class="stars" style="font-size:0.75rem;margin-left:8px;color:var(--accent)">${starsHtml(r.rating)}</span>
-                    </div>
-                    <span class="review-date">${esc(r.fecha || '')}</span>
-                </div>
-                <p class="review-text">${esc(r.texto)}</p>
-            </div>`).join('')}</div>`
-        : '<p style="color:var(--text-dim);font-size:0.85rem;">Sin reseñas todavía.</p>';
-
-    // Promociones
-    const promosHtml = Array.isArray(shop.promociones) && shop.promociones.length
-        ? shop.promociones.map(p => `
-            <div class="promo-banner">
-                <div class="promo-icon">🏷</div>
-                <div>
-                    <div class="promo-title">${esc(p.titulo)}${p.descuento ? ` — ${esc(p.descuento)}% OFF` : ''}</div>
-                    ${p.descripcion ? `<div class="promo-desc">${esc(p.descripcion)}</div>` : ''}
-                </div>
-            </div>`).join('')
-        : '';
 
     const sName = DOMPurify.sanitize(shop.nombre || '');
     const sDir = DOMPurify.sanitize(shop.direccion || 'Distrito Nacional');
@@ -1107,8 +1067,8 @@ function openShopDetail(id) {
                  class="gallery-main" alt="Interior de ${esc(sName)}"
                  onerror="this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800'">
             <div class="gallery-side">
-                <img src="${esc(extraImgs[0])}" alt="Galería" onerror="this.src='https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=400'">
-                <img src="${esc(extraImgs[1])}" alt="Galería" onerror="this.src='https://images.unsplash.com/photo-1621605815841-28d944683b83?w=400'">
+                <img src="${esc(shop.foto_url)}" alt="Galería" onerror="this.src='https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=400'">
+                <img src="https://images.unsplash.com/photo-1621605815841-28d944683b83?w=400" alt="Galería">
             </div>
         </div>
 
@@ -1119,7 +1079,7 @@ function openShopDetail(id) {
                     <p class="shop-subtitle">
                         <i data-lucide="map-pin" size="13"></i> ${sDir}
                         ${dist ? `<span>· ${dist}</span>` : ''}
-                        ${open === true ? '<span class="badge badge-open" style="margin-left:6px">● Abierto</span>' : open === false ? '<span class="badge badge-closed" style="margin-left:6px">● Cerrado</span>' : ''}
+                        ${open === true ? '<span class="badge badge-open" style="margin-left:6px">Abierto</span>' : open === false ? '<span class="badge badge-closed" style="margin-left:6px">Cerrado</span>' : ''}
                     </p>
                     ${shop.rating ? `<div class="rating-row" style="margin-top:8px"><span class="stars" style="font-size:1rem">${starsHtml(shop.rating)}</span><span class="rating-count">${shop.rating.toFixed(1)} · ${shop.total_reseñas || 0} reseñas</span></div>` : ''}
                 </div>
@@ -1130,12 +1090,10 @@ function openShopDetail(id) {
                     <button id="sheetFavBtn" class="action-btn ${fav ? 'active' : ''}" data-id="${esc(shop.id)}"
                             aria-label="${fav ? 'Quitar de favoritos' : 'Guardar'}"
                             onclick="toggleFav('${esc(shop.id)}')">
-                        <i data-lucide="heart" size="18" fill="${fav ? '#fff' : 'none'}"></i>
+                        <i data-lucide="heart" size="18" fill="${fav ? '#ff3232' : 'none'}"></i>
                     </button>
                 </div>
             </div>
-
-            ${promosHtml}
 
             <div class="sheet-grid">
                 <div>
@@ -1152,9 +1110,6 @@ function openShopDetail(id) {
 
                     <span class="sheet-label" style="margin-top:35px;display:block">Servicios & Precios</span>
                     ${serviciosHtml}
-
-                    <span class="sheet-label" style="margin-top:35px;display:block">Reseñas</span>
-                    ${reviewsHtml}
                 </div>
 
                 <div style="background:rgba(255,255,255,0.03);padding:25px;border-radius:25px;border:1px solid var(--border);align-self:start;position:sticky;top:20px">
