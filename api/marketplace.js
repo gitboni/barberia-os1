@@ -15,8 +15,8 @@ export default async function handler(req, res) {
   const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'sb_publishable_aETz_9ECH5RcBMjmRhUnfw_g71zRdwT';
 
   try {
-    // 1. Fetch Shops activos
-    const shopsRes = await fetch(`${SB_URL}/rest/v1/shops?select=*&activo=eq.true&order=plan.desc`, {
+    // 1. Fetch Shops (Traemos todos para pruebas, luego puedes filtrar por activo=eq.true)
+    const shopsRes = await fetch(`${SB_URL}/rest/v1/shops?select=*&order=plan.desc`, {
       headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
     });
     
