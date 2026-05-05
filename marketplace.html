@@ -1386,9 +1386,7 @@ async function processBooking() {
     btn.textContent = 'Procesando...';
 
     try {
-        // En un escenario real, aquí pediríamos el nombre/teléfono del cliente si no está logueado
-        // Por ahora, simulamos una reserva de invitado
-        const today = new Date().toISOString().split('T')[0];
+        const today = getFechaHoySD();
         const { error } = await sb.from('citas').insert({
             shop_id: currentBookingShop.id,
             barbero_id: currentBookingBarber.id,
@@ -1397,22 +1395,24 @@ async function processBooking() {
             servicio: currentBookingService.nombre,
             barbero: currentBookingBarber.nombre,
             nombre: 'Cliente Web',
-            telefono: '',
+            telefono: '0000000000', // Teléfono temporal para evitar errores de validación
             estado: 'Confirmada'
         });
 
-        if (error) throw error;
+        if (error) {
+            console.error('Supabase error detail:', error);
+            throw new Error(error.message || 'Error desconocido en la base de datos');
+        }
 
         showToast('¡Cita agendada con éxito! 🎉');
         setTimeout(() => {
             closeBookingModal();
-            // Opcional: Redirigir a WhatsApp con el mensaje inteligente
             window.open(getSmartWhatsApp(currentBookingShop, currentBookingService.nombre));
         }, 1500);
 
     } catch (e) {
         console.error('Booking error:', e);
-        showToast('Error al reservar. Intenta de nuevo.', 4000);
+        showToast(`Error: ${e.message}`, 5000);
         btn.disabled = false;
         btn.textContent = 'Confirmar Reserva';
     }
