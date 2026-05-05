@@ -188,7 +188,42 @@
         .fp-reset { width:100%; padding:12px; background:transparent; color:var(--text-dim); border:1px solid var(--border); border-radius:15px; font-weight:600; font-size:0.9rem; cursor:pointer; margin-top:10px; transition:0.2s; }
         .fp-reset:hover { color:#fff; border-color:#fff; }
 
-        /* ─── Modal / Detail Sheet ─── */
+        /* ─── Booking Modal ─── */
+        .booking-sheet {
+            position:fixed; bottom:-100%; left:0; width:100%; height:85vh;
+            background:rgba(8,8,8,0.98); -webkit-backdrop-filter:blur(50px); backdrop-filter:blur(50px);
+            border-top:1px solid rgba(255,255,255,0.1); border-radius:40px 40px 0 0;
+            z-index:4000; transition:bottom 0.6s cubic-bezier(0.16,1,0.3,1);
+            overflow-y:auto; padding:40px 20px;
+        }
+        .booking-sheet.active { bottom:0; }
+        .live-status { display:flex; align-items:center; gap:8px; margin-bottom:25px; }
+        .live-dot { width:8px; height:8px; background:var(--green); border-radius:50%; animation:pulse-status 2s infinite; }
+        .live-label { font-size:0.7rem; font-weight:800; color:var(--green); letter-spacing:0.1em; }
+        
+        .barber-selector { display:flex; gap:12px; overflow-x:auto; padding-bottom:15px; margin-bottom:30px; scrollbar-width:none; }
+        .barber-selector::-webkit-scrollbar { display:none; }
+        .barber-chip { 
+            flex-shrink:0; width:80px; text-align:center; cursor:pointer; opacity:0.5; transition:0.3s;
+        }
+        .barber-chip.active { opacity:1; }
+        .barber-avt { width:60px; height:60px; border-radius:50%; background:var(--surface); margin:0 auto 8px; border:2px solid transparent; overflow:hidden; }
+        .barber-chip.active .barber-avt { border-color:var(--accent); box-shadow:0 0 20px rgba(212,175,55,0.3); }
+        .barber-name { font-size:0.75rem; font-weight:600; color:#fff; }
+
+        .slots-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(80px, 1fr)); gap:10px; margin-bottom:30px; }
+        .slot-pill { 
+            background:var(--surface); border:1px solid var(--border); border-radius:15px; 
+            padding:12px; text-align:center; font-size:0.85rem; font-weight:600; cursor:pointer; transition:0.2s;
+        }
+        .slot-pill:hover:not(.disabled) { border-color:var(--accent); color:var(--accent); }
+        .slot-pill.selected { background:var(--accent); color:#000; border-color:var(--accent); box-shadow:0 0 20px rgba(212,175,55,0.4); }
+        .slot-pill.disabled { opacity:0.2; cursor:not-allowed; }
+        
+        .booking-confirm { 
+            position:sticky; bottom:0; left:0; width:100%; padding:20px 0; 
+            background:linear-gradient(to top, rgba(8,8,8,1), transparent);
+        }
         .detail-sheet {
             position:fixed; top:50%; left:50%;
             transform:translate(-50%,100%);
@@ -375,8 +410,50 @@
     <section id="map" aria-label="Mapa de barberías"></section>
 </main>
 
-<!-- Overlay -->
-<div class="overlay" id="overlay" onclick="handleOverlayClick()"></div>
+<!-- Booking Modal -->
+    <div id="bookingModal" class="booking-sheet">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <div>
+                <h2 id="bookingShopName" class="font-outfit" style="font-size:1.8rem; margin-bottom:4px;">Reservar Turno</h2>
+                <div class="live-status">
+                    <div class="live-dot"></div>
+                    <span class="live-label">DISPONIBILIDAD EN TIEMPO REAL</span>
+                </div>
+            </div>
+            <button class="fp-close" onclick="closeBookingModal()">
+                <i data-lucide="x" size="20"></i>
+            </button>
+        </div>
+
+        <div class="fp-section">
+            <h4>1. Selecciona a tu profesional</h4>
+            <div id="barberSelector" class="barber-selector">
+                <!-- Se pobla dinámicamente -->
+            </div>
+        </div>
+
+        <div class="fp-section">
+            <h4>2. Servicios Disponibles</h4>
+            <div id="bookingServices" class="services-list" style="margin-bottom:30px;">
+                <!-- Se pobla dinámicamente -->
+            </div>
+        </div>
+
+        <div class="fp-section">
+            <h4>3. Selecciona tu Horario para hoy</h4>
+            <div id="bookingSlots" class="slots-grid">
+                <!-- Se pobla dinámicamente -->
+            </div>
+        </div>
+
+        <div class="booking-confirm">
+            <button id="btnConfirmBooking" class="btn btn-primary" style="height:60px; font-size:1.1rem; width:100%;" disabled onclick="processBooking()">
+                Confirmar Reserva
+            </button>
+        </div>
+    </div>
+
+    <div id="overlay" class="overlay" onclick="handleOverlayClick()"></div>
 
 <!-- Filter Panel -->
 <div class="filter-panel" id="filterPanel" role="dialog" aria-label="Filtros avanzados">
