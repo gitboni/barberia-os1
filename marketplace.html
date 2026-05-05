@@ -538,18 +538,39 @@ let minRating = 0, maxWait = 999, filterOpen = false, filterPromo = false, filte
 
 // ─── Utils ────────────────────────────────────────────────────────────────────
 const esc = str => str == null ? '' : String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+const APP_TIMEZONE = 'America/Santo_Domingo';
 const DAYS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
-const getDayName = i => DAYS[i];
-const todayName = getDayName(new Date().getDay());
+
+function getFechaHoySD() {
+    const d = new Date();
+    const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: APP_TIMEZONE, year: 'numeric', month: '2-digit', day: '2-digit' });
+    return formatter.format(d);
+}
+
+function getAhoraSD() {
+    const parts = new Intl.DateTimeFormat('en-US', { timeZone: APP_TIMEZONE, hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(new Date());
+    const h = parseInt(parts.find(p => p.type === 'hour')?.value ?? '0');
+    const m = parseInt(parts.find(p => p.type === 'minute')?.value ?? '0');
+    return h * 60 + m;
+}
+
+function getDiaSemanaSD() {
+    const d = new Intl.DateTimeFormat('en-US', { timeZone: APP_TIMEZONE, weekday: 'long' }).format(new Date());
+    const map = { 'Monday':'Lunes', 'Tuesday':'Martes', 'Wednesday':'Miércoles', 'Thursday':'Jueves', 'Friday':'Viernes', 'Saturday':'Sábado', 'Sunday':'Domingo' };
+    return map[d] || d;
+}
+
+const todayName = getDiaSemanaSD();
 
 function isOpenNow(horario) {
-    if (!Array.isArray(horario)) return null;
-    const h = horario.find(d => d.dia === todayName);
-    if (!h || h.cerrado) return false;
-    const now = new Date().getHours() * 60 + new Date().getMinutes();
-    const [oh,om] = (h.apertura||'').split(':').map(Number);
-    const [ch,cm] = (h.cierre||'').split(':').map(Number);
-    return now >= oh*60+om && now <= ch*60+cm;
+    if (!horario) return null;
+    const nowMin = getAhoraSD();
+    const dia = getDiaSemanaSD();
+    const h = Array.isArray(horario) ? horario.find(x => x.dia === dia) : null;
+    if (!h || h.cerrado || !h.apertura || !h.cierre) return false;
+    const [ah, am] = h.apertura.split(':').map(Number);
+    const [ch, cm] = h.cierre.split(':').map(Number);
+    return nowMin >= (ah*60+am) && nowMin < (ch*60+cm);
 }
 
 function starsHtml(rating) {
@@ -1040,10 +1061,11 @@ function openShopDetail(id) {
     renderShopDetail(shop, true);
 
     // Cargar data real de Supabase
+    const today = getFechaHoySD();
     Promise.all([
         sb.from('servicios').select('*').eq('shop_id', shop.id).eq('activo', true).order('orden'),
         sb.from('barberos').select('*').eq('shop_id', shop.id).eq('activo', true).order('orden'),
-        sb.from('citas').select('hora, fecha').eq('shop_id', shop.id).eq('fecha', new Date().toISOString().split('T')[0]).not('estado','eq','Cancelada')
+        sb.from('citas').select('hora, fecha').eq('shop_id', shop.id).eq('fecha', today).not('estado','eq','Cancelada')
     ]).then(([{data: svcs, error: e1}, {data: barbs, error: e2}, {data: citas, error: e3}]) => {
         if (e1 || e2 || e3) console.error('Supabase fetch error:', e1 || e2 || e3);
         
@@ -1238,7 +1260,7 @@ async function openBookingModal(shopId) {
         renderBookingServices();
 
         // Cargar Citas de hoy para bloquear slots
-        const today = new Date().toISOString().split('T')[0];
+        const today = getFechaHoySD();
         const { data: citas } = await sb.from('citas').select('hora, barbero_id').eq('shop_id', shop.id).eq('fecha', today).not('estado', 'in', '(Cancelada,No-Show)');
         shopCitasHoy = citas || [];
 
