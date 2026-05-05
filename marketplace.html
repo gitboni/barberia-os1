@@ -272,11 +272,24 @@
         .sheet-close { position:absolute; top:20px; right:20px; background:rgba(0,0,0,0.6); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1); color:#fff; width:42px; height:42px; border-radius:50%; cursor:pointer; z-index:10; display:flex; align-items:center; justify-content:center; transition:background 0.2s; }
         .sheet-close:hover { background:rgba(255,255,255,0.1); }
 
-        .gallery-grid { display:grid; grid-template-columns: 2fr 1fr; gap:12px; height:340px; margin-bottom:25px; border-radius:28px; overflow:hidden; }
-        .gallery-main { width:100%; height:100%; object-fit:cover; transition: 0.6s cubic-bezier(0.165, 0.84, 0.44, 1); }
-        .gallery-side { display:grid; grid-template-rows: 1fr 1fr; gap:12px; }
-        .gallery-side img { width:100%; height:100%; object-fit:cover; transition: 0.6s cubic-bezier(0.165, 0.84, 0.44, 1); }
-        .gallery-grid img:hover { transform: scale(1.04); filter: brightness(1.1); }
+        .gallery-container { position:relative; margin-bottom:30px; }
+        .gallery-main-wrap { width:100%; height:420px; border-radius:24px; overflow:hidden; position:relative; }
+        .gallery-main-img { width:100%; height:100%; object-fit:cover; }
+        .social-overlay { position:absolute; top:20px; left:20px; display:flex; flex-direction:column; gap:10px; z-index:5; }
+        .social-tag { background:rgba(0,0,0,0.6); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); padding:6px 12px; border-radius:10px; display:flex; align-items:center; gap:8px; font-size:0.75rem; font-weight:600; border:1px solid rgba(255,255,255,0.1); }
+        .gallery-thumbs { display:flex; gap:10px; margin-top:12px; overflow-x:auto; scrollbar-width:none; }
+        .gallery-thumb { width:120px; height:80px; border-radius:12px; object-fit:cover; cursor:pointer; opacity:0.6; transition:0.3s; border:2px solid transparent; flex-shrink:0; }
+        .gallery-thumb:hover, .gallery-thumb.active { opacity:1; border-color:var(--accent); }
+
+        .sheet-grid { display:grid; grid-template-columns: 1.8fr 1fr; gap:40px; margin-top:20px; }
+        .sheet-sidebar { position:sticky; top:20px; align-self:start; display:flex; flex-direction:column; gap:25px; }
+        .mini-map-wrap { height:180px; border-radius:20px; overflow:hidden; border:1px solid var(--border); position:relative; }
+        
+        .section-card { background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:24px; padding:24px; }
+        .service-row { display:flex; justify-content:space-between; align-items:center; padding:16px 0; border-bottom:1px solid var(--border); }
+        .service-row:last-child { border-bottom:none; }
+        .service-info h5 { font-size:0.95rem; font-weight:600; margin-bottom:4px; }
+        .service-info p { font-size:0.75rem; opacity:0.5; }
 
         .sheet-content { padding:35px; }
         .sheet-label { font-size:0.65rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--accent); margin-bottom:14px; display:block; }
@@ -1207,83 +1220,94 @@ function renderShopDetail(shop, isLoading) {
     const sDesc = DOMPurify.sanitize(shop.descripcion || '');
 
     document.getElementById('sheetContent').innerHTML = `
-        <div class="gallery-grid">
-            <img src="${esc(shop.foto_url) || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800'}"
-                 class="gallery-main" alt="Interior de ${esc(sName)}"
-                 onerror="this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800'">
-            <div class="gallery-side">
-                <img src="${esc(shop.foto_url)}" alt="Galería" onerror="this.src='https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=400'">
-                <img src="https://images.unsplash.com/photo-1621605815841-28d944683b83?w=400" alt="Galería">
+        <div class="gallery-container">
+            <div class="gallery-main-wrap">
+                <div class="social-overlay">
+                    <div class="social-tag"><i data-lucide="instagram" size="14" color="#E4405F"></i> @${esc(shop.slug || 'auraos')}</div>
+                    <div class="social-tag"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1 .05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z"/></svg> @${esc(shop.slug || 'auraos')}</div>
+                </div>
+                <img src="${esc(shop.foto_url) || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=1200'}" 
+                     class="gallery-main-img" alt="${esc(sName)}">
+            </div>
+            <div class="gallery-thumbs">
+                <img src="${esc(shop.foto_url)}" class="gallery-thumb active">
+                <img src="https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=400" class="gallery-thumb">
+                <img src="https://images.unsplash.com/photo-1621605815841-28d944683b83?w=400" class="gallery-thumb">
+                <img src="https://images.unsplash.com/photo-1517832207067-4db24a2ae47c?w=400" class="gallery-thumb">
+                <img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400" class="gallery-thumb">
             </div>
         </div>
 
-        <div class="sheet-content">
-            <div class="action-header">
-                <div style="min-width:0">
-                    <h2 id="sheetShopName" class="shop-title font-outfit">${sName}</h2>
-                    <p class="shop-subtitle">
-                        <i data-lucide="map-pin" size="13"></i> ${sDir}
-                        ${dist ? `<span>· ${dist}</span>` : ''}
-                        ${open === true ? '<span class="badge badge-open" style="margin-left:6px">Abierto</span>' : open === false ? '<span class="badge badge-closed" style="margin-left:6px">Cerrado</span>' : ''}
-                    </p>
-                    ${shop.rating ? `<div class="rating-row" style="margin-top:8px"><span class="stars" style="font-size:1rem">${starsHtml(shop.rating)}</span><span class="rating-count">${shop.rating.toFixed(1)} · ${shop.total_reseñas || 0} reseñas</span></div>` : ''}
-                </div>
-                <div class="action-btns-inner">
-                    <button class="action-btn" onclick="shareShop('${esc(shop.id)}')" aria-label="Compartir">
-                        <i data-lucide="share-2" size="18"></i>
-                    </button>
-                    <button id="sheetFavBtn" class="action-btn ${fav ? 'active' : ''}" data-id="${esc(shop.id)}"
-                            aria-label="${fav ? 'Quitar de favoritos' : 'Guardar'}"
-                            onclick="toggleFav('${esc(shop.id)}')">
-                        <i data-lucide="heart" size="18" fill="${fav ? '#ff3232' : 'none'}"></i>
-                    </button>
-                </div>
-            </div>
-
-            <div class="sheet-grid">
-                <div>
-                    ${sDesc ? `
-                        <span class="sheet-label">Sobre nosotros</span>
-                        <p style="font-size:0.95rem;line-height:1.7;opacity:0.8;margin-bottom:35px">${sDesc}</p>
-                    ` : ''}
-
-                    <span class="sheet-label">Disponibilidad hoy</span>
-                    ${slotsHtml}
-
-                    <span class="sheet-label" style="margin-top:35px;display:block">Nuestro equipo</span>
-                    <div class="staff-list">${staffHtml}</div>
-
-                    <span class="sheet-label" style="margin-top:35px;display:block">Servicios & Precios</span>
-                    ${serviciosHtml}
-                </div>
-
-                <div style="background:rgba(255,255,255,0.03);padding:25px;border-radius:25px;border:1px solid var(--border);align-self:start;position:sticky;top:20px">
-                    <span class="sheet-label" style="margin-top:0">Horario</span>
-                    ${horarioHtml}
-                    ${shop.tiempo_espera != null ? `
-                        <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--border)">
-                            <span class="sheet-label" style="margin:0 0 8px">Espera actual</span>
-                            <p style="font-size:1.6rem;font-weight:800;font-family:'Outfit',sans-serif;color:var(--accent)">~${shop.tiempo_espera} min</p>
+        <div class="sheet-grid">
+            <div class="sheet-main">
+                <div class="action-header" style="margin-bottom:40px;">
+                    <div style="min-width:0">
+                        <h2 id="sheetShopName" class="shop-title font-outfit" style="font-size:3rem; margin-bottom:10px;">${sName}</h2>
+                        <div style="display:flex; align-items:center; gap:15px; color:var(--text-dim);">
+                            <span><i data-lucide="map-pin" size="14"></i> ${sDir}</span>
+                            <span>·</span>
+                            <span><i data-lucide="star" size="14" fill="var(--accent)" color="var(--accent)"></i> ${shop.rating?.toFixed(1) || '4.8'} (${shop.total_reseñas || 0} reseñas)</span>
                         </div>
-                    ` : ''}
+                    </div>
+                </div>
+
+                <div class="section-card" style="margin-bottom:35px;">
+                    <span class="sheet-label">Sobre nosotros</span>
+                    <p style="font-size:1rem; line-height:1.8; opacity:0.8;">${sDesc || 'Bienvenido a una experiencia de grooming de primer nivel donde la tradición se encuentra con la modernidad.'}</p>
+                </div>
+
+                <div class="section-card" style="margin-bottom:35px;">
+                    <span class="sheet-label">Servicios & Precios</span>
+                    <div class="services-list-full">
+                        ${isLoading ? '<div class="skeleton" style="height:200px; width:100%"></div>' : (Array.isArray(shop.servicios) && shop.servicios.length
+                            ? shop.servicios.map(sv => `
+                                <div class="service-row">
+                                    <div class="service-info">
+                                        <h5>${esc(sv.nombre)}</h5>
+                                        <p>${sv.duracion_min || 30} min</p>
+                                    </div>
+                                    <div style="display:flex; align-items:center; gap:15px;">
+                                        <span class="service-price" style="font-weight:700; color:var(--accent);">RD$${Number(sv.precio).toLocaleString()}</span>
+                                        <button class="btn btn-primary" style="padding:6px 15px; font-size:0.7rem; border-radius:8px;" onclick="openBookingModal('${shop.id}')">Elegir</button>
+                                    </div>
+                                </div>
+                            `).join('')
+                            : '<p>No hay servicios disponibles.</p>')}
+                    </div>
+                </div>
+
+                <div class="section-card">
+                    <span class="sheet-label">Nuestro equipo</span>
+                    <div class="staff-list" style="margin-top:20px;">${staffHtml}</div>
                 </div>
             </div>
-        </div>
 
-        <div class="sheet-cta">
-            <button class="btn btn-primary cta-main" onclick="openBookingModal('${esc(shop.id)}')">
-                Reservar Turno en Tiempo Real
-            </button>
-            <button class="btn btn-ghost cta-icon" aria-label="WhatsApp" onclick="window.open('https://wa.me/${esc(shop.whatsapp)}')">
-                <i data-lucide="message-circle" size="22"></i>
-            </button>
-            <button class="btn btn-ghost cta-icon" aria-label="Cómo llegar"
-                    onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${esc(shop.lat)},${esc(shop.lng)}')">
-                <i data-lucide="navigation" size="22"></i>
-            </button>
-            <button class="btn btn-ghost cta-icon" aria-label="Compartir" onclick="shareShop('${esc(shop.id)}')">
-                <i data-lucide="share-2" size="22"></i>
-            </button>
+            <div class="sheet-sidebar">
+                <div class="section-card" style="padding:0; overflow:hidden;">
+                    <div class="mini-map-wrap" id="miniMap">
+                        <img src="https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/pin-s+D4AF37(${shop.lng},${shop.lat})/${shop.lng},${shop.lat},15/400x180@2x?access_token=pk.eyJ1IjoiYXVyYW9zIiwiYSI6ImNsZzR4YnhsczBia2wzcHBicnBicnBicnBicnBicnBicnBicnBicnBicnBicnBicnBicnBifQ" 
+                             style="width:100%; height:100%; object-fit:cover;">
+                    </div>
+                    <div style="padding:20px;">
+                        <p style="font-size:0.85rem; margin-bottom:15px; line-height:1.5;"><i data-lucide="navigation" size="14" style="margin-right:8px;"></i> ${sDir}</p>
+                        <button class="btn btn-ghost" style="width:100%; border-radius:12px;" onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${shop.lat},${shop.lng}')">¿Cómo llegar?</button>
+                    </div>
+                </div>
+
+                <div class="section-card">
+                    <span class="sheet-label" style="margin-top:0">Horario Semanal</span>
+                    ${horarioHtml}
+                </div>
+
+                <div class="sheet-cta" style="position:relative; bottom:0; padding:0; width:100%; background:transparent; border:none; display:flex; flex-direction:column; gap:10px;">
+                    <button class="btn btn-primary cta-main" style="height:60px; font-size:1rem; border-radius:18px;" onclick="openBookingModal('${esc(shop.id)}')">
+                        Reservar Ahora
+                    </button>
+                    <button class="btn btn-ghost" style="height:50px; border-radius:18px; width:100%;" onclick="window.open('https://wa.me/${esc(shop.whatsapp)}')">
+                        <i data-lucide="message-circle" size="18" style="margin-right:8px;"></i> Consultar por WhatsApp
+                    </button>
+                </div>
+            </div>
         </div>
     `;
 
