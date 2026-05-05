@@ -414,6 +414,17 @@
         </div>
 
         <div id="shopsContainer"></div>
+        <div id="bookingServices" style="margin-bottom:25px"></div>
+
+        <span class="live-label" style="display:block; margin-bottom:12px; opacity:0.6">4. TUS DATOS</span>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:25px;">
+            <input type="text" id="bookingName" placeholder="Tu nombre" 
+                   style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:12px; color:#fff; font-size:0.85rem; outline:none;">
+            <input type="tel" id="bookingPhone" placeholder="WhatsApp (10 dígitos)" 
+                   style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:12px; color:#fff; font-size:0.85rem; outline:none;">
+        </div>
+
+        <span class="live-label" id="labelSlotTitle" style="display:block; margin-bottom:12px; opacity:0.6">5. SELECCIONA TU HORARIO PARA HOY</span>
         <div id="sentinel"></div>
         <div class="load-more" id="loadMoreArea" style="display:none;">
             <button type="button" class="load-more-btn" onclick="loadMoreShops()">Cargar más</button>
@@ -1443,8 +1454,22 @@ function calculateAvailableSlots() {
 function selectBookingSlot(time) {
     currentBookingSlot = time;
     calculateAvailableSlots();
-    document.getElementById('btnConfirmBooking').disabled = !currentBookingService || !currentBookingSlot;
+    validateBookingForm();
 }
+
+function validateBookingForm() {
+    const name = document.getElementById('bookingName').value.trim();
+    const phone = document.getElementById('bookingPhone').value.trim();
+    const btn = document.getElementById('btnConfirmBooking');
+    btn.disabled = !currentBookingService || !currentBookingSlot || !name || phone.length < 10;
+}
+
+// Escuchar cambios en los inputs
+document.addEventListener('input', (e) => {
+    if (e.target.id === 'bookingName' || e.target.id === 'bookingPhone') {
+        validateBookingForm();
+    }
+});
 
 function closeBookingModal() {
     document.getElementById('bookingModal').classList.remove('active');
@@ -1460,7 +1485,10 @@ async function processBooking() {
     btn.textContent = 'Procesando...';
 
     try {
+        const name = document.getElementById('bookingName').value.trim();
+        const phone = document.getElementById('bookingPhone').value.trim();
         const today = getFechaHoySD();
+        
         const { error } = await sb.from('citas').insert({
             shop_id: currentBookingShop.id,
             barbero_id: currentBookingBarber.id,
@@ -1468,8 +1496,8 @@ async function processBooking() {
             hora: currentBookingSlot + ':00',
             servicio: currentBookingService.nombre,
             barbero: currentBookingBarber.nombre,
-            nombre: 'Cliente Web',
-            telefono: '0000000000', // Teléfono temporal para evitar errores de validación
+            nombre: name,
+            telefono: phone,
             estado: 'Confirmada'
         });
 
