@@ -632,17 +632,13 @@ function initSupabase() {
 initSupabase();
 
 function resolverHorarioSD(shop) {
-    const d = new Intl.DateTimeFormat('en-US', { timeZone: APP_TIMEZONE, weekday: 'numeric' }).format(new Date());
-    // weekday 'numeric' en en-US: Sunday=0, Monday=1...
-    let diaNum = parseInt(d);
-    if (isNaN(diaNum)) {
-        // Fallback si el formato falla: usar getDay() local pero ajustado a la zona horaria no es trivial, 
-        // pero Intl es lo más seguro.
-        diaNum = new Date(new Date().toLocaleString('en-US', {timeZone: APP_TIMEZONE})).getDay();
-    }
+    // Método infalible para obtener el día de la semana en Santo Domingo (0-6)
+    const sdTime = new Date().toLocaleString("en-US", {timeZone: APP_TIMEZONE});
+    const diaNum = new Date(sdTime).getDay(); 
     
     // 1. Verificar si el día está habilitado
-    const diasAtencion = Array.isArray(shop.dias_atencion) ? shop.dias_atencion : [1,2,3,4,5,6];
+    const diasAtencion = Array.isArray(shop.dias_atencion) ? shop.dias_atencion : [0,1,2,3,4,5,6];
+    if (!diasAtencion.includes(diaNum)) return [0, 0]; // Cerrado
     if (!diasAtencion.includes(diaNum)) return [0, 0]; // Cerrado
 
     let hInicio = (shop.hora_inicio || 9) * 60;
@@ -1393,22 +1389,29 @@ function selectBookingService(name) {
 }
 
 function calculateAvailableSlots() {
-    if (!currentBookingBarber) return;
     const container = document.getElementById('bookingSlots');
+    if (!currentBookingBarber) {
+        container.innerHTML = '<p style="grid-column:1/-1; color:var(--text-dim); text-align:center;">Selecciona un barbero para ver horarios.</p>';
+        return;
+    }
+
     const dur = currentBookingService?.duracion_min || 30;
-    
     const [hInicio, hFin] = resolverHorarioSD(currentBookingShop);
+
     if (hInicio === 0 && hFin === 0) {
-        container.innerHTML = '<p style="grid-column:1/-1; color:var(--red); text-align:center;">El negocio está cerrado hoy.</p>';
+        container.innerHTML = '<p style="grid-column:1/-1; color:var(--red); text-align:center;">Cerrado hoy.</p>';
         return;
     }
 
     const paso = 30;
     const slots = [];
-    const ocupados = shopCitasHoy
+    const ahoraMin = getAhoraSD();
+
+    // Filtrar ocupados (ID o Nombre)
+    const ocupados = (shopCitasHoy || [])
         .filter(c => {
-            const matchId = c.barbero_id && currentBookingBarber.id && String(c.barbero_id) === String(currentBookingBarber.id);
-            const matchName = c.barbero && currentBookingBarber.nombre && String(c.barbero).toLowerCase() === String(currentBookingBarber.nombre).toLowerCase();
+            const matchId = c.barbero_id && String(c.barbero_id) === String(currentBookingBarber.id);
+            const matchName = c.barbero && String(c.barbero).toLowerCase() === String(currentBookingBarber.nombre).toLowerCase();
             return matchId || matchName;
         })
         .map(c => {
@@ -1416,10 +1419,8 @@ function calculateAvailableSlots() {
             return h * 60 + m;
         });
 
-    const ahoraMin = getAhoraSD();
-
     for (let min = hInicio; min + dur <= hFin; min += paso) {
-        if (min < ahoraMin + 10) continue; // Margen de 10 min para reservar
+        if (min < ahoraMin + 10) continue; 
         
         const choca = ocupados.some(o => min < o + 30 && min + dur > o);
         const timeStr = `${Math.floor(min/60).toString().padStart(2,'0')}:${(min%60).toString().padStart(2,'0')}`;
@@ -1427,7 +1428,7 @@ function calculateAvailableSlots() {
     }
 
     if (!slots.length) {
-        container.innerHTML = '<p style="grid-column:1/-1; color:var(--text-dim); text-align:center;">No hay turnos disponibles para hoy.</p>';
+        container.innerHTML = '<p style="grid-column:1/-1; color:var(--text-dim); text-align:center;">No hay turnos disponibles para el resto del día.</p>';
         return;
     }
 
