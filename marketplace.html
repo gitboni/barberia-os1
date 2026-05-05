@@ -607,22 +607,6 @@ function initSupabase() {
 }
 initSupabase();
 
-// ─── Utilidades de Tiempo (Paridad con App) ───
-const APP_TIMEZONE = 'America/Santo_Domingo';
-
-function getAhoraSD() {
-    const parts = new Intl.DateTimeFormat('en-US', { timeZone: APP_TIMEZONE, hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(new Date());
-    const h = parseInt(parts.find(p => p.type === 'hour')?.value ?? '0');
-    const m = parseInt(parts.find(p => p.type === 'minute')?.value ?? '0');
-    return h * 60 + m;
-}
-
-function getDiaSemanaSD() {
-    const d = new Intl.DateTimeFormat('en-US', { timeZone: APP_TIMEZONE, weekday: 'long' }).format(new Date());
-    const map = { 'Monday':'Lunes', 'Tuesday':'Martes', 'Wednesday':'Miércoles', 'Thursday':'Jueves', 'Friday':'Viernes', 'Saturday':'Sábado', 'Sunday':'Domingo' };
-    return map[d] || d;
-}
-
 function resolverHorarioSD(shop) {
     const dia = getDiaSemanaSD();
     let hInicio = (shop.hora_inicio || 9) * 60;
