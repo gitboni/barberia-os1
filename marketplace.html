@@ -1235,10 +1235,20 @@ async function openBookingModal(shopId) {
         shopBarberos = barbs || [];
         renderBookingBarbers();
 
+        // Cargar Servicios (NUEVO: Consulta directa a la DB)
+        const { data: svcs } = await sb.from('servicios').select('*').eq('shop_id', shop.id).eq('activo', true).order('orden');
+        currentBookingShop.servicios = svcs || []; // Actualizamos el objeto local
+        renderBookingServices();
+
         // Cargar Citas de hoy para bloquear slots
         const today = new Date().toISOString().split('T')[0];
         const { data: citas } = await sb.from('citas').select('hora, barbero_id').eq('shop_id', shop.id).eq('fecha', today).not('estado', 'in', '(Cancelada,No-Show)');
         shopCitasHoy = citas || [];
+
+        // Si hay barberos, seleccionar el primero por defecto para mostrar horarios rápido
+        if (shopBarberos.length > 0) {
+            selectBookingBarber(shopBarberos[0].id);
+        }
 
         // Realtime subscription
         const channel = sb.channel('realtime-booking')
@@ -1251,7 +1261,6 @@ async function openBookingModal(shopId) {
         console.error('Error loading booking data:', e);
     }
     
-    renderBookingServices();
     lucide.createIcons();
 }
 
