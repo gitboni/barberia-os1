@@ -620,22 +620,32 @@ function initSupabase() {
 initSupabase();
 
 function resolverHorarioSD(shop) {
-    const dia = getDiaSemanaSD();
+    const d = new Intl.DateTimeFormat('en-US', { timeZone: APP_TIMEZONE, weekday: 'numeric' }).format(new Date());
+    const diaNum = parseInt(d); // 0=Dom, 1=Lun...
+    
+    // 1. Verificar si el día está habilitado
+    const diasAtencion = Array.isArray(shop.dias_atencion) ? shop.dias_atencion : [1,2,3,4,5,6];
+    if (!diasAtencion.includes(diaNum)) return [0, 0]; // Cerrado
+
     let hInicio = (shop.hora_inicio || 9) * 60;
     let hFin = (shop.hora_fin || 20) * 60;
 
-    // Si tiene configuración detallada (JSON)
-    if (Array.isArray(shop.horario)) {
-        const hDia = shop.horario.find(h => h.dia === dia);
-        if (hDia && !hDia.cerrado && hDia.apertura && hDia.cierre) {
-            const [ah, am] = hDia.apertura.split(':').map(Number);
-            const [ch, cm] = hDia.cierre.split(':').map(Number);
-            hInicio = ah * 60 + am;
-            hFin = ch * 60 + cm;
-        } else if (hDia?.cerrado) {
-            return [0, 0]; // Cerrado
+    // 2. Usar configuración detallada del Admin (horarios_por_dia)
+    const hpd = shop.horarios_por_dia;
+    if (hpd && typeof hpd === 'object') {
+        const configHoy = hpd[diaNum] || hpd[String(diaNum)];
+        if (configHoy) {
+            const iniStr = configHoy.ini || configHoy.inicio;
+            const finStr = configHoy.fin;
+            if (iniStr && finStr) {
+                const [ah, am] = String(iniStr).split(':').map(Number);
+                const [ch, cm] = String(finStr).split(':').map(Number);
+                hInicio = (ah || 0) * 60 + (am || 0);
+                hFin = (ch || 0) * 60 + (cm || 0);
+            }
         }
     }
+    
     return [hInicio, hFin];
 }
 
@@ -1081,17 +1091,37 @@ function renderShopDetail(shop, isLoading) {
     const fav = isFav(shop.id);
     const dist = userCoords ? `${distanceTo(shop.lat, shop.lng).toFixed(1)} km` : null;
 
-    // Horario detallado
-    const horarioHtml = Array.isArray(shop.horario) && shop.horario.length
-        ? shop.horario.map(h => `
-            <div class="hour-row ${h.dia === todayName ? 'today' : ''}">
-                <span class="day-label">${esc(h.dia)}</span>
-                <span>${h.cerrado ? '<span style="color:var(--red)">Cerrado</span>' : `${esc(h.apertura)} – ${esc(h.cierre)}`}</span>
-            </div>`).join('')
-        : DAYS.slice(1).map(d => `
-            <div class="hour-row ${d === todayName ? 'today' : ''}">
-                <span class="day-label">${d}</span><span style="color:var(--text-dim)">${shop.hora_inicio ? `${shop.hora_inicio}:00 - ${shop.hora_fin}:00` : '—'}</span>
-            </div>`).join('');
+    // Horario detallado (Sincronizado con Admin)
+    const diasAtencion = Array.isArray(shop.dias_atencion) ? shop.dias_atencion : [1,2,3,4,5,6];
+    const hpd = shop.horarios_por_dia || {};
+    
+    const horarioHtml = DAYS.slice(1).map((dLabel, i) => {
+        const diaIndex = (i + 1) % 7; // El array DAYS empieza en Domingo? No, DAYS=['Domingo','Lunes'...]
+        // Re-calculamos el índice real: i+1 porque saltamos el primer elemento (vacío o Domingo)
+        // Pero DAYS tiene ['Domingo', 'Lunes'...]
+        // Vamos a usar un mapeo directo:
+        const diaMap = {'Domingo':0, 'Lunes':1, 'Martes':2, 'Miércoles':3, 'Jueves':4, 'Viernes':5, 'Sábado':6};
+        const idx = diaMap[dLabel];
+        
+        const estaAbierto = diasAtencion.includes(idx);
+        const config = hpd[idx] || hpd[String(idx)];
+        let horasTxt = '—';
+        
+        if (estaAbierto) {
+            const ini = config?.ini || config?.inicio || shop.hora_inicio || 9;
+            const fin = config?.fin || shop.hora_fin || 21;
+            horasTxt = `${String(ini).includes(':') ? ini : `${ini}:00`} - ${String(fin).includes(':') ? fin : `${fin}:00`}`;
+        } else {
+            horasTxt = '<span style="color:var(--red)">Cerrado</span>';
+        }
+
+        return `
+            <div class="hour-row ${dLabel === todayName ? 'today' : ''}">
+                <span class="day-label">${dLabel}</span>
+                <span>${horasTxt}</span>
+            </div>`;
+    }).join('');
+ Lively-status logic here...
 
     // Staff
     const staffHtml = isLoading ? '<div class="skeleton" style="height:60px; width:100%; border-radius:15px;"></div>' : (Array.isArray(shop.staff) && shop.staff.length
