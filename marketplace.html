@@ -499,6 +499,12 @@ function getSmartWhatsApp(shop, serviceName = null) {
     return `https://wa.me/${shop.whatsapp}?text=${encodeURIComponent(msg)}`;
 }
 
+function getSmartWhatsAppById(id, serviceName = null) {
+    const shop = allShops.find(s => String(s.id) === String(id));
+    if (!shop) return '#';
+    return getSmartWhatsApp(shop, serviceName);
+}
+
 // ─── Favorites ────────────────────────────────────────────────────────────────
 function getFavorites() { return JSON.parse(localStorage.getItem('aura_favs') || '[]'); }
 function isFav(id) { return getFavorites().includes(String(id)); }
@@ -717,12 +723,12 @@ function renderShops(reset = false) {
                 </div>
                 ${s.rating ? `<div class="rating-row"><span class="stars">${starsHtml(s.rating)}</span><span class="rating-count">${s.rating.toFixed(1)} (${s.total_reseñas || 0})</span></div>` : ''}
                 <div class="btn-row">
-                    <button class="btn btn-primary" onclick="event.stopPropagation();window.open(getSmartWhatsApp(${JSON.stringify(s).replace(/"/g, '&quot;')}))">Agendar</button>
+                    <button class="btn btn-primary" onclick="event.stopPropagation(); window.open(getSmartWhatsAppById('${esc(s.id)}'))">Agendar</button>
                     <button class="btn btn-ghost" title="Cómo llegar" aria-label="Cómo llegar"
-                            onclick="event.stopPropagation();window.open('https://www.google.com/maps/dir/?api=1&destination=${esc(s.lat)},${esc(s.lng)}')">
+                            onclick="event.stopPropagation(); window.open('https://www.google.com/maps/dir/?api=1&destination=${esc(s.lat)},${esc(s.lng)}')">
                         <i data-lucide="navigation" size="13"></i>
                     </button>
-                    <button class="btn btn-ghost" onclick="event.stopPropagation();window.open('/sala/${esc(s.slug)}')">Monitor</button>
+                    <button class="btn btn-ghost" onclick="event.stopPropagation(); window.open('/sala/${esc(s.slug)}')">Monitor</button>
                 </div>
             </div>
         `;
