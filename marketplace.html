@@ -1334,10 +1334,10 @@ async function openBookingModal(shopId) {
 
 async function refreshCitasAndSlots() {
     if (!currentBookingShop) return;
-    const today = new Date().toISOString().split('T')[0];
+    const today = getFechaHoySD();
     const { data: citas } = await sb.from('citas').select('hora, barbero_id').eq('shop_id', currentBookingShop.id).eq('fecha', today).not('estado', 'in', '(Cancelada,No-Show)');
     shopCitasHoy = citas || [];
-    if (currentBookingBarber) calculateBookingSlots();
+    calculateAvailableSlots();
 }
 
 function renderBookingBarbers() {
@@ -1375,16 +1375,16 @@ function renderBookingServices() {
 function selectBookingBarber(id) {
     currentBookingBarber = shopBarberos.find(b => String(b.id) === String(id));
     renderBookingBarbers();
-    calculateBookingSlots();
+    calculateAvailableSlots();
 }
 
 function selectBookingService(name) {
     currentBookingService = currentBookingShop.servicios.find(s => s.nombre === name);
     renderBookingServices();
-    if (currentBookingBarber) calculateBookingSlots();
+    if (currentBookingBarber) calculateAvailableSlots();
 }
 
-function calculateBookingSlots() {
+function calculateAvailableSlots() {
     if (!currentBookingBarber) return;
     const container = document.getElementById('bookingSlots');
     const dur = currentBookingService?.duracion_min || 30;
@@ -1422,14 +1422,14 @@ function calculateBookingSlots() {
     container.innerHTML = slots.map(s => `
         <div class="slot-pill ${s.disabled ? 'disabled' : ''} ${currentBookingSlot === s.time ? 'selected' : ''}" 
              onclick="${s.disabled ? '' : `selectBookingSlot('${s.time}')`}">
-            ${s.time}
+            ${fmt12(s.time)}
         </div>
     `).join('');
 }
 
 function selectBookingSlot(time) {
     currentBookingSlot = time;
-    calculateBookingSlots();
+    calculateAvailableSlots();
     document.getElementById('btnConfirmBooking').disabled = !currentBookingService || !currentBookingSlot;
 }
 
