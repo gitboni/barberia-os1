@@ -569,6 +569,18 @@
 // ─── Config ───────────────────────────────────────────────────────────────────
 // ADVERTENCIA: mover SB_KEY a un backend/proxy antes de producción
 const SB_URL = 'https://mmokunpuslcfphalrwot.supabase.co';
+function getSmartWhatsApp(shop, service, barber, time) {
+    const text = encodeURIComponent(`¡Hola! 👋 Acabo de agendar un *${service}* con *${barber}* para hoy a las *${fmt12(time)}* a través de *AuraOS*. ¿Me podrían confirmar el turno? ¡Gracias!`);
+    return `https://wa.me/${shop.whatsapp}?text=${text}`;
+}
+
+function getGoogleCalendarLink(shop, service, time) {
+    const today = getFechaHoySD().replace(/-/g, '');
+    const [h, m] = time.split(':');
+    const start = `${today}T${h}${m}00`;
+    const end = `${today}T${(parseInt(h)+1).toString().padStart(2,'0')}${m}00`;
+    return `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('Cita en ' + shop.nombre)}&details=${encodeURIComponent(service)}&location=${encodeURIComponent(shop.direccion)}&dates=${start}/${end}`;
+}
 // La clave ya no se usa directamente en el cliente para peticiones de datos sensibles.
 const PROXY_URL = '/api/marketplace';
 const PAGE_SIZE = 10;
@@ -1171,6 +1183,7 @@ function renderShopDetail(shop, isLoading) {
             <div class="staff-item">
                 <div class="avatar">${esc((st.nombre?.slice(0,2) || '??').toUpperCase())}</div>
                 <span class="staff-name">${esc(st.nombre)}</span>
+                <span style="font-size:0.6rem; color:var(--accent); opacity:0.8; font-weight:700; text-transform:uppercase; margin-top:2px;">${st.especialidad || 'Experto'}</span>
             </div>`).join('')
         : '<p style="color:var(--text-dim);font-size:0.85rem;">Información no disponible.</p>');
 
@@ -1528,10 +1541,28 @@ async function processBooking() {
         }
 
         showToast('¡Cita agendada con éxito! 🎉');
+        
+        // Generar Links
+        const waUrl = getSmartWhatsApp(currentBookingShop, currentBookingService.nombre, currentBookingBarber.nombre, currentBookingSlot);
+        const calUrl = getGoogleCalendarLink(currentBookingShop, currentBookingService.nombre, currentBookingSlot);
+
         setTimeout(() => {
-            closeBookingModal();
-            window.open(getSmartWhatsApp(currentBookingShop, currentBookingService.nombre));
-        }, 1500);
+            document.getElementById('btnConfirmBooking').innerHTML = `
+                <div style="display:flex; gap:10px; width:100%">
+                    <button class="btn-confirm" onclick="window.open('${waUrl}')" style="background:#25D366; color:#fff">Confirmar en WhatsApp</button>
+                    <button class="btn-confirm" onclick="window.open('${calUrl}')" style="background:#4285F4; color:#fff">Añadir al Calendario</button>
+                </div>
+            `;
+            // Cambiamos el contenedor padre para que no sea un botón que ejecute de nuevo
+            const parent = document.getElementById('btnConfirmBooking').parentElement;
+            parent.innerHTML = `
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; width:100%">
+                    <button class="btn-confirm" onclick="window.open('${waUrl}')" style="background:#25D366; color:#fff; font-size:0.8rem">Confirmar WA</button>
+                    <button class="btn-confirm" onclick="window.open('${calUrl}')" style="background:#4285F4; color:#fff; font-size:0.8rem">Calendario</button>
+                </div>
+                <p style="text-align:center; margin-top:15px; font-size:0.75rem; opacity:0.6; cursor:pointer;" onclick="closeBookingModal()">Cerrar ventana</p>
+            `;
+        }, 800);
 
     } catch (e) {
         console.error('Booking error:', e);
