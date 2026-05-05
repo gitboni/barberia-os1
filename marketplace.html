@@ -98,12 +98,18 @@
         .card {
             background:var(--surface); border:1px solid var(--border); border-radius:24px;
             padding:20px; margin-bottom:16px; display:flex; gap:16px;
-            transition:0.4s cubic-bezier(0.16,1,0.3,1); cursor:pointer; position:relative;
+            transition:0.4s cubic-bezier(0.165, 0.84, 0.44, 1); cursor:pointer; position:relative;
+            animation: cardEntrance 0.6s ease-out backwards;
+            will-change: transform, opacity;
+        }
+        @keyframes cardEntrance {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         .card.elite { border-color:rgba(245,224,80,0.3); box-shadow:0 10px 40px rgba(245,224,80,0.05); }
-        .card.elite::before { content:'PREMIUM'; position:absolute; top:-10px; right:20px; background:var(--elite); color:#000; font-size:0.55rem; font-weight:900; padding:4px 12px; border-radius:50px; letter-spacing:0.1em; z-index:5; }
-        .card:hover { border-color:var(--accent); transform:translateY(-5px); background:#121212; box-shadow:0 15px 45px rgba(0,0,0,0.4); }
-        .card:hover .card-img { transform:scale(1.05); }
+        .card.elite::before { content:'PREMIUM'; position:absolute; top:-10px; right:20px; background:var(--elite); color:#000; font-size:0.55rem; font-weight:900; padding:4px 12px; border-radius:50px; letter-spacing:0.1em; z-index:5; box-shadow: 0 4px 12px rgba(245,224,80,0.3); }
+        .card:hover { border-color:rgba(212,175,55,0.3); transform:translateY(-6px); background:#121212; box-shadow:0 20px 50px rgba(0,0,0,0.5); }
+        .card:hover .card-img { transform:scale(1.04); }
 
         .card-img { width:110px; height:110px; border-radius:16px; object-fit:cover; background:#222; flex-shrink:0; transition:transform 0.4s ease; }
         .card-body { flex:1; display:flex; flex-direction:column; justify-content:space-between; min-width:0; }
@@ -114,13 +120,27 @@
         .fav-btn.active { color:#ff3232; }
 
         .badge-row { display:flex; gap:6px; margin:8px 0; flex-wrap:wrap; }
-        .badge { font-size:0.6rem; font-weight:800; padding:3px 10px; border-radius:50px; text-transform:uppercase; }
-        .badge-open { background:rgba(0,255,100,0.1); color:var(--green); border:1px solid rgba(0,255,100,0.2); position:relative; padding-left:18px; }
-        .badge-open::before { content:''; position:absolute; left:6px; top:50%; transform:translateY(-50%); width:6px; height:6px; background:var(--green); border-radius:50%; animation:pulse-status 2s infinite; }
-        @keyframes pulse-status { 0% { box-shadow:0 0 0 0 rgba(0,255,100,0.4); } 70% { box-shadow:0 0 0 6px rgba(0,255,100,0); } 100% { box-shadow:0 0 0 0 rgba(0,255,100,0); } }
-        .badge-closed { background:rgba(255,50,50,0.1); color:var(--red); border:1px solid rgba(255,50,50,0.2); }
-        .badge-promo { background:rgba(212,175,55,0.15); color:var(--accent); border:1px solid rgba(212,175,55,0.3); }
-        .badge-wait { background:rgba(255,255,255,0.06); color:#fff; border:1px solid var(--border); }
+        .badge { font-size:0.6rem; font-weight:800; padding:4px 12px; border-radius:50px; text-transform:uppercase; letter-spacing:0.5px; }
+        .badge-open { 
+            background:rgba(0,255,100,0.08); 
+            color:var(--green); 
+            border:1px solid rgba(0,255,100,0.15); 
+            position:relative; 
+            padding-left:20px; 
+        }
+        .badge-open::before { 
+            content:''; position:absolute; left:8px; top:50%; transform:translateY(-50%); 
+            width:6px; height:6px; background:var(--green); border-radius:50%; 
+            box-shadow: 0 0 8px var(--green);
+            animation:pulse-status 2s infinite; 
+        }
+        .badge-elite {
+            background: linear-gradient(135deg, #D4AF37, #F5E050);
+            color: #000;
+            border: none;
+            box-shadow: 0 4px 15px rgba(212,175,55,0.3);
+            font-weight: 900;
+        }
 
         .rating-row { display:flex; align-items:center; gap:6px; font-size:0.78rem; }
         .stars { color:var(--accent); letter-spacing:-1px; }
@@ -252,10 +272,11 @@
         .sheet-close { position:absolute; top:20px; right:20px; background:rgba(0,0,0,0.6); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1); color:#fff; width:42px; height:42px; border-radius:50%; cursor:pointer; z-index:10; display:flex; align-items:center; justify-content:center; transition:background 0.2s; }
         .sheet-close:hover { background:rgba(255,255,255,0.1); }
 
-        .gallery-grid { display:grid; grid-template-columns:2fr 1fr; gap:4px; height:380px; overflow:hidden; }
-        .gallery-main { width:100%; height:100%; object-fit:cover; }
-        .gallery-side { display:grid; grid-template-rows:1fr 1fr; gap:4px; }
-        .gallery-side img { width:100%; height:100%; object-fit:cover; }
+        .gallery-grid { display:grid; grid-template-columns: 2fr 1fr; gap:12px; height:340px; margin-bottom:25px; border-radius:28px; overflow:hidden; }
+        .gallery-main { width:100%; height:100%; object-fit:cover; transition: 0.6s cubic-bezier(0.165, 0.84, 0.44, 1); }
+        .gallery-side { display:grid; grid-template-rows: 1fr 1fr; gap:12px; }
+        .gallery-side img { width:100%; height:100%; object-fit:cover; transition: 0.6s cubic-bezier(0.165, 0.84, 0.44, 1); }
+        .gallery-grid img:hover { transform: scale(1.04); filter: brightness(1.1); }
 
         .sheet-content { padding:35px; }
         .sheet-label { font-size:0.65rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--accent); margin-bottom:14px; display:block; }
@@ -800,31 +821,31 @@ async function loadShops() {
     // Datos de prueba (Mock Data) para visualización inmediata si la API falla
     const MOCK_SHOPS = [
         {
-            id: '1', nombre: 'King Cuts Elite', slug: 'king-cuts', plan: 'elite', activo: true, categoria: 'barberia',
-            foto_url: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800',
+            id: '1', nombre: 'Elite Cuts & Spa', slug: 'elite-cuts', plan: 'elite', activo: true, categoria: 'barberia',
+            foto_url: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800',
             direccion: 'Av. Winston Churchill 145', ciudad: 'Santo Domingo',
             rating: 4.9, total_reseñas: 124, tiempo_espera: 15, whatsapp: '18091234567',
             lat: 18.4735, lng: -69.9400,
-            descripcion: 'La experiencia definitiva en barbería clásica con un toque moderno.',
-            servicios: [{nombre: 'Corte Premium', precio: 800}, {nombre: 'Barba Ritual', precio: 500}]
+            descripcion: 'El estándar de oro en grooming masculino y cuidado personal.',
+            servicios: [{nombre: 'Corte Premium', precio: 800}, {nombre: 'Afeitado Imperial', precio: 500}]
         },
         {
             id: '2', nombre: 'The Barber Post', slug: 'barber-post', plan: 'pro', activo: true, categoria: 'barberia',
-            foto_url: 'https://images.unsplash.com/photo-1621605815841-28d944683b83?w=800',
+            foto_url: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=800',
             direccion: 'Calle El Conde 256', ciudad: 'Santo Domingo',
             rating: 4.7, total_reseñas: 89, tiempo_espera: 0, whatsapp: '18097654321',
             lat: 18.4715, lng: -69.8850,
-            descripcion: 'Especialistas en degradados y cortes urbanos.',
-            servicios: [{nombre: 'Corte Caballero', precio: 600}, {nombre: 'Corte Niño', precio: 400}]
+            descripcion: 'Expertos en diseño capilar y tendencias modernas.',
+            servicios: [{nombre: 'Corte Ejecutivo', precio: 600}, {nombre: 'Perfilado de Barba', precio: 400}]
         },
         {
-            id: '3', nombre: 'Aura Studio Nails & Hair', slug: 'aura-studio', plan: 'elite', activo: true, categoria: 'nails',
-            foto_url: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800',
+            id: '3', nombre: 'Aura Studio Nails', slug: 'aura-studio', plan: 'elite', activo: true, categoria: 'nails',
+            foto_url: 'https://images.unsplash.com/photo-1604654894610-df490668f61e?w=800',
             direccion: 'Blue Mall, Nivel 2', ciudad: 'Santo Domingo',
             rating: 5.0, total_reseñas: 210, tiempo_espera: 5, whatsapp: '18299998877',
             lat: 18.4740, lng: -69.9390,
-            descripcion: 'Salón de belleza integral con los más altos estándares de calidad.',
-            servicios: [{nombre: 'Manicura Pro', precio: 1200}, {nombre: 'Balayage', precio: 4500}]
+            descripcion: 'Salón boutique especializado en estética avanzada.',
+            servicios: [{nombre: 'Manicura Pro', precio: 1200}, {nombre: 'Pedicura Spa', precio: 1500}]
         }
     ];
 
@@ -876,8 +897,8 @@ function renderShops(reset = false) {
     const start = currentPage * PAGE_SIZE;
     const slice = filteredShops.slice(start, start + PAGE_SIZE);
 
-    slice.forEach(s => {
-        const open = isOpenNow(s.horario);
+    slice.forEach((s, idx) => {
+        const [isOpen] = resolverHorarioSD(s);
         const fav = isFav(s.id);
         const dist = userCoords ? ` · ${distanceTo(s.lat, s.lng).toFixed(1)} km` : '';
         const promo = Array.isArray(s.promociones) && s.promociones.length;
@@ -885,6 +906,7 @@ function renderShops(reset = false) {
 
         const card = document.createElement('div');
         card.className = `card ${s.plan === 'elite' ? 'elite' : ''}`;
+        card.style.animationDelay = `${idx * 0.08}s`; // Efecto cascada
         card.setAttribute('role', 'article');
         card.setAttribute('tabindex', '0');
         card.onclick = () => openShopDetail(s.id);
@@ -913,7 +935,8 @@ function renderShops(reset = false) {
                     </button>
                 </div>
                 <div class="badge-row">
-                    ${open === true ? '<span class="badge badge-open">Abierto</span>' : open === false ? '<span class="badge badge-closed">● Cerrado</span>' : ''}
+                    ${isOpen !== 0 ? '<span class="badge badge-open">Abierto</span>' : '<span class="badge badge-closed">Cerrado</span>'}
+                    ${s.plan === 'elite' ? '<span class="badge badge-elite">Elite</span>' : ''}
                     ${promo ? '<span class="badge badge-promo">🏷 Oferta</span>' : ''}
                     ${wait ? `<span class="badge badge-wait">⏱ ${wait}</span>` : ''}
                 </div>
@@ -924,7 +947,6 @@ function renderShops(reset = false) {
                             onclick="event.stopPropagation(); window.open('https://www.google.com/maps/dir/?api=1&destination=${esc(s.lat)},${esc(s.lng)}')">
                         <i data-lucide="navigation" size="13"></i>
                     </button>
-                    <button class="btn btn-ghost" onclick="event.stopPropagation(); window.open('/sala/${esc(s.slug)}')">Monitor</button>
                 </div>
             </div>
         `;
