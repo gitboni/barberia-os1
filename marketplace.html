@@ -1302,9 +1302,13 @@ async function openBookingModal(shopId) {
         currentBookingShop.servicios = svcs || []; // Actualizamos el objeto local
         renderBookingServices();
 
-        // Cargar Citas de hoy para bloquear slots
+        // 3. Cargar Citas de hoy para bloquear slots (Sintaxis corregida para JS Client)
         const today = getFechaHoySD();
-        const { data: citas } = await sb.from('citas').select('hora, barbero_id').eq('shop_id', shop.id).eq('fecha', today).not('estado', 'in', '(Cancelada,No-Show)');
+        const { data: citas } = await sb.from('citas')
+            .select('hora, barbero_id, barbero')
+            .eq('shop_id', shop.id)
+            .eq('fecha', today)
+            .not('estado', 'in', ['Cancelada', 'No-Show']);
         shopCitasHoy = citas || [];
 
         // 4. Seleccionar primer barbero y servicio por defecto para mostrar slots de inmediato
@@ -1335,7 +1339,11 @@ async function openBookingModal(shopId) {
 async function refreshCitasAndSlots() {
     if (!currentBookingShop) return;
     const today = getFechaHoySD();
-    const { data: citas } = await sb.from('citas').select('hora, barbero_id').eq('shop_id', currentBookingShop.id).eq('fecha', today).not('estado', 'in', '(Cancelada,No-Show)');
+    const { data: citas } = await sb.from('citas')
+        .select('hora, barbero_id, barbero')
+        .eq('shop_id', currentBookingShop.id)
+        .eq('fecha', today)
+        .not('estado', 'in', ['Cancelada', 'No-Show']);
     shopCitasHoy = citas || [];
     calculateAvailableSlots();
 }
@@ -1398,7 +1406,11 @@ function calculateAvailableSlots() {
     const paso = 30;
     const slots = [];
     const ocupados = shopCitasHoy
-        .filter(c => String(c.barbero_id) === String(currentBookingBarber.id))
+        .filter(c => {
+            const matchId = c.barbero_id && currentBookingBarber.id && String(c.barbero_id) === String(currentBookingBarber.id);
+            const matchName = c.barbero && currentBookingBarber.nombre && String(c.barbero).toLowerCase() === String(currentBookingBarber.nombre).toLowerCase();
+            return matchId || matchName;
+        })
         .map(c => {
             const [h, m] = c.hora.split(':').map(Number);
             return h * 60 + m;
