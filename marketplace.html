@@ -597,81 +597,64 @@ function renderSkeletons(n = 4) {
 async function loadShops() {
     const container = document.getElementById('shopsContainer');
     container.innerHTML = renderSkeletons();
-        // Datos de prueba (Mock Data) para visualización inmediata si la API falla
-        const MOCK_SHOPS = [
-            {
-                id: '1', nombre: 'King Cuts Elite', slug: 'king-cuts', plan: 'elite', activo: true, categoria: 'barberia',
-                foto_url: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800',
-                direccion: 'Av. Winston Churchill 145', ciudad: 'Santo Domingo',
-                rating: 4.9, total_reseñas: 124, tiempo_espera: 15, whatsapp: '18091234567',
-                lat: 18.4735, lng: -69.9400,
-                descripcion: 'La experiencia definitiva en barbería clásica con un toque moderno.',
-                servicios: [{nombre: 'Corte Premium', precio: 800}, {nombre: 'Barba Ritual', precio: 500}]
-            },
-            {
-                id: '2', nombre: 'The Barber Post', slug: 'barber-post', plan: 'pro', activo: true, categoria: 'barberia',
-                foto_url: 'https://images.unsplash.com/photo-1621605815841-28d944683b83?w=800',
-                direccion: 'Calle El Conde 256', ciudad: 'Santo Domingo',
-                rating: 4.7, total_reseñas: 89, tiempo_espera: 0, whatsapp: '18097654321',
-                lat: 18.4715, lng: -69.8850,
-                descripcion: 'Especialistas en degradados y cortes urbanos.',
-                servicios: [{nombre: 'Corte Caballero', precio: 600}, {nombre: 'Corte Niño', precio: 400}]
-            },
-            {
-                id: '3', nombre: 'Aura Studio Nails & Hair', slug: 'aura-studio', plan: 'elite', activo: true, categoria: 'nails',
-                foto_url: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800',
-                direccion: 'Blue Mall, Nivel 2', ciudad: 'Santo Domingo',
-                rating: 5.0, total_reseñas: 210, tiempo_espera: 5, whatsapp: '18299998877',
-                lat: 18.4740, lng: -69.9390,
-                descripcion: 'Salón de belleza integral con los más altos estándares de calidad.',
-                servicios: [{nombre: 'Manicura Pro', precio: 1200}, {nombre: 'Balayage', precio: 4500}]
-            }
-        ];
-
-        try {
-            const response = await fetch(PROXY_URL);
-            result = await response.json();
-            if (!result.shops || result.shops.length === 0) {
-                console.log('API retornó 0 shops, usando Mock Data.');
-                result = { success: true, shops: MOCK_SHOPS };
-            }
-        } catch(e) {
-            console.warn('Proxy no disponible (entorno local). Cargando Mock Data...');
-            result = { success: true, shops: MOCK_SHOPS };
+    
+    // Datos de prueba (Mock Data) para visualización inmediata si la API falla
+    const MOCK_SHOPS = [
+        {
+            id: '1', nombre: 'King Cuts Elite', slug: 'king-cuts', plan: 'elite', activo: true, categoria: 'barberia',
+            foto_url: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800',
+            direccion: 'Av. Winston Churchill 145', ciudad: 'Santo Domingo',
+            rating: 4.9, total_reseñas: 124, tiempo_espera: 15, whatsapp: '18091234567',
+            lat: 18.4735, lng: -69.9400,
+            descripcion: 'La experiencia definitiva en barbería clásica con un toque moderno.',
+            servicios: [{nombre: 'Corte Premium', precio: 800}, {nombre: 'Barba Ritual', precio: 500}]
+        },
+        {
+            id: '2', nombre: 'The Barber Post', slug: 'barber-post', plan: 'pro', activo: true, categoria: 'barberia',
+            foto_url: 'https://images.unsplash.com/photo-1621605815841-28d944683b83?w=800',
+            direccion: 'Calle El Conde 256', ciudad: 'Santo Domingo',
+            rating: 4.7, total_reseñas: 89, tiempo_espera: 0, whatsapp: '18097654321',
+            lat: 18.4715, lng: -69.8850,
+            descripcion: 'Especialistas en degradados y cortes urbanos.',
+            servicios: [{nombre: 'Corte Caballero', precio: 600}, {nombre: 'Corte Niño', precio: 400}]
+        },
+        {
+            id: '3', nombre: 'Aura Studio Nails & Hair', slug: 'aura-studio', plan: 'elite', activo: true, categoria: 'nails',
+            foto_url: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800',
+            direccion: 'Blue Mall, Nivel 2', ciudad: 'Santo Domingo',
+            rating: 5.0, total_reseñas: 210, tiempo_espera: 5, whatsapp: '18299998877',
+            lat: 18.4740, lng: -69.9390,
+            descripcion: 'Salón de belleza integral con los más altos estándares de calidad.',
+            servicios: [{nombre: 'Manicura Pro', precio: 1200}, {nombre: 'Balayage', precio: 4500}]
         }
-        
-        allShops = result.shops || [];
+    ];
 
-        // Si hay configuración global del marketplace, se podría aplicar aquí
-        if (result.config) {
-            console.log('Marketplace Config:', result.config);
-            if (result.config.banner_url) {
-                // Ejemplo: actualizar banner si existe un elemento con ID banner
-                const banner = document.getElementById('mktBanner');
-                if (banner) banner.src = result.config.banner_url;
+    let result = { success: true, shops: MOCK_SHOPS };
+
+    try {
+        const response = await fetch(PROXY_URL);
+        if (response.ok) {
+            const data = await response.json();
+            if (data.shops && data.shops.length > 0) {
+                result = data;
             }
         }
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const shopFilter = urlParams.get('shop');
-        if (shopFilter) allShops = allShops.filter(s => s.slug === shopFilter);
-
-        filteredShops = [...allShops];
-        currentPage = 0;
-        renderShops(true);
-        addMapMarkers(filteredShops);
-        renderHistory();
-
-        // Abrir modal si viene ?open=id en la URL
-        const openId = urlParams.get('open');
-        if (openId) openShopDetail(openId);
-
-    } catch (e) {
-        console.error('Error cargando shops:', e);
-        container.innerHTML =
-            `<p style="color:var(--text-dim);text-align:center;margin-top:40px;">Error al cargar: ${e.message}. Intenta de nuevo.</p>`;
+    } catch(e) {
+        console.warn('API no disponible o error, usando Mock Data:', e);
     }
+    
+    allShops = result.shops || [];
+    filteredShops = [...allShops];
+    currentPage = 0;
+    renderShops(true);
+    addMapMarkers(filteredShops);
+    renderHistory();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const openId = urlParams.get('open');
+    if (openId) openShopDetail(openId);
 }
+
 
 // ─── Rendering ────────────────────────────────────────────────────────────────
 function renderShops(reset = false) {
