@@ -6,6 +6,14 @@
     <title>AuraOS — Marketplace Pro</title>
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
+    
+    <!-- SEO & Social Media Meta Tags -->
+    <meta name="description" content="Encuentra las mejores barberías y salones de belleza en AuraOS. Reserva en segundos y vive una experiencia premium.">
+    <meta property="og:title" content="AuraOS — Marketplace Pro">
+    <meta property="og:description" content="Las mejores experiencias de grooming y estética a un clic de distancia.">
+    <meta property="og:image" content="https://auraos.app/app-showcase.png">
+    <meta property="og:url" content="https://auraos.app/marketplace">
+    <meta name="twitter:card" content="summary_large_image">
     <meta name="theme-color" content="#050505" media="(prefers-color-scheme: dark)">
     <meta name="apple-mobile-web-app-capable" content="yes">
 
@@ -92,10 +100,11 @@
             transition:0.4s cubic-bezier(0.16,1,0.3,1); cursor:pointer; position:relative;
         }
         .card.elite { border-color:rgba(245,224,80,0.3); box-shadow:0 10px 40px rgba(245,224,80,0.05); }
-        .card.elite::before { content:'PREMIUM'; position:absolute; top:-10px; right:20px; background:var(--elite); color:#000; font-size:0.55rem; font-weight:900; padding:4px 12px; border-radius:50px; letter-spacing:0.1em; }
-        .card:hover { border-color:var(--accent); transform:translateY(-3px); background:#121212; }
+        .card.elite::before { content:'PREMIUM'; position:absolute; top:-10px; right:20px; background:var(--elite); color:#000; font-size:0.55rem; font-weight:900; padding:4px 12px; border-radius:50px; letter-spacing:0.1em; z-index:5; }
+        .card:hover { border-color:var(--accent); transform:translateY(-5px); background:#121212; box-shadow:0 15px 45px rgba(0,0,0,0.4); }
+        .card:hover .card-img { transform:scale(1.05); }
 
-        .card-img { width:110px; height:110px; border-radius:16px; object-fit:cover; background:#222; flex-shrink:0; }
+        .card-img { width:110px; height:110px; border-radius:16px; object-fit:cover; background:#222; flex-shrink:0; transition:transform 0.4s ease; }
         .card-body { flex:1; display:flex; flex-direction:column; justify-content:space-between; min-width:0; }
         .card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
         .card-title { font-size:1rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -923,12 +932,18 @@ function openShopDetail(id) {
             </div>`).join('')
         : '<p style="color:var(--text-dim);font-size:0.85rem;">Información no disponible.</p>';
 
-    // Servicios / Precios
+    // Servicios / Precios con botón de agendar directo
     const serviciosHtml = Array.isArray(shop.servicios) && shop.servicios.length
         ? `<div class="services-list">${shop.servicios.map(sv => `
-            <div class="service-row">
-                <span>${esc(sv.nombre)}</span>
-                <span class="service-price">${sv.precio ? `RD$${Number(sv.precio).toLocaleString()}` : '—'}</span>
+            <div class="service-row" style="cursor:pointer" onclick="window.open(getSmartWhatsAppById('${esc(shop.id)}', '${esc(sv.nombre)}'))">
+                <div style="display:flex; flex-direction:column">
+                    <span style="font-weight:600">${esc(sv.nombre)}</span>
+                    ${sv.duracion ? `<span style="font-size:0.7rem; color:var(--text-dim)">${sv.duracion} min</span>` : ''}
+                </div>
+                <div style="display:flex; align-items:center; gap:12px">
+                    <span class="service-price">${sv.precio ? `RD$${Number(sv.precio).toLocaleString()}` : '—'}</span>
+                    <i data-lucide="chevron-right" size="14" color="var(--accent)"></i>
+                </div>
             </div>`).join('')}</div>`
         : '<p style="color:var(--text-dim);font-size:0.85rem;">Lista de precios no disponible.</p>';
 
