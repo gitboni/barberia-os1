@@ -1224,8 +1224,11 @@ function renderShopDetail(shop, isLoading) {
         </div>
 
         <div class="sheet-cta">
-            <button class="btn btn-primary cta-main" onclick="window.open('https://wa.me/${esc(shop.whatsapp)}')">
-                Reservar Turno Ahora
+            <button class="btn btn-primary cta-main" onclick="openBookingModal('${esc(shop.id)}')">
+                Reservar Turno en Tiempo Real
+            </button>
+            <button class="btn btn-ghost cta-icon" aria-label="WhatsApp" onclick="window.open('https://wa.me/${esc(shop.whatsapp)}')">
+                <i data-lucide="message-circle" size="22"></i>
             </button>
             <button class="btn btn-ghost cta-icon" aria-label="Cómo llegar"
                     onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${esc(shop.lat)},${esc(shop.lng)}')">
