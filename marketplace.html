@@ -1007,12 +1007,18 @@ function openShopDetail(id) {
     Promise.all([
         sb.from('servicios').select('*').eq('shop_id', shop.id).eq('activo', true).order('orden'),
         sb.from('barberos').select('*').eq('shop_id', shop.id).eq('activo', true).order('orden'),
-        sb.from('citas').select('hora, fecha').eq('shop_id', shop.id).eq('fecha', new Date().toISOString().split('T')[0])
-    ]).then(([{data: svcs}, {data: barbs}, {data: citas}]) => {
+        sb.from('citas').select('hora, fecha').eq('shop_id', shop.id).eq('fecha', new Date().toISOString().split('T')[0]).not('estado','eq','Cancelada')
+    ]).then(([{data: svcs, error: e1}, {data: barbs, error: e2}, {data: citas, error: e3}]) => {
+        if (e1 || e2 || e3) console.error('Supabase fetch error:', e1 || e2 || e3);
+        
         shop.servicios = svcs || [];
         shop.staff = barbs || [];
         shop.slots_tomados = (citas || []).map(c => c.hora.substring(0,5));
+        
         renderShopDetail(shop, false);
+    }).catch(err => {
+        console.error('Promise.all error:', err);
+        renderShopDetail(shop, false); // Quitar skeletons aunque haya error
     });
 }
 
