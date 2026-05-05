@@ -414,17 +414,6 @@
         </div>
 
         <div id="shopsContainer"></div>
-        <div id="bookingServices" style="margin-bottom:25px"></div>
-
-        <span class="live-label" style="display:block; margin-bottom:12px; opacity:0.6">4. TUS DATOS</span>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:25px;">
-            <input type="text" id="bookingName" placeholder="Tu nombre" 
-                   style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:12px; color:#fff; font-size:0.85rem; outline:none;">
-            <input type="tel" id="bookingPhone" placeholder="WhatsApp (10 dígitos)" 
-                   style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:12px; color:#fff; font-size:0.85rem; outline:none;">
-        </div>
-
-        <span class="live-label" id="labelSlotTitle" style="display:block; margin-bottom:12px; opacity:0.6">5. SELECCIONA TU HORARIO PARA HOY</span>
         <div id="sentinel"></div>
         <div class="load-more" id="loadMoreArea" style="display:none;">
             <button type="button" class="load-more-btn" onclick="loadMoreShops()">Cargar más</button>
@@ -464,7 +453,17 @@
         </div>
 
         <div class="fp-section">
-            <h4>3. Selecciona tu Horario para hoy</h4>
+            <h4>3. Tus Datos</h4>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+                <input type="text" id="bookingName" placeholder="Tu nombre" 
+                       style="background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:12px; padding:12px; color:#fff; font-size:0.85rem; outline:none;">
+                <input type="tel" id="bookingPhone" placeholder="WhatsApp" 
+                       style="background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:12px; padding:12px; color:#fff; font-size:0.85rem; outline:none;">
+            </div>
+        </div>
+
+        <div class="fp-section">
+            <h4 id="labelSlotTitle">4. Selecciona tu Horario para hoy</h4>
             <div id="bookingSlots" class="slots-grid">
                 <!-- Se pobla dinámicamente -->
             </div>
