@@ -585,6 +585,17 @@ function isOpenNow(horario) {
     return nowMin >= (ah*60+am) && nowMin < (ch*60+cm);
 }
 
+function fmt12(h) {
+    if (!h || typeof h !== 'string' || !h.includes(':')) return h;
+    const [hhStr, mmStr] = h.split(':');
+    let hh = parseInt(hhStr);
+    const mm = mmStr?.substring(0, 2) || '00';
+    const ampm = hh >= 12 ? 'PM' : 'AM';
+    if (hh === 0) hh = 12;
+    else if (hh > 12) hh -= 12;
+    return `${hh}:${mm} ${ampm}`;
+}
+
 function starsHtml(rating) {
     if (!rating) return '';
     const full = Math.floor(rating);
@@ -1092,25 +1103,22 @@ function renderShopDetail(shop, isLoading) {
     const dist = userCoords ? `${distanceTo(shop.lat, shop.lng).toFixed(1)} km` : null;
 
     // Horario detallado (Sincronizado con Admin)
-    const diasAtencion = Array.isArray(shop.dias_atencion) ? shop.dias_atencion : [1,2,3,4,5,6];
+    const diasAtencion = Array.isArray(shop.dias_atencion) ? shop.dias_atencion : [0,1,2,3,4,5,6];
     const hpd = shop.horarios_por_dia || {};
     
-    const horarioHtml = DAYS.slice(1).map((dLabel, i) => {
-        const diaIndex = (i + 1) % 7; // El array DAYS empieza en Domingo? No, DAYS=['Domingo','Lunes'...]
-        // Re-calculamos el índice real: i+1 porque saltamos el primer elemento (vacío o Domingo)
-        // Pero DAYS tiene ['Domingo', 'Lunes'...]
-        // Vamos a usar un mapeo directo:
-        const diaMap = {'Domingo':0, 'Lunes':1, 'Martes':2, 'Miércoles':3, 'Jueves':4, 'Viernes':5, 'Sábado':6};
-        const idx = diaMap[dLabel];
-        
+    const horarioHtml = DAYS.map((dLabel, idx) => {
         const estaAbierto = diasAtencion.includes(idx);
         const config = hpd[idx] || hpd[String(idx)];
         let horasTxt = '—';
         
         if (estaAbierto) {
-            const ini = config?.ini || config?.inicio || shop.hora_inicio || 9;
-            const fin = config?.fin || shop.hora_fin || 21;
-            horasTxt = `${String(ini).includes(':') ? ini : `${ini}:00`} - ${String(fin).includes(':') ? fin : `${fin}:00`}`;
+            const iniRaw = config?.ini || config?.inicio || shop.hora_inicio || 9;
+            const finRaw = config?.fin || shop.hora_fin || 21;
+            
+            const ini = String(iniRaw).includes(':') ? iniRaw : `${iniRaw}:00`;
+            const fin = String(finRaw).includes(':') ? finRaw : `${finRaw}:00`;
+            
+            horasTxt = `${fmt12(ini)} - ${fmt12(fin)}`;
         } else {
             horasTxt = '<span style="color:var(--red)">Cerrado</span>';
         }
