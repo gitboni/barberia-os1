@@ -586,6 +586,42 @@ function initSupabase() {
 }
 initSupabase();
 
+// ─── Utilidades de Tiempo (Paridad con App) ───
+const APP_TIMEZONE = 'America/Santo_Domingo';
+
+function getAhoraSD() {
+    const parts = new Intl.DateTimeFormat('en-US', { timeZone: APP_TIMEZONE, hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(new Date());
+    const h = parseInt(parts.find(p => p.type === 'hour')?.value ?? '0');
+    const m = parseInt(parts.find(p => p.type === 'minute')?.value ?? '0');
+    return h * 60 + m;
+}
+
+function getDiaSemanaSD() {
+    const d = new Intl.DateTimeFormat('en-US', { timeZone: APP_TIMEZONE, weekday: 'long' }).format(new Date());
+    const map = { 'Monday':'Lunes', 'Tuesday':'Martes', 'Wednesday':'Miércoles', 'Thursday':'Jueves', 'Friday':'Viernes', 'Saturday':'Sábado', 'Sunday':'Domingo' };
+    return map[d] || d;
+}
+
+function resolverHorarioSD(shop) {
+    const dia = getDiaSemanaSD();
+    let hInicio = (shop.hora_inicio || 9) * 60;
+    let hFin = (shop.hora_fin || 20) * 60;
+
+    // Si tiene configuración detallada (JSON)
+    if (Array.isArray(shop.horario)) {
+        const hDia = shop.horario.find(h => h.dia === dia);
+        if (hDia && !hDia.cerrado && hDia.apertura && hDia.cierre) {
+            const [ah, am] = hDia.apertura.split(':').map(Number);
+            const [ch, cm] = hDia.cierre.split(':').map(Number);
+            hInicio = ah * 60 + am;
+            hFin = ch * 60 + cm;
+        } else if (hDia?.cerrado) {
+            return [0, 0]; // Cerrado
+        }
+    }
+    return [hInicio, hFin];
+}
+
 function showToast(msg, duration = 2500) {
     const t = document.createElement('div');
     t.className = 'toast';
@@ -1286,12 +1322,14 @@ function calculateBookingSlots() {
     const container = document.getElementById('bookingSlots');
     const dur = currentBookingService?.duracion_min || 30;
     
-    // Lógica simplificada de slots (replicando app)
-    const slots = [];
-    const hInicio = 9 * 60; // 9:00 AM
-    const hFin = 20 * 60;   // 8:00 PM
+    const [hInicio, hFin] = resolverHorarioSD(currentBookingShop);
+    if (hInicio === 0 && hFin === 0) {
+        container.innerHTML = '<p style="grid-column:1/-1; color:var(--red); text-align:center;">El negocio está cerrado hoy.</p>';
+        return;
+    }
+
     const paso = 30;
-    
+    const slots = [];
     const ocupados = shopCitasHoy
         .filter(c => String(c.barbero_id) === String(currentBookingBarber.id))
         .map(c => {
@@ -1299,14 +1337,19 @@ function calculateBookingSlots() {
             return h * 60 + m;
         });
 
-    const ahoraMin = new Date().getHours() * 60 + new Date().getMinutes();
+    const ahoraMin = getAhoraSD();
 
     for (let min = hInicio; min + dur <= hFin; min += paso) {
-        if (min < ahoraMin + 15) continue; // No reservar en el pasado inmediato
+        if (min < ahoraMin + 10) continue; // Margen de 10 min para reservar
         
         const choca = ocupados.some(o => min < o + 30 && min + dur > o);
         const timeStr = `${Math.floor(min/60).toString().padStart(2,'0')}:${(min%60).toString().padStart(2,'0')}`;
         slots.push({ time: timeStr, disabled: choca });
+    }
+
+    if (!slots.length) {
+        container.innerHTML = '<p style="grid-column:1/-1; color:var(--text-dim); text-align:center;">No hay turnos disponibles para hoy.</p>';
+        return;
     }
 
     container.innerHTML = slots.map(s => `
