@@ -114,7 +114,9 @@
 
         .badge-row { display:flex; gap:6px; margin:8px 0; flex-wrap:wrap; }
         .badge { font-size:0.6rem; font-weight:800; padding:3px 10px; border-radius:50px; text-transform:uppercase; }
-        .badge-open { background:rgba(0,255,100,0.1); color:var(--green); border:1px solid rgba(0,255,100,0.2); }
+        .badge-open { background:rgba(0,255,100,0.1); color:var(--green); border:1px solid rgba(0,255,100,0.2); position:relative; padding-left:18px; }
+        .badge-open::before { content:''; position:absolute; left:6px; top:50%; transform:translateY(-50%); width:6px; height:6px; background:var(--green); border-radius:50%; animation:pulse-status 2s infinite; }
+        @keyframes pulse-status { 0% { box-shadow:0 0 0 0 rgba(0,255,100,0.4); } 70% { box-shadow:0 0 0 6px rgba(0,255,100,0); } 100% { box-shadow:0 0 0 0 rgba(0,255,100,0); } }
         .badge-closed { background:rgba(255,50,50,0.1); color:var(--red); border:1px solid rgba(255,50,50,0.2); }
         .badge-promo { background:rgba(212,175,55,0.15); color:var(--accent); border:1px solid rgba(212,175,55,0.3); }
         .badge-wait { background:rgba(255,255,255,0.06); color:#fff; border:1px solid var(--border); }
@@ -711,13 +713,16 @@ function renderShops(reset = false) {
 
         card.innerHTML = `
             <img src="${esc(s.foto_url) || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400'}"
-                 class="card-img" alt="Foto de ${esc(sName)}"
+                 class="card-img" alt="Foto de ${esc(sName)}" loading="lazy"
                  onerror="this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400'">
             <div class="card-body">
                 <div class="card-top">
                     <div style="min-width:0">
                         <h3 class="card-title font-outfit">${sName}</h3>
-                        <p class="card-meta"><i data-lucide="map-pin" size="11"></i> ${sDir}${dist}</p>
+                        <p class="card-meta">
+                            <i data-lucide="map-pin" size="11"></i> ${sDir}
+                            ${dist ? `<span style="color:var(--accent); font-weight:600; margin-left:4px">${dist}</span>` : ''}
+                        </p>
                     </div>
                     <button class="fav-btn ${fav ? 'active' : ''}" data-id="${esc(s.id)}"
                             aria-label="${fav ? 'Quitar de favoritos' : 'Guardar en favoritos'}"
@@ -726,7 +731,7 @@ function renderShops(reset = false) {
                     </button>
                 </div>
                 <div class="badge-row">
-                    ${open === true ? '<span class="badge badge-open">● Abierto</span>' : open === false ? '<span class="badge badge-closed">● Cerrado</span>' : ''}
+                    ${open === true ? '<span class="badge badge-open">Abierto</span>' : open === false ? '<span class="badge badge-closed">● Cerrado</span>' : ''}
                     ${promo ? '<span class="badge badge-promo">🏷 Oferta</span>' : ''}
                     ${wait ? `<span class="badge badge-wait">⏱ ${wait}</span>` : ''}
                 </div>
