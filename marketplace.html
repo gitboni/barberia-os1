@@ -568,6 +568,24 @@ function distanceTo(lat, lng) {
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
+// ─── Variables de Estado Reserva ───
+let currentBookingShop = null;
+let currentBookingBarber = null;
+let currentBookingService = null;
+let currentBookingSlot = null;
+let shopBarberos = [];
+let shopCitasHoy = [];
+let sb = null; // Cliente Supabase
+
+// Inicializar Supabase Cliente Web
+function initSupabase() {
+    if (typeof supabase === 'undefined') return;
+    const SB_URL = 'https://mmokunpuslcfphalrwot.supabase.co';
+    const SB_KEY = 'sb_publishable_aETz_9ECH5RcBMjmRhUnfw_g71zRdwT'; // Clave pública
+    sb = supabase.createClient(SB_URL, SB_KEY);
+}
+initSupabase();
+
 function showToast(msg, duration = 2500) {
     const t = document.createElement('div');
     t.className = 'toast';
@@ -814,7 +832,7 @@ function renderShops(reset = false) {
                 </div>
                 ${s.rating ? `<div class="rating-row"><span class="stars">${starsHtml(s.rating)}</span><span class="rating-count">${s.rating.toFixed(1)} (${s.total_reseñas || 0})</span></div>` : ''}
                 <div class="btn-row">
-                    <button class="btn btn-primary" onclick="event.stopPropagation(); window.open(getSmartWhatsAppById('${esc(s.id)}'))">Agendar</button>
+                    <button class="btn btn-primary" onclick="event.stopPropagation(); openBookingModal('${esc(s.id)}')">Agendar</button>
                     <button class="btn btn-ghost" title="Cómo llegar" aria-label="Cómo llegar"
                             onclick="event.stopPropagation(); window.open('https://www.google.com/maps/dir/?api=1&destination=${esc(s.lat)},${esc(s.lng)}')">
                         <i data-lucide="navigation" size="13"></i>
@@ -1192,7 +1210,194 @@ function selectSlot(el, time) {
     showToast(`Turno ${time} seleccionado — confirma por WhatsApp`);
 }
 
-// ─── Share ────────────────────────────────────────────────────────────────────
+// ─── Booking Logic ────────────────────────────────────────────────────────────
+async function openBookingModal(shopId) {
+    const shop = allShops.find(s => String(s.id) === String(shopId));
+    if (!shop) return;
+    
+    currentBookingShop = shop;
+    currentBookingBarber = null;
+    currentBookingService = null;
+    currentBookingSlot = null;
+    
+    document.getElementById('bookingShopName').textContent = shop.nombre;
+    document.getElementById('bookingModal').classList.add('active');
+    document.getElementById('overlay').classList.add('active');
+    
+    // Reset UI
+    document.getElementById('barberSelector').innerHTML = '<p class="skeleton" style="height:60px; width:100%; border-radius:15px;"></p>';
+    document.getElementById('bookingSlots').innerHTML = '<p style="grid-column: 1/-1; color:var(--text-dim); text-align:center;">Selecciona un barbero primero...</p>';
+    document.getElementById('btnConfirmBooking').disabled = true;
+
+    try {
+        // Cargar Barberos
+        const { data: barbs } = await sb.from('barberos').select('*').eq('shop_id', shop.id).eq('activo', true).order('orden');
+        shopBarberos = barbs || [];
+        renderBookingBarbers();
+
+        // Cargar Citas de hoy para bloquear slots
+        const today = new Date().toISOString().split('T')[0];
+        const { data: citas } = await sb.from('citas').select('hora, barbero_id').eq('shop_id', shop.id).eq('fecha', today).not('estado', 'in', '(Cancelada,No-Show)');
+        shopCitasHoy = citas || [];
+
+        // Realtime subscription
+        const channel = sb.channel('realtime-booking')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'citas', filter: `shop_id=eq.${shop.id}` }, (payload) => {
+                console.log('📡 Cambio en citas detectado, actualizando slots...');
+                refreshCitasAndSlots();
+            }).subscribe();
+            
+    } catch (e) {
+        console.error('Error loading booking data:', e);
+    }
+    
+    renderBookingServices();
+    lucide.createIcons();
+}
+
+async function refreshCitasAndSlots() {
+    if (!currentBookingShop) return;
+    const today = new Date().toISOString().split('T')[0];
+    const { data: citas } = await sb.from('citas').select('hora, barbero_id').eq('shop_id', currentBookingShop.id).eq('fecha', today).not('estado', 'in', '(Cancelada,No-Show)');
+    shopCitasHoy = citas || [];
+    if (currentBookingBarber) calculateBookingSlots();
+}
+
+function renderBookingBarbers() {
+    const container = document.getElementById('barberSelector');
+    if (!shopBarberos.length) {
+        container.innerHTML = '<p style="color:var(--text-dim); font-size:0.8rem;">No hay barberos disponibles.</p>';
+        return;
+    }
+    container.innerHTML = shopBarberos.map(b => `
+        <div class="barber-chip ${currentBookingBarber?.id === b.id ? 'active' : ''}" onclick="selectBookingBarber('${b.id}')">
+            <div class="barber-avt">
+                <img src="${b.foto_url || 'https://images.unsplash.com/photo-1517832207067-4db24a2ae47c?w=100'}" style="width:100%; height:100%; object-fit:cover;">
+            </div>
+            <span class="barber-name">${esc(b.nombre)}</span>
+        </div>
+    `).join('');
+}
+
+function renderBookingServices() {
+    const container = document.getElementById('bookingServices');
+    const svcs = currentBookingShop.servicios || [];
+    if (!svcs.length) {
+        container.innerHTML = '<p style="color:var(--text-dim); font-size:0.8rem;">No hay servicios definidos.</p>';
+        return;
+    }
+    container.innerHTML = svcs.map(s => `
+        <div class="service-row ${currentBookingService?.nombre === s.nombre ? 'selected' : ''}" 
+             style="border:1px solid ${currentBookingService?.nombre === s.nombre ? 'var(--accent)' : 'var(--border)'}; padding:15px; border-radius:15px; margin-bottom:10px; cursor:pointer;"
+             onclick="selectBookingService('${esc(s.nombre)}')">
+            <div>
+                <span style="font-weight:600">${esc(s.nombre)}</span>
+                <span style="display:block; font-size:0.7rem; color:var(--text-dim)">${s.duracion_min || 30} min</span>
+            </div>
+            <span class="service-price">RD$${Number(s.precio || 0).toLocaleString()}</span>
+        </div>
+    `).join('');
+}
+
+function selectBookingBarber(id) {
+    currentBookingBarber = shopBarberos.find(b => String(b.id) === String(id));
+    renderBookingBarbers();
+    calculateBookingSlots();
+}
+
+function selectBookingService(name) {
+    currentBookingService = currentBookingShop.servicios.find(s => s.nombre === name);
+    renderBookingServices();
+    if (currentBookingBarber) calculateBookingSlots();
+}
+
+function calculateBookingSlots() {
+    if (!currentBookingBarber) return;
+    const container = document.getElementById('bookingSlots');
+    const dur = currentBookingService?.duracion_min || 30;
+    
+    // Lógica simplificada de slots (replicando app)
+    const slots = [];
+    const hInicio = 9 * 60; // 9:00 AM
+    const hFin = 20 * 60;   // 8:00 PM
+    const paso = 30;
+    
+    const ocupados = shopCitasHoy
+        .filter(c => String(c.barbero_id) === String(currentBookingBarber.id))
+        .map(c => {
+            const [h, m] = c.hora.split(':').map(Number);
+            return h * 60 + m;
+        });
+
+    const ahoraMin = new Date().getHours() * 60 + new Date().getMinutes();
+
+    for (let min = hInicio; min + dur <= hFin; min += paso) {
+        if (min < ahoraMin + 15) continue; // No reservar en el pasado inmediato
+        
+        const choca = ocupados.some(o => min < o + 30 && min + dur > o);
+        const timeStr = `${Math.floor(min/60).toString().padStart(2,'0')}:${(min%60).toString().padStart(2,'0')}`;
+        slots.push({ time: timeStr, disabled: choca });
+    }
+
+    container.innerHTML = slots.map(s => `
+        <div class="slot-pill ${s.disabled ? 'disabled' : ''} ${currentBookingSlot === s.time ? 'selected' : ''}" 
+             onclick="${s.disabled ? '' : `selectBookingSlot('${s.time}')`}">
+            ${s.time}
+        </div>
+    `).join('');
+}
+
+function selectBookingSlot(time) {
+    currentBookingSlot = time;
+    calculateBookingSlots();
+    document.getElementById('btnConfirmBooking').disabled = !currentBookingService || !currentBookingSlot;
+}
+
+function closeBookingModal() {
+    document.getElementById('bookingModal').classList.remove('active');
+    document.getElementById('overlay').classList.remove('active');
+    currentBookingShop = null;
+}
+
+async function processBooking() {
+    if (!currentBookingShop || !currentBookingBarber || !currentBookingService || !currentBookingSlot) return;
+    
+    const btn = document.getElementById('btnConfirmBooking');
+    btn.disabled = true;
+    btn.textContent = 'Procesando...';
+
+    try {
+        // En un escenario real, aquí pediríamos el nombre/teléfono del cliente si no está logueado
+        // Por ahora, simulamos una reserva de invitado
+        const today = new Date().toISOString().split('T')[0];
+        const { error } = await sb.from('citas').insert({
+            shop_id: currentBookingShop.id,
+            barbero_id: currentBookingBarber.id,
+            fecha: today,
+            hora: currentBookingSlot + ':00',
+            servicio: currentBookingService.nombre,
+            barbero: currentBookingBarber.nombre,
+            nombre: 'Cliente Web',
+            telefono: '',
+            estado: 'Confirmada'
+        });
+
+        if (error) throw error;
+
+        showToast('¡Cita agendada con éxito! 🎉');
+        setTimeout(() => {
+            closeBookingModal();
+            // Opcional: Redirigir a WhatsApp con el mensaje inteligente
+            window.open(getSmartWhatsApp(currentBookingShop, currentBookingService.nombre));
+        }, 1500);
+
+    } catch (e) {
+        console.error('Booking error:', e);
+        showToast('Error al reservar. Intenta de nuevo.', 4000);
+        btn.disabled = false;
+        btn.textContent = 'Confirmar Reserva';
+    }
+}
 async function shareShop(id) {
     const shop = allShops.find(s => String(s.id) === String(id));
     if (!shop) return;
