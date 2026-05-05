@@ -17,6 +17,9 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     <script src="https://unpkg.com/lucide@0.263.1"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+    <script src="https://unpkg.com/dompurify@3.1.6/dist/purify.min.js"></script>
 
     <style>
         /* ─── Variables & Reset ─── */
@@ -38,19 +41,21 @@
 
         /* ─── Nav ─── */
         nav {
-            height:70px; padding:0 30px; display:flex; align-items:center; justify-content:space-between;
-            background:#000; -webkit-backdrop-filter:blur(20px); backdrop-filter:blur(20px);
-            border-bottom:1px solid var(--border); position:sticky; top:0; z-index:1000;
+            height: 90px; padding: 0 40px; display: flex; align-items: center; justify-content: space-between;
+            background: #000; -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1000;
+            gap: 30px;
         }
-        .logo { font-family:'Outfit',sans-serif; font-weight:900; color:var(--accent); font-size:1.4rem; }
-        .logo span { font-weight:300; opacity:0.5; }
+        .logo { font-family: 'Outfit', sans-serif; font-weight: 900; color: var(--accent); font-size: 1.6rem; flex-shrink: 0; min-width: 200px; }
+        .logo span { font-weight: 300; opacity: 0.5; font-size: 1rem; }
 
-        .search-group { display:flex; background:var(--surface); border-radius:15px; border:1px solid var(--border); overflow:hidden; width:60%; }
-        .search-input-wrap { display:flex; align-items:center; padding:0 15px; flex:1; border-right:1px solid var(--border); }
-        .search-input-wrap:last-child { border-right:none; }
-        .search-input-wrap input { background:transparent; border:none; color:#fff; padding:12px; outline:none; width:100%; font-size:0.85rem; }
+        .search-group { display: flex; background: var(--surface); border-radius: 18px; border: 1px solid var(--border); overflow: hidden; flex: 1; max-width: 800px; height: 54px; }
+        .search-input-wrap { display: flex; align-items: center; padding: 0 20px; flex: 1; border-right: 1px solid var(--border); }
+        .search-input-wrap:last-child { border-right: none; }
+        .search-input-wrap input { background: transparent; border: none; color: #fff; padding: 15px 0; outline: none; width: 100%; font-size: 1rem; font-weight: 500; }
+        .search-input-wrap input::placeholder { color: rgba(255,255,255,0.25); }
 
-        .nav-actions { display:flex; align-items:center; gap:16px; }
+        .nav-actions { display: flex; align-items: center; gap: 24px; flex-shrink: 0; }
         .nav-btn { background:transparent; border:none; color:var(--text-dim); cursor:pointer; display:flex; align-items:center; gap:6px; font-size:0.8rem; font-weight:600; transition:color 0.2s; }
         .nav-btn:hover { color:#fff; }
         .avatar-btn { width:40px; height:40px; border-radius:50%; background:var(--surface); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:border-color 0.2s; }
@@ -69,10 +74,12 @@
         .search-box input { background:transparent; border:none; color:#fff; width:100%; outline:none; }
 
         /* ─── Toolbar (chips + sort + filter btn) ─── */
-        .toolbar { display:flex; align-items:center; gap:10px; margin-bottom:20px; flex-wrap:nowrap; overflow-x:auto; padding-bottom:5px; }
-        .toolbar::-webkit-scrollbar { display:none; }
-        .chip { padding:8px 16px; border-radius:50px; font-size:0.75rem; font-weight:600; cursor:pointer; border:1px solid var(--border); background:var(--surface); color:var(--text-dim); transition:0.2s; white-space:nowrap; }
-        .chip.active, .chip:hover { background:var(--accent); color:#000; border-color:var(--accent); }
+        .toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 25px; padding-bottom: 10px; position: relative; }
+        .toolbar-scroll { display: flex; gap: 10px; overflow-x: auto; flex: 1; scrollbar-width: none; -ms-overflow-style: none; }
+        .toolbar-scroll::-webkit-scrollbar { display: none; }
+        
+        .chip { padding: 10px 20px; border-radius: 50px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text-dim); transition: 0.2s; white-space: nowrap; }
+        .chip.active, .chip:hover { background: var(--accent); color: #000; border-color: var(--accent); }
 
         .sort-select { background:var(--surface); border:1px solid var(--border); color:#fff; padding:8px 12px; border-radius:50px; font-size:0.75rem; font-weight:600; outline:none; cursor:pointer; margin-left:auto; }
         .filter-btn { background:var(--surface); border:1px solid var(--border); color:#fff; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:0.2s; flex-shrink:0; }
@@ -327,11 +334,13 @@
 
         <!-- Toolbar -->
         <div class="toolbar">
-            <div class="chip active" data-filter="all" onclick="filterShops('all',this)">Todas</div>
-            <div class="chip" data-filter="elite" onclick="filterShops('elite',this)">💎 Premium</div>
-            <div class="chip" data-filter="open" onclick="filterShops('open',this)">🟢 Abiertos</div>
-            <div class="chip" data-filter="near" onclick="filterShops('near',this)">📍 Cerca</div>
-            <div class="chip" data-filter="favorites" onclick="filterShops('favorites',this)">❤️ Guardados</div>
+            <div class="toolbar-scroll">
+                <div class="chip active" data-filter="all" onclick="filterShops('all',this)">Todas</div>
+                <div class="chip" data-filter="elite" onclick="filterShops('elite',this)">💎 Premium</div>
+                <div class="chip" data-filter="open" onclick="filterShops('open',this)">🟢 Abiertos</div>
+                <div class="chip" data-filter="near" onclick="filterShops('near',this)">📍 Cerca</div>
+                <div class="chip" data-filter="favorites" onclick="filterShops('favorites',this)">❤️ Guardados</div>
+            </div>
             <select class="sort-select" id="sortSelect" onchange="applySort()" aria-label="Ordenar resultados" title="Ordenar resultados">
                 <option value="default">Ordenar: Relevancia</option>
                 <option value="rating">⭐ Mejor valorados</option>
@@ -368,10 +377,9 @@
     <div class="fp-section">
         <h4>Calificación mínima</h4>
         <div class="star-filter">
-            <div class="star-opt" data-rating="0" onclick="setRatingFilter(0,this)">Todas</div>
+            <div class="star-opt active" data-rating="0" onclick="setRatingFilter(0,this)">Todas</div>
             <div class="star-opt" data-rating="3" onclick="setRatingFilter(3,this)">3+ ⭐</div>
             <div class="star-opt" data-rating="4" onclick="setRatingFilter(4,this)">4+ ⭐</div>
-            <div class="star-opt active" data-rating="0" onclick="setRatingFilter(0,this)">Todas</div>
         </div>
     </div>
 
@@ -427,7 +435,8 @@
 // ─── Config ───────────────────────────────────────────────────────────────────
 // ADVERTENCIA: mover SB_KEY a un backend/proxy antes de producción
 const SB_URL = 'https://mmokunpuslcfphalrwot.supabase.co';
-const SB_KEY = 'sb_publishable_aETz_9ECH5RcBMjmRhUnfw_g71zRdwT';
+// La clave ya no se usa directamente en el cliente para peticiones de datos sensibles.
+const PROXY_URL = '/api/marketplace';
 const PAGE_SIZE = 10;
 
 // ─── State ────────────────────────────────────────────────────────────────────
@@ -573,12 +582,32 @@ function renderSkeletons(n = 4) {
 }
 
 async function loadShops() {
-    document.getElementById('shopsContainer').innerHTML = renderSkeletons();
+    const container = document.getElementById('shopsContainer');
+    container.innerHTML = renderSkeletons();
     try {
-        const res = await fetch(`${SB_URL}/rest/v1/shops?select=*&activo=eq.true&order=plan.desc`, {
-            headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
-        });
-        allShops = await res.json();
+        // Usar el proxy seguro en lugar de fetch directo a Supabase
+        let result;
+        try {
+            const response = await fetch(PROXY_URL);
+            result = await response.json();
+        } catch(e) {
+            console.warn('Proxy no disponible (probable entorno local). Cargando fallback...');
+            result = { success: true, shops: [] }; // O cargar datos hardcoded para pruebas
+        }
+        
+        if (!result || !result.success) throw new Error(result?.error || 'Error en el proxy');
+        
+        allShops = result.shops || [];
+
+        // Si hay configuración global del marketplace, se podría aplicar aquí
+        if (result.config) {
+            console.log('Marketplace Config:', result.config);
+            if (result.config.banner_url) {
+                // Ejemplo: actualizar banner si existe un elemento con ID banner
+                const banner = document.getElementById('mktBanner');
+                if (banner) banner.src = result.config.banner_url;
+            }
+        }
 
         const urlParams = new URLSearchParams(window.location.search);
         const shopFilter = urlParams.get('shop');
@@ -596,8 +625,8 @@ async function loadShops() {
 
     } catch (e) {
         console.error('Error cargando shops:', e);
-        document.getElementById('shopsContainer').innerHTML =
-            '<p style="color:var(--text-dim);text-align:center;margin-top:40px;">Error al cargar. Intenta de nuevo.</p>';
+        container.innerHTML =
+            `<p style="color:var(--text-dim);text-align:center;margin-top:40px;">Error al cargar: ${e.message}. Intenta de nuevo.</p>`;
     }
 }
 
@@ -607,7 +636,14 @@ function renderShops(reset = false) {
     if (reset) { container.innerHTML = ''; currentPage = 0; }
 
     if (!filteredShops.length) {
-        container.innerHTML = '<p style="color:var(--text-dim);text-align:center;margin-top:40px;">No se encontraron resultados.</p>';
+        container.innerHTML = `
+            <div style="text-align:center; margin-top:60px; padding:20px;">
+                <div style="font-size:3rem; margin-bottom:20px; opacity:0.2;">🔍</div>
+                <h3 class="font-outfit" style="font-size:1.5rem; margin-bottom:10px;">No se encontraron resultados</h3>
+                <p style="color:var(--text-dim); font-size:0.9rem; margin-bottom:25px;">Intenta ajustar los filtros o busca algo diferente.</p>
+                <button class="btn btn-ghost" style="padding:10px 25px; border-radius:100px;" onclick="resetFilters(); filterShops('all', document.querySelector('.chip'))">Limpiar filtros</button>
+            </div>
+        `;
         document.getElementById('loadMoreArea').style.display = 'none';
         return;
     }
@@ -629,15 +665,18 @@ function renderShops(reset = false) {
         card.onclick = () => openShopDetail(s.id);
         card.onkeydown = e => { if (e.key === 'Enter') openShopDetail(s.id); };
 
+        const sName = DOMPurify.sanitize(s.nombre || '');
+        const sDir = DOMPurify.sanitize(s.direccion || 'Distrito Nacional');
+
         card.innerHTML = `
             <img src="${esc(s.foto_url) || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400'}"
-                 class="card-img" alt="Foto de ${esc(s.nombre)}"
+                 class="card-img" alt="Foto de ${esc(sName)}"
                  onerror="this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400'">
             <div class="card-body">
                 <div class="card-top">
                     <div style="min-width:0">
-                        <h3 class="card-title font-outfit">${esc(s.nombre)}</h3>
-                        <p class="card-meta"><i data-lucide="map-pin" size="11"></i> ${esc(s.direccion) || 'Distrito Nacional'}${dist}</p>
+                        <h3 class="card-title font-outfit">${sName}</h3>
+                        <p class="card-meta"><i data-lucide="map-pin" size="11"></i> ${sDir}${dist}</p>
                     </div>
                     <button class="fav-btn ${fav ? 'active' : ''}" data-id="${esc(s.id)}"
                             aria-label="${fav ? 'Quitar de favoritos' : 'Guardar en favoritos'}"
@@ -674,14 +713,26 @@ function renderShops(reset = false) {
 function loadMoreShops() { renderShops(false); }
 
 // ─── Search ───────────────────────────────────────────────────────────────────
-function handleSearch(query) {
-    const q = query.toLowerCase().trim();
+function handleSearch() {
+    const qName = document.getElementById('searchInputNav').value.toLowerCase().trim();
+    const qLoc = document.getElementById('locationInput').value.toLowerCase().trim();
+    const qMob = document.getElementById('searchInputMobile').value.toLowerCase().trim();
+    
+    const query = qName || qMob;
+    const loc = qLoc;
+
     filteredShops = applyActiveFilters(
-        q ? allShops.filter(s =>
-            s.nombre?.toLowerCase().includes(q) ||
-            s.direccion?.toLowerCase().includes(q) ||
-            (Array.isArray(s.servicios) && s.servicios.some(sv => sv.nombre?.toLowerCase().includes(q)))
-        ) : allShops
+        allShops.filter(s => {
+            const matchesQuery = !query || 
+                s.nombre?.toLowerCase().includes(query) ||
+                (Array.isArray(s.servicios) && s.servicios.some(sv => sv.nombre?.toLowerCase().includes(query)));
+            
+            const matchesLoc = !loc || 
+                s.direccion?.toLowerCase().includes(loc) ||
+                s.ciudad?.toLowerCase().includes(loc);
+            
+            return matchesQuery && matchesLoc;
+        })
     );
     applySortTo(filteredShops);
     renderShops(true);
@@ -897,10 +948,14 @@ function openShopDetail(id) {
             </div>`).join('')
         : '';
 
+    const sName = DOMPurify.sanitize(shop.nombre || '');
+    const sDir = DOMPurify.sanitize(shop.direccion || 'Distrito Nacional');
+    const sDesc = DOMPurify.sanitize(shop.descripcion || '');
+
     document.getElementById('sheetContent').innerHTML = `
         <div class="gallery-grid">
             <img src="${esc(shop.foto_url) || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800'}"
-                 class="gallery-main" alt="Interior de ${esc(shop.nombre)}"
+                 class="gallery-main" alt="Interior de ${esc(sName)}"
                  onerror="this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800'">
             <div class="gallery-side">
                 <img src="${esc(extraImgs[0])}" alt="Galería" onerror="this.src='https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=400'">
@@ -911,9 +966,9 @@ function openShopDetail(id) {
         <div class="sheet-content">
             <div class="action-header">
                 <div style="min-width:0">
-                    <h2 id="sheetShopName" class="shop-title font-outfit">${esc(shop.nombre)}</h2>
+                    <h2 id="sheetShopName" class="shop-title font-outfit">${sName}</h2>
                     <p class="shop-subtitle">
-                        <i data-lucide="map-pin" size="13"></i> ${esc(shop.direccion) || 'Distrito Nacional'}
+                        <i data-lucide="map-pin" size="13"></i> ${sDir}
                         ${dist ? `<span>· ${dist}</span>` : ''}
                         ${open === true ? '<span class="badge badge-open" style="margin-left:6px">● Abierto</span>' : open === false ? '<span class="badge badge-closed" style="margin-left:6px">● Cerrado</span>' : ''}
                     </p>
@@ -935,9 +990,9 @@ function openShopDetail(id) {
 
             <div class="sheet-grid">
                 <div>
-                    ${shop.descripcion ? `
+                    ${sDesc ? `
                         <span class="sheet-label">Sobre nosotros</span>
-                        <p style="font-size:0.95rem;line-height:1.7;opacity:0.8;margin-bottom:35px">${esc(shop.descripcion)}</p>
+                        <p style="font-size:0.95rem;line-height:1.7;opacity:0.8;margin-bottom:35px">${sDesc}</p>
                     ` : ''}
 
                     <span class="sheet-label">Disponibilidad hoy</span>
@@ -1030,11 +1085,12 @@ document.addEventListener('keydown', e => {
 
 // ─── Search listeners ─────────────────────────────────────────────────────────
 let searchDebounce;
-const onSearch = e => {
+const onSearch = () => {
     clearTimeout(searchDebounce);
-    searchDebounce = setTimeout(() => handleSearch(e.target.value), 250);
+    searchDebounce = setTimeout(() => handleSearch(), 250);
 };
 document.getElementById('searchInputNav').addEventListener('input', onSearch);
+document.getElementById('locationInput').addEventListener('input', onSearch);
 document.getElementById('searchInputMobile').addEventListener('input', onSearch);
 
 // ─── Infinite scroll (IntersectionObserver) ────────────────────────────────
