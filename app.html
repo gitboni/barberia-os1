@@ -1007,12 +1007,12 @@
                 console.log("Shops cargadas:", shops.length);
                 renderShops();
 
-                // 2. Cargar Próxima Cita (Simulado para Demo o real si hay ID)
+                // 2. Cargar Próxima Cita
                 if (user) {
                     const hoy = new Date().toISOString().split('T')[0];
                     const { data: citas } = await sb.from('citas')
-                        .select('*, shops(nombre)')
-                        .eq('usuario_id', user.id)
+                        .select('*, shops(*)')
+                        .or(`usuario_id.eq.${user.id},telefono.eq.${user.telefono||'__'}`)
                         .eq('estado', 'Confirmada')
                         .gte('fecha', hoy)
                         .order('fecha')
@@ -1021,6 +1021,7 @@
 
                     if (citas && citas.length > 0) {
                         renderNextAppt(citas[0]);
+                        scheduleNotificaciones(citas[0], citas[0].shops || {});
                     } else {
                         document.getElementById('nextApptContainer').classList.add('hidden');
                     }
@@ -1370,7 +1371,12 @@
                     `${selectedService.nombre} con ${selectedBarber.nombre} · ${fmt12(selectedSlot)} · ${selectedShop.nombre}`;
                 goToStep('success');
                 updateProgress(4);
-                renderHomeQueue(); // actualizar cola en home
+                renderHomeQueue();
+                // Programar recordatorios para la nueva cita
+                if (selectedShop) {
+                    const nuevaCita = { id: null, hora: selectedSlot+':00', fecha: hoy, barbero: selectedBarber.nombre, servicio: selectedService.nombre, shop_id: selectedShop.id, nombre: user.nombre };
+                    scheduleNotificaciones(nuevaCita, selectedShop);
+                }
             } else {
                 toast('Error al reservar: ' + error.message, 'error', 5000);
                 btn.disabled = false;
@@ -1600,6 +1606,9 @@
 
             const { citas, durMap } = await getQueueData(c.shop_id, c.barbero, hoy);
             const { items, userIdx, aheadCount, waitMins } = calcQueueStats(citas, durMap, durDefault, user.telefono, user.id);
+
+            // Notificación browser "falte 1 turno"
+            checkNotifyUnTurno(aheadCount, c, shopName);
 
             const myItem = items[userIdx] || items[0];
             const durSvc = durMap[c.servicio?.toLowerCase().trim()] ?? durDefault;
@@ -1861,6 +1870,128 @@
                 console.error("Error al iniciar cámara:", err);
                 toast("No se pudo acceder a la cámara. Verifica los permisos.", "error", 4000);
             });
+        }
+
+        // ── NOTIFICACIONES PWA (independientes del bot/WhatsApp) ─────────
+        const _timers = [];
+
+        // Deduplicación local — no toca tabla del bot
+        function yaNotificado(citaId, tipo) {
+            try { return localStorage.getItem(`notif_${citaId}_${tipo}`) === '1'; }
+            catch(_) { return false; }
+        }
+        function marcarNotificado(citaId, tipo) {
+            try { localStorage.setItem(`notif_${citaId}_${tipo}`, '1'); }
+            catch(_) {}
+        }
+
+        function buildMsgPWA(template, nombre, barbero, shopName, hora, minutos) {
+            // Usa el mismo template del shop si existe, sino uno propio
+            return (template || '¡{nombre}, ve saliendo! Tu turno con {barbero} en {shop} comienza en aprox. {minutos} min. 🕐 A las {hora_exacta} ¡No llegues tarde! 🚶')
+                .replace(/\{nombre\}/g, nombre || 'Cliente')
+                .replace(/\{barbero\}/g, barbero || 'tu especialista')
+                .replace(/\{shop\}/g, shopName || '')
+                .replace(/\{minutos\}/g, minutos)
+                .replace(/\{hora\}/g, hora)
+                .replace(/\{hora_exacta\}/g, hora)
+                .replace(/\{turnos\}/g, '?');
+        }
+
+        async function mostrarNotificacion(titulo, cuerpo, tag) {
+            if (!('Notification' in window) || Notification.permission !== 'granted') return;
+            try {
+                // Service Worker primero (funciona en background cuando está instalada)
+                const reg = await navigator.serviceWorker?.getRegistration?.();
+                if (reg?.showNotification) {
+                    await reg.showNotification(titulo, {
+                        body: cuerpo, icon: '/icon-192.png', tag,
+                        requireInteraction: true, vibrate: [200, 100, 200]
+                    });
+                } else {
+                    new Notification(titulo, { body: cuerpo, icon: '/icon-192.png', tag });
+                }
+            } catch(_) {
+                try { new Notification(titulo, { body: cuerpo, icon: '/icon-192.png', tag }); } catch(_) {}
+            }
+        }
+
+        async function scheduleNotificaciones(cita, shop) {
+            // Limpiar timers anteriores
+            _timers.forEach(clearTimeout);
+            _timers.length = 0;
+
+            if (!('Notification' in window)) return;
+
+            // Pedir permiso la primera vez (no bloqueante)
+            if (Notification.permission === 'default') {
+                Notification.requestPermission(); // no await — no bloqueamos el flujo
+                return; // volver a llamar cuando el usuario acepte
+            }
+            if (Notification.permission !== 'granted') return;
+
+            const tz        = shop.timezone || 'America/Santo_Domingo';
+            const ahoraLocal = new Date(new Date().toLocaleString('en-US', { timeZone: tz }));
+            const hoyFecha   = ahoraLocal.toLocaleDateString('en-CA');
+            const nowMins    = ahoraLocal.getHours() * 60 + ahoraLocal.getMinutes();
+
+            // Solo si la cita es HOY
+            if (cita.fecha !== hoyFecha) return;
+
+            const [ch, cm]  = (cita.hora || '0:0').split(':').map(Number);
+            const citaMins  = ch * 60 + cm;
+            const horaFmt   = fmt12((cita.hora || '').substring(0, 5));
+            const nombre    = user?.nombre?.split(' ')[0] || cita.nombre || 'Cliente';
+            const barbero   = cita.barbero || '';
+            const shopName  = shop.nombre || '';
+            const tpl       = shop.recordatorio_msg || null;
+            const citaId    = cita.id || (cita.hora + cita.fecha); // fallback key
+
+            // Tiempos configurados en el shop (mismos que usa el bot)
+            const t1 = shop.recordatorio_tiempo_1 ?? 60;  // default 1h
+            const t2 = shop.recordatorio_tiempo_2 ?? 20;  // default 20min
+
+            // ── RECORDATORIO T1 (1 hora antes por defecto) ────────────────
+            const msT1 = ((citaMins - t1) - nowMins) * 60 * 1000;
+            if (msT1 > 0 && !yaNotificado(citaId, `rec_${t1}min`)) {
+                const timer1 = setTimeout(async () => {
+                    if (yaNotificado(citaId, `rec_${t1}min`)) return;
+                    marcarNotificado(citaId, `rec_${t1}min`);
+                    const msg = buildMsgPWA(tpl, nombre, barbero, shopName, horaFmt, t1);
+                    await mostrarNotificacion(`⏰ Tu turno en ${shopName}`, msg, `rec-t1-${citaId}`);
+                    toast(`⏰ Tu cita en ${shopName} es en ${t1} min`, 'info', 8000);
+                }, msT1);
+                _timers.push(timer1);
+            }
+
+            // ── RECORDATORIO T2 (20 minutos antes por defecto) ────────────
+            const msT2 = ((citaMins - t2) - nowMins) * 60 * 1000;
+            if (msT2 > 0 && !yaNotificado(citaId, `rec_${t2}min`)) {
+                const timer2 = setTimeout(async () => {
+                    if (yaNotificado(citaId, `rec_${t2}min`)) return;
+                    marcarNotificado(citaId, `rec_${t2}min`);
+                    const msg = buildMsgPWA(tpl, nombre, barbero, shopName, horaFmt, t2);
+                    await mostrarNotificacion(`⚡ ¡Ve saliendo! Tu turno en ${shopName}`, msg, `rec-t2-${citaId}`);
+                    toast(`⚡ ¡Ve saliendo! Tu turno es en ${t2} minutos`, 'info', 10000);
+                }, msT2);
+                _timers.push(timer2);
+            }
+        }
+
+        // ── "FALTE 1 TURNO" desde Mi Turno (Realtime) ────────────────────
+        async function checkNotifyUnTurno(aheadCount, cita, shopName) {
+            if (!_notifyAt || aheadCount !== 1) return;
+            if (!('Notification' in window) || Notification.permission !== 'granted') return;
+            const key = `turno_proximo_${cita?.id || ''}`;
+            if (yaNotificado(key, 'fired')) return;
+            marcarNotificado(key, 'fired');
+            const horaFmt = fmt12((cita?.hora || '').substring(0, 5));
+            await mostrarNotificacion(
+                `✂️ ¡Tu turno es el próximo!`,
+                `En ${shopName} — a las ${horaFmt}. Ve preparándote 🚶`,
+                `turno-proximo-${cita?.id}`
+            );
+            toast('✂️ ¡Tu turno es el próximo! Ve preparándote.', 'success', 10000);
+            _notifyAt = null;
         }
 
         function stopScanner() {
