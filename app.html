@@ -429,11 +429,11 @@
         <!-- Header -->
         <header class="header">
             <div class="user-info">
-                <h1 id="userGreeting">Hola, Cliente 👋</h1>
-                <p>¿Qué servicio necesitas hoy?</p>
+                <h1 id="userGreeting">Hola, Invitado 👋</h1>
+                <p id="userSubtext">Inicia sesión para agendar</p>
             </div>
-            <div class="profile-btn" onclick="openProfile()">
-                <span id="userInitial">C</span>
+            <div class="profile-btn" id="profileBtn" onclick="toggleAuthModal()">
+                <span id="userInitial">?</span>
             </div>
         </header>
 
@@ -573,8 +573,38 @@
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script>
+    <!-- Auth Modal -->
+    <div id="authModal" class="modal">
+        <div class="modal-content" style="max-height: 95vh;">
+            <div class="modal-handle"></div>
+            <div id="auth-login">
+                <h2 class="step-title">Bienvenido</h2>
+                <p style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 25px;">Ingresa con tu número de teléfono y contraseña de AuraOS.</p>
+                <input type="tel" id="loginTel" placeholder="Teléfono (ej: 8091234567)" class="capture-input" style="width: 100%; margin-bottom: 15px; border-radius: 12px; background: var(--bg);">
+                <input type="password" id="loginPass" placeholder="Contraseña" class="capture-input" style="width: 100%; margin-bottom: 20px; border-radius: 12px; background: var(--bg);">
+                <button class="btn-view-queue" onclick="handleSignIn()">Entrar</button>
+                <p style="text-align: center; margin-top: 20px; font-size: 0.8rem; color: var(--text-dim);">¿No tienes cuenta? <span style="color: var(--accent); font-weight: 700; cursor: pointer;" onclick="showAuthStep('signup')">Regístrate</span></p>
+            </div>
+            <div id="auth-signup" class="hidden">
+                <h2 class="step-title">Crear Cuenta</h2>
+                <input type="text" id="regNombre" placeholder="Tu Nombre" class="capture-input" style="width: 100%; margin-bottom: 15px; border-radius: 12px; background: var(--bg);">
+                <input type="tel" id="regTel" placeholder="Teléfono" class="capture-input" style="width: 100%; margin-bottom: 15px; border-radius: 12px; background: var(--bg);">
+                <input type="password" id="regPass" placeholder="Crear Contraseña" class="capture-input" style="width: 100%; margin-bottom: 20px; border-radius: 12px; background: var(--bg);">
+                <button class="btn-view-queue" onclick="handleSignUp()">Registrarse</button>
+                <p style="text-align: center; margin-top: 20px; font-size: 0.8rem; color: var(--text-dim);">¿Ya tienes cuenta? <span style="color: var(--accent); font-weight: 700; cursor: pointer;" onclick="showAuthStep('login')">Entra</span></p>
+            </div>
+            <div id="auth-profile" class="hidden">
+                <h2 class="step-title">Mi Perfil</h2>
+                <div class="card" style="text-align: center;">
+                    <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--accent-soft); margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--accent); font-weight: 900;" id="profInitial">?</div>
+                    <h3 id="profName">Nombre Usuario</h3>
+                    <p id="profTel" style="color: var(--text-dim); font-size: 0.9rem;">809-000-0000</p>
+                </div>
+                <button class="btn-view-queue" style="background: var(--red); color: white;" onclick="handleSignOut()">Cerrar Sesión</button>
+                <button class="btn-view-queue" style="background: transparent; border: 1px solid var(--glass-border); color: var(--accent); margin-top: 10px;" onclick="closeAuthModal()">Volver</button>
+            </div>
+        </div>
+    </div>
         // Configuración Supabase
         const SB_URL = 'https://tclkyidcltpsuoyvlswn.supabase.co';
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjbGt5aWRjbHRwc3VveWxzd24iLCJyb2xlIjoiYW5vbiIsImlhdCI6MTczMTAyNjI2OSwiZXhwIjoyMDQ2NjAyMjY5fQ.LdK2y_O_v4qD_R-u-yX_8Y_Y_Y_Y_Y_Y_Y_Y_Y_Y_Y_Y'; // Anon Key
@@ -588,43 +618,125 @@
         let selectedSlot = null;
 
         // ── Init ──
+        // ── Init ──
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
             
-            // Simular carga de usuario
-            loadUserFromStorage();
+            // Inicializar Auth de Supabase
+            initAuth();
             
             await loadInitialData();
             checkUrlParams();
             subscribeRealtime();
         });
 
-        function checkUrlParams() {
-            const params = new URLSearchParams(window.location.search);
-            const shopId = params.get('shop') || params.get('id');
-            if (shopId) {
-                console.log("Detectado Shop ID por URL:", shopId);
-                setTimeout(() => startBooking(shopId), 1000);
+        async function initAuth() {
+            const { data: { session } } = await sb.auth.getSession();
+            if (session) {
+                await cargarPerfil(session.user.id);
+            }
+            
+            sb.auth.onAuthStateChange(async (_event, session) => {
+                if (session) {
+                    await cargarPerfil(session.user.id);
+                } else {
+                    user = null;
+                    updateUI();
+                }
+            });
+        }
+
+        async function cargarPerfil(uid) {
+            const { data, error } = await sb.from('usuarios_app').select('*').eq('id', uid).single();
+            if (!error && data) {
+                user = data;
+                updateUI();
             }
         }
 
-        function loadUserFromStorage() {
-            const saved = localStorage.getItem('aura_user');
-            if (saved) {
-                user = JSON.parse(saved);
-                document.getElementById('userGreeting').textContent = `Hola, ${user.name.split(' ')[0]} 👋`;
-                document.getElementById('userInitial').textContent = user.name.charAt(0).toUpperCase();
+        function updateUI() {
+            if (user) {
+                document.getElementById('userGreeting').textContent = `Hola, ${user.nombre.split(' ')[0]} 👋`;
+                document.getElementById('userSubtext').textContent = "¿Qué servicio necesitas hoy?";
+                document.getElementById('userInitial').textContent = user.nombre.charAt(0).toUpperCase();
+                
+                // Actualizar Perfil Modal
+                document.getElementById('profName').textContent = user.nombre;
+                document.getElementById('profTel').textContent = user.telefono;
+                document.getElementById('profInitial').textContent = user.nombre.charAt(0).toUpperCase();
             } else {
-                // Si no hay usuario, pedir nombre (Onboarding)
-                setTimeout(() => {
-                    const name = prompt("¡Bienvenido a AuraOS! ¿Cómo te llamas?");
-                    if (name) {
-                        user = { name, id: 'guest-' + Math.random().toString(36).substr(2, 9) };
-                        localStorage.setItem('aura_user', JSON.stringify(user));
-                        location.reload();
-                    }
-                }, 1000);
+                document.getElementById('userGreeting').textContent = "Hola, Invitado 👋";
+                document.getElementById('userSubtext').textContent = "Inicia sesión para agendar";
+                document.getElementById('userInitial').textContent = "?";
             }
+        }
+
+        function telToEmail(tel) {
+            const clean = tel.replace(/\D/g, '');
+            return `${clean}@barberos.app`;
+        }
+
+        async function handleSignIn() {
+            const tel = document.getElementById('loginTel').value;
+            const pass = document.getElementById('loginPass').value;
+            if (!tel || !pass) return alert("Completa los campos");
+
+            const { error } = await sb.auth.signInWithPassword({
+                email: telToEmail(tel),
+                password: pass
+            });
+
+            if (error) alert("Error: " + error.message);
+            else closeAuthModal();
+        }
+
+        async function handleSignUp() {
+            const nom = document.getElementById('regNombre').value;
+            const tel = document.getElementById('regTel').value;
+            const pass = document.getElementById('regPass').value;
+            if (!nom || !tel || !pass) return alert("Completa los campos");
+
+            const { data, error } = await sb.auth.signUp({
+                email: telToEmail(tel),
+                password: pass
+            });
+
+            if (error) return alert("Error: " + error.message);
+
+            // Crear perfil en usuarios_app
+            const { error: pErr } = await sb.from('usuarios_app').upsert({
+                id: data.user.id,
+                nombre: nom,
+                telefono: tel.replace(/\D/g, ''),
+                rol: 'cliente',
+                activo: true
+            });
+
+            if (pErr) console.error("Error perfil:", pErr);
+            closeAuthModal();
+        }
+
+        function handleSignOut() {
+            sb.auth.signOut();
+            closeAuthModal();
+            location.reload();
+        }
+
+        function toggleAuthModal() {
+            document.getElementById('authModal').classList.add('active');
+            if (user) showAuthStep('profile');
+            else showAuthStep('login');
+        }
+
+        function showAuthStep(step) {
+            document.getElementById('auth-login').classList.add('hidden');
+            document.getElementById('auth-signup').classList.add('hidden');
+            document.getElementById('auth-profile').classList.add('hidden');
+            document.getElementById('auth-' + step).classList.remove('hidden');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.remove('active');
         }
 
         async function loadInitialData() {
@@ -916,25 +1028,32 @@
                 { facingMode: "environment" }, 
                 config,
                 (decodedText) => {
-                    // El texto decodificado debería ser una URL como auraos.app/app.html?shop=ID
-                    console.log("QR Detectado:", decodedText);
-                    stopScanner();
+                    console.log("QR Detectado Raw:", decodedText);
                     
-                    try {
-                        const url = new URL(decodedText);
-                        const shopId = url.searchParams.get('shop') || url.searchParams.get('id');
-                        if (shopId) {
-                            closeScanner();
-                            startBooking(shopId);
-                        } else {
-                            alert("Código QR no reconocido como una Barbería AuraOS");
-                        }
-                    } catch(e) {
-                        // Intentar tratar el texto como el ID directamente si no es URL
-                        if (decodedText.length > 3) {
-                             closeScanner();
-                             startBooking(decodedText);
-                        }
+                    // Si el texto es una URL completa
+                    if (decodedText.startsWith('http')) {
+                        try {
+                            const url = new URL(decodedText);
+                            const shopId = url.searchParams.get('shop') || url.searchParams.get('id');
+                            if (shopId) {
+                                stopScanner();
+                                closeScanner();
+                                startBooking(shopId);
+                                return;
+                            }
+                        } catch(e) { console.error("URL Invalida:", e); }
+                    }
+                    
+                    // Si el texto es directamente un UUID (ID de shop)
+                    if (decodedText.length >= 36 || decodedText.includes('-')) {
+                        stopScanner();
+                        closeScanner();
+                        startBooking(decodedText);
+                    } else {
+                        // Intentar buscar por slug o nombre corto si el QR solo trae eso
+                        stopScanner();
+                        closeScanner();
+                        startBooking(decodedText);
                     }
                 },
                 (errorMessage) => { /* Escaneando... */ }
