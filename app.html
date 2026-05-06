@@ -1145,18 +1145,29 @@
         }
 
         async function loadSlots() {
-            const hoy = new Date().toLocaleDateString('en-CA', {
-                timeZone: selectedShop.timezone || 'America/Santo_Domingo'
-            });
+            const tz  = selectedShop.timezone || 'America/Santo_Domingo';
+            const ahoraLocal = new Date(new Date().toLocaleString('en-US', { timeZone: tz }));
+            const hoy = ahoraLocal.toLocaleDateString('en-CA');
+            const minutosAhora = ahoraLocal.getHours() * 60 + ahoraLocal.getMinutes();
+            const MARGEN = 3; // mismo margen de tolerancia que el bot
 
             // Fix 1: horario real del día (horarios_por_dia)
-            const { ini: inicio, fin } = resolverHorarioDia(selectedShop, hoy);
+            const { ini: inicioHorario, fin } = resolverHorarioDia(selectedShop, hoy);
 
-            // Fix 2: duración real de cada servicio existente
+            // Si ya pasó el horario del día → sin slots
+            if (minutosAhora >= fin) {
+                document.getElementById('timeSlots').innerHTML =
+                    '<p style="text-align:center;padding:20px;color:var(--text-dim);">El negocio ya cerró hoy. Vuelve mañana.</p>';
+                return;
+            }
+
+            // Inicio = máximo entre apertura y ahora + margen
+            const inicio = Math.max(inicioHorario, minutosAhora + MARGEN);
+
             const durNuevo  = selectedService?.duracion_min || selectedShop?.duracion_turno || 30;
             const durDefault = selectedShop?.duracion_turno || 30;
 
-            // Cargar servicios para mapear duraciones reales
+            // Fix 2: duraciones reales de servicios existentes
             const { data: svcs } = await sb.from('servicios')
                 .select('nombre, duracion_min').eq('shop_id', selectedShop.id).eq('activo', true);
             const durMap = {};
@@ -1176,25 +1187,21 @@
                 .eq('barbero_id', selectedBarber.id)
                 .eq('fecha', hoy);
 
-            // Construir bloques ocupados con duración real (Fix 2)
+            // Bloques ocupados con duración real (Fix 2)
             const bloques = [];
-
             (citas || []).forEach(c => {
                 const [h, m] = c.hora.split(':').map(Number);
                 const durReal = durMap[c.servicio?.toLowerCase().trim()] ?? durDefault;
                 bloques.push({ ini: h * 60 + m, fin: h * 60 + m + durReal });
             });
-
-            // Añadir bloqueos manuales (Fix 3)
             (bloqueos || []).forEach(b => {
                 const [bh, bm] = b.hora_inicio.split(':').map(Number);
                 const [fh, fm] = b.hora_fin.split(':').map(Number);
                 bloques.push({ ini: bh * 60 + bm, fin: fh * 60 + fm });
             });
-
             bloques.sort((a, b) => a.ini - b.ini);
 
-            // Generar slots libres — mismo algoritmo que calcularTodosLosSlots
+            // Generar slots desde AHORA (no desde apertura)
             const slots = [];
             let t = inicio;
             while (t + durNuevo <= fin) {
@@ -1205,20 +1212,25 @@
                     slots.push(`${hh}:${mm}`);
                     t += durNuevo;
                 } else {
-                    t = Math.ceil(choca.fin / 5) * 5; // salto al final del bloque, redondeo 5 min
+                    t = Math.ceil(choca.fin / 5) * 5;
                 }
             }
 
             const container = document.getElementById('timeSlots');
             if (!slots.length) {
-                container.innerHTML = '<p style="text-align:center; padding:20px; color:var(--text-dim);">No hay horarios disponibles.</p>';
+                container.innerHTML = '<p style="text-align:center;padding:20px;color:var(--text-dim);">No hay horarios disponibles por hoy.</p>';
                 return;
             }
             container.innerHTML = slots.map(s => `
-                <div class="time-slot" onclick="selectTime('${s}')">
-                    ${fmt12(s)}
-                </div>
+                <div class="time-slot" onclick="selectTime('${s}')">${fmt12(s)}</div>
             `).join('');
+
+            // Auto-refresh cada 60 seg mientras el paso de horario esté visible
+            clearTimeout(window._slotRefreshTimer);
+            window._slotRefreshTimer = setTimeout(() => {
+                const stepTime = document.getElementById('step-time');
+                if (stepTime && !stepTime.classList.contains('hidden')) loadSlots();
+            }, 60000);
         }
 
         function selectTime(time) {
