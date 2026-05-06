@@ -464,7 +464,7 @@
             <div class="card card-gold reveal" id="nextApptCard">
                 <div class="next-appt-header">
                     <span class="next-appt-time" id="nextApptTime">--:--</span>
-                    <div style="background: var(--accent-soft); color: var(--accent); padding: 4px 10px; border-radius: 8px; font-size: 0.7rem; font-weight: 900;">HOY</div>
+                    <div style="background: var(--accent-soft); color: var(--accent); padding: 4px 10px; border-radius: 8px; font-size: 0.7rem; font-weight: 900;" id="nextApptBadge">HOY</div>
                 </div>
                 <div class="next-appt-details">
                     <h3 id="nextApptShop">Cargando...</h3>
@@ -520,7 +520,7 @@
 
     <!-- Bottom Navigation -->
     <nav class="bottom-nav">
-        <div class="nav-item active" onclick="switchTab('home')">
+        <div class="nav-item active" onclick="switchTab('home', event)">
             <i data-lucide="home" size="24"></i>
             <span>Inicio</span>
         </div>
@@ -534,7 +534,7 @@
             </div>
             <span style="margin-top: 5px;">Reservar</span>
         </div>
-        <div class="nav-item" onclick="switchTab('history')">
+        <div class="nav-item" onclick="switchTab('history', event)">
             <i data-lucide="history" size="24"></i>
             <span>Historial</span>
         </div>
@@ -843,6 +843,7 @@
                     const { data: citas } = await sb.from('citas')
                         .select('*, shops(nombre)')
                         .eq('usuario_id', user.id)
+                        .eq('estado', 'Confirmada')
                         .gte('fecha', hoy)
                         .order('fecha')
                         .order('hora')
@@ -887,10 +888,13 @@
         }
 
         function renderNextAppt(cita) {
+            const hoy = new Date().toISOString().split('T')[0];
             document.getElementById('nextApptTime').textContent = fmt12(cita.hora);
             document.getElementById('nextApptShop').textContent = cita.shops?.nombre || 'Negocio';
             document.getElementById('nextApptService').innerHTML = `<i data-lucide="scissors" size="14"></i> ${cita.servicio}`;
             document.getElementById('nextApptBarber').innerHTML = `<i data-lucide="user" size="14"></i> con ${cita.barbero}`;
+            const badge = document.getElementById('nextApptBadge');
+            if (badge) badge.textContent = cita.fecha === hoy ? 'HOY' : new Date(cita.fecha + 'T12:00:00').toLocaleDateString('es-DO', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase();
             lucide.createIcons();
         }
 
@@ -941,8 +945,13 @@
 
         async function loadServices(shopId) {
             const { data } = await sb.from('servicios').select('*').eq('shop_id', shopId).eq('activo', true);
+            const servicios = data || [];
             const container = document.getElementById('serviceOptions');
-            container.innerHTML = data.map(s => `
+            if (!servicios.length) {
+                container.innerHTML = '<p style="text-align:center; padding:20px; color:var(--text-dim); font-size:0.85rem;">Este negocio no tiene servicios disponibles.</p>';
+                return;
+            }
+            container.innerHTML = servicios.map(s => `
                 <div class="option-item" onclick="selectService('${s.id}')">
                     <div>
                         <div style="font-weight:800;">${DOMPurify.sanitize(s.nombre)}</div>
@@ -989,7 +998,8 @@
                 .select('hora')
                 .eq('shop_id', selectedShop.id)
                 .eq('barbero_id', selectedBarber.id)
-                .eq('fecha', hoy);
+                .eq('fecha', hoy)
+                .eq('estado', 'Confirmada');
 
             const ocupados = (citas || []).map(c => c.hora.substring(0, 5));
             const slots = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'];
@@ -1038,8 +1048,8 @@
                 shop_id: selectedShop.id,
                 usuario_id: user.id,
                 barbero_id: selectedBarber.id,
-                nombre: user.name,
-                telefono: '',
+                nombre: user.nombre,
+                telefono: user.telefono || '',
                 fecha: new Date().toISOString().split('T')[0],
                 hora: selectedSlot + ':00',
                 servicio: selectedService.nombre,
@@ -1089,9 +1099,17 @@
         }
 
         function isOpenNow(shop) {
-            const now = new Date();
+            const tz = shop.timezone || 'America/Santo_Domingo';
+            const now = new Date(new Date().toLocaleString('en-US', { timeZone: tz }));
             const h = now.getHours();
-            return h >= (shop.hora_inicio || 9) && h < (shop.hora_fin || 21);
+            const m = now.getMinutes();
+            const totalMins = h * 60 + m;
+            const dow = now.getDay();
+            const dias = shop.dias_atencion;
+            if (dias && dias.length > 0 && !dias.includes(dow)) return false;
+            const abre = (shop.hora_inicio || 9) * 60;
+            const cierra = (shop.hora_fin || 21) * 60;
+            return totalMins >= abre && totalMins < cierra;
         }
 
         function subscribeRealtime() {
@@ -1106,7 +1124,7 @@
         }
 
         function openProfile() {
-            alert("Perfil de " + user?.name + "\nAquí podrás ver tus puntos Aura y configurar tus preferencias.");
+            toggleAuthModal();
         }
 
         function viewHistory() {
@@ -1117,9 +1135,9 @@
             alert("Viendo cola en tiempo real...");
         }
 
-        function switchTab(tab) {
+        function switchTab(tab, e) {
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            event.currentTarget.classList.add('active');
+            if (e && e.currentTarget) e.currentTarget.classList.add('active');
         }
 
         // ── Scanner Logic ──
@@ -1151,7 +1169,7 @@
                     }
                     
                     // Si el texto es directamente un UUID (ID de shop)
-                    if (decodedText.length >= 36 || decodedText.includes('-')) {
+                    if (decodedText.length >= 36 && decodedText.includes('-')) {
                         stopScanner();
                         closeScanner();
                         startBooking(decodedText);
