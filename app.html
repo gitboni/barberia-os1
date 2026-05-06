@@ -376,7 +376,41 @@
 
         /* ── Utils ── */
         .hidden { display: none !important; }
-        
+
+        /* ── Toast ── */
+        #toastContainer { position: fixed; top: calc(var(--safe-top) + 16px); left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; width: 90%; max-width: 420px; }
+        .toast { padding: 12px 18px; border-radius: 14px; font-size: 0.88rem; font-weight: 700; color: #fff; opacity: 0; transform: translateY(-12px); transition: all 0.3s cubic-bezier(0.4,0,0.2,1); pointer-events: none; }
+        .toast.show { opacity: 1; transform: translateY(0); }
+        .toast-success { background: #1a5c36; border: 1px solid #2ECC71; }
+        .toast-error   { background: #5c1a1a; border: 1px solid #E74C3C; }
+        .toast-info    { background: #1a3a5c; border: 1px solid #3498db; }
+
+        /* ── Progress Bar ── */
+        .booking-progress { display: flex; gap: 6px; margin-bottom: 22px; }
+        .prog-step { flex: 1; height: 4px; border-radius: 4px; background: var(--glass-border); transition: background 0.3s; }
+        .prog-step.done { background: var(--accent); }
+
+        /* ── Success Screen ── */
+        .success-screen { text-align: center; padding: 20px 0 10px; }
+        .success-icon { width: 80px; height: 80px; border-radius: 50%; background: rgba(46,204,113,0.15); border: 2px solid #2ECC71; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 2.2rem; animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+        @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* ── Cancel Btn on card ── */
+        .btn-cancel-sm { width: 100%; padding: 10px; border-radius: 12px; background: transparent; border: 1px solid rgba(231,76,60,0.4); color: #E74C3C; font-weight: 700; font-size: 0.82rem; cursor: pointer; margin-top: 8px; }
+
+        /* ── History item ── */
+        .hist-item { padding: 12px 0; border-bottom: 1px solid var(--glass-border); }
+        .hist-item:last-child { border-bottom: none; }
+        .hist-badge { display: inline-block; font-size: 0.65rem; font-weight: 900; padding: 2px 8px; border-radius: 6px; margin-bottom: 4px; }
+        .hist-confirmada { background: rgba(46,204,113,0.2); color: #2ECC71; }
+        .hist-completada { background: rgba(212,175,55,0.2); color: var(--accent); }
+        .hist-cancelada  { background: rgba(231,76,60,0.2); color: #E74C3C; }
+
+        /* ── Queue ── */
+        .queue-number { font-size: 3rem; font-weight: 900; color: var(--accent); line-height: 1; }
+        .phone-invalid { border-color: #E74C3C !important; }
+        .phone-valid   { border-color: #2ECC71 !important; }
+
         /* ── Animations ── */
         .reveal {
             animation: reveal 0.4s ease forwards;
@@ -474,6 +508,7 @@
                 <button class="btn-view-queue" onclick="viewQueue()">
                     <i data-lucide="list-ordered" size="16"></i> Ver cola en tiempo real
                 </button>
+                <button class="btn-cancel-sm" onclick="cancelNextAppt()">✕ Cancelar cita</button>
             </div>
         </div>
 
@@ -548,6 +583,12 @@
     <div id="bookingModal" class="modal">
         <div class="modal-content">
             <div class="modal-handle"></div>
+            <div class="booking-progress" id="bookingProgress">
+                <div class="prog-step done" id="ps1"></div>
+                <div class="prog-step" id="ps2"></div>
+                <div class="prog-step" id="ps3"></div>
+                <div class="prog-step" id="ps4"></div>
+            </div>
             
             <div id="step-shop" class="booking-step">
                 <h2 class="step-title">¿A cuál negocio?</h2>
@@ -580,6 +621,42 @@
                 <button class="btn-view-queue" id="btnConfirmFinal" onclick="processBooking()">Confirmar Reservación ✂️</button>
                 <button class="btn-view-queue" style="background: transparent; border: 1px solid var(--glass-border); color: var(--accent); margin-top: 10px;" onclick="prevStep()">Modificar</button>
             </div>
+
+            <div id="step-success" class="booking-step hidden">
+                <div class="success-screen">
+                    <div class="success-icon">✅</div>
+                    <h2 class="step-title" style="margin-bottom:8px;">¡Cita confirmada!</h2>
+                    <p style="color:var(--text-dim); font-size:0.9rem; margin-bottom:24px;" id="successSummary"></p>
+                    <button class="btn-view-queue" onclick="closeModals(); loadInitialData();">Ver mi cita</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+
+    <!-- History Modal -->
+    <div id="historyModal" class="modal">
+        <div class="modal-content" id="historyModalContent">
+            <div class="modal-handle"></div>
+            <h2 class="step-title">Mis citas</h2>
+            <div id="historyList"><p style="color:var(--text-dim); text-align:center; padding:20px;">Cargando...</p></div>
+            <button class="btn-view-queue" style="background:transparent; border:1px solid var(--glass-border); color:var(--accent); margin-top:16px;" onclick="document.getElementById('historyModal').classList.remove('active')">Cerrar</button>
+        </div>
+    </div>
+
+    <!-- Queue Modal -->
+    <div id="queueModal" class="modal">
+        <div class="modal-content" id="queueModalContent">
+            <div class="modal-handle"></div>
+            <h2 class="step-title">Cola en tiempo real</h2>
+            <div id="queueContent" style="text-align:center; padding:20px 0;">
+                <div class="queue-number" id="queueNum">—</div>
+                <p style="color:var(--text-dim); margin-top:8px; font-size:0.9rem;" id="queueLabel">personas antes que tú</p>
+                <p style="color:var(--text-dim); margin-top:16px; font-size:0.8rem;" id="queueShopName"></p>
+            </div>
+            <button class="btn-view-queue" style="background:transparent; border:1px solid var(--glass-border); color:var(--accent); margin-top:16px;" onclick="document.getElementById('queueModal').classList.remove('active')">Cerrar</button>
         </div>
     </div>
 
@@ -602,7 +679,7 @@
                 <h2 class="step-title">Inicia Sesión</h2>
                 <p style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 25px;">Accede a tus barberías y citas favoritas.</p>
                 
-                <input type="tel" id="loginTel" placeholder="Teléfono (ej: 8091234567)" class="capture-input" style="margin-bottom: 15px;">
+                <input type="tel" id="loginTel" placeholder="Teléfono (ej: 8091234567)" class="capture-input" style="margin-bottom: 15px;" oninput="validatePhone(this)">
                 <input type="password" id="loginPass" placeholder="Contraseña" class="capture-input" style="margin-bottom: 20px;">
                 
                 <button class="btn-view-queue" onclick="handleSignIn()">Entrar</button>
@@ -623,7 +700,7 @@
             <div id="auth-signup" class="hidden">
                 <h2 class="step-title">Crear Cuenta</h2>
                 <input type="text" id="regNombre" placeholder="Tu Nombre" class="capture-input" style="margin-bottom: 15px;">
-                <input type="tel" id="regTel" placeholder="Teléfono" class="capture-input" style="margin-bottom: 15px;">
+                <input type="tel" id="regTel" placeholder="Teléfono" class="capture-input" style="margin-bottom: 15px;" oninput="validatePhone(this)">
                 <input type="password" id="regPass" placeholder="Crear Contraseña" class="capture-input" style="margin-bottom: 20px;">
                 <button class="btn-view-queue" onclick="handleSignUp()">Registrarse</button>
                 <p style="text-align: center; margin-top: 20px; font-size: 0.8rem; color: var(--text-dim);">¿Ya tienes cuenta? <span style="color: var(--accent); font-weight: 700; cursor: pointer;" onclick="showAuthStep('login')">Entra</span></p>
@@ -648,12 +725,29 @@
         const SB_KEY = 'sb_publishable_aETz_9ECH5RcBMjmRhUnfw_g71zRdwT';
         const sb = supabase.createClient(SB_URL, SB_KEY);
 
+        // ── Service Worker ──
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').catch(() => {});
+        }
+
+        // ── Toast System ──
+        function toast(msg, type = 'info', ms = 3000) {
+            const c = document.getElementById('toastContainer');
+            const t = document.createElement('div');
+            t.className = `toast toast-${type}`;
+            t.textContent = msg;
+            c.appendChild(t);
+            requestAnimationFrame(() => { requestAnimationFrame(() => t.classList.add('show')); });
+            setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, ms);
+        }
+
         let user = null;
         let shops = [];
         let selectedShop = null;
         let selectedService = null;
         let selectedBarber = null;
         let selectedSlot = null;
+        let currentApptId = null;
 
         // ── Init ──
         document.addEventListener('DOMContentLoaded', async () => {
@@ -728,14 +822,15 @@
         async function handleSignIn() {
             const tel = document.getElementById('loginTel').value;
             const pass = document.getElementById('loginPass').value;
-            if (!tel || !pass) return alert("Completa los campos");
+            if (!tel || !pass) return toast('Completa los campos', 'error');
+            if (!validatePhone(document.getElementById('loginTel'))) return toast('Teléfono inválido (10 dígitos)', 'error');
 
             const { error } = await sb.auth.signInWithPassword({
                 email: telToEmail(tel),
                 password: pass
             });
 
-            if (error) alert("Error: " + error.message);
+            if (error) toast('Usuario o contraseña incorrectos', 'error');
             else closeAuthModal();
         }
 
@@ -743,14 +838,16 @@
             const nom = document.getElementById('regNombre').value;
             const tel = document.getElementById('regTel').value;
             const pass = document.getElementById('regPass').value;
-            if (!nom || !tel || !pass) return alert("Completa los campos");
+            if (!nom || !tel || !pass) return toast('Completa todos los campos', 'error');
+            if (!validatePhone(document.getElementById('regTel'))) return toast('Teléfono inválido (10 dígitos)', 'error');
+            if (pass.length < 6) return toast('La contraseña debe tener al menos 6 caracteres', 'error');
 
             const { data, error } = await sb.auth.signUp({
                 email: telToEmail(tel),
                 password: pass
             });
 
-            if (error) return alert("Error: " + error.message);
+            if (error) return toast('Error: ' + error.message, 'error');
 
             const uid = data.user.id;
             const telLimpio = tel.replace(/\D/g, '');
@@ -888,6 +985,7 @@
         }
 
         function renderNextAppt(cita) {
+            currentApptId = cita.id;
             const hoy = new Date().toISOString().split('T')[0];
             document.getElementById('nextApptTime').textContent = fmt12(cita.hora);
             document.getElementById('nextApptShop').textContent = cita.shops?.nombre || 'Negocio';
@@ -899,23 +997,29 @@
         }
 
         // ── Booking Flow ──
-        async function startBooking(shopId) {
+        async function startBooking(shopIdOrSlug) {
             document.getElementById('bookingModal').classList.add('active');
-            
-            if (shopId) {
-                selectedShop = shops.find(s => s.id == shopId);
-                
-                // Si no está en la lista cargada, buscarlo en Supabase
+            updateProgress(1);
+
+            if (shopIdOrSlug) {
+                selectedShop = shops.find(s => s.id == shopIdOrSlug || s.slug == shopIdOrSlug);
+
                 if (!selectedShop) {
-                    const { data } = await sb.from('shops').select('*').eq('id', shopId).single();
+                    // Intenta por ID primero, luego por slug
+                    const isUUID = /^[0-9a-f-]{36}$/i.test(shopIdOrSlug);
+                    const query = isUUID
+                        ? sb.from('shops').select('*').eq('id', shopIdOrSlug).single()
+                        : sb.from('shops').select('*').eq('slug', shopIdOrSlug).single();
+                    const { data } = await query;
                     if (data) selectedShop = data;
                 }
             } else {
                 selectedShop = null;
             }
-            
+
             if (selectedShop) {
                 goToStep('service');
+                updateProgress(2);
                 loadServices(selectedShop.id);
             } else {
                 goToStep('shop');
@@ -995,24 +1099,43 @@
         async function loadSlots() {
             const hoy = new Date().toISOString().split('T')[0];
             const { data: citas } = await sb.from('citas')
-                .select('hora')
+                .select('hora, servicio')
                 .eq('shop_id', selectedShop.id)
                 .eq('barbero_id', selectedBarber.id)
                 .eq('fecha', hoy)
                 .eq('estado', 'Confirmada');
 
-            const ocupados = (citas || []).map(c => c.hora.substring(0, 5));
-            const slots = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'];
-            
+            const durMin = selectedService?.duracion_min || selectedShop?.duracion_turno || 30;
+            const inicio = (selectedShop?.hora_inicio || 9) * 60;
+            const fin    = (selectedShop?.hora_fin    || 21) * 60;
+
+            // Calcular bloques ocupados
+            const bloques = (citas || []).map(c => {
+                const [h, m] = c.hora.split(':').map(Number);
+                return { ini: h * 60 + m, dur: durMin };
+            });
+
+            // Generar slots libres
+            const slots = [];
+            for (let t = inicio; t + durMin <= fin; t += durMin) {
+                const choca = bloques.some(b => t < b.ini + b.dur && t + durMin > b.ini);
+                if (!choca) {
+                    const hh = String(Math.floor(t / 60)).padStart(2, '0');
+                    const mm = String(t % 60).padStart(2, '0');
+                    slots.push(`${hh}:${mm}`);
+                }
+            }
+
             const container = document.getElementById('timeSlots');
-            container.innerHTML = slots.map(s => {
-                const isTaken = ocupados.includes(s);
-                return `
-                    <div class="time-slot ${isTaken ? 'taken' : ''}" onclick="selectTime('${s}')">
-                        ${fmt12(s)}
-                    </div>
-                `;
-            }).join('');
+            if (!slots.length) {
+                container.innerHTML = '<p style="text-align:center; padding:20px; color:var(--text-dim);">No hay horarios disponibles hoy.</p>';
+                return;
+            }
+            container.innerHTML = slots.map(s => `
+                <div class="time-slot" onclick="selectTime('${s}')">
+                    ${fmt12(s)}
+                </div>
+            `).join('');
         }
 
         function selectTime(time) {
@@ -1042,7 +1165,20 @@
         async function processBooking() {
             const btn = document.getElementById('btnConfirmFinal');
             btn.disabled = true;
-            btn.innerHTML = '<i class="skeleton" style="width:20px; height:20px; border-radius:50%;"></i> Reservando...';
+            btn.textContent = 'Reservando...';
+
+            // Verificar duplicado antes de guardar
+            const hoy = new Date().toISOString().split('T')[0];
+            const { data: existing } = await sb.from('citas')
+                .select('id').eq('shop_id', selectedShop.id)
+                .eq('usuario_id', user.id).eq('fecha', hoy)
+                .eq('estado', 'Confirmada').limit(1);
+            if (existing && existing.length > 0) {
+                toast('Ya tienes una cita confirmada para hoy en este negocio', 'error', 4000);
+                btn.disabled = false;
+                btn.textContent = 'Confirmar Reservación ✂️';
+                return;
+            }
 
             const { error } = await sb.from('citas').insert({
                 shop_id: selectedShop.id,
@@ -1050,7 +1186,7 @@
                 barbero_id: selectedBarber.id,
                 nombre: user.nombre,
                 telefono: user.telefono || '',
-                fecha: new Date().toISOString().split('T')[0],
+                fecha: hoy,
                 hora: selectedSlot + ':00',
                 servicio: selectedService.nombre,
                 barbero: selectedBarber.nombre,
@@ -1058,23 +1194,36 @@
             });
 
             if (!error) {
-                alert("¡Reserva exitosa! ✂️");
-                location.reload();
+                document.getElementById('successSummary').textContent =
+                    `${selectedService.nombre} con ${selectedBarber.nombre} · ${fmt12(selectedSlot)} · ${selectedShop.nombre}`;
+                goToStep('success');
+                updateProgress(4);
             } else {
-                alert("Error al reservar: " + error.message);
+                toast('Error al reservar: ' + error.message, 'error', 5000);
                 btn.disabled = false;
-                btn.innerHTML = 'Confirmar Reservación ✂️';
+                btn.textContent = 'Confirmar Reservación ✂️';
             }
         }
 
         // ── Navigation Logic ──
+        const STEP_ORDER = ['shop', 'service', 'barber', 'time', 'confirm', 'success'];
         function goToStep(stepId) {
             document.querySelectorAll('.booking-step').forEach(s => s.classList.add('hidden'));
             document.getElementById('step-' + stepId).classList.remove('hidden');
+            const idx = STEP_ORDER.indexOf(stepId) + 1;
+            if (idx > 0) updateProgress(idx);
+            document.getElementById('bookingProgress').style.display = stepId === 'success' ? 'none' : 'flex';
+        }
+
+        function updateProgress(step) {
+            for (let i = 1; i <= 4; i++) {
+                const el = document.getElementById('ps' + i);
+                if (el) el.classList.toggle('done', i <= step);
+            }
         }
 
         function prevStep() {
-            const current = Array.from(document.querySelectorAll('.booking-step')).find(s => !s.classList.contains('hidden')).id;
+            const current = Array.from(document.querySelectorAll('.booking-step')).find(s => !s.classList.contains('hidden'))?.id;
             if (current === 'step-service') goToStep('shop');
             else if (current === 'step-barber') goToStep('service');
             else if (current === 'step-time') goToStep('barber');
@@ -1082,11 +1231,29 @@
         }
 
         function closeModals() {
-            document.getElementById('bookingModal').classList.remove('active');
+            document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+            // Reset booking state
+            selectedShop = selectedService = selectedBarber = selectedSlot = null;
         }
+
+        // Swipe down to close modals
+        document.querySelectorAll('.modal-content').forEach(el => {
+            let startY = 0;
+            el.addEventListener('touchstart', e => { startY = e.touches[0].clientY; }, { passive: true });
+            el.addEventListener('touchend', e => {
+                const dy = e.changedTouches[0].clientY - startY;
+                if (dy > 80) el.closest('.modal')?.classList.remove('active');
+            }, { passive: true });
+        });
 
         document.getElementById('bookingModal').addEventListener('click', (e) => {
             if (e.target.id === 'bookingModal') closeModals();
+        });
+        document.getElementById('historyModal').addEventListener('click', (e) => {
+            if (e.target.id === 'historyModal') e.target.classList.remove('active');
+        });
+        document.getElementById('queueModal').addEventListener('click', (e) => {
+            if (e.target.id === 'queueModal') e.target.classList.remove('active');
         });
 
         // ── Helpers ──
@@ -1113,26 +1280,65 @@
         }
 
         function subscribeRealtime() {
-            sb.channel('public:citas')
-              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'citas' }, payload => {
-                  console.log('Nueva cita detectada!', payload);
-                  if (payload.new.usuario_id === user?.id) {
-                      loadInitialData();
-                  }
+            sb.channel('citas-usuario')
+              .on('postgres_changes', { event: '*', schema: 'public', table: 'citas', filter: `usuario_id=eq.${user?.id}` }, () => {
+                  loadInitialData();
               })
               .subscribe();
         }
 
+        // ── Phone Validation ──
+        function validatePhone(input) {
+            const digits = input.value.replace(/\D/g, '');
+            const valid = digits.length === 10 || digits.length === 11;
+            input.classList.toggle('phone-valid', valid);
+            input.classList.toggle('phone-invalid', digits.length > 3 && !valid);
+            return valid;
+        }
+
+        // ── History ──
+        async function viewHistory() {
+            document.getElementById('historyModal').classList.add('active');
+            if (!user) { document.getElementById('historyList').innerHTML = '<p style="color:var(--text-dim);text-align:center;padding:20px;">Inicia sesión para ver tu historial.</p>'; return; }
+            const { data } = await sb.from('citas').select('*, shops(nombre)').eq('usuario_id', user.id).order('fecha', { ascending: false }).order('hora', { ascending: false }).limit(20);
+            const list = document.getElementById('historyList');
+            if (!data || !data.length) { list.innerHTML = '<p style="color:var(--text-dim);text-align:center;padding:20px;">No tienes citas registradas aún.</p>'; return; }
+            list.innerHTML = data.map(c => {
+                const est = (c.estado || '').toLowerCase();
+                return `<div class="hist-item">
+                    <span class="hist-badge hist-${est}">${c.estado}</span>
+                    <div style="font-weight:800; font-size:1rem;">${c.servicio}</div>
+                    <div style="color:var(--text-dim); font-size:0.82rem;">con ${c.barbero} · ${c.shops?.nombre || ''}</div>
+                    <div style="color:var(--text-dim); font-size:0.78rem; margin-top:2px;">${new Date(c.fecha+'T12:00:00').toLocaleDateString('es-DO',{weekday:'long',day:'numeric',month:'short'})} · ${fmt12(c.hora)}</div>
+                </div>`;
+            }).join('');
+        }
+
+        // ── Queue ──
+        async function viewQueue() {
+            if (!user) { toast('Inicia sesión para ver la cola', 'info'); return; }
+            const hoy = new Date().toISOString().split('T')[0];
+            const { data: miCita } = await sb.from('citas').select('hora, barbero, shop_id, shops(nombre)').eq('usuario_id', user.id).eq('fecha', hoy).eq('estado', 'Confirmada').order('hora').limit(1);
+            if (!miCita || !miCita.length) { toast('No tienes cita confirmada para hoy', 'info'); return; }
+            const c = miCita[0];
+            const { data: antes } = await sb.from('citas').select('id').eq('shop_id', c.shop_id).eq('barbero', c.barbero).eq('fecha', hoy).eq('estado', 'Confirmada').lt('hora', c.hora);
+            document.getElementById('queueNum').textContent = antes?.length ?? 0;
+            document.getElementById('queueLabel').textContent = antes?.length === 1 ? 'persona antes que tú' : 'personas antes que tú';
+            document.getElementById('queueShopName').textContent = `con ${c.barbero} · ${c.shops?.nombre || ''}`;
+            document.getElementById('queueModal').classList.add('active');
+        }
+
+        // ── Cancel Next Appointment ──
+        async function cancelNextAppt() {
+            if (!currentApptId) return;
+            if (!confirm('¿Cancelar tu cita?')) return;
+            const { error } = await sb.from('citas').update({ estado: 'Cancelada' }).eq('id', currentApptId);
+            if (!error) { toast('Cita cancelada', 'success'); document.getElementById('nextApptContainer').classList.add('hidden'); currentApptId = null; }
+            else toast('Error al cancelar', 'error');
+        }
+
         function openProfile() {
             toggleAuthModal();
-        }
-
-        function viewHistory() {
-            alert("Historial de citas: Próximamente");
-        }
-
-        function viewQueue() {
-            alert("Viendo cola en tiempo real...");
         }
 
         function switchTab(tab, e) {
@@ -1152,38 +1358,29 @@
                 { facingMode: "environment" }, 
                 config,
                 (decodedText) => {
-                    console.log("QR Detectado Raw:", decodedText);
-                    
-                    // Si el texto es una URL completa
+                    console.log("QR Detectado:", decodedText);
+                    stopScanner();
+                    closeScanner();
+
+                    // URL completa: extraer ?shop= o ?id= o /slug
                     if (decodedText.startsWith('http')) {
                         try {
                             const url = new URL(decodedText);
-                            const shopId = url.searchParams.get('shop') || url.searchParams.get('id');
-                            if (shopId) {
-                                stopScanner();
-                                closeScanner();
-                                startBooking(shopId);
-                                return;
-                            }
-                        } catch(e) { console.error("URL Invalida:", e); }
+                            const param = url.searchParams.get('shop') || url.searchParams.get('id');
+                            if (param) { startBooking(param); return; }
+                            // Intentar extraer slug del path: /b/richard-stilo
+                            const pathParts = url.pathname.split('/').filter(Boolean);
+                            if (pathParts.length > 0) { startBooking(pathParts[pathParts.length - 1]); return; }
+                        } catch(e) {}
                     }
-                    
-                    // Si el texto es directamente un UUID (ID de shop)
-                    if (decodedText.length >= 36 && decodedText.includes('-')) {
-                        stopScanner();
-                        closeScanner();
-                        startBooking(decodedText);
-                    } else {
-                        // Intentar buscar por slug o nombre corto si el QR solo trae eso
-                        stopScanner();
-                        closeScanner();
-                        startBooking(decodedText);
-                    }
+
+                    // UUID directo o slug — startBooking maneja ambos
+                    startBooking(decodedText.trim());
                 },
                 (errorMessage) => { /* Escaneando... */ }
             ).catch(err => {
                 console.error("Error al iniciar cámara:", err);
-                alert("No se pudo acceder a la cámara. Asegúrate de dar permisos.");
+                toast("No se pudo acceder a la cámara. Verifica los permisos.", "error", 4000);
             });
         }
 
