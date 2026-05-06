@@ -752,10 +752,11 @@
         // ── Init ──
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
-            initAuth();
+            document.getElementById('nextApptContainer').classList.add('hidden');
+            await initAuth();
             await loadInitialData();
             checkUrlParams();
-            subscribeRealtime();
+            if (user) subscribeRealtime();
         });
 
         function checkUrlParams() {
@@ -1027,9 +1028,22 @@
             }
         }
 
-        function renderShopOptions() {
+        async function renderShopOptions() {
             const container = document.getElementById('shopOptions');
-            container.innerHTML = shops.map(s => `
+            container.innerHTML = '<p style="text-align:center;padding:16px;color:var(--text-dim);font-size:0.85rem;">Cargando negocios...</p>';
+
+            let lista = shops;
+            if (!lista.length) {
+                const { data } = await sb.from('shops').select('id,nombre,direccion,slug').eq('activo', true).order('nombre');
+                lista = data || [];
+            }
+
+            if (!lista.length) {
+                container.innerHTML = '<p style="text-align:center;padding:16px;color:var(--text-dim);font-size:0.85rem;">No hay negocios disponibles.</p>';
+                return;
+            }
+
+            container.innerHTML = lista.map(s => `
                 <div class="option-item" onclick="selectShop('${s.id}')">
                     <div>
                         <div style="font-weight:800; font-size:1.1rem;">${DOMPurify.sanitize(s.nombre)}</div>
@@ -1043,8 +1057,21 @@
 
         async function selectShop(id) {
             selectedShop = shops.find(s => s.id == id);
-            await loadServices(id);
+            if (!selectedShop) {
+                const { data } = await sb.from('shops').select('*').eq('id', id).single();
+                if (data) selectedShop = data;
+            }
+            if (!selectedShop) { toast('No se pudo cargar el negocio', 'error'); return; }
+
+            // Auto-vincular al usuario si aún no está guardado
+            if (user && !shops.find(s => s.id == id)) {
+                await sb.from('cliente_shops').upsert({ usuario_id: user.id, shop_id: id, favorito: false }, { onConflict: 'usuario_id,shop_id' }).catch(() => {});
+                loadInitialData();
+            }
+
+            await loadServices(selectedShop.id);
             goToStep('service');
+            updateProgress(2);
         }
 
         async function loadServices(shopId) {
