@@ -599,12 +599,26 @@
         <div class="modal-content" style="max-height: 95vh;">
             <div class="modal-handle"></div>
             <div id="auth-login">
-                <h2 class="step-title">Bienvenido</h2>
-                <p style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 25px;">Ingresa con tu número de teléfono y contraseña de AuraOS.</p>
+                <h2 class="step-title">Inicia Sesión</h2>
+                <p style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 25px;">Accede a tus barberías y citas favoritas.</p>
+                
                 <input type="tel" id="loginTel" placeholder="Teléfono (ej: 8091234567)" class="capture-input" style="margin-bottom: 15px;">
                 <input type="password" id="loginPass" placeholder="Contraseña" class="capture-input" style="margin-bottom: 20px;">
+                
                 <button class="btn-view-queue" onclick="handleSignIn()">Entrar</button>
-                <p style="text-align: center; margin-top: 20px; font-size: 0.8rem; color: var(--text-dim);">¿No tienes cuenta? <span style="color: var(--accent); font-weight: 700; cursor: pointer;" onclick="showAuthStep('signup')">Regístrate</span></p>
+                
+                <div style="margin: 25px 0; display: flex; align-items: center; gap: 10px;">
+                    <div style="flex: 1; height: 1px; background: var(--glass-border);"></div>
+                    <span style="font-size: 0.7rem; color: var(--text-dim); font-weight: 700; text-transform: uppercase;">O también</span>
+                    <div style="flex: 1; height: 1px; background: var(--glass-border);"></div>
+                </div>
+
+                <button class="btn-view-queue" style="background: transparent; border: 1px solid var(--accent); color: var(--accent); display: flex; align-items: center; justify-content: center; gap: 10px;" onclick="closeAuthModal(); openScanner();">
+                    <i data-lucide="scan" size="18"></i>
+                    Escanear QR de Barbería
+                </button>
+
+                <p style="text-align: center; margin-top: 25px; font-size: 0.8rem; color: var(--text-dim);">¿Eres nuevo? <span style="color: var(--accent); font-weight: 700; cursor: pointer;" onclick="showAuthStep('signup')">Crea una cuenta aquí</span></p>
             </div>
             <div id="auth-signup" class="hidden">
                 <h2 class="step-title">Crear Cuenta</h2>
