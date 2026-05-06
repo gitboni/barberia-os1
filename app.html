@@ -16,6 +16,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
 
     <style>
         :root {
@@ -502,9 +503,9 @@
             <i data-lucide="home" size="24"></i>
             <span>Inicio</span>
         </div>
-        <div class="nav-item" onclick="switchTab('explore')">
-            <i data-lucide="search" size="24"></i>
-            <span>Explorar</span>
+        <div class="nav-item" onclick="openScanner()">
+            <i data-lucide="scan" size="24"></i>
+            <span>Escanear</span>
         </div>
         <div class="nav-item" onclick="startBooking()">
             <div style="width: 50px; height: 50px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: -35px; border: 5px solid var(--bg); color: var(--bg); box-shadow: 0 10px 20px rgba(212,175,55,0.3);">
@@ -561,6 +562,17 @@
         </div>
     </div>
 
+    <!-- Scanner Modal -->
+    <div id="scannerModal" class="modal">
+        <div class="modal-content" style="height: 80vh;">
+            <div class="modal-handle"></div>
+            <h2 class="step-title">Escanear Código QR</h2>
+            <p style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 20px;">Apunta a la cámara al código QR de la barbería para enlazarte al instante.</p>
+            <div id="reader" style="width: 100%; border-radius: 20px; overflow: hidden; border: 2px solid var(--accent);"></div>
+            <button class="btn-view-queue" style="background: transparent; border: 1px solid var(--glass-border); color: var(--accent); margin-top: 20px;" onclick="closeScanner()">Cerrar Cámara</button>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script>
         // Configuración Supabase
@@ -579,12 +591,22 @@
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
             
-            // Simular carga de usuario (esto vendría de Auth)
+            // Simular carga de usuario
             loadUserFromStorage();
             
             await loadInitialData();
+            checkUrlParams();
             subscribeRealtime();
         });
+
+        function checkUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            const shopId = params.get('shop') || params.get('id');
+            if (shopId) {
+                console.log("Detectado Shop ID por URL:", shopId);
+                setTimeout(() => startBooking(shopId), 1000);
+            }
+        }
 
         function loadUserFromStorage() {
             const saved = localStorage.getItem('aura_user');
@@ -880,6 +902,59 @@
         function switchTab(tab) {
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             event.currentTarget.classList.add('active');
+        }
+
+        // ── Scanner Logic ──
+        let html5QrCode = null;
+
+        function openScanner() {
+            document.getElementById('scannerModal').classList.add('active');
+            html5QrCode = new Html5Qrcode("reader");
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+            html5QrCode.start(
+                { facingMode: "environment" }, 
+                config,
+                (decodedText) => {
+                    // El texto decodificado debería ser una URL como auraos.app/app.html?shop=ID
+                    console.log("QR Detectado:", decodedText);
+                    stopScanner();
+                    
+                    try {
+                        const url = new URL(decodedText);
+                        const shopId = url.searchParams.get('shop') || url.searchParams.get('id');
+                        if (shopId) {
+                            closeScanner();
+                            startBooking(shopId);
+                        } else {
+                            alert("Código QR no reconocido como una Barbería AuraOS");
+                        }
+                    } catch(e) {
+                        // Intentar tratar el texto como el ID directamente si no es URL
+                        if (decodedText.length > 3) {
+                             closeScanner();
+                             startBooking(decodedText);
+                        }
+                    }
+                },
+                (errorMessage) => { /* Escaneando... */ }
+            ).catch(err => {
+                console.error("Error al iniciar cámara:", err);
+                alert("No se pudo acceder a la cámara. Asegúrate de dar permisos.");
+            });
+        }
+
+        function stopScanner() {
+            if (html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    html5QrCode = null;
+                }).catch(err => console.error(err));
+            }
+        }
+
+        function closeScanner() {
+            stopScanner();
+            document.getElementById('scannerModal').classList.remove('active');
         }
     </script>
 </body>
