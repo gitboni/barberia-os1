@@ -304,6 +304,22 @@
             font-weight: 700;
         }
 
+        .capture-input {
+            width: 100%;
+            padding: 16px 20px;
+            background: var(--bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            color: var(--text);
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .capture-input:focus {
+            border-color: var(--accent);
+        }
+
         /* ── Modals & Steps ── */
         .modal {
             position: fixed;
@@ -316,17 +332,22 @@
 
         .modal.active {
             display: flex;
+            justify-content: center;
         }
 
         .modal-content {
             width: 100%;
+            max-width: 500px;
             background: #111;
             border-radius: 30px 30px 0 0;
-            padding: 30px 20px calc(40px + var(--safe-bottom));
+            padding: 30px 24px calc(40px + var(--safe-bottom));
             max-height: 90vh;
             overflow-y: auto;
             transform: translateY(100%);
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-left: 1px solid var(--glass-border);
+            border-right: 1px solid var(--glass-border);
+            border-top: 1px solid var(--glass-border);
         }
 
         .modal.active .modal-content {
@@ -580,16 +601,16 @@
             <div id="auth-login">
                 <h2 class="step-title">Bienvenido</h2>
                 <p style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 25px;">Ingresa con tu número de teléfono y contraseña de AuraOS.</p>
-                <input type="tel" id="loginTel" placeholder="Teléfono (ej: 8091234567)" class="capture-input" style="width: 100%; margin-bottom: 15px; border-radius: 12px; background: var(--bg);">
-                <input type="password" id="loginPass" placeholder="Contraseña" class="capture-input" style="width: 100%; margin-bottom: 20px; border-radius: 12px; background: var(--bg);">
+                <input type="tel" id="loginTel" placeholder="Teléfono (ej: 8091234567)" class="capture-input" style="margin-bottom: 15px;">
+                <input type="password" id="loginPass" placeholder="Contraseña" class="capture-input" style="margin-bottom: 20px;">
                 <button class="btn-view-queue" onclick="handleSignIn()">Entrar</button>
                 <p style="text-align: center; margin-top: 20px; font-size: 0.8rem; color: var(--text-dim);">¿No tienes cuenta? <span style="color: var(--accent); font-weight: 700; cursor: pointer;" onclick="showAuthStep('signup')">Regístrate</span></p>
             </div>
             <div id="auth-signup" class="hidden">
                 <h2 class="step-title">Crear Cuenta</h2>
-                <input type="text" id="regNombre" placeholder="Tu Nombre" class="capture-input" style="width: 100%; margin-bottom: 15px; border-radius: 12px; background: var(--bg);">
-                <input type="tel" id="regTel" placeholder="Teléfono" class="capture-input" style="width: 100%; margin-bottom: 15px; border-radius: 12px; background: var(--bg);">
-                <input type="password" id="regPass" placeholder="Crear Contraseña" class="capture-input" style="width: 100%; margin-bottom: 20px; border-radius: 12px; background: var(--bg);">
+                <input type="text" id="regNombre" placeholder="Tu Nombre" class="capture-input" style="margin-bottom: 15px;">
+                <input type="tel" id="regTel" placeholder="Teléfono" class="capture-input" style="margin-bottom: 15px;">
+                <input type="password" id="regPass" placeholder="Crear Contraseña" class="capture-input" style="margin-bottom: 20px;">
                 <button class="btn-view-queue" onclick="handleSignUp()">Registrarse</button>
                 <p style="text-align: center; margin-top: 20px; font-size: 0.8rem; color: var(--text-dim);">¿Ya tienes cuenta? <span style="color: var(--accent); font-weight: 700; cursor: pointer;" onclick="showAuthStep('login')">Entra</span></p>
             </div>
@@ -679,8 +700,11 @@
             }
         }
 
-        function telToEmail(tel) {
-            const clean = tel.replace(/\D/g, '');
+        function telToEmail(input) {
+            // Si ya es un email, dejarlo igual
+            if (input.includes('@')) return input.trim();
+            // Si es un teléfono, normalizar y añadir dominio
+            const clean = input.replace(/\D/g, '');
             return `${clean}@barberos.app`;
         }
 
@@ -749,8 +773,8 @@
 
         async function loadInitialData() {
             try {
-                // 1. Cargar Shops
-                const { data: shopsData } = await sb.from('shops').select('*').eq('activo', true);
+                // 1. Cargar Shops (quitando el filtro activo temporalmente para depurar si no aparecen)
+                const { data: shopsData } = await sb.from('shops').select('*').order('nombre');
                 shops = shopsData || [];
                 renderShops();
 
