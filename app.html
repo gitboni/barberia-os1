@@ -834,9 +834,13 @@
         function checkUrlParams() {
             const params = new URLSearchParams(window.location.search);
             const shopId = params.get('shop') || params.get('id');
-            if (shopId) {
-                console.log("Detectado Shop ID por URL:", shopId);
-                setTimeout(() => startBooking(shopId), 1000);
+            if (shopId) startBooking(shopId);
+
+            // Si venía de un QR y se acaba de autenticar, retomar la reserva pendiente
+            const pending = sessionStorage.getItem('pendingShop');
+            if (pending && user) {
+                sessionStorage.removeItem('pendingShop');
+                startBooking(pending);
             }
         }
 
@@ -849,6 +853,14 @@
             sb.auth.onAuthStateChange(async (_event, session) => {
                 if (session) {
                     await cargarPerfil(session.user.id);
+                    await loadInitialData();
+                    subscribeRealtime();
+                    // Retomar reserva pendiente si venía de un QR sin sesión
+                    const pending = sessionStorage.getItem('pendingShop');
+                    if (pending) {
+                        sessionStorage.removeItem('pendingShop');
+                        setTimeout(() => startBooking(pending), 400);
+                    }
                 } else {
                     user = null;
                     updateUI();
@@ -1093,6 +1105,8 @@
             }
 
             if (selectedShop) {
+                // Si no hay sesión, guardar para vincular después del login
+                if (!user) sessionStorage.setItem('pendingShop', selectedShop.id);
                 goToStep('service');
                 updateProgress(2);
                 loadServices(selectedShop.id);
@@ -1334,6 +1348,14 @@
         }
 
         async function processBooking() {
+            // Guard: si no hay sesión, guardar estado y pedir login
+            if (!user) {
+                sessionStorage.setItem('pendingShop', selectedShop?.id || '');
+                toast('Inicia sesión para confirmar tu reserva ✂️', 'info', 5000);
+                toggleAuthModal();
+                return;
+            }
+
             const btn = document.getElementById('btnConfirmFinal');
             btn.disabled = true;
             btn.textContent = 'Reservando...';
@@ -1869,6 +1891,7 @@
             ).catch(err => {
                 console.error("Error al iniciar cámara:", err);
                 toast("No se pudo acceder a la cámara. Verifica los permisos.", "error", 4000);
+                closeScanner();
             });
         }
 
