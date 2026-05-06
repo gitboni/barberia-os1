@@ -776,9 +776,26 @@
         <div class="modal-content" style="height: 80vh;">
             <div class="modal-handle"></div>
             <h2 class="step-title">Escanear Código QR</h2>
-            <p style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 20px;">Apunta a la cámara al código QR de la barbería para enlazarte al instante.</p>
+            <p style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 16px;">Apunta la cámara al código QR de la barbería.</p>
+
+            <!-- iOS fallback: input file con capture -->
+            <div id="iosFallback" class="hidden" style="text-align:center; padding: 20px 0;">
+                <div style="font-size:3rem; margin-bottom:12px;">📷</div>
+                <p style="color:var(--text-dim); font-size:0.85rem; margin-bottom:20px;">Tu dispositivo no soporta el escáner en vivo. Usa la cámara para tomar una foto del QR.</p>
+                <label style="display:block; width:100%; padding:14px; border-radius:14px; background:var(--accent); color:var(--bg); font-size:0.9rem; font-weight:900; cursor:pointer; text-align:center;">
+                    📷 Abrir Cámara para QR
+                    <input type="file" accept="image/*" capture="environment" id="qrFileInput" style="display:none;" onchange="handleQRFile(this)">
+                </label>
+                <label style="display:block; width:100%; padding:12px; border-radius:14px; background:transparent; border:1px solid var(--glass-border); color:var(--accent); font-size:0.85rem; font-weight:700; cursor:pointer; text-align:center; margin-top:10px;">
+                    🖼 Elegir foto del carrete
+                    <input type="file" accept="image/*" id="qrGalleryInput" style="display:none;" onchange="handleQRFile(this)">
+                </label>
+            </div>
+
+            <!-- Live scanner -->
             <div id="reader" style="width: 100%; border-radius: 20px; overflow: hidden; border: 2px solid var(--accent);"></div>
-            <button class="btn-view-queue" style="background: transparent; border: 1px solid var(--glass-border); color: var(--accent); margin-top: 20px;" onclick="closeScanner()">Cerrar Cámara</button>
+
+            <button class="btn-view-queue" style="background: transparent; border: 1px solid var(--glass-border); color: var(--accent); margin-top: 20px;" onclick="closeScanner()">Cerrar</button>
         </div>
     </div>
 
@@ -1983,39 +2000,71 @@
         // ── Scanner Logic ──
         let html5QrCode = null;
 
+        function isIOS() {
+            return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        }
+
+        function onQRDecoded(decodedText) {
+            stopScanner();
+            closeScanner();
+
+            // URL completa → extraer ?shop= o ?id= o último segmento del path
+            if (decodedText.startsWith('http')) {
+                try {
+                    const url = new URL(decodedText);
+                    const param = url.searchParams.get('shop') || url.searchParams.get('id');
+                    if (param) { startBooking(param); return; }
+                    const pathParts = url.pathname.split('/').filter(Boolean);
+                    if (pathParts.length > 0) { startBooking(pathParts[pathParts.length - 1]); return; }
+                } catch(_) {}
+            }
+
+            // UUID directo o slug
+            startBooking(decodedText.trim());
+        }
+
+        async function handleQRFile(input) {
+            const file = input.files?.[0];
+            if (!file) return;
+            try {
+                const scanner = new Html5Qrcode('reader');
+                const result = await scanner.scanFile(file, false);
+                onQRDecoded(result);
+            } catch(e) {
+                toast('No se encontró un código QR válido en la imagen. Intenta de nuevo.', 'error', 4000);
+            }
+            input.value = ''; // reset para poder volver a elegir
+        }
+
         function openScanner() {
             document.getElementById('scannerModal').classList.add('active');
-            html5QrCode = new Html5Qrcode("reader");
-            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+            // En iOS: mostrar fallback de archivo en vez del scanner en vivo
+            if (isIOS()) {
+                document.getElementById('iosFallback').classList.remove('hidden');
+                document.getElementById('reader').style.display = 'none';
+                return;
+            }
+
+            // Android / Desktop: scanner en vivo
+            document.getElementById('iosFallback').classList.add('hidden');
+            document.getElementById('reader').style.display = 'block';
+
+            html5QrCode = new Html5Qrcode('reader');
+            const config = { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 };
 
             html5QrCode.start(
-                { facingMode: "environment" }, 
+                // iOS prefiere ideal, Android acepta exact
+                { facingMode: { ideal: 'environment' } },
                 config,
-                (decodedText) => {
-                    console.log("QR Detectado:", decodedText);
-                    stopScanner();
-                    closeScanner();
-
-                    // URL completa: extraer ?shop= o ?id= o /slug
-                    if (decodedText.startsWith('http')) {
-                        try {
-                            const url = new URL(decodedText);
-                            const param = url.searchParams.get('shop') || url.searchParams.get('id');
-                            if (param) { startBooking(param); return; }
-                            // Intentar extraer slug del path: /b/richard-stilo
-                            const pathParts = url.pathname.split('/').filter(Boolean);
-                            if (pathParts.length > 0) { startBooking(pathParts[pathParts.length - 1]); return; }
-                        } catch(e) {}
-                    }
-
-                    // UUID directo o slug — startBooking maneja ambos
-                    startBooking(decodedText.trim());
-                },
-                (errorMessage) => { /* Escaneando... */ }
+                onQRDecoded,
+                () => { /* escaneando... */ }
             ).catch(err => {
-                console.error("Error al iniciar cámara:", err);
-                toast("No se pudo acceder a la cámara. Verifica los permisos.", "error", 4000);
-                closeScanner();
+                console.error('Error cámara:', err);
+                // Si falla el scanner en vivo, mostrar fallback
+                document.getElementById('iosFallback').classList.remove('hidden');
+                toast('Cámara no disponible. Usa la opción de foto.', 'info', 4000);
             });
         }
 
@@ -2152,6 +2201,10 @@
         function closeScanner() {
             stopScanner();
             document.getElementById('scannerModal').classList.remove('active');
+            // Reset reader y fallback para próxima apertura
+            document.getElementById('reader').style.display = 'block';
+            document.getElementById('reader').innerHTML = '';
+            document.getElementById('iosFallback').classList.add('hidden');
         }
     </script>
 </body>
