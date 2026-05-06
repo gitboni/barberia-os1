@@ -808,10 +808,9 @@
                         shops = [];
                     }
                 } else {
-                    // Si no está logueado, mostrar todos o ninguno según prefieras. 
-                    // Para que pueda "seleccionar" uno para registrarse, dejaremos los activos.
-                    const { data: allShops } = await sb.from('shops').select('*').eq('activo', true).limit(5);
-                    shops = allShops || [];
+                    // Para invitados, no mostramos locales por defecto (privacidad y enfoque)
+                    // Solo se cargarán si vienen por QR o si eligen "Reservar" manualmente
+                    shops = [];
                 }
                 
                 renderShops();
@@ -841,7 +840,11 @@
         function renderShops() {
             const container = document.getElementById('shopsList');
             if (!shops.length) {
-                container.innerHTML = '<p style="text-align:center; padding:20px; color:var(--text-dim);">No hay negocios disponibles</p>';
+                if (!user) {
+                    container.innerHTML = '<p style="text-align:center; padding:20px; color:var(--text-dim); font-size: 0.8rem;">Escanea el QR de tu barbería o inicia sesión para ver tus negocios.</p>';
+                } else {
+                    container.innerHTML = '<p style="text-align:center; padding:20px; color:var(--text-dim); font-size: 0.8rem;">Aún no tienes barberías guardadas.</p>';
+                }
                 return;
             }
 
