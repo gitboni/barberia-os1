@@ -538,7 +538,13 @@ const MOCK_SHOPS = [
         rating: 4.9, total_reseñas: 124, tiempo_espera: 15, whatsapp: '18091234567',
         lat: 18.4735, lng: -69.9400,
         descripcion: 'La experiencia definitiva en barbería clásica con un toque moderno.',
-        servicios: [{nombre: 'Corte Premium', precio: 800}, {nombre: 'Barba Ritual', precio: 500}]
+        servicios: [{nombre: 'Corte Premium', precio: 800}, {nombre: 'Barba Ritual', precio: 500}],
+        horario: [
+            {dia:'Lunes', apertura:'09:00', cierre:'20:00'}, {dia:'Martes', apertura:'09:00', cierre:'20:00'},
+            {dia:'Miércoles', apertura:'09:00', cierre:'20:00'}, {dia:'Jueves', apertura:'09:00', cierre:'20:00'},
+            {dia:'Viernes', apertura:'09:00', cierre:'21:00'}, {dia:'Sábado', apertura:'09:00', cierre:'21:00'},
+            {dia:'Domingo', apertura:'10:00', cierre:'18:00'}
+        ]
     },
     {
         id: '2', nombre: 'The Barber Post', slug: 'barber-post', plan: 'pro', activo: true, categoria: 'barberia',
@@ -547,7 +553,12 @@ const MOCK_SHOPS = [
         rating: 4.7, total_reseñas: 89, tiempo_espera: 0, whatsapp: '18097654321',
         lat: 18.4715, lng: -69.8850,
         descripcion: 'Especialistas en degradados y cortes urbanos.',
-        servicios: [{nombre: 'Corte Caballero', precio: 600}, {nombre: 'Corte Niño', precio: 400}]
+        servicios: [{nombre: 'Corte Caballero', precio: 600}, {nombre: 'Corte Niño', precio: 400}],
+        horario: [
+            {dia:'Lunes', apertura:'09:00', cierre:'19:00'}, {dia:'Martes', apertura:'09:00', cierre:'19:00'},
+            {dia:'Miércoles', apertura:'09:00', cierre:'19:00'}, {dia:'Jueves', apertura:'09:00', cierre:'19:00'},
+            {dia:'Viernes', apertura:'09:00', cierre:'20:00'}, {dia:'Sábado', apertura:'09:00', cierre:'20:00'}
+        ]
     },
     {
         id: '3', nombre: 'Aura Studio Nails & Hair', slug: 'aura-studio', plan: 'elite', activo: true, categoria: 'nails',
@@ -556,7 +567,13 @@ const MOCK_SHOPS = [
         rating: 5.0, total_reseñas: 210, tiempo_espera: 5, whatsapp: '18299998877',
         lat: 18.4740, lng: -69.9390,
         descripcion: 'Salón de belleza integral con los más altos estándares de calidad.',
-        servicios: [{nombre: 'Manicura Pro', precio: 1200}, {nombre: 'Balayage', precio: 4500}]
+        servicios: [{nombre: 'Manicura Pro', precio: 1200}, {nombre: 'Balayage', precio: 4500}],
+        horario: [
+            {dia:'Lunes', apertura:'10:00', cierre:'21:00'}, {dia:'Martes', apertura:'10:00', cierre:'21:00'},
+            {dia:'Miércoles', apertura:'10:00', cierre:'21:00'}, {dia:'Jueves', apertura:'10:00', cierre:'21:00'},
+            {dia:'Viernes', apertura:'10:00', cierre:'21:00'}, {dia:'Sábado', apertura:'10:00', cierre:'21:00'},
+            {dia:'Domingo', apertura:'11:00', cierre:'20:00'}
+        ]
     }
 ];
 
@@ -584,9 +601,14 @@ function getAhoraSD() {
     } catch(e) { return 540; } // Fallback a 9:00 AM
 }
 function getDiaSemanaSD() {
-    const d = new Intl.DateTimeFormat('en-US', { timeZone: APP_TIMEZONE, weekday: 'long' }).format(new Date());
-    const map = { 'Monday':'Lunes', 'Tuesday':'Martes', 'Wednesday':'Miércoles', 'Thursday':'Jueves', 'Friday':'Viernes', 'Saturday':'Sábado', 'Sunday':'Domingo' };
-    return map[d] || d;
+    try {
+        const d = new Intl.DateTimeFormat('en-US', { timeZone: APP_TIMEZONE, weekday: 'long' }).format(new Date());
+        const map = { 'Monday':'Lunes', 'Tuesday':'Martes', 'Wednesday':'Miércoles', 'Thursday':'Jueves', 'Friday':'Viernes', 'Saturday':'Sábado', 'Sunday':'Domingo' };
+        return map[d] || d;
+    } catch(e) { 
+        const days = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+        return days[new Date().getDay()]; 
+    }
 }
 const todayName = getDiaSemanaSD();
 
@@ -726,14 +748,26 @@ function selectBookingService(name) {
 
 function calculateAvailableSlots() {
     const container = document.getElementById('bookingSlots');
-    if (!currentBookingBarber) return;
+    if (!currentBookingBarber || !currentBookingShop) return;
+    
+    // Obtener horario de hoy
+    const hHoy = (currentBookingShop.horario || []).find(h => h.dia === todayName);
+    let startMin = 540; // 9 AM default
+    let endMin = 1200; // 8 PM default
+    
+    if (hHoy && !hHoy.cerrado) {
+        const [ah, am] = (hHoy.apertura || '09:00').split(':').map(Number);
+        const [ch, cm] = (hHoy.cierre || '20:00').split(':').map(Number);
+        startMin = ah * 60 + am;
+        endMin = ch * 60 + cm;
+    }
     
     const slots = [];
     const nowMin = getAhoraSD();
-    for (let m = 540; m < 1200; m += 30) {
+    for (let m = startMin; m < endMin; m += 30) {
         if (m < nowMin + 15) continue;
         const t = `${Math.floor(m/60).toString().padStart(2,'0')}:${(m%60).toString().padStart(2,'0')}`;
-        const taken = shopCitasHoy.some(c => c.hora.startsWith(t) && String(c.barbero_id) === String(currentBookingBarber.id));
+        const taken = (shopCitasHoy || []).some(c => c.hora.startsWith(t) && String(c.barbero_id) === String(currentBookingBarber.id));
         slots.push({ time: t, taken });
     }
     
@@ -784,7 +818,12 @@ window.toggleMapView = function() {
 }
 
 // ─── Favorites ────────────────────────────────────────────────────────────────
-function getFavorites() { return JSON.parse(localStorage.getItem('aura_favs') || '[]'); }
+function getFavorites() { 
+    try {
+        const f = localStorage.getItem('aura_favs');
+        return f ? JSON.parse(f) : [];
+    } catch(e) { return []; }
+}
 function isFav(id) { return getFavorites().includes(String(id)); }
 function toggleFav(id, e) {
     if (e) { e.stopPropagation(); }
@@ -804,7 +843,12 @@ function toggleFav(id, e) {
 }
 
 // ─── History ─────────────────────────────────────────────────────────────────
-function getHistory() { return JSON.parse(localStorage.getItem('aura_history') || '[]'); }
+function getHistory() { 
+    try {
+        const h = localStorage.getItem('aura_history');
+        return h ? JSON.parse(h) : [];
+    } catch(e) { return []; }
+}
 function addToHistory(shopId) {
     let h = getHistory().filter(id => id !== String(shopId));
     h.unshift(String(shopId));
@@ -892,21 +936,32 @@ async function loadShops() {
     addMapMarkers(filteredShops);
     renderHistory();
 
-    // 3. Intentar actualizar con datos reales en segundo plano (Opcional)
+    // 3. Intentar actualizar con datos reales en segundo plano
     try {
         const response = await fetch(PROXY_URL);
         if (response.ok) {
             const data = await response.json();
-            if (data && data.shops && data.shops.length > 0) {
-                console.log('Actualizando con datos de API...');
-                allShops = data.shops;
+            const apiShops = data.shops || data; // Soporta ambos formatos
+            if (Array.isArray(apiShops) && apiShops.length > 0) {
+                allShops = apiShops.map(s => ({
+                    ...s,
+                    id: String(s.id || s._id || Math.random()),
+                    lat: parseFloat(s.lat || s.latitude || 18.4861),
+                    lng: parseFloat(s.lng || s.longitude || -69.9312),
+                    horario: (s.horario || s.hours || []).map(h => ({
+                        dia: h.dia || h.day || '',
+                        apertura: h.apertura || h.open || '09:00',
+                        cierre: h.cierre || h.close || '20:00',
+                        cerrado: h.cerrado || h.closed || false
+                    }))
+                }));
                 filteredShops = [...allShops];
                 renderShops(true);
                 addMapMarkers(filteredShops);
             }
         }
     } catch(e) {
-        console.warn('API no disponible, manteniendo datos locales.');
+        console.warn('API no disponible o formato inválido:', e);
     }
 
     // 4. Abrir modal si hay parámetro en URL
