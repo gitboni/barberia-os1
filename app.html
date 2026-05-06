@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>AuraOS | Cliente</title>
+    
+    <!-- Apple PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AuraOS">
+    <link rel="apple-touch-icon" href="https://aura-os.com/icon-192.png">
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+
+    <style>
+        :root {
+            --bg: #000000;
+            --bg-card: #111111;
+            --accent: #D4AF37;
+            --accent-soft: rgba(212, 175, 55, 0.15);
+            --text: #FFFFFF;
+            --text-dim: #A0A0A0;
+            --green: #2ECC71;
+            --red: #E74C3C;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --safe-top: env(safe-area-inset-top, 20px);
+            --safe-bottom: env(safe-area-inset-bottom, 20px);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        h1, h2, h3, .font-outfit {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* ── Layout ── */
+        .app-container {
+            max-width: 500px;
+            margin: 0 auto;
+            min-height: 100vh;
+            padding: calc(var(--safe-top) + 20px) 20px calc(var(--safe-bottom) + 80px);
+            position: relative;
+        }
+
+        .aurora {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% -20%, #1a1a1a 0%, #000000 70%);
+            z-index: -1;
+        }
+
+        /* ── Header ── */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .user-info h1 {
+            font-size: 1.8rem;
+            font-weight: 900;
+            margin-bottom: 4px;
+        }
+
+        .user-info p {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .profile-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent);
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        /* ── Components ── */
+        .card {
+            background: var(--bg-card);
+            border-radius: 24px;
+            padding: 20px;
+            border: 1px solid var(--glass-border);
+            margin-bottom: 20px;
+            transition: transform 0.2s ease;
+        }
+
+        .card:active {
+            transform: scale(0.98);
+        }
+
+        .card-gold {
+            background: linear-gradient(135deg, #1a150a 0%, #111111 100%);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .section-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        /* ── Next Appointment ── */
+        .next-appt-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .next-appt-time {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: var(--accent);
+        }
+
+        .next-appt-details h3 {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+
+        .next-appt-details p {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-view-queue {
+            margin-top: 15px;
+            width: 100%;
+            padding: 12px;
+            border-radius: 14px;
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            font-weight: 900;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        /* ── Quick Actions ── */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .action-btn {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 15px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .action-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent);
+        }
+
+        .action-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-dim);
+        }
+
+        /* ── Shops List ── */
+        .shop-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .shop-item:last-child {
+            border-bottom: none;
+        }
+
+        .shop-img {
+            width: 55px;
+            height: 55px;
+            border-radius: 16px;
+            background: var(--glass);
+            object-fit: cover;
+        }
+
+        .shop-info {
+            flex: 1;
+        }
+
+        .shop-info h4 {
+            font-size: 1rem;
+            margin-bottom: 2px;
+        }
+
+        .shop-status {
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .status-open { background: var(--green); color: var(--green); }
+        .status-closed { background: var(--text-dim); color: var(--text-dim); }
+
+        .btn-reserve-sm {
+            padding: 8px 14px;
+            border-radius: 10px;
+            background: var(--accent-soft);
+            color: var(--accent);
+            font-size: 0.75rem;
+            font-weight: 800;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* ── Bottom Nav ── */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: calc(70px + var(--safe-bottom));
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 20px var(--safe-bottom);
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            color: var(--text-dim);
+            cursor: pointer;
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+        }
+
+        .nav-item span {
+            font-size: 0.65rem;
+            font-weight: 700;
+        }
+
+        /* ── Modals & Steps ── */
+        .modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            display: none;
+            align-items: flex-end;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            width: 100%;
+            background: #111;
+            border-radius: 30px 30px 0 0;
+            padding: 30px 20px calc(40px + var(--safe-bottom));
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-handle {
+            width: 40px;
+            height: 5px;
+            background: var(--glass-border);
+            border-radius: 10px;
+            margin: -15px auto 25px;
+        }
+
+        /* ── Skeleton ── */
+        .skeleton {
+            background: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* ── Utils ── */
+        .hidden { display: none !important; }
+        
+        /* ── Animations ── */
+        .reveal {
+            animation: reveal 0.4s ease forwards;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        @keyframes reveal {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .step-title {
+            font-size: 1.5rem;
+            font-weight: 900;
+            margin-bottom: 20px;
+        }
+
+        .grid-options {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .option-item {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .option-item:active { background: var(--accent-soft); }
+
+        .time-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .time-slot {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .time-slot.active {
+            background: var(--accent);
+            color: var(--bg);
+            border-color: var(--accent);
+        }
+
+        .time-slot.taken {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="aurora"></div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="user-info">
+                <h1 id="userGreeting">Hola, Cliente 👋</h1>
+                <p>¿Qué servicio necesitas hoy?</p>
+            </div>
+            <div class="profile-btn" onclick="openProfile()">
+                <span id="userInitial">C</span>
+            </div>
+        </header>
+
+        <!-- Next Appointment Section -->
+        <div id="nextApptContainer">
+            <div class="section-title">Tu próxima cita</div>
+            <div class="card card-gold reveal" id="nextApptCard">
+                <div class="next-appt-header">
+                    <span class="next-appt-time" id="nextApptTime">--:--</span>
+                    <div style="background: var(--accent-soft); color: var(--accent); padding: 4px 10px; border-radius: 8px; font-size: 0.7rem; font-weight: 900;">HOY</div>
+                </div>
+                <div class="next-appt-details">
+                    <h3 id="nextApptShop">Cargando...</h3>
+                    <p id="nextApptService"><i data-lucide="scissors" size="14"></i> --</p>
+                    <p id="nextApptBarber"><i data-lucide="user" size="14"></i> con --</p>
+                </div>
+                <button class="btn-view-queue" onclick="viewQueue()">
+                    <i data-lucide="list-ordered" size="16"></i> Ver cola en tiempo real
+                </button>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <div class="action-btn" onclick="startBooking()">
+                <div class="action-icon"><i data-lucide="scissors"></i></div>
+                <span class="action-label">Reservar</span>
+            </div>
+            <div class="action-btn" onclick="viewHistory()">
+                <div class="action-icon"><i data-lucide="calendar"></i></div>
+                <span class="action-label">Mis Citas</span>
+            </div>
+            <div class="action-btn" onclick="openProfile()">
+                <div class="action-icon"><i data-lucide="user"></i></div>
+                <span class="action-label">Mi Perfil</span>
+            </div>
+        </div>
+
+        <!-- Favorites Section -->
+        <div class="section-title">Mis negocios</div>
+        <div class="card reveal">
+            <div id="shopsList">
+                <div class="shop-item">
+                    <div class="skeleton" style="width:55px; height:55px; border-radius:16px;"></div>
+                    <div class="shop-info">
+                        <div class="skeleton" style="height:16px; width:60%; margin-bottom:8px;"></div>
+                        <div class="skeleton" style="height:12px; width:40%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Realtime Queue -->
+        <div id="realtimeQueueContainer">
+             <div class="section-title">Cola en tiempo real</div>
+             <div class="card reveal" id="queueCard">
+                 <div style="text-align: center; padding: 10px;">
+                     <p style="font-size: 0.8rem; color: var(--text-dim);">No tienes turnos activos ahora</p>
+                 </div>
+             </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('home')">
+            <i data-lucide="home" size="24"></i>
+            <span>Inicio</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('explore')">
+            <i data-lucide="search" size="24"></i>
+            <span>Explorar</span>
+        </div>
+        <div class="nav-item" onclick="startBooking()">
+            <div style="width: 50px; height: 50px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: -35px; border: 5px solid var(--bg); color: var(--bg); box-shadow: 0 10px 20px rgba(212,175,55,0.3);">
+                <i data-lucide="plus" size="28"></i>
+            </div>
+            <span style="margin-top: 5px;">Reservar</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('history')">
+            <i data-lucide="history" size="24"></i>
+            <span>Historial</span>
+        </div>
+        <div class="nav-item" onclick="openProfile()">
+            <i data-lucide="settings" size="24"></i>
+            <span>Ajustes</span>
+        </div>
+    </nav>
+
+    <!-- Booking Modal -->
+    <div id="bookingModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-handle"></div>
+            
+            <div id="step-shop" class="booking-step">
+                <h2 class="step-title">¿A cuál negocio?</h2>
+                <div class="grid-options" id="shopOptions"></div>
+            </div>
+
+            <div id="step-service" class="booking-step hidden">
+                <h2 class="step-title">¿Qué servicio?</h2>
+                <div class="grid-options" id="serviceOptions"></div>
+                <button class="btn-view-queue" style="background: transparent; border: 1px solid var(--glass-border); color: var(--accent); margin-top: 20px;" onclick="prevStep()">← Volver</button>
+            </div>
+
+            <div id="step-barber" class="booking-step hidden">
+                <h2 class="step-title">¿Con quién?</h2>
+                <div class="grid-options" id="barberOptions"></div>
+                <button class="btn-view-queue" style="background: transparent; border: 1px solid var(--glass-border); color: var(--accent); margin-top: 20px;" onclick="prevStep()">← Volver</button>
+            </div>
+
+            <div id="step-time" class="booking-step hidden">
+                <h2 class="step-title">¿A qué hora?</h2>
+                <div class="time-grid" id="timeSlots"></div>
+                <button class="btn-view-queue" style="background: transparent; border: 1px solid var(--glass-border); color: var(--accent); margin-top: 20px;" onclick="prevStep()">← Volver</button>
+            </div>
+
+            <div id="step-confirm" class="booking-step hidden">
+                <h2 class="step-title">Confirmar cita</h2>
+                <div class="card" style="border-color: var(--accent);">
+                    <p id="confirmDetails" style="line-height: 1.6;"></p>
+                </div>
+                <button class="btn-view-queue" id="btnConfirmFinal" onclick="processBooking()">Confirmar Reservación ✂️</button>
+                <button class="btn-view-queue" style="background: transparent; border: 1px solid var(--glass-border); color: var(--accent); margin-top: 10px;" onclick="prevStep()">Modificar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Configuración Supabase
+        const SB_URL = 'https://tclkyidcltpsuoyvlswn.supabase.co';
+        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjbGt5aWRjbHRwc3VveWxzd24iLCJyb2xlIjoiYW5vbiIsImlhdCI6MTczMTAyNjI2OSwiZXhwIjoyMDQ2NjAyMjY5fQ.LdK2y_O_v4qD_R-u-yX_8Y_Y_Y_Y_Y_Y_Y_Y_Y_Y_Y_Y'; // Anon Key
+        const sb = supabase.createClient(SB_URL, SB_KEY);
+
+        let user = null;
+        let shops = [];
+        let selectedShop = null;
+        let selectedService = null;
+        let selectedBarber = null;
+        let selectedSlot = null;
+
+        // ── Init ──
+        document.addEventListener('DOMContentLoaded', async () => {
+            lucide.createIcons();
+            
+            // Simular carga de usuario (esto vendría de Auth)
+            loadUserFromStorage();
+            
+            await loadInitialData();
+            subscribeRealtime();
+        });
+
+        function loadUserFromStorage() {
+            const saved = localStorage.getItem('aura_user');
+            if (saved) {
+                user = JSON.parse(saved);
+                document.getElementById('userGreeting').textContent = `Hola, ${user.name.split(' ')[0]} 👋`;
+                document.getElementById('userInitial').textContent = user.name.charAt(0).toUpperCase();
+            } else {
+                // Si no hay usuario, pedir nombre (Onboarding)
+                setTimeout(() => {
+                    const name = prompt("¡Bienvenido a AuraOS! ¿Cómo te llamas?");
+                    if (name) {
+                        user = { name, id: 'guest-' + Math.random().toString(36).substr(2, 9) };
+                        localStorage.setItem('aura_user', JSON.stringify(user));
+                        location.reload();
+                    }
+                }, 1000);
+            }
+        }
+
+        async function loadInitialData() {
+            try {
+                // 1. Cargar Shops
+                const { data: shopsData } = await sb.from('shops').select('*').eq('activo', true);
+                shops = shopsData || [];
+                renderShops();
+
+                // 2. Cargar Próxima Cita (Simulado para Demo o real si hay ID)
+                if (user) {
+                    const hoy = new Date().toISOString().split('T')[0];
+                    const { data: citas } = await sb.from('citas')
+                        .select('*, shops(nombre)')
+                        .eq('usuario_id', user.id)
+                        .gte('fecha', hoy)
+                        .order('fecha')
+                        .order('hora')
+                        .limit(1);
+
+                    if (citas && citas.length > 0) {
+                        renderNextAppt(citas[0]);
+                    } else {
+                        document.getElementById('nextApptContainer').classList.add('hidden');
+                    }
+                }
+            } catch (e) {
+                console.error("Error loading data:", e);
+            }
+        }
+
+        function renderShops() {
+            const container = document.getElementById('shopsList');
+            if (!shops.length) {
+                container.innerHTML = '<p style="text-align:center; padding:20px; color:var(--text-dim);">No hay negocios disponibles</p>';
+                return;
+            }
+
+            container.innerHTML = shops.map(s => `
+                <div class="shop-item" onclick="startBooking('${s.id}')">
+                    <img src="${s.mkt_photo || s.foto_url || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=200'}" class="shop-img">
+                    <div class="shop-info">
+                        <h4>${DOMPurify.sanitize(s.mkt_name || s.nombre)}</h4>
+                        <div class="shop-status">
+                            <div class="status-dot ${isOpenNow(s) ? 'status-open' : 'status-closed'}"></div>
+                            <span class="${isOpenNow(s) ? 'status-open' : 'status-closed'}">${isOpenNow(s) ? 'Abierto' : 'Cerrado'}</span>
+                            <span style="color:var(--text-dim); margin-left:5px;">· ${s.mkt_city || 'Distrito Nacional'}</span>
+                        </div>
+                    </div>
+                    <button class="btn-reserve-sm">RESERVAR</button>
+                </div>
+            `).join('');
+        }
+
+        function renderNextAppt(cita) {
+            document.getElementById('nextApptTime').textContent = fmt12(cita.hora);
+            document.getElementById('nextApptShop').textContent = cita.shops?.nombre || 'Negocio';
+            document.getElementById('nextApptService').innerHTML = `<i data-lucide="scissors" size="14"></i> ${cita.servicio}`;
+            document.getElementById('nextApptBarber').innerHTML = `<i data-lucide="user" size="14"></i> con ${cita.barbero}`;
+            lucide.createIcons();
+        }
+
+        // ── Booking Flow ──
+        function startBooking(shopId) {
+            selectedShop = shopId ? shops.find(s => s.id == shopId) : null;
+            document.getElementById('bookingModal').classList.add('active');
+            
+            if (selectedShop) {
+                goToStep('service');
+                loadServices(selectedShop.id);
+            } else {
+                goToStep('shop');
+                renderShopOptions();
+            }
+        }
+
+        function renderShopOptions() {
+            const container = document.getElementById('shopOptions');
+            container.innerHTML = shops.map(s => `
+                <div class="option-item" onclick="selectShop('${s.id}')">
+                    <div>
+                        <div style="font-weight:800; font-size:1.1rem;">${DOMPurify.sanitize(s.nombre)}</div>
+                        <div style="font-size:0.8rem; color:var(--text-dim);">${s.direccion || 'Santo Domingo'}</div>
+                    </div>
+                    <i data-lucide="chevron-right" color="var(--accent)"></i>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        async function selectShop(id) {
+            selectedShop = shops.find(s => s.id == id);
+            await loadServices(id);
+            goToStep('service');
+        }
+
+        async function loadServices(shopId) {
+            const { data } = await sb.from('servicios').select('*').eq('shop_id', shopId).eq('activo', true);
+            const container = document.getElementById('serviceOptions');
+            container.innerHTML = data.map(s => `
+                <div class="option-item" onclick="selectService('${s.id}')">
+                    <div>
+                        <div style="font-weight:800;">${DOMPurify.sanitize(s.nombre)}</div>
+                        <div style="font-size:0.8rem; color:var(--text-dim);">${s.duracion_min} min</div>
+                    </div>
+                    <div style="font-weight:900; color:var(--accent);">RD$${s.precio}</div>
+                </div>
+            `).join('');
+        }
+
+        async function selectService(id) {
+            // Re-fetch para tener el objeto completo
+            const { data } = await sb.from('servicios').select('*').eq('id', id).single();
+            selectedService = data;
+            
+            // Cargar Barberos
+            const { data: barbs } = await sb.from('barberos').select('*').eq('shop_id', selectedShop.id).eq('activo', true);
+            const container = document.getElementById('barberOptions');
+            container.innerHTML = barbs.map(b => `
+                <div class="option-item" onclick="selectBarber('${b.id}')">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <div style="width:40px; height:40px; border-radius:50%; background:var(--accent-soft); display:flex; align-items:center; justify-content:center; color:var(--accent); font-weight:900;">${b.nombre.charAt(0)}</div>
+                        <div style="font-weight:800;">${DOMPurify.sanitize(b.nombre)}</div>
+                    </div>
+                    <i data-lucide="chevron-right" color="var(--accent)"></i>
+                </div>
+            `).join('');
+            lucide.createIcons();
+            goToStep('barber');
+        }
+
+        async function selectBarber(id) {
+            const { data } = await sb.from('barberos').select('*').eq('id', id).single();
+            selectedBarber = data;
+            
+            // Cargar Slots (Simplificado: Horarios fijos - ocupados)
+            await loadSlots();
+            goToStep('time');
+        }
+
+        async function loadSlots() {
+            const hoy = new Date().toISOString().split('T')[0];
+            const { data: citas } = await sb.from('citas')
+                .select('hora')
+                .eq('shop_id', selectedShop.id)
+                .eq('barbero_id', selectedBarber.id)
+                .eq('fecha', hoy);
+
+            const ocupados = (citas || []).map(c => c.hora.substring(0, 5));
+            const slots = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30'];
+            
+            const container = document.getElementById('timeSlots');
+            container.innerHTML = slots.map(s => {
+                const isTaken = ocupados.includes(s);
+                return `
+                    <div class="time-slot ${isTaken ? 'taken' : ''}" onclick="selectTime('${s}')">
+                        ${fmt12(s)}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function selectTime(time) {
+            selectedSlot = time;
+            document.querySelectorAll('.time-slot').forEach(el => {
+                el.classList.toggle('active', el.textContent.trim() === fmt12(time));
+            });
+            
+            // Mostrar Confirmación
+            const details = `
+                <div style="font-size:0.8rem; text-transform:uppercase; color:var(--accent); font-weight:800; margin-bottom:10px;">Resumen de tu cita</div>
+                <div style="font-size:1.2rem; font-weight:900; margin-bottom:5px;">${selectedService.nombre}</div>
+                <div style="color:var(--text-dim); margin-bottom:15px;">con <b>${selectedBarber.nombre}</b> en <b>${selectedShop.nombre}</b></div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <i data-lucide="calendar" size="16" color="var(--accent)"></i>
+                        <span style="font-weight:700;">Hoy, ${fmt12(selectedSlot)}</span>
+                    </div>
+                    <div style="font-weight:900; font-size:1.1rem; color:var(--accent);">RD$${selectedService.precio}</div>
+                </div>
+            `;
+            document.getElementById('confirmDetails').innerHTML = details;
+            lucide.createIcons();
+            goToStep('confirm');
+        }
+
+        async function processBooking() {
+            const btn = document.getElementById('btnConfirmFinal');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="skeleton" style="width:20px; height:20px; border-radius:50%;"></i> Reservando...';
+
+            const { error } = await sb.from('citas').insert({
+                shop_id: selectedShop.id,
+                usuario_id: user.id,
+                barbero_id: selectedBarber.id,
+                nombre: user.name,
+                telefono: '',
+                fecha: new Date().toISOString().split('T')[0],
+                hora: selectedSlot + ':00',
+                servicio: selectedService.nombre,
+                barbero: selectedBarber.nombre,
+                estado: selectedShop.confirmacion_requerida ? 'Pendiente' : 'Confirmada'
+            });
+
+            if (!error) {
+                alert("¡Reserva exitosa! ✂️");
+                location.reload();
+            } else {
+                alert("Error al reservar: " + error.message);
+                btn.disabled = false;
+                btn.innerHTML = 'Confirmar Reservación ✂️';
+            }
+        }
+
+        // ── Navigation Logic ──
+        function goToStep(stepId) {
+            document.querySelectorAll('.booking-step').forEach(s => s.classList.add('hidden'));
+            document.getElementById('step-' + stepId).classList.remove('hidden');
+        }
+
+        function prevStep() {
+            const current = Array.from(document.querySelectorAll('.booking-step')).find(s => !s.classList.contains('hidden')).id;
+            if (current === 'step-service') goToStep('shop');
+            else if (current === 'step-barber') goToStep('service');
+            else if (current === 'step-time') goToStep('barber');
+            else if (current === 'step-confirm') goToStep('time');
+        }
+
+        function closeModals() {
+            document.getElementById('bookingModal').classList.remove('active');
+        }
+
+        document.getElementById('bookingModal').addEventListener('click', (e) => {
+            if (e.target.id === 'bookingModal') closeModals();
+        });
+
+        // ── Helpers ──
+        function fmt12(h24) {
+            if (!h24) return '--:--';
+            let [h, m] = h24.split(':').map(Number);
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12 || 12;
+            return `${h}:${m.toString().padStart(2, '0')} ${ampm}`;
+        }
+
+        function isOpenNow(shop) {
+            const now = new Date();
+            const h = now.getHours();
+            return h >= (shop.hora_inicio || 9) && h < (shop.hora_fin || 21);
+        }
+
+        function subscribeRealtime() {
+            sb.channel('public:citas')
+              .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'citas' }, payload => {
+                  console.log('Nueva cita detectada!', payload);
+                  if (payload.new.usuario_id === user?.id) {
+                      loadInitialData();
+                  }
+              })
+              .subscribe();
+        }
+
+        function openProfile() {
+            alert("Perfil de " + user?.name + "\nAquí podrás ver tus puntos Aura y configurar tus preferencias.");
+        }
+
+        function viewHistory() {
+            alert("Historial de citas: Próximamente");
+        }
+
+        function viewQueue() {
+            alert("Viendo cola en tiempo real...");
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+        }
+    </script>
+</body>
+</html>
