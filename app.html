@@ -621,17 +621,22 @@
         let selectedSlot = null;
 
         // ── Init ──
-        // ── Init ──
         document.addEventListener('DOMContentLoaded', async () => {
             lucide.createIcons();
-            
-            // Inicializar Auth de Supabase
             initAuth();
-            
             await loadInitialData();
             checkUrlParams();
             subscribeRealtime();
         });
+
+        function checkUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            const shopId = params.get('shop') || params.get('id');
+            if (shopId) {
+                console.log("Detectado Shop ID por URL:", shopId);
+                setTimeout(() => startBooking(shopId), 1000);
+            }
+        }
 
         async function initAuth() {
             const { data: { session } } = await sb.auth.getSession();
@@ -803,9 +808,20 @@
         }
 
         // ── Booking Flow ──
-        function startBooking(shopId) {
-            selectedShop = shopId ? shops.find(s => s.id == shopId) : null;
+        async function startBooking(shopId) {
             document.getElementById('bookingModal').classList.add('active');
+            
+            if (shopId) {
+                selectedShop = shops.find(s => s.id == shopId);
+                
+                // Si no está en la lista cargada, buscarlo en Supabase
+                if (!selectedShop) {
+                    const { data } = await sb.from('shops').select('*').eq('id', shopId).single();
+                    if (data) selectedShop = data;
+                }
+            } else {
+                selectedShop = null;
+            }
             
             if (selectedShop) {
                 goToStep('service');
