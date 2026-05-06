@@ -98,6 +98,17 @@
         }
         .card.elite { border-color:rgba(245,224,80,0.3); box-shadow:0 10px 40px rgba(245,224,80,0.05); }
         .card.elite::before { content:'PREMIUM'; position:absolute; top:-10px; right:20px; background:var(--elite); color:#000; font-size:0.55rem; font-weight:900; padding:4px 12px; border-radius:50px; z-index:5; }
+        /* Skeleton Shimmer */
+        .skeleton { background:#111; overflow:hidden; position:relative; border-radius:12px; }
+        .skeleton::after {
+            content:''; position:absolute; top:0; left:0; width:100%; height:100%;
+            background:linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer {
+            0% { transform:translateX(-100%); }
+            100% { transform:translateX(100%); }
+        }
         .card:hover { border-color:rgba(212,175,55,0.4); transform:translateY(-5px); background:#121212; }
         .card-img { width:110px; height:110px; border-radius:16px; object-fit:cover; background:#222; flex-shrink:0; transition:0.3s; }
         .card:hover .card-img { transform:scale(1.05); }
@@ -110,7 +121,26 @@
 
         .badge-row { display:flex; gap:6px; margin:8px 0; flex-wrap:wrap; }
         .badge { font-size:0.6rem; font-weight:800; padding:3px 10px; border-radius:50px; text-transform:uppercase; }
-        .badge-open { background:rgba(0,255,100,0.1); color:var(--green); border:1px solid rgba(0,255,100,0.2); }
+        .badge-open { background:rgba(0,255,127,0.1); color:#00ff7f; border:1px solid rgba(0,255,127,0.2); position:relative; overflow:hidden; }
+        .badge-open::before {
+            content:''; position:absolute; left:6px; top:50%; transform:translateY(-50%);
+            width:6px; height:6px; background:#00ff7f; border-radius:50%;
+            box-shadow:0 0 10px #00ff7f; animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0,255,127,0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(0,255,127,0); }
+            100% { box-shadow: 0 0 0 0 rgba(0,255,127,0); }
+        }
+
+        .shop-card { 
+            opacity:0; transform:translateY(30px); 
+            transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .shop-card.reveal { opacity:1; transform:translateY(0); }
+        .shop-card:hover { border-color:var(--accent); box-shadow:0 0 30px rgba(212,175,55,0.15); transform:translateY(-8px); }
+        .shop-card:hover .card-image-wrap img { transform:scale(1.05); }
+
         .badge-closed { background:rgba(255,50,50,0.1); color:var(--red); border:1px solid rgba(255,50,50,0.2); }
         .badge-promo { background:rgba(212,175,55,0.15); color:var(--accent); border:1px solid rgba(212,175,55,0.3); }
         .badge-wait { background:rgba(255,255,255,0.06); color:#fff; border:1px solid var(--border); }
@@ -186,23 +216,48 @@
         .detail-sheet, .booking-sheet {
             position:fixed; top:100%; left:50%;
             transform:translateX(-50%);
-            width:96%; max-width:1000px; height:90vh;
-            background:rgba(10,10,10,0.95); -webkit-backdrop-filter:blur(60px); backdrop-filter:blur(60px);
-            border:1px solid rgba(255,255,255,0.1); border-radius:32px;
+            width:96%; max-width:1100px; height:92vh;
+            background:#080808; border:1px solid rgba(255,255,255,0.08); border-radius:32px;
             z-index:2000; transition:all 0.5s cubic-bezier(0.16,1,0.3,1);
             overflow:hidden; opacity:0; pointer-events:none;
-            box-shadow: 0 30px 70px rgba(0,0,0,0.9);
+            box-shadow: 0 40px 100px rgba(0,0,0,0.9);
         }
-        .detail-sheet.active, .booking-sheet.active { top:5vh; opacity:1; pointer-events:auto; }
+        .booking-sheet { z-index: 3000; }
+        .detail-sheet.active, .booking-sheet.active { top:4vh; opacity:1; pointer-events:auto; }
         
-        .sheet-body { height:100%; overflow-y:auto; scrollbar-width:none; padding:0; }
+        .sheet-body { height:100%; overflow-y:auto; scrollbar-width:none; padding:0; position:relative; }
         .sheet-body::-webkit-scrollbar { display:none; }
-        .sheet-close { position:absolute; top:20px; right:20px; background:rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.1); color:#fff; width:40px; height:40px; border-radius:50%; cursor:pointer; z-index:2010; display:flex; align-items:center; justify-content:center; }
-
-        .sheet-content { padding:40px; }
-        .gallery-container { display:grid; grid-template-columns:2fr 1fr; gap:4px; height:350px; background:#111; overflow:hidden; }
         
-        /* Barber Chips */
+        /* Close button on top of everything */
+        .sheet-close { position:fixed; top:25px; right:25px; background:rgba(0,0,0,0.5); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1); color:#fff; width:44px; height:44px; border-radius:50%; cursor:pointer; z-index:3100; display:flex; align-items:center; justify-content:center; transition:0.3s; }
+        .sheet-close:hover { background:var(--red); transform:rotate(90deg); }
+
+        .gallery-header { position:relative; height:450px; background:#111; overflow:hidden; }
+        .gallery-main-img { width:100%; height:100%; object-fit:cover; opacity:0.6; }
+        .header-overlay { position:absolute; bottom:0; left:0; right:0; padding:60px 40px 40px; background:linear-gradient(to top, #080808, transparent); }
+        
+        .sheet-content { padding:0 40px 40px; margin-top:-20px; position:relative; z-index:2; }
+        .sheet-grid { display:grid; grid-template-columns:1.6fr 1fr; gap:40px; align-items:start; }
+
+        @media (max-width: 900px) {
+            .sheet-grid { grid-template-columns: 1fr; gap:20px; }
+            .gallery-header { height:300px; }
+            .header-overlay h2 { font-size:2.2rem !important; }
+            .sheet-content { padding: 0 20px 20px; }
+        }
+
+        .section-card { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:24px; padding:25px; margin-bottom:25px; }
+        .section-title { font-size:0.7rem; font-weight:800; text-transform:uppercase; letter-spacing:0.15em; color:var(--accent); margin-bottom:20px; display:block; }
+
+        /* Staff & Avatars */
+        .staff-list { display:flex; gap:20px; overflow-x:auto; padding:8px 0; scrollbar-width:none; }
+        .staff-list::-webkit-scrollbar { display:none; }
+        .staff-item { display:flex; flex-direction:column; align-items:center; gap:8px; min-width:80px; }
+        .avatar { width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg,#222,#111); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.9rem; color:var(--accent); overflow:hidden; }
+        .avatar img { width:100%; height:100%; object-fit:cover; }
+        .staff-name { font-size:0.75rem; opacity:0.7; font-weight:600; text-align:center; }
+
+        /* Barber Chips (Booking) */
         .barber-chip { 
             display:flex; flex-direction:column; align-items:center; gap:10px; min-width:90px; 
             padding:15px; border-radius:20px; border:1px solid var(--border); background:rgba(255,255,255,0.03);
@@ -328,7 +383,7 @@
         <button class="nav-btn" onclick="openFavoritesFilter()">
             <i data-lucide="heart" size="16"></i> Guardados
         </button>
-        <button class="nav-btn">Acceso Negocios</button>
+        <button class="nav-btn" id="btnLoadShops" onclick="loadShops()">Acceso Negocios</button>
         <div class="avatar-btn" id="profileBtn" onclick="openProfileModal()" aria-label="Mi Perfil">
             <i data-lucide="user" size="18"></i>
         </div>
@@ -680,11 +735,16 @@ function initSupabase() {
 }
 initSupabase();
 
-async function openBookingModal(shopId) {
-    const shop = allShops.find(s => String(s.id) === String(shopId));
+async function openBookingModal(data) {
+    if (!data) return;
+    let shop = (typeof data === 'object') ? data : allShops.find(s => String(s.id) === String(data));
     if (!shop) return;
     
     currentBookingShop = shop;
+    
+    // Intentar cerrar modal de detalles sin bloquear
+    try { closeShopDetail(); } catch(e) {}
+    
     document.getElementById('bookingShopName').textContent = shop.nombre;
     document.getElementById('bookingModal').classList.add('active');
     document.getElementById('overlay').classList.add('active');
@@ -982,24 +1042,31 @@ function focusShop(lat, lng) {
 }
 
 // ─── Data Loading ─────────────────────────────────────────────────────────────
-function renderSkeletons(n = 4) {
-    return Array(n).fill(0).map(() => `
-        <div class="sk-card">
-            <div class="sk-img skeleton"></div>
-            <div class="sk-body">
-                <div class="sk-line skeleton w80"></div>
-                <div class="sk-line skeleton w50"></div>
-                <div class="sk-line skeleton w30"></div>
+function showSkeletons() {
+    const container = document.getElementById('shopsContainer');
+    if (!container) return;
+    container.innerHTML = '';
+    for(let i=0; i<6; i++) {
+        const skel = document.createElement('div');
+        skel.className = 'shop-card reveal';
+        skel.innerHTML = `
+            <div class="skeleton" style="height:200px; border-radius:24px 24px 0 0;"></div>
+            <div style="padding:25px;">
+                <div class="skeleton" style="height:24px; width:70%; margin-bottom:12px;"></div>
+                <div class="skeleton" style="height:14px; width:40%; margin-bottom:25px;"></div>
+                <div class="btn-row" style="display:grid; grid-template-columns:1fr 46px 46px; gap:8px;">
+                    <div class="skeleton" style="height:46px; border-radius:12px;"></div>
+                    <div class="skeleton" style="height:46px; border-radius:12px;"></div>
+                    <div class="skeleton" style="height:46px; border-radius:12px;"></div>
+                </div>
             </div>
-        </div>
-    `).join('');
+        `;
+        container.appendChild(skel);
+    }
 }
 
 async function loadShops() {
-    const container = document.getElementById('shopsContainer');
-    if (!container) return;
-    
-    container.innerHTML = renderSkeletons();
+    showSkeletons();
     
     // 1. Cargar Mock Data al instante para asegurar visibilidad inmediata
     allShops = [...MOCK_SHOPS];
@@ -1055,20 +1122,41 @@ async function loadShops() {
                     ciudad: s.mkt_city || s.ciudad || 'Santo Domingo',
                     categoria: s.mkt_category || s.categoria || 'barberia',
                     plan: s.plan || 'free',
-                    // Normalizar servicios y staff (pueden venir de Supabase o Proxy)
                     servicios: s.servicios || [],
                     staff: s.staff || s.barberos || [],
-                    horario: (s.horario || s.hours || [
-                        {dia:'Lunes', apertura:'09:00', cierre:'20:00'}, {dia:'Martes', apertura:'09:00', cierre:'20:00'},
-                        {dia:'Miércoles', apertura:'09:00', cierre:'20:00'}, {dia:'Jueves', apertura:'09:00', cierre:'20:00'},
-                        {dia:'Viernes', apertura:'09:00', cierre:'21:00'}, {dia:'Sábado', apertura:'09:00', cierre:'21:00'},
-                        {dia:'Domingo', apertura:'10:00', cierre:'18:00'}
-                    ]).map(h => ({
-                        dia: h.dia || h.day || '',
-                        apertura: h.apertura || h.open || '09:00',
-                        cierre: h.cierre || h.close || '20:00',
-                        cerrado: h.cerrado || h.closed || false
-                    }))
+                    horario: (() => {
+                        const hSource = s.horario || s.hours;
+                        if (Array.isArray(hSource)) return hSource.map(h => ({
+                            dia: h.dia || h.day || '',
+                            apertura: h.apertura || h.open || '09:00',
+                            cierre: h.cierre || h.close || '20:00',
+                            cerrado: h.cerrado || h.closed || false
+                        }));
+                        
+                        // Fallback a horarios_por_dia (formato objeto de Supabase)
+                        const hpd = s.horarios_por_dia || {};
+                        const days = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+                        return days.map((d, i) => {
+                            const conf = hpd[i] || hpd[String(i)];
+                            if (conf) {
+                                // Convertir minutos o strings a HH:MM
+                                const toHHMM = v => {
+                                    if (typeof v === 'number') return `${Math.floor(v/60).toString().padStart(2,'0')}:${(v%60).toString().padStart(2,'0')}`;
+                                    if (typeof v === 'string' && v.includes(':')) return v;
+                                    return v;
+                                };
+                                return {
+                                    dia: d,
+                                    apertura: toHHMM(conf.inicio || conf.ini || s.hora_inicio || 9),
+                                    cierre: toHHMM(conf.fin || s.hora_fin || 20),
+                                    cerrado: conf.cerrado || (s.dias_atencion && s.dias_atencion.length > 0 && !s.dias_atencion.includes(i))
+                                };
+                            }
+                            // Si no hay config para ese día, pero hay dias_atencion, verificar si está cerrado
+                            const isClosed = s.dias_atencion && s.dias_atencion.length > 0 && !s.dias_atencion.includes(i);
+                            return { dia: d, apertura: '09:00', cierre: '20:00', cerrado: isClosed };
+                        });
+                    })()
                 }));
                 filteredShops = [...allShops];
                 renderShops(true);
@@ -1139,17 +1227,19 @@ function renderShops(reset = false) {
                         </button>
                     </div>
                     <div class="badge-row">
-                        ${open === true ? '<span class="badge badge-open">● Abierto</span>' : open === false ? '<span class="badge badge-closed">● Cerrado</span>' : ''}
+                        ${open === true ? '<span class="badge badge-open">Abierto</span>' : open === false ? '<span class="badge badge-closed">Cerrado</span>' : ''}
                         ${promo ? '<span class="badge badge-promo">🏷 Oferta</span>' : ''}
                         ${wait ? `<span class="badge badge-wait">⏱ ${wait}</span>` : ''}
                     </div>
                     ${s.rating ? `<div class="rating-row"><span class="stars">${starsHtml(s.rating)}</span><span class="rating-count">${s.rating.toFixed(1)} (${s.total_reseñas || 0})</span></div>` : ''}
-                    <div class="btn-row">
-                        <button class="btn btn-primary" onclick="event.stopPropagation(); window.open(getSmartWhatsApp(allShops.find(sh => String(sh.id) === '${shopId}'))) ">Agendar</button>
-                        <button class="btn btn-ghost" onclick="event.stopPropagation(); window.open('https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}')">
-                            <i data-lucide="navigation" size="13"></i>
+                    <div class="btn-row" style="margin-top:15px; display:grid; grid-template-columns:1fr 46px 46px; gap:8px;">
+                        <button class="btn btn-primary" onclick="event.stopPropagation(); openBookingModal('${shopId}')" style="height:46px; font-weight:800; border-radius:12px;">Reservar</button>
+                        <button class="btn btn-ghost" onclick="event.stopPropagation(); window.open('https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}')" style="height:46px; border-radius:12px;">
+                            <i data-lucide="navigation" size="16"></i>
                         </button>
-                        <button class="btn btn-ghost" onclick="event.stopPropagation(); window.open('/sala/${esc(s.slug)}')">Monitor</button>
+                        <button class="btn btn-ghost" onclick="event.stopPropagation(); openShopDetail('${shopId}')" style="height:46px; border-radius:12px;">
+                            <i data-lucide="info" size="16"></i>
+                        </button>
                     </div>
                 </div>
             `;
@@ -1158,6 +1248,15 @@ function renderShops(reset = false) {
     });
 
     if (window.lucide) lucide.createIcons();
+    
+    // Aplicar animaciones de revelado
+    setTimeout(() => {
+        const cards = container.querySelectorAll('.shop-card:not(.reveal)');
+        cards.forEach((card, idx) => {
+            setTimeout(() => card.classList.add('reveal'), idx * 80);
+        });
+    }, 50);
+
     currentPage++;
 
     const hasMore = currentPage * PAGE_SIZE < filteredShops.length;
@@ -1315,93 +1414,85 @@ function openShopDetail(id) {
     if (!shop) return;
     const sName = esc(shop.nombre || '');
     const sDir = esc(shop.direccion || '');
-    const sDesc = esc(shop.descripcion || '');
-    const open = isOpenNow(shop.horario);
+    const sDesc = esc(shop.descripcion || 'Bienvenido a una experiencia de grooming de primer nivel.');
+    const todayName = getDiaSemanaSD();
     
     document.getElementById('sheetContent').innerHTML = `
-        <div class="gallery-container">
-            <div class="gallery-main-wrap">
-                <div class="social-overlay">
-                    <div class="social-tag"><i data-lucide="instagram" size="14" color="#E4405F"></i> @${esc(shop.slug || 'auraos')}</div>
-                    <div class="social-tag"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1 .05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z"/></svg> @${esc(shop.slug || 'auraos')}</div>
+        <div class="gallery-header">
+            <img src="${shop.foto_url || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=1200'}" class="gallery-main-img">
+            <div class="header-overlay">
+                <h2 class="font-outfit" style="font-size:3.5rem; margin-bottom:10px; line-height:1;">${sName}</h2>
+                <div style="display:flex; align-items:center; gap:20px; color:var(--text-dim); font-size:0.95rem;">
+                    <span><i data-lucide="map-pin" size="16"></i> ${sDir}</span>
+                    <span>·</span>
+                    <span><i data-lucide="star" size="16" fill="var(--accent)" color="var(--accent)"></i> ${shop.rating || '4.8'} (${shop.total_reseñas || 0} reseñas)</span>
                 </div>
-                <img src="${esc(shop.foto_url) || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=1200'}" class="gallery-main-img" alt="${esc(sName)}">
-            </div>
-            <div class="gallery-thumbs">
-                <img src="${esc(shop.foto_url)}" class="gallery-thumb active">
-                <img src="https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=400" class="gallery-thumb">
-                <img src="https://images.unsplash.com/photo-1621605815841-28d944683b83?w=400" class="gallery-thumb">
             </div>
         </div>
 
         <div class="sheet-content">
             <div class="sheet-grid">
                 <div class="sheet-main">
-                <div class="action-header" style="margin-bottom:30px; background:rgba(255,255,255,0.02); padding:20px; border-radius:20px; border:1px solid var(--border);">
-                    <div style="min-width:0">
-                        <h2 id="sheetShopName" class="shop-title font-outfit" style="font-size:2rem; margin-bottom:8px; line-height:1.2; color:var(--accent);">${sName}</h2>
-                        <div style="display:flex; flex-wrap:wrap; align-items:center; gap:15px; color:var(--text-dim); font-size:0.85rem;">
-                            <span style="display:flex; align-items:center; gap:5px;"><i data-lucide="map-pin" size="14"></i> ${sDir}</span>
-                            <span style="display:flex; align-items:center; gap:5px;"><i data-lucide="star" size="14" fill="var(--accent)" color="var(--accent)"></i> ${shop.rating ? shop.rating.toFixed(1) : '4.8'} (${shop.total_reseñas || 0} reseñas)</span>
+                    <div class="section-card">
+                        <span class="section-title">Sobre nosotros</span>
+                        <p style="color:var(--text-dim); line-height:1.6; font-size:1.05rem;">${sDesc}</p>
+                    </div>
+
+                    <div class="section-card">
+                        <span class="section-title">Servicios & Precios</span>
+                        <div class="services-list">
+                            ${(shop.servicios || []).map(s => `
+                                <div class="booking-service-item" style="cursor:default; background:transparent; border-color:rgba(255,255,255,0.05);">
+                                    <div style="display:flex; flex-direction:column;">
+                                        <span style="font-weight:700; color:#fff; font-size:1.1rem;">${esc(s.nombre)}</span>
+                                        <span style="font-size:0.8rem; opacity:0.5;">${s.duracion_min || 30} min</span>
+                                    </div>
+                                    <span style="font-weight:800; color:var(--accent); font-size:1.1rem;">RD$${Number(s.precio).toLocaleString()}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="section-card">
+                        <span class="section-title">Nuestro Equipo</span>
+                        <div class="staff-list">
+                            ${(shop.staff || shop.barberos || []).map(st => {
+                                const initials = st.nombre ? st.nombre.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2) : '??';
+                                return `
+                                    <div class="staff-item">
+                                        <div class="avatar">
+                                            ${st.foto_url ? `<img src="${st.foto_url}" alt="${esc(st.nombre)}">` : initials}
+                                        </div>
+                                        <span class="staff-name">${esc(st.nombre)}</span>
+                                    </div>
+                                `;
+                            }).join('')}
                         </div>
                     </div>
                 </div>
 
-                <div class="section-card" style="margin-bottom:35px;">
-                    <span class="sheet-label">Sobre nosotros</span>
-                    <p style="font-size:1rem; line-height:1.8; opacity:0.8;">${sDesc || 'Bienvenido a una experiencia de grooming de primer nivel donde la tradición se encuentra con la modernidad.'}</p>
-                </div>
-
-                <div class="section-card" style="margin-bottom:35px;">
-                    <span class="sheet-label">Servicios & Precios</span>
-                    <div class="services-list-full">
-                        ${(shop.servicios || []).map(sv => `
-                            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 0; border-bottom:1px solid var(--border);">
-                                <div>
-                                    <h5 style="margin:0; font-size:1rem;">${esc(sv.nombre)}</h5>
-                                    <p style="margin:4px 0 0; font-size:0.75rem; opacity:0.5;">${sv.duracion_min || 30} min</p>
-                                </div>
-                                <span style="font-weight:700; color:var(--accent);">RD$${Number(sv.precio).toLocaleString()}</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-
-                <div class="section-card">
-                    <span class="sheet-label">Nuestro equipo</span>
-                    <div class="staff-list" style="margin-top:20px;">
-                        ${(shop.staff || []).map(st => {
-                            const stInitials = st.nombre ? st.nombre.slice(0,2).toUpperCase() : '??';
-                            return `
-                                <div class="staff-item">
-                                    <div class="avatar">${esc(stInitials)}</div>
-                                    <span class="staff-name">${esc(st.nombre || 'Barbero')}</span>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                </div>
-            </div>
-
-            <div class="sheet-sidebar">
-                <div class="section-card" style="padding:0; overflow:hidden;">
-                    <div class="mini-map-wrap">
-                        <img src="https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/pin-s+D4AF37(${shop.lng},${shop.lat})/${shop.lng},${shop.lat},15/400x180@2x?access_token=pk.eyJ1IjoiYXVyYW9zIiwiYSI6ImNsZzR4YnhsczBia2wzcHBicnBicnBicnBicnBicnBicnBicnBicnBicnBicnBicnBicnBicnBicnBifQ" style="width:100%; height:100%; object-fit:cover;">
-                    </div>
-                    <div style="padding:20px;">
-                        <button class="btn btn-primary cta-main" style="width:100%; height:60px; border-radius:18px;" onclick="openBookingModal('${shop.id}')">
+                <div class="sheet-sidebar">
+                    <div class="section-card" style="padding:10px;">
+                        <button class="btn btn-primary" onclick="openBookingModal('${shop.id}')" style="width:100%; height:70px; border-radius:20px; font-size:1.2rem; font-weight:900; box-shadow:0 15px 40px rgba(212,175,55,0.25);">
                             Reservar Ahora
                         </button>
                     </div>
-                </div>
-                <div class="section-card">
-                    <span class="sheet-label" style="margin-top:0">Horario Semanal</span>
-                    ${(shop.horario || []).map(h => `
-                        <div class="hour-row ${h.dia === todayName ? 'today' : ''}">
-                            <span class="day-label">${h.dia}</span>
-                            <span>${h.cerrado ? '<span style="color:var(--red)">Cerrado</span>' : `${h.apertura} - ${h.cierre}`}</span>
+
+                    <div class="section-card">
+                        <span class="section-title">Horario Semanal</span>
+                        ${(shop.horario || []).map(h => `
+                            <div class="hour-row ${h.dia === todayName ? 'today' : ''}" style="padding:12px 0;">
+                                <span class="day-label">${h.dia}</span>
+                                <span style="font-weight:600;">${h.cerrado ? '<span style="color:var(--red)">Cerrado</span>' : `${h.apertura} - ${h.cierre}`}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="section-card" style="padding:0; overflow:hidden;">
+                        <div class="mini-map-wrap" style="height:200px;">
+                            <img src="https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/pin-s+D4AF37(${shop.lng},${shop.lat})/${shop.lng},${shop.lat},15/400x200@2x?access_token=pk.eyJ1IjoiYXVyYW9zIiwiYSI6ImNsZzR4YnhsczBia2wzcHBicnBicnBicnBicnBicnBicnBicnBicnBicnBicnBicnBicnBicnBicnBicnBifQ" style="width:100%; height:100%; object-fit:cover;">
                         </div>
-                    `).join('')}
+                    </div>
                 </div>
             </div>
         </div>
@@ -1409,13 +1500,16 @@ function openShopDetail(id) {
     document.getElementById('detailSheet').classList.add('active');
     document.getElementById('overlay').classList.add('active');
     document.querySelector('.sheet-close').focus();
-    lucide.createIcons();
+    if (window.lucide) lucide.createIcons();
 }
 
-
-
-function closeSheet() {
+function closeShopDetail() {
     document.getElementById('detailSheet').classList.remove('active');
+    document.getElementById('overlay').classList.remove('active');
+}
+
+function closeBookingModal() {
+    document.getElementById('bookingModal').classList.remove('active');
     document.getElementById('overlay').classList.remove('active');
 }
 
@@ -1451,7 +1545,8 @@ document.addEventListener('DOMContentLoaded', updateProfileUI);
 
 function handleOverlayClick() {
     if (document.getElementById('filterPanel').classList.contains('open')) closeFilterPanel();
-    else closeSheet();
+    else if (document.getElementById('bookingModal').classList.contains('active')) closeBookingModal();
+    else closeShopDetail();
 }
 
 function selectSlot(el, time) {
@@ -1479,7 +1574,8 @@ async function shareShop(id) {
 document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
         if (document.getElementById('filterPanel').classList.contains('open')) closeFilterPanel();
-        else closeSheet();
+        else if (document.getElementById('bookingModal').classList.contains('active')) closeBookingModal();
+        else closeShopDetail();
     }
 });
 
