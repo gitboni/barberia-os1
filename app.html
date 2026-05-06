@@ -703,9 +703,12 @@
         function telToEmail(input) {
             // Si ya es un email, dejarlo igual
             if (input.includes('@')) return input.trim();
-            // Si es un teléfono, normalizar y añadir dominio
-            const clean = input.replace(/\D/g, '');
-            return `${clean}@barberos.app`;
+            // Normalizar igual que la App Móvil
+            let tel = input.replace(/\D/g, '');
+            if (tel.length === 10 && (tel.startsWith('8') || tel.startsWith('9'))) {
+                tel = '1' + tel;
+            }
+            return `${tel}@barberos.app`;
         }
 
         async function handleSignIn() {
