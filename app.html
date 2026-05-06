@@ -1123,8 +1123,46 @@
             goToStep('time');
         }
 
+        // ── Helpers de horario (paridad con edge function) ──────────────────
+        function resolverHorarioDia(shop, fecha) {
+            const dow = new Date(fecha + 'T12:00:00').getDay();
+            const hpd = shop.horarios_por_dia;
+            const ov  = hpd && (hpd[dow] ?? hpd[String(dow)]);
+            const parseMins = (v, fallback) => {
+                if (typeof v === 'number') return v * 60;
+                if (typeof v === 'string' && v.includes(':')) {
+                    const [h, m] = v.split(':').map(Number);
+                    return h * 60 + (m || 0);
+                }
+                return fallback;
+            };
+            const globalIni = (shop.hora_inicio || 9) * 60;
+            const globalFin = (shop.hora_fin    || 21) * 60;
+            return {
+                ini: ov ? parseMins(ov.ini ?? ov.inicio, globalIni) : globalIni,
+                fin: ov ? parseMins(ov.fin,               globalFin) : globalFin
+            };
+        }
+
         async function loadSlots() {
-            const hoy = new Date().toISOString().split('T')[0];
+            const hoy = new Date().toLocaleDateString('en-CA', {
+                timeZone: selectedShop.timezone || 'America/Santo_Domingo'
+            });
+
+            // Fix 1: horario real del día (horarios_por_dia)
+            const { ini: inicio, fin } = resolverHorarioDia(selectedShop, hoy);
+
+            // Fix 2: duración real de cada servicio existente
+            const durNuevo  = selectedService?.duracion_min || selectedShop?.duracion_turno || 30;
+            const durDefault = selectedShop?.duracion_turno || 30;
+
+            // Cargar servicios para mapear duraciones reales
+            const { data: svcs } = await sb.from('servicios')
+                .select('nombre, duracion_min').eq('shop_id', selectedShop.id).eq('activo', true);
+            const durMap = {};
+            (svcs || []).forEach(s => { durMap[s.nombre.toLowerCase().trim()] = s.duracion_min; });
+
+            // Citas confirmadas del día
             const { data: citas } = await sb.from('citas')
                 .select('hora, servicio')
                 .eq('shop_id', selectedShop.id)
@@ -1132,30 +1170,48 @@
                 .eq('fecha', hoy)
                 .eq('estado', 'Confirmada');
 
-            const durMin = selectedService?.duracion_min || selectedShop?.duracion_turno || 30;
-            const inicio = (selectedShop?.hora_inicio || 9) * 60;
-            const fin    = (selectedShop?.hora_fin    || 21) * 60;
+            // Fix 3: horarios bloqueados del barbero
+            const { data: bloqueos } = await sb.from('horarios_bloqueados')
+                .select('hora_inicio, hora_fin')
+                .eq('barbero_id', selectedBarber.id)
+                .eq('fecha', hoy);
 
-            // Calcular bloques ocupados
-            const bloques = (citas || []).map(c => {
+            // Construir bloques ocupados con duración real (Fix 2)
+            const bloques = [];
+
+            (citas || []).forEach(c => {
                 const [h, m] = c.hora.split(':').map(Number);
-                return { ini: h * 60 + m, dur: durMin };
+                const durReal = durMap[c.servicio?.toLowerCase().trim()] ?? durDefault;
+                bloques.push({ ini: h * 60 + m, fin: h * 60 + m + durReal });
             });
 
-            // Generar slots libres
+            // Añadir bloqueos manuales (Fix 3)
+            (bloqueos || []).forEach(b => {
+                const [bh, bm] = b.hora_inicio.split(':').map(Number);
+                const [fh, fm] = b.hora_fin.split(':').map(Number);
+                bloques.push({ ini: bh * 60 + bm, fin: fh * 60 + fm });
+            });
+
+            bloques.sort((a, b) => a.ini - b.ini);
+
+            // Generar slots libres — mismo algoritmo que calcularTodosLosSlots
             const slots = [];
-            for (let t = inicio; t + durMin <= fin; t += durMin) {
-                const choca = bloques.some(b => t < b.ini + b.dur && t + durMin > b.ini);
+            let t = inicio;
+            while (t + durNuevo <= fin) {
+                const choca = bloques.find(b => t < b.fin - 0.5 && t + durNuevo > b.ini + 0.5);
                 if (!choca) {
                     const hh = String(Math.floor(t / 60)).padStart(2, '0');
                     const mm = String(t % 60).padStart(2, '0');
                     slots.push(`${hh}:${mm}`);
+                    t += durNuevo;
+                } else {
+                    t = Math.ceil(choca.fin / 5) * 5; // salto al final del bloque, redondeo 5 min
                 }
             }
 
             const container = document.getElementById('timeSlots');
             if (!slots.length) {
-                container.innerHTML = '<p style="text-align:center; padding:20px; color:var(--text-dim);">No hay horarios disponibles hoy.</p>';
+                container.innerHTML = '<p style="text-align:center; padding:20px; color:var(--text-dim);">No hay horarios disponibles.</p>';
                 return;
             }
             container.innerHTML = slots.map(s => `
@@ -1293,17 +1349,15 @@
         }
 
         function isOpenNow(shop) {
-            const tz = shop.timezone || 'America/Santo_Domingo';
+            const tz  = shop.timezone || 'America/Santo_Domingo';
             const now = new Date(new Date().toLocaleString('en-US', { timeZone: tz }));
-            const h = now.getHours();
-            const m = now.getMinutes();
-            const totalMins = h * 60 + m;
+            const hoy = now.toLocaleDateString('en-CA');
             const dow = now.getDay();
             const dias = shop.dias_atencion;
             if (dias && dias.length > 0 && !dias.includes(dow)) return false;
-            const abre = (shop.hora_inicio || 9) * 60;
-            const cierra = (shop.hora_fin || 21) * 60;
-            return totalMins >= abre && totalMins < cierra;
+            const totalMins = now.getHours() * 60 + now.getMinutes();
+            const { ini, fin } = resolverHorarioDia(shop, hoy);
+            return totalMins >= ini && totalMins < fin;
         }
 
         function subscribeRealtime() {
