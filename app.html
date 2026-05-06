@@ -465,7 +465,31 @@
         .slots-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .slots-label { font-size: 0.75rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: .5px; }
 
-        /* ── Animations ── */
+        /* ── Repeat last service card ── */
+        .repeat-card { background: linear-gradient(135deg, #1a150a 0%, #111 100%); border: 1px solid rgba(212,175,55,0.35); border-radius: 20px; padding: 16px; margin-bottom: 6px; }
+        .repeat-label { font-size: 0.62rem; font-weight: 900; color: var(--accent); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+        .repeat-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+        .repeat-icon { width: 44px; height: 44px; border-radius: 12px; background: rgba(212,175,55,0.12); border: 1px solid rgba(212,175,55,0.25); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+        .repeat-svc { font-size: 1.05rem; font-weight: 900; color: var(--text); }
+        .repeat-meta { font-size: 0.75rem; color: var(--text-dim); margin-top: 2px; }
+        .btn-agendar { width: 100%; padding: 14px; border-radius: 14px; background: var(--accent); color: var(--bg); font-size: 0.88rem; font-weight: 900; border: none; cursor: pointer; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-agendar:active { opacity: 0.85; transform: scale(0.98); }
+
+        /* ── Mi Turno countdown card ── */
+        .countdown-card { background: linear-gradient(135deg, #0d0d0d 0%, #1a150a 100%); border: 1px solid rgba(212,175,55,0.3); border-radius: 20px; padding: 28px 20px; text-align: center; margin-bottom: 16px; }
+        .countdown-clock { font-size: 2.2rem; margin-bottom: 8px; animation: tick 1s infinite; }
+        @keyframes tick { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+        .countdown-label { font-size: 0.65rem; font-weight: 900; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 4px; }
+        .countdown-mins { font-size: 3.8rem; font-weight: 900; color: var(--accent); line-height: 1; }
+        .countdown-unit { font-size: 1rem; font-weight: 500; color: var(--text-dim); margin-left: 4px; }
+        .countdown-detail { font-size: 0.85rem; color: var(--text-dim); margin-top: 10px; }
+        .countdown-price { font-size: 0.8rem; color: var(--text-dim); margin-top: 4px; }
+        .countdown-pos { width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--accent); display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 16px auto 0; background: rgba(212,175,55,0.08); }
+        .countdown-pos-num { font-size: 1.2rem; font-weight: 900; color: var(--accent); line-height: 1; }
+        .countdown-pos-lbl { font-size: 0.5rem; color: var(--text-dim); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        /* ── Shop card "Próximo" ── */
+        .shop-next { font-size: 0.72rem; color: var(--accent); font-weight: 700; margin-top: 3px; }
         .reveal {
             animation: reveal 0.4s ease forwards;
             opacity: 0;
@@ -563,6 +587,21 @@
                     <i data-lucide="list-ordered" size="16"></i> Ver cola en tiempo real
                 </button>
                 <button class="btn-cancel-sm" onclick="cancelNextAppt()">✕ Cancelar cita</button>
+            </div>
+        </div>
+
+        <!-- Repeat Last Service Card -->
+        <div id="repeatServiceContainer" class="hidden">
+            <div class="repeat-card">
+                <div class="repeat-label">↻ Repetir último servicio</div>
+                <div class="repeat-row">
+                    <div class="repeat-icon">✂️</div>
+                    <div>
+                        <div class="repeat-svc" id="repeatSvcName">Corte + Barba</div>
+                        <div class="repeat-meta" id="repeatSvcMeta">con Lucas · Elite Cuts</div>
+                    </div>
+                </div>
+                <button class="btn-agendar" onclick="agendarRepetir()">AGENDAR AHORA →</button>
             </div>
         </div>
 
@@ -1017,7 +1056,7 @@
                 }
                 
                 console.log("Shops cargadas:", shops.length);
-                renderShops();
+                renderShops(); // async — no necesita await, carga en background
 
                 // 2. Cargar Próxima Cita
                 if (user) {
@@ -1039,12 +1078,13 @@
                     }
                 }
                 renderHomeQueue(); // cola en tiempo real en home
+                renderRepeatService(); // tarjeta repetir último servicio
             } catch (e) {
                 console.error("Error loading data:", e);
             }
         }
 
-        function renderShops() {
+        async function renderShops() {
             const container = document.getElementById('shopsList');
             if (!shops.length) {
                 if (!user) {
@@ -1055,18 +1095,62 @@
                 return;
             }
 
-            container.innerHTML = shops.map(s => `
+            // Calcular próximo slot para cada shop
+            const tz = 'America/Santo_Domingo';
+            const ahoraLocal = new Date(new Date().toLocaleString('en-US', { timeZone: tz }));
+            const hoy = ahoraLocal.toLocaleDateString('en-CA');
+            const nowMins = ahoraLocal.getHours() * 60 + ahoraLocal.getMinutes();
+
+            const shopItems = await Promise.all(shops.map(async s => {
+                const abierto = isOpenNow(s);
+                // Horario de cierre hoy
+                const { fin } = resolverHorarioDia(s, hoy);
+                const finH = String(Math.floor(fin/60)).padStart(2,'0');
+                const finM = String(fin%60).padStart(2,'0');
+                const cierraFmt = fmt12(`${finH}:${finM}`);
+
+                // Próximo slot disponible
+                let proximoFmt = '';
+                try {
+                    const durDef = s.duracion_turno || 30;
+                    const { data: barbs } = await sb.from('barberos').select('id,nombre').eq('shop_id', s.id).eq('activo', true).limit(1);
+                    if (barbs && barbs.length) {
+                        const b = barbs[0];
+                        const { ini } = resolverHorarioDia(s, hoy);
+                        const desde = abierto ? nowMins : ini;
+                        const { data: citas } = await sb.from('citas').select('hora,servicio').eq('shop_id', s.id).eq('barbero_id', b.id).eq('fecha', hoy).eq('estado','Confirmada');
+                        const { data: svcs } = await sb.from('servicios').select('nombre,duracion_min').eq('shop_id', s.id).eq('activo', true);
+                        const dm = {};
+                        (svcs||[]).forEach(sv => dm[sv.nombre.toLowerCase()] = sv.duracion_min);
+                        const bloques = (citas||[]).map(c => {
+                            const [h,m] = c.hora.split(':').map(Number);
+                            const d = dm[c.servicio?.toLowerCase()] ?? durDef;
+                            return { ini: h*60+m, fin: h*60+m+d };
+                        }).sort((a,b)=>a.ini-b.ini);
+                        let t = Math.max(ini, desde+3);
+                        while (t + durDef <= fin) {
+                            const choca = bloques.find(bl => t < bl.fin-0.5 && t+durDef > bl.ini+0.5);
+                            if (!choca) { proximoFmt = fmt12(`${String(Math.floor(t/60)).padStart(2,'0')}:${String(t%60).padStart(2,'0')}`); break; }
+                            t = Math.ceil(choca.fin/5)*5;
+                        }
+                    }
+                } catch(_) {}
+
+                return { s, abierto, cierraFmt, proximoFmt };
+            }));
+
+            container.innerHTML = shopItems.map(({ s, abierto, cierraFmt, proximoFmt }) => `
                 <div class="shop-item" onclick="startBooking('${s.id}')">
                     <img src="${s.mkt_photo || s.foto_url || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=200'}" class="shop-img">
                     <div class="shop-info">
                         <h4>${DOMPurify.sanitize(s.mkt_name || s.nombre)}</h4>
                         <div class="shop-status">
-                            <div class="status-dot ${isOpenNow(s) ? 'status-open' : 'status-closed'}"></div>
-                            <span class="${isOpenNow(s) ? 'status-open' : 'status-closed'}">${isOpenNow(s) ? 'Abierto' : 'Cerrado'}</span>
-                            <span style="color:var(--text-dim); margin-left:5px;">· ${s.mkt_city || 'Distrito Nacional'}</span>
+                            <div class="status-dot ${abierto ? 'status-open' : 'status-closed'}"></div>
+                            <span class="${abierto ? 'status-open' : 'status-closed'}">${abierto ? `Abierta · hasta ${cierraFmt}` : 'Cerrada'}</span>
                         </div>
+                        ${proximoFmt ? `<div class="shop-next">Próximo: ${proximoFmt}</div>` : ''}
                     </div>
-                    <button class="btn-reserve-sm">RESERVAR</button>
+                    <button class="btn-reserve-sm">Reservar</button>
                 </div>
             `).join('');
         }
@@ -1081,6 +1165,39 @@
             const badge = document.getElementById('nextApptBadge');
             if (badge) badge.textContent = cita.fecha === hoy ? 'HOY' : new Date(cita.fecha + 'T12:00:00').toLocaleDateString('es-DO', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase();
             lucide.createIcons();
+        }
+
+        // ── Repetir último servicio ──────────────────────────────────────
+        let _lastCita = null; // guardamos la última cita para agendarRepetir
+
+        async function renderRepeatService() {
+            if (!user) return;
+            try {
+                // Buscar la última cita completada o confirmada del usuario
+                const { data } = await sb.from('citas')
+                    .select('servicio, barbero, shop_id, shops(nombre, horarios_por_dia, hora_inicio, hora_fin, duracion_turno, timezone)')
+                    .or(`usuario_id.eq.${user.id},telefono.eq.${user.telefono||'__'}`)
+                    .in('estado', ['Completada', 'Confirmada'])
+                    .order('fecha', { ascending: false })
+                    .order('hora', { ascending: false })
+                    .limit(1);
+
+                if (!data || !data.length) return;
+                _lastCita = data[0];
+                const shop = _lastCita.shops || {};
+
+                document.getElementById('repeatSvcName').textContent = _lastCita.servicio || '';
+                document.getElementById('repeatSvcMeta').textContent =
+                    `con ${_lastCita.barbero}${shop.nombre ? ' · ' + shop.nombre : ''}`;
+                document.getElementById('repeatServiceContainer').classList.remove('hidden');
+            } catch(_) {}
+        }
+
+        async function agendarRepetir() {
+            if (!_lastCita) return;
+            await startBooking(_lastCita.shop_id);
+            // Pre-seleccionar servicio y barbero si los encuentra
+            // startBooking se encarga del resto del flujo
         }
 
         // ── Booking Flow ──
@@ -1679,6 +1796,12 @@
             const notifyActive = _notifyAt !== null;
             const updatedAgo = `actualizado hace 0s`;
 
+            // Countdown: minutos hasta la cita
+            const tz2 = 'America/Santo_Domingo';
+            const ahoraRT = new Date(new Date().toLocaleString('en-US', { timeZone: tz2 }));
+            const nowMinsRT = ahoraRT.getHours() * 60 + ahoraRT.getMinutes();
+            const minsHastaCita = Math.max(0, startMins - nowMinsRT);
+
             content.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:16px;">
                 <div>
@@ -1688,23 +1811,24 @@
                 <span class="live-badge"><span class="live-dot"></span> LIVE</span>
             </div>
 
-            <div class="position-card">
-                <div style="display:flex;gap:16px;align-items:center;">
-                    <div class="position-num">${userIdx+1}</div>
-                    <div style="flex:1">
-                        <div style="font-size:1rem;font-weight:900;margin-bottom:4px;">${c.servicio}</div>
-                        <div style="font-size:0.8rem;color:var(--text-dim);">${fmt12q(c.hora)} → ${fmt12q(endH+':'+endM)} · ${durSvc} min</div>
-                    </div>
-                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
-                        ${aheadCount > 0 ? `<span class="pos-antes">${aheadCount} ANTES</span>` : ''}
-                        <span class="pos-listo">${readyIn}</span>
-                    </div>
+            <div class="countdown-card">
+                <div class="countdown-clock">⏰</div>
+                <div class="countdown-label">Tu cita en</div>
+                <div style="display:flex;align-items:baseline;justify-content:center;">
+                    <span class="countdown-mins">${minsHastaCita}</span>
+                    <span class="countdown-unit"> min</span>
                 </div>
-                <div class="progress-bar-wrap">
-                    <div class="progress-bar-fill" style="width:${pct}%"></div>
+                <div class="countdown-detail">${fmt12q(c.hora.substring(0,5))} · ${c.servicio}</div>
+                <div class="countdown-pos">
+                    <div class="countdown-pos-num">${userIdx + 1}</div>
+                    <div class="countdown-pos-lbl">Posición</div>
                 </div>
-                <div style="font-size:0.7rem;color:var(--text-dim);text-align:right;">${pct}% del día completado</div>
             </div>
+
+            <div class="progress-bar-wrap">
+                <div class="progress-bar-fill" style="width:${pct}%"></div>
+            </div>
+            <div style="font-size:0.7rem;color:var(--text-dim);text-align:right;margin-bottom:14px;">${pct}% del día completado</div>
 
             <div class="stats-row">
                 <div class="stat-box"><div class="stat-val">${items.length}</div><div class="stat-lbl">En cola</div></div>
