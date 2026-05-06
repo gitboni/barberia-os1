@@ -9,7 +9,12 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="AuraOS">
-    <link rel="apple-touch-icon" href="https://aura-os.com/icon-192.png">
+    <link rel="apple-touch-icon" href="/icon.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png">
+    <link rel="icon" type="image/png" href="/icon.png">
+    <meta name="theme-color" content="#0a0a0a">
+    <link rel="manifest" href="/manifest.webmanifest">
     
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
@@ -232,7 +237,15 @@
             object-fit: cover;
         }
 
-        .shop-info {
+        .shop-icon-fallback {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, #1a150a, #111);
+            border: 1px solid rgba(212,175,55,0.2);
+            flex-shrink: 0;
+        }
             flex: 1;
         }
 
@@ -1062,8 +1075,7 @@
                         console.log("IDs de mis shops:", myIds);
                         
                         if (myIds.length > 0) {
-                            const { data: myShops } = await sb.from('shops').select('*').in('id', myIds).order('nombre');
-                            shops = myShops || [];
+                            const { data: myShops } = await sb.from('shops').select('*').in('id', myIds).order('nombre');                            shops = myShops || [];
                         } else {
                             shops = [];
                         }
@@ -1156,9 +1168,17 @@
                 return { s, abierto, cierraFmt, proximoFmt };
             }));
 
-            container.innerHTML = shopItems.map(({ s, abierto, cierraFmt, proximoFmt }) => `
+            container.innerHTML = shopItems.map(({ s, abierto, cierraFmt, proximoFmt }) => {
+                // Mostrar foto real si existe, si no mostrar el icono del tipo de negocio
+                const tieneImagen = s.foto_url && s.foto_url.startsWith('http');
+                const imgOrIcon = tieneImagen
+                    ? `<img src="${s.foto_url}" class="shop-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                       <div class="shop-img shop-icon-fallback" style="display:none;">${s.icono || '✂️'}</div>`
+                    : `<div class="shop-img shop-icon-fallback">${s.icono || '✂️'}</div>`;
+
+                return `
                 <div class="shop-item" onclick="startBooking('${s.id}')">
-                    <img src="${s.mkt_photo || s.foto_url || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=200'}" class="shop-img">
+                    ${imgOrIcon}
                     <div class="shop-info">
                         <h4>${DOMPurify.sanitize(s.mkt_name || s.nombre)}</h4>
                         <div class="shop-status">
@@ -1168,8 +1188,8 @@
                         ${proximoFmt ? `<div class="shop-next">Próximo: ${proximoFmt}</div>` : ''}
                     </div>
                     <button class="btn-reserve-sm">Reservar</button>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
         }
 
         function renderNextAppt(cita) {
@@ -2027,14 +2047,26 @@
         async function handleQRFile(input) {
             const file = input.files?.[0];
             if (!file) return;
+
+            // Usamos un div temporal invisible para no interferir con el #reader del live scanner
+            let tempDiv = document.getElementById('qrTempReader');
+            if (!tempDiv) {
+                tempDiv = document.createElement('div');
+                tempDiv.id = 'qrTempReader';
+                tempDiv.style.display = 'none';
+                document.body.appendChild(tempDiv);
+            }
+
             try {
-                const scanner = new Html5Qrcode('reader');
+                const scanner = new Html5Qrcode('qrTempReader');
                 const result = await scanner.scanFile(file, false);
+                await scanner.clear().catch(() => {});
                 onQRDecoded(result);
             } catch(e) {
-                toast('No se encontró un código QR válido en la imagen. Intenta de nuevo.', 'error', 4000);
+                console.error('QR decode error:', e);
+                toast('No se encontró un QR válido. Intenta con otra foto más clara y cercana.', 'error', 5000);
             }
-            input.value = ''; // reset para poder volver a elegir
+            input.value = '';
         }
 
         function openScanner() {
