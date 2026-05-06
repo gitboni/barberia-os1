@@ -6,17 +6,8 @@
     <title>AuraOS — Marketplace Pro</title>
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
-    
-    <!-- SEO & Social Media Meta Tags -->
-    <meta name="description" content="Encuentra las mejores barberías y salones de belleza en AuraOS. Reserva en segundos y vive una experiencia premium.">
-    <meta property="og:title" content="AuraOS — Marketplace Pro">
-    <meta property="og:description" content="Las mejores experiencias de grooming y estética a un clic de distancia.">
-    <meta property="og:image" content="https://auraos.app/app-showcase.png">
-    <meta property="og:url" content="https://auraos.app/marketplace">
-    <meta name="twitter:card" content="summary_large_image">
     <meta name="theme-color" content="#050505" media="(prefers-color-scheme: dark)">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
@@ -98,20 +89,13 @@
         .card {
             background:var(--surface); border:1px solid var(--border); border-radius:24px;
             padding:20px; margin-bottom:16px; display:flex; gap:16px;
-            transition:0.4s cubic-bezier(0.165, 0.84, 0.44, 1); cursor:pointer; position:relative;
-            animation: cardEntrance 0.6s ease-out backwards;
-            will-change: transform, opacity;
-        }
-        @keyframes cardEntrance {
-            from { opacity: 0; transform: translateY(24px); }
-            to { opacity: 1; transform: translateY(0); }
+            transition:0.4s cubic-bezier(0.16,1,0.3,1); cursor:pointer; position:relative;
         }
         .card.elite { border-color:rgba(245,224,80,0.3); box-shadow:0 10px 40px rgba(245,224,80,0.05); }
-        .card.elite::before { content:'PREMIUM'; position:absolute; top:-10px; right:20px; background:var(--elite); color:#000; font-size:0.55rem; font-weight:900; padding:4px 12px; border-radius:50px; letter-spacing:0.1em; z-index:5; box-shadow: 0 4px 12px rgba(245,224,80,0.3); }
-        .card:hover { border-color:rgba(212,175,55,0.3); transform:translateY(-6px); background:#121212; box-shadow:0 20px 50px rgba(0,0,0,0.5); }
-        .card:hover .card-img { transform:scale(1.04); }
+        .card.elite::before { content:'PREMIUM'; position:absolute; top:-10px; right:20px; background:var(--elite); color:#000; font-size:0.55rem; font-weight:900; padding:4px 12px; border-radius:50px; letter-spacing:0.1em; }
+        .card:hover { border-color:var(--accent); transform:translateY(-3px); background:#121212; }
 
-        .card-img { width:110px; height:110px; border-radius:16px; object-fit:cover; background:#222; flex-shrink:0; transition:transform 0.4s ease; }
+        .card-img { width:110px; height:110px; border-radius:16px; object-fit:cover; background:#222; flex-shrink:0; }
         .card-body { flex:1; display:flex; flex-direction:column; justify-content:space-between; min-width:0; }
         .card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
         .card-title { font-size:1rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -120,27 +104,11 @@
         .fav-btn.active { color:#ff3232; }
 
         .badge-row { display:flex; gap:6px; margin:8px 0; flex-wrap:wrap; }
-        .badge { font-size:0.6rem; font-weight:800; padding:4px 12px; border-radius:50px; text-transform:uppercase; letter-spacing:0.5px; }
-        .badge-open { 
-            background:rgba(0,255,100,0.08); 
-            color:var(--green); 
-            border:1px solid rgba(0,255,100,0.15); 
-            position:relative; 
-            padding-left:20px; 
-        }
-        .badge-open::before { 
-            content:''; position:absolute; left:8px; top:50%; transform:translateY(-50%); 
-            width:6px; height:6px; background:var(--green); border-radius:50%; 
-            box-shadow: 0 0 8px var(--green);
-            animation:pulse-status 2s infinite; 
-        }
-        .badge-elite {
-            background: linear-gradient(135deg, #D4AF37, #F5E050);
-            color: #000;
-            border: none;
-            box-shadow: 0 4px 15px rgba(212,175,55,0.3);
-            font-weight: 900;
-        }
+        .badge { font-size:0.6rem; font-weight:800; padding:3px 10px; border-radius:50px; text-transform:uppercase; }
+        .badge-open { background:rgba(0,255,100,0.1); color:var(--green); border:1px solid rgba(0,255,100,0.2); }
+        .badge-closed { background:rgba(255,50,50,0.1); color:var(--red); border:1px solid rgba(255,50,50,0.2); }
+        .badge-promo { background:rgba(212,175,55,0.15); color:var(--accent); border:1px solid rgba(212,175,55,0.3); }
+        .badge-wait { background:rgba(255,255,255,0.06); color:#fff; border:1px solid var(--border); }
 
         .rating-row { display:flex; align-items:center; gap:6px; font-size:0.78rem; }
         .stars { color:var(--accent); letter-spacing:-1px; }
@@ -209,54 +177,7 @@
         .fp-reset { width:100%; padding:12px; background:transparent; color:var(--text-dim); border:1px solid var(--border); border-radius:15px; font-weight:600; font-size:0.9rem; cursor:pointer; margin-top:10px; transition:0.2s; }
         .fp-reset:hover { color:#fff; border-color:#fff; }
 
-        /* ─── Booking Modal (Ultra Compact & Elegant) ─── */
-        .booking-sheet {
-            position:fixed; bottom:-100%; left:50%; transform:translateX(-50%);
-            width:92%; max-width:550px; height:auto; max-height:85vh;
-            background:rgba(12,12,12,0.9); -webkit-backdrop-filter:blur(60px); backdrop-filter:blur(60px);
-            border:1px solid rgba(255,255,255,0.08); border-radius:32px 32px 20px 20px;
-            z-index:4000; transition:bottom 0.7s cubic-bezier(0.16,1,0.3,1);
-            overflow-y:auto; padding:30px 25px;
-            box-shadow: 0 25px 80px rgba(0,0,0,0.8);
-        }
-        .booking-sheet.active { bottom:20px; } /* Flota un poco desde el fondo */
-        .live-status { display:flex; align-items:center; gap:6px; margin-bottom:20px; opacity:0.8; }
-        .live-dot { width:6px; height:6px; background:var(--green); border-radius:50%; animation:pulse-status 2s infinite; }
-        .live-label { font-size:0.6rem; font-weight:800; color:var(--green); letter-spacing:0.12em; }
-        
-        .barber-selector { display:flex; gap:14px; overflow-x:auto; padding-bottom:5px; margin-bottom:25px; scrollbar-width:none; }
-        .barber-chip { flex-shrink:0; width:65px; text-align:center; cursor:pointer; opacity:0.4; transition:0.3s; }
-        .barber-chip.active { opacity:1; }
-        .barber-avt { width:52px; height:52px; border-radius:50%; background:var(--surface); margin:0 auto 6px; border:1px solid rgba(255,255,255,0.1); overflow:hidden; transition:0.3s; }
-        .barber-chip.active .barber-avt { border-color:var(--accent); transform:scale(1.1); box-shadow:0 0 15px rgba(212,175,55,0.2); }
-        .barber-name { font-size:0.65rem; font-weight:600; color:#fff; }
-
-        .service-mini {
-            display:flex; justify-content:space-between; align-items:center;
-            padding:12px 16px; border-radius:16px; background:rgba(255,255,255,0.03);
-            border:1px solid rgba(255,255,255,0.05); margin-bottom:8px; cursor:pointer; transition:0.2s;
-        }
-        .service-mini:hover { background:rgba(255,255,255,0.06); }
-        .service-mini.selected { background:rgba(212,175,55,0.1); border-color:var(--accent); }
-        .service-mini span { font-size:0.85rem; font-weight:500; }
-        .service-price-mini { color:var(--accent); font-weight:700; font-size:0.8rem; }
-
-        .slots-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; margin-bottom:25px; }
-        .slot-pill { 
-            background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); border-radius:12px; 
-            padding:10px 5px; text-align:center; font-size:0.75rem; font-weight:600; cursor:pointer; transition:0.2s;
-        }
-        .slot-pill.selected { background:var(--accent); color:#000; border-color:var(--accent); }
-        .slot-pill.disabled { opacity:0.15; cursor:not-allowed; }
-        
-        .booking-confirm { width:100%; padding-top:10px; }
-        .btn-confirm { 
-            height:54px; width:100%; border-radius:18px; background:var(--accent); color:#000; 
-            font-weight:800; font-size:0.95rem; border:none; cursor:pointer; transition:0.3s;
-            box-shadow: 0 10px 25px rgba(212,175,55,0.2);
-        }
-        .btn-confirm:disabled { opacity:0.3; cursor:not-allowed; box-shadow:none; }
-        .btn-confirm:not(:disabled):hover { transform:translateY(-2px); box-shadow: 0 12px 30px rgba(212,175,55,0.3); }
+        /* ─── Modal / Detail Sheet ─── */
         .detail-sheet {
             position:fixed; top:50%; left:50%;
             transform:translate(-50%,100%);
@@ -272,24 +193,10 @@
         .sheet-close { position:absolute; top:20px; right:20px; background:rgba(0,0,0,0.6); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1); color:#fff; width:42px; height:42px; border-radius:50%; cursor:pointer; z-index:10; display:flex; align-items:center; justify-content:center; transition:background 0.2s; }
         .sheet-close:hover { background:rgba(255,255,255,0.1); }
 
-        .gallery-container { position:relative; margin-bottom:30px; }
-        .gallery-main-wrap { width:100%; height:420px; border-radius:24px; overflow:hidden; position:relative; }
-        .gallery-main-img { width:100%; height:100%; object-fit:cover; }
-        .social-overlay { position:absolute; top:20px; left:20px; display:flex; flex-direction:column; gap:10px; z-index:5; }
-        .social-tag { background:rgba(0,0,0,0.6); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); padding:6px 12px; border-radius:10px; display:flex; align-items:center; gap:8px; font-size:0.75rem; font-weight:600; border:1px solid rgba(255,255,255,0.1); }
-        .gallery-thumbs { display:flex; gap:10px; margin-top:12px; overflow-x:auto; scrollbar-width:none; }
-        .gallery-thumb { width:120px; height:80px; border-radius:12px; object-fit:cover; cursor:pointer; opacity:0.6; transition:0.3s; border:2px solid transparent; flex-shrink:0; }
-        .gallery-thumb:hover, .gallery-thumb.active { opacity:1; border-color:var(--accent); }
-
-        .sheet-grid { display:grid; grid-template-columns: 1.8fr 1fr; gap:40px; margin-top:20px; }
-        .sheet-sidebar { position:sticky; top:20px; align-self:start; display:flex; flex-direction:column; gap:25px; }
-        .mini-map-wrap { height:180px; border-radius:20px; overflow:hidden; border:1px solid var(--border); position:relative; }
-        
-        .section-card { background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:24px; padding:24px; }
-        .service-row { display:flex; justify-content:space-between; align-items:center; padding:16px 0; border-bottom:1px solid var(--border); }
-        .service-row:last-child { border-bottom:none; }
-        .service-info h5 { font-size:0.95rem; font-weight:600; margin-bottom:4px; }
-        .service-info p { font-size:0.75rem; opacity:0.5; }
+        .gallery-grid { display:grid; grid-template-columns:2fr 1fr; gap:4px; height:380px; overflow:hidden; }
+        .gallery-main { width:100%; height:100%; object-fit:cover; }
+        .gallery-side { display:grid; grid-template-rows:1fr 1fr; gap:4px; }
+        .gallery-side img { width:100%; height:100%; object-fit:cover; }
 
         .sheet-content { padding:35px; }
         .sheet-label { font-size:0.65rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--accent); margin-bottom:14px; display:block; }
@@ -353,32 +260,9 @@
         .toast { background:rgba(20,20,20,0.95); border:1px solid var(--border); -webkit-backdrop-filter:blur(20px); backdrop-filter:blur(20px); color:#fff; padding:12px 24px; border-radius:50px; font-size:0.85rem; font-weight:500; white-space:nowrap; animation:toastIn 0.4s cubic-bezier(0.16,1,0.3,1); will-change:transform,opacity; }
         @keyframes toastIn { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
 
-        /* ─── Floating Map Toggle ─── */
-        .map-toggle-btn {
-            position:fixed; bottom:30px; left:50%; transform:translateX(-50%);
-            background:var(--accent); color:#000; padding:12px 24px; border-radius:50px;
-            font-weight:800; font-size:0.85rem; border:none; cursor:pointer;
-            display:flex; align-items:center; gap:10px; z-index:1000;
-            box-shadow:0 10px 30px rgba(212,175,55,0.4);
-            transition:all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .map-toggle-btn:hover { transform:translateX(-50%) scale(1.05); box-shadow:0 15px 40px rgba(212,175,55,0.5); }
-        .map-toggle-btn:active { transform:translateX(-50%) scale(0.95); }
-        .map-toggle-btn i { width:18px; height:18px; }
-
-        @media (max-width:900px) {
-            .map-toggle-btn { display:flex; }
-            main { position:relative; }
-            .feed { width:100%; }
-            #map { 
-                position:fixed; top:70px; left:0; width:100%; height:calc(100vh - 70px); 
-                z-index:900; transform:translateY(100%); transition:transform 0.5s cubic-bezier(0.16,1,0.3,1);
-            }
-            #map.view-active { transform:translateY(0); }
-        }
-        @media (min-width:901px) {
-            .map-toggle-btn { display:none; }
-        }
+        /* ─── Overlay ─── */
+        .overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); -webkit-backdrop-filter:blur(5px); backdrop-filter:blur(5px); z-index:1999; display:none; }
+        .overlay.active { display:block; }
 
         /* ─── History bar ─── */
         .history-bar { background:var(--surface2); border:1px solid var(--border); border-radius:16px; padding:14px 18px; margin-bottom:18px; display:none; }
@@ -428,11 +312,33 @@
             <i data-lucide="heart" size="16"></i> Guardados
         </button>
         <button class="nav-btn">Acceso Negocios</button>
-        <div class="avatar-btn" aria-label="Perfil">
+        <div class="avatar-btn" id="profileBtn" onclick="openProfileModal()" aria-label="Mi Perfil">
             <i data-lucide="user" size="18"></i>
         </div>
     </div>
 </nav>
+
+<!-- Profile Modal -->
+<div id="profileModal" class="filter-panel" style="left:auto; right:-380px;">
+    <div class="fp-header">
+        <span class="fp-title">Mi Perfil</span>
+        <button class="fp-close" onclick="closeProfileModal()"><i data-lucide="x" size="18"></i></button>
+    </div>
+    <div class="fp-section">
+        <p style="font-size:0.85rem; color:var(--text-dim); margin-bottom:20px;">Personaliza tus mensajes para que las barberías te reconozcan al instante.</p>
+        <div style="display:flex; flex-direction:column; gap:15px;">
+            <div>
+                <label style="display:block; font-size:0.7rem; color:var(--accent); margin-bottom:5px; text-transform:uppercase; font-weight:700;">Tu Nombre</label>
+                <input type="text" id="userName" placeholder="Ej: Juan Pérez" style="width:100%; background:var(--surface); border:1px solid var(--border); padding:12px; border-radius:12px; color:#fff; outline:none;">
+            </div>
+            <div>
+                <label style="display:block; font-size:0.7rem; color:var(--accent); margin-bottom:5px; text-transform:uppercase; font-weight:700;">Tu WhatsApp (Opcional)</label>
+                <input type="tel" id="userPhone" placeholder="Ej: 8091234567" style="width:100%; background:var(--surface); border:1px solid var(--border); padding:12px; border-radius:12px; color:#fff; outline:none;">
+            </div>
+            <button class="fp-apply" onclick="saveProfile()">Guardar Cambios</button>
+        </div>
+    </div>
+</div>
 
 <main>
     <section class="feed">
@@ -478,66 +384,10 @@
     </section>
 
     <section id="map" aria-label="Mapa de barberías"></section>
-    
-    <button class="map-toggle-btn" id="mapToggleBtn" onclick="toggleMapView()">
-        <i data-lucide="map"></i> <span id="mapToggleText">Ubicar Negocios</span>
-    </button>
 </main>
 
-<!-- Booking Modal -->
-    <div id="bookingModal" class="booking-sheet">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <div>
-                <h2 id="bookingShopName" class="font-outfit" style="font-size:1.8rem; margin-bottom:4px;">Reservar Turno</h2>
-                <div class="live-status">
-                    <div class="live-dot"></div>
-                    <span class="live-label">DISPONIBILIDAD EN TIEMPO REAL</span>
-                </div>
-            </div>
-            <button class="fp-close" onclick="closeBookingModal()">
-                <i data-lucide="x" size="20"></i>
-            </button>
-        </div>
-
-        <div class="fp-section">
-            <h4>1. Selecciona a tu profesional</h4>
-            <div id="barberSelector" class="barber-selector">
-                <!-- Se pobla dinámicamente -->
-            </div>
-        </div>
-
-        <div class="fp-section">
-            <h4>2. Servicios Disponibles</h4>
-            <div id="bookingServices" class="services-list" style="margin-bottom:30px;">
-                <!-- Se pobla dinámicamente -->
-            </div>
-        </div>
-
-        <div class="fp-section">
-            <h4>3. Tus Datos</h4>
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
-                <input type="text" id="bookingName" placeholder="Tu nombre" 
-                       style="background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:12px; padding:12px; color:#fff; font-size:0.85rem; outline:none;">
-                <input type="tel" id="bookingPhone" placeholder="WhatsApp" 
-                       style="background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:12px; padding:12px; color:#fff; font-size:0.85rem; outline:none;">
-            </div>
-        </div>
-
-        <div class="fp-section">
-            <h4 id="labelSlotTitle">4. Selecciona tu Horario para hoy</h4>
-            <div id="bookingSlots" class="slots-grid">
-                <!-- Se pobla dinámicamente -->
-            </div>
-        </div>
-
-        <div class="booking-confirm">
-            <button id="btnConfirmBooking" class="btn-confirm" disabled onclick="processBooking()">
-                Confirmar Reserva
-            </button>
-        </div>
-    </div>
-
-    <div id="overlay" class="overlay" onclick="handleOverlayClick()"></div>
+<!-- Overlay -->
+<div class="overlay" id="overlay" onclick="handleOverlayClick()"></div>
 
 <!-- Filter Panel -->
 <div class="filter-panel" id="filterPanel" role="dialog" aria-label="Filtros avanzados">
@@ -609,18 +459,6 @@
 // ─── Config ───────────────────────────────────────────────────────────────────
 // ADVERTENCIA: mover SB_KEY a un backend/proxy antes de producción
 const SB_URL = 'https://mmokunpuslcfphalrwot.supabase.co';
-function getSmartWhatsApp(shop, service, barber, time) {
-    const text = encodeURIComponent(`¡Hola! 👋 Acabo de agendar un *${service}* con *${barber}* para hoy a las *${fmt12(time)}* a través de *AuraOS*. ¿Me podrían confirmar el turno? ¡Gracias!`);
-    return `https://wa.me/${shop.whatsapp}?text=${text}`;
-}
-
-function getGoogleCalendarLink(shop, service, time) {
-    const today = getFechaHoySD().replace(/-/g, '');
-    const [h, m] = time.split(':');
-    const start = `${today}T${h}${m}00`;
-    const end = `${today}T${(parseInt(h)+1).toString().padStart(2,'0')}${m}00`;
-    return `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('Cita en ' + shop.nombre)}&details=${encodeURIComponent(service)}&location=${encodeURIComponent(shop.direccion)}&dates=${start}/${end}`;
-}
 // La clave ya no se usa directamente en el cliente para peticiones de datos sensibles.
 const PROXY_URL = '/api/marketplace';
 const PAGE_SIZE = 10;
@@ -634,50 +472,18 @@ let minRating = 0, maxWait = 999, filterOpen = false, filterPromo = false, filte
 
 // ─── Utils ────────────────────────────────────────────────────────────────────
 const esc = str => str == null ? '' : String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-const APP_TIMEZONE = 'America/Santo_Domingo';
 const DAYS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
-
-function getFechaHoySD() {
-    const d = new Date();
-    const formatter = new Intl.DateTimeFormat('en-CA', { timeZone: APP_TIMEZONE, year: 'numeric', month: '2-digit', day: '2-digit' });
-    return formatter.format(d);
-}
-
-function getAhoraSD() {
-    const parts = new Intl.DateTimeFormat('en-US', { timeZone: APP_TIMEZONE, hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(new Date());
-    const h = parseInt(parts.find(p => p.type === 'hour')?.value ?? '0');
-    const m = parseInt(parts.find(p => p.type === 'minute')?.value ?? '0');
-    return h * 60 + m;
-}
-
-function getDiaSemanaSD() {
-    const d = new Intl.DateTimeFormat('en-US', { timeZone: APP_TIMEZONE, weekday: 'long' }).format(new Date());
-    const map = { 'Monday':'Lunes', 'Tuesday':'Martes', 'Wednesday':'Miércoles', 'Thursday':'Jueves', 'Friday':'Viernes', 'Saturday':'Sábado', 'Sunday':'Domingo' };
-    return map[d] || d;
-}
-
-const todayName = getDiaSemanaSD();
+const getDayName = i => DAYS[i];
+const todayName = getDayName(new Date().getDay());
 
 function isOpenNow(horario) {
-    if (!horario) return null;
-    const nowMin = getAhoraSD();
-    const dia = getDiaSemanaSD();
-    const h = Array.isArray(horario) ? horario.find(x => x.dia === dia) : null;
-    if (!h || h.cerrado || !h.apertura || !h.cierre) return false;
-    const [ah, am] = h.apertura.split(':').map(Number);
-    const [ch, cm] = h.cierre.split(':').map(Number);
-    return nowMin >= (ah*60+am) && nowMin < (ch*60+cm);
-}
-
-function fmt12(h) {
-    if (!h || typeof h !== 'string' || !h.includes(':')) return h;
-    const [hhStr, mmStr] = h.split(':');
-    let hh = parseInt(hhStr);
-    const mm = mmStr?.substring(0, 2) || '00';
-    const ampm = hh >= 12 ? 'PM' : 'AM';
-    if (hh === 0) hh = 12;
-    else if (hh > 12) hh -= 12;
-    return `${hh}:${mm} ${ampm}`;
+    if (!Array.isArray(horario)) return null;
+    const h = horario.find(d => d.dia === todayName);
+    if (!h || h.cerrado) return false;
+    const now = new Date().getHours() * 60 + new Date().getMinutes();
+    const [oh,om] = (h.apertura||'').split(':').map(Number);
+    const [ch,cm] = (h.cierre||'').split(':').map(Number);
+    return now >= oh*60+om && now <= ch*60+cm;
 }
 
 function starsHtml(rating) {
@@ -696,56 +502,6 @@ function distanceTo(lat, lng) {
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-// ─── Variables de Estado Reserva ───
-let currentBookingShop = null;
-let currentBookingBarber = null;
-let currentBookingService = null;
-let currentBookingSlot = null;
-let shopBarberos = [];
-let shopCitasHoy = [];
-let sb = null; // Cliente Supabase
-
-// Inicializar Supabase Cliente Web
-function initSupabase() {
-    if (typeof supabase === 'undefined') return;
-    const SB_URL = 'https://mmokunpuslcfphalrwot.supabase.co';
-    const SB_KEY = 'sb_publishable_aETz_9ECH5RcBMjmRhUnfw_g71zRdwT'; // Clave pública
-    sb = supabase.createClient(SB_URL, SB_KEY);
-}
-initSupabase();
-
-function resolverHorarioSD(shop) {
-    // Método infalible para obtener el día de la semana en Santo Domingo (0-6)
-    const sdTime = new Date().toLocaleString("en-US", {timeZone: APP_TIMEZONE});
-    const diaNum = new Date(sdTime).getDay(); 
-    
-    // 1. Verificar si el día está habilitado
-    const diasAtencion = Array.isArray(shop.dias_atencion) ? shop.dias_atencion : [0,1,2,3,4,5,6];
-    if (!diasAtencion.includes(diaNum)) return [0, 0]; // Cerrado
-    if (!diasAtencion.includes(diaNum)) return [0, 0]; // Cerrado
-
-    let hInicio = (shop.hora_inicio || 9) * 60;
-    let hFin = (shop.hora_fin || 20) * 60;
-
-    // 2. Usar configuración detallada del Admin (horarios_por_dia)
-    const hpd = shop.horarios_por_dia;
-    if (hpd && typeof hpd === 'object') {
-        const configHoy = hpd[diaNum] || hpd[String(diaNum)];
-        if (configHoy) {
-            const iniStr = configHoy.ini || configHoy.inicio;
-            const finStr = configHoy.fin;
-            if (iniStr && finStr) {
-                const [ah, am] = String(iniStr).split(':').map(Number);
-                const [ch, cm] = String(finStr).split(':').map(Number);
-                hInicio = (ah || 0) * 60 + (am || 0);
-                hFin = (ch || 0) * 60 + (cm || 0);
-            }
-        }
-    }
-    
-    return [hInicio, hFin];
-}
-
 function showToast(msg, duration = 2500) {
     const t = document.createElement('div');
     t.className = 'toast';
@@ -755,7 +511,10 @@ function showToast(msg, duration = 2500) {
 }
 
 function getSmartWhatsApp(shop, serviceName = null) {
-    let msg = `¡Hola! 👋 Vi a *${shop.nombre}* en AuraOS.\n\n`;
+    const user = JSON.parse(localStorage.getItem('aura_user') || '{}');
+    const intro = user.name ? `¡Hola! 👋 Soy *${user.name}*. ` : '¡Hola! 👋 ';
+    let msg = `${intro}Vi a *${shop.nombre}* en AuraOS.\n\n`;
+    
     if (serviceName) {
         msg += `Me gustaría agendar un turno para el servicio: *${serviceName}*.\n\n`;
     } else {
@@ -765,11 +524,42 @@ function getSmartWhatsApp(shop, serviceName = null) {
     return `https://wa.me/${shop.whatsapp}?text=${encodeURIComponent(msg)}`;
 }
 
-function getSmartWhatsAppById(id, serviceName = null) {
-    const shop = allShops.find(s => String(s.id) === String(id));
-    if (!shop) return '#';
-    return getSmartWhatsApp(shop, serviceName);
+// ─── Profile Logic ────────────────────────────────────────────────────────────
+function openProfileModal() {
+    const user = JSON.parse(localStorage.getItem('aura_user') || '{}');
+    document.getElementById('userName').value = user.name || '';
+    document.getElementById('userPhone').value = user.phone || '';
+    document.getElementById('profileModal').style.right = '0';
+    document.getElementById('overlay').classList.add('active');
 }
+
+function closeProfileModal() {
+    document.getElementById('profileModal').style.right = '-380px';
+    document.getElementById('overlay').classList.remove('active');
+}
+
+function saveProfile() {
+    const name = document.getElementById('userName').value.trim();
+    const phone = document.getElementById('userPhone').value.trim();
+    localStorage.setItem('aura_user', JSON.stringify({ name, phone }));
+    showToast('Perfil actualizado ✨');
+    closeProfileModal();
+    updateProfileUI();
+}
+
+function updateProfileUI() {
+    const user = JSON.parse(localStorage.getItem('aura_user') || '{}');
+    const btn = document.getElementById('profileBtn');
+    if (user && user.name) {
+        btn.style.borderColor = 'var(--accent)';
+        btn.innerHTML = `<span style="font-size:0.75rem; font-weight:800; color:var(--accent);">${user.name.slice(0,2).toUpperCase()}</span>`;
+    } else if (btn) {
+        btn.style.borderColor = 'rgba(255,255,255,0.1)';
+        btn.innerHTML = `<i data-lucide="user" size="18"></i>`;
+        if (window.lucide) lucide.createIcons();
+    }
+}
+document.addEventListener('DOMContentLoaded', updateProfileUI);
 
 // ─── Favorites ────────────────────────────────────────────────────────────────
 function getFavorites() { return JSON.parse(localStorage.getItem('aura_favs') || '[]'); }
@@ -870,63 +660,82 @@ async function loadShops() {
     const container = document.getElementById('shopsContainer');
     container.innerHTML = renderSkeletons();
     
-    // Datos de prueba (Mock Data) para visualización inmediata si la API falla
-    const MOCK_SHOPS = [
-        {
-            id: '1', nombre: 'Elite Cuts & Spa', slug: 'elite-cuts', plan: 'elite', activo: true, categoria: 'barberia',
-            foto_url: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800',
-            direccion: 'Av. Winston Churchill 145', ciudad: 'Santo Domingo',
-            rating: 4.9, total_reseñas: 124, tiempo_espera: 15, whatsapp: '18091234567',
-            lat: 18.4735, lng: -69.9400,
-            descripcion: 'El estándar de oro en grooming masculino y cuidado personal.',
-            servicios: [{nombre: 'Corte Premium', precio: 800}, {nombre: 'Afeitado Imperial', precio: 500}]
-        },
-        {
-            id: '2', nombre: 'The Barber Post', slug: 'barber-post', plan: 'pro', activo: true, categoria: 'barberia',
-            foto_url: 'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=800',
-            direccion: 'Calle El Conde 256', ciudad: 'Santo Domingo',
-            rating: 4.7, total_reseñas: 89, tiempo_espera: 0, whatsapp: '18097654321',
-            lat: 18.4715, lng: -69.8850,
-            descripcion: 'Expertos en diseño capilar y tendencias modernas.',
-            servicios: [{nombre: 'Corte Ejecutivo', precio: 600}, {nombre: 'Perfilado de Barba', precio: 400}]
-        },
-        {
-            id: '3', nombre: 'Aura Studio Nails', slug: 'aura-studio', plan: 'elite', activo: true, categoria: 'nails',
-            foto_url: 'https://images.unsplash.com/photo-1604654894610-df490668f61e?w=800',
-            direccion: 'Blue Mall, Nivel 2', ciudad: 'Santo Domingo',
-            rating: 5.0, total_reseñas: 210, tiempo_espera: 5, whatsapp: '18299998877',
-            lat: 18.4740, lng: -69.9390,
-            descripcion: 'Salón boutique especializado en estética avanzada.',
-            servicios: [{nombre: 'Manicura Pro', precio: 1200}, {nombre: 'Pedicura Spa', precio: 1500}]
-        }
-    ];
-
-    let result = { success: true, shops: MOCK_SHOPS };
-
     try {
-        const response = await fetch(PROXY_URL);
-        if (response.ok) {
-            const data = await response.json();
-            if (data.shops && data.shops.length > 0) {
-                result = data;
+        // Datos de prueba (Mock Data) para visualización inmediata si la API falla
+        const MOCK_SHOPS = [
+            {
+                id: '1', nombre: 'King Cuts Elite', slug: 'king-cuts', plan: 'elite', activo: true, categoria: 'barberia',
+                foto_url: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800',
+                direccion: 'Av. Winston Churchill 145', ciudad: 'Santo Domingo',
+                rating: 4.9, total_reseñas: 124, tiempo_espera: 15, whatsapp: '18091234567',
+                lat: 18.4735, lng: -69.9400,
+                descripcion: 'La experiencia definitiva en barbería clásica con un toque moderno.',
+                servicios: [{nombre: 'Corte Premium', precio: 800}, {nombre: 'Barba Ritual', precio: 500}]
+            },
+            {
+                id: '2', nombre: 'The Barber Post', slug: 'barber-post', plan: 'pro', activo: true, categoria: 'barberia',
+                foto_url: 'https://images.unsplash.com/photo-1621605815841-28d944683b83?w=800',
+                direccion: 'Calle El Conde 256', ciudad: 'Santo Domingo',
+                rating: 4.7, total_reseñas: 89, tiempo_espera: 0, whatsapp: '18097654321',
+                lat: 18.4715, lng: -69.8850,
+                descripcion: 'Especialistas en degradados y cortes urbanos.',
+                servicios: [{nombre: 'Corte Caballero', precio: 600}, {nombre: 'Corte Niño', precio: 400}]
+            },
+            {
+                id: '3', nombre: 'Aura Studio Nails & Hair', slug: 'aura-studio', plan: 'elite', activo: true, categoria: 'nails',
+                foto_url: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800',
+                direccion: 'Blue Mall, Nivel 2', ciudad: 'Santo Domingo',
+                rating: 5.0, total_reseñas: 210, tiempo_espera: 5, whatsapp: '18299998877',
+                lat: 18.4740, lng: -69.9390,
+                descripcion: 'Salón de belleza integral con los más altos estándares de calidad.',
+                servicios: [{nombre: 'Manicura Pro', precio: 1200}, {nombre: 'Balayage', precio: 4500}]
+            }
+        ];
+
+        try {
+            const response = await fetch(PROXY_URL);
+            result = await response.json();
+            if (!result.shops || result.shops.length === 0) {
+                console.log('API retornó 0 shops, usando Mock Data.');
+                result = { success: true, shops: MOCK_SHOPS };
+            }
+        } catch(e) {
+            console.warn('Proxy no disponible (entorno local). Cargando Mock Data...');
+            result = { success: true, shops: MOCK_SHOPS };
+        }
+        
+        allShops = result.shops || [];
+
+        // Si hay configuración global del marketplace, se podría aplicar aquí
+        if (result.config) {
+            console.log('Marketplace Config:', result.config);
+            if (result.config.banner_url) {
+                // Ejemplo: actualizar banner si existe un elemento con ID banner
+                const banner = document.getElementById('mktBanner');
+                if (banner) banner.src = result.config.banner_url;
             }
         }
-    } catch(e) {
-        console.warn('API no disponible o error, usando Mock Data:', e);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const shopFilter = urlParams.get('shop');
+        if (shopFilter) allShops = allShops.filter(s => s.slug === shopFilter);
+
+        filteredShops = [...allShops];
+        currentPage = 0;
+        renderShops(true);
+        addMapMarkers(filteredShops);
+        renderHistory();
+
+        // Abrir modal si viene ?open=id en la URL
+        const openId = urlParams.get('open');
+        if (openId) openShopDetail(openId);
+
+    } catch (e) {
+        console.error('Error cargando shops:', e);
+        container.innerHTML =
+            `<p style="color:var(--text-dim);text-align:center;margin-top:40px;">Error al cargar: ${e.message}. Intenta de nuevo.</p>`;
     }
-    
-    allShops = result.shops || [];
-    filteredShops = [...allShops];
-    currentPage = 0;
-    renderShops(true);
-    addMapMarkers(filteredShops);
-    renderHistory();
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const openId = urlParams.get('open');
-    if (openId) openShopDetail(openId);
 }
-
 
 // ─── Rendering ────────────────────────────────────────────────────────────────
 function renderShops(reset = false) {
@@ -949,8 +758,8 @@ function renderShops(reset = false) {
     const start = currentPage * PAGE_SIZE;
     const slice = filteredShops.slice(start, start + PAGE_SIZE);
 
-    slice.forEach((s, idx) => {
-        const [isOpen] = resolverHorarioSD(s);
+    slice.forEach(s => {
+        const open = isOpenNow(s.horario);
         const fav = isFav(s.id);
         const dist = userCoords ? ` · ${distanceTo(s.lat, s.lng).toFixed(1)} km` : '';
         const promo = Array.isArray(s.promociones) && s.promociones.length;
@@ -958,7 +767,6 @@ function renderShops(reset = false) {
 
         const card = document.createElement('div');
         card.className = `card ${s.plan === 'elite' ? 'elite' : ''}`;
-        card.style.animationDelay = `${idx * 0.08}s`; // Efecto cascada
         card.setAttribute('role', 'article');
         card.setAttribute('tabindex', '0');
         card.onclick = () => openShopDetail(s.id);
@@ -969,16 +777,13 @@ function renderShops(reset = false) {
 
         card.innerHTML = `
             <img src="${esc(s.foto_url) || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400'}"
-                 class="card-img" alt="Foto de ${esc(sName)}" loading="lazy"
+                 class="card-img" alt="Foto de ${esc(sName)}"
                  onerror="this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400'">
             <div class="card-body">
                 <div class="card-top">
                     <div style="min-width:0">
                         <h3 class="card-title font-outfit">${sName}</h3>
-                        <p class="card-meta">
-                            <i data-lucide="map-pin" size="11"></i> ${sDir}
-                            ${dist ? `<span style="color:var(--accent); font-weight:600; margin-left:4px">${dist}</span>` : ''}
-                        </p>
+                        <p class="card-meta"><i data-lucide="map-pin" size="11"></i> ${sDir}${dist}</p>
                     </div>
                     <button class="fav-btn ${fav ? 'active' : ''}" data-id="${esc(s.id)}"
                             aria-label="${fav ? 'Quitar de favoritos' : 'Guardar en favoritos'}"
@@ -987,18 +792,18 @@ function renderShops(reset = false) {
                     </button>
                 </div>
                 <div class="badge-row">
-                    ${isOpen !== 0 ? '<span class="badge badge-open">Abierto</span>' : '<span class="badge badge-closed">Cerrado</span>'}
-                    ${s.plan === 'elite' ? '<span class="badge badge-elite">Elite</span>' : ''}
+                    ${open === true ? '<span class="badge badge-open">● Abierto</span>' : open === false ? '<span class="badge badge-closed">● Cerrado</span>' : ''}
                     ${promo ? '<span class="badge badge-promo">🏷 Oferta</span>' : ''}
                     ${wait ? `<span class="badge badge-wait">⏱ ${wait}</span>` : ''}
                 </div>
                 ${s.rating ? `<div class="rating-row"><span class="stars">${starsHtml(s.rating)}</span><span class="rating-count">${s.rating.toFixed(1)} (${s.total_reseñas || 0})</span></div>` : ''}
                 <div class="btn-row">
-                    <button class="btn btn-primary" onclick="event.stopPropagation(); openBookingModal('${esc(s.id)}')">Agendar</button>
+                    <button class="btn btn-primary" onclick="event.stopPropagation();window.open(getSmartWhatsApp(${JSON.stringify(s).replace(/"/g, '&quot;')}))">Agendar</button>
                     <button class="btn btn-ghost" title="Cómo llegar" aria-label="Cómo llegar"
-                            onclick="event.stopPropagation(); window.open('https://www.google.com/maps/dir/?api=1&destination=${esc(s.lat)},${esc(s.lng)}')">
+                            onclick="event.stopPropagation();window.open('https://www.google.com/maps/dir/?api=1&destination=${esc(s.lat)},${esc(s.lng)}')">
                         <i data-lucide="navigation" size="13"></i>
                     </button>
+                    <button class="btn btn-ghost" onclick="event.stopPropagation();window.open('/sala/${esc(s.slug)}')">Monitor</button>
                 </div>
             </div>
         `;
@@ -1027,7 +832,8 @@ function handleSearch() {
         allShops.filter(s => {
             const matchesQuery = !query || 
                 s.nombre?.toLowerCase().includes(query) ||
-                (Array.isArray(s.servicios) && s.servicios.some(sv => sv.nombre?.toLowerCase().includes(query)));
+                (Array.isArray(s.servicios) && s.servicios.some(sv => sv.nombre?.toLowerCase().includes(query))) ||
+                s.categoria?.toLowerCase().includes(query);
             
             const matchesLoc = !loc || 
                 s.direccion?.toLowerCase().includes(loc) ||
@@ -1161,180 +967,181 @@ function openShopDetail(id) {
     url.searchParams.set('open', shop.id);
     history.replaceState(null, '', url);
 
-    // Mostrar modal con skeletons mientras carga la data real
-    renderShopDetail(shop, true);
-
-    // Cargar data real de Supabase
-    const today = getFechaHoySD();
-    Promise.all([
-        sb.from('servicios').select('*').eq('shop_id', shop.id).eq('activo', true).order('orden'),
-        sb.from('barberos').select('*').eq('shop_id', shop.id).eq('activo', true).order('orden'),
-        sb.from('citas').select('hora, fecha').eq('shop_id', shop.id).eq('fecha', today).not('estado','eq','Cancelada')
-    ]).then(([{data: svcs, error: e1}, {data: barbs, error: e2}, {data: citas, error: e3}]) => {
-        if (e1 || e2 || e3) console.error('Supabase fetch error:', e1 || e2 || e3);
-        
-        shop.servicios = svcs || [];
-        shop.staff = barbs || [];
-        shop.slots_tomados = (citas || []).map(c => c.hora.substring(0,5));
-        
-        renderShopDetail(shop, false);
-    }).catch(err => {
-        console.error('Promise.all error:', err);
-        renderShopDetail(shop, false); // Quitar skeletons aunque haya error
-    });
-}
-
-function renderShopDetail(shop, isLoading) {
     const open = isOpenNow(shop.horario);
     const fav = isFav(shop.id);
     const dist = userCoords ? `${distanceTo(shop.lat, shop.lng).toFixed(1)} km` : null;
 
-    // Horario detallado (Sincronizado con Admin)
-    const diasAtencion = Array.isArray(shop.dias_atencion) ? shop.dias_atencion : [0,1,2,3,4,5,6];
-    const hpd = shop.horarios_por_dia || {};
-    
-    const horarioHtml = DAYS.map((dLabel, idx) => {
-        const estaAbierto = diasAtencion.includes(idx);
-        const config = hpd[idx] || hpd[String(idx)];
-        let horasTxt = '—';
-        
-        if (estaAbierto) {
-            const iniRaw = config?.ini || config?.inicio || shop.hora_inicio || 9;
-            const finRaw = config?.fin || shop.hora_fin || 21;
-            
-            const ini = String(iniRaw).includes(':') ? iniRaw : `${iniRaw}:00`;
-            const fin = String(finRaw).includes(':') ? finRaw : `${finRaw}:00`;
-            
-            horasTxt = `${fmt12(ini)} - ${fmt12(fin)}`;
-        } else {
-            horasTxt = '<span style="color:var(--red)">Cerrado</span>';
-        }
+    // Galería
+    const extraImgs = Array.isArray(shop.galeria) && shop.galeria.length >= 2 ? shop.galeria : [
+        'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=400',
+        'https://images.unsplash.com/photo-1621605815841-28d944683b83?w=400'
+    ];
 
-        return `
-            <div class="hour-row ${dLabel === todayName ? 'today' : ''}">
-                <span class="day-label">${dLabel}</span>
-                <span>${horasTxt}</span>
-            </div>`;
-    }).join('');
+    // Horario
+    const horarioHtml = Array.isArray(shop.horario) && shop.horario.length
+        ? shop.horario.map(h => `
+            <div class="hour-row ${h.dia === todayName ? 'today' : ''}">
+                <span class="day-label">${esc(h.dia)}</span>
+                <span>${h.cerrado ? '<span style="color:var(--red)">Cerrado</span>' : `${esc(h.apertura)} – ${esc(h.cierre)}`}</span>
+            </div>`).join('')
+        : DAYS.slice(1).map(d => `
+            <div class="hour-row ${d === todayName ? 'today' : ''}">
+                <span class="day-label">${d}</span><span style="color:var(--text-dim)">—</span>
+            </div>`).join('');
 
     // Staff
-    const staffHtml = isLoading ? '<div class="skeleton" style="height:60px; width:100%; border-radius:15px;"></div>' : (Array.isArray(shop.staff) && shop.staff.length
+    const staffHtml = Array.isArray(shop.staff) && shop.staff.length
         ? shop.staff.map(st => `
             <div class="staff-item">
-                <div class="avatar">${esc((st.nombre?.slice(0,2) || '??').toUpperCase())}</div>
+                <div class="avatar">${esc((st.iniciales || st.nombre?.slice(0,2) || '??').toUpperCase())}</div>
                 <span class="staff-name">${esc(st.nombre)}</span>
-                <span style="font-size:0.6rem; color:var(--accent); opacity:0.8; font-weight:700; text-transform:uppercase; margin-top:2px;">${st.especialidad || 'Experto'}</span>
+                ${st.especialidad ? `<span class="staff-name" style="font-size:0.65rem;color:var(--accent)">${esc(st.especialidad)}</span>` : ''}
             </div>`).join('')
-        : '<p style="color:var(--text-dim);font-size:0.85rem;">Información no disponible.</p>');
+        : '<p style="color:var(--text-dim);font-size:0.85rem;">Información no disponible.</p>';
 
-    // Servicios
-    const serviciosHtml = isLoading ? '<div class="skeleton" style="height:100px; width:100%; border-radius:15px;"></div>' : (Array.isArray(shop.servicios) && shop.servicios.length
+    // Servicios / Precios
+    const serviciosHtml = Array.isArray(shop.servicios) && shop.servicios.length
         ? `<div class="services-list">${shop.servicios.map(sv => `
             <div class="service-row">
                 <span>${esc(sv.nombre)}</span>
                 <span class="service-price">${sv.precio ? `RD$${Number(sv.precio).toLocaleString()}` : '—'}</span>
             </div>`).join('')}</div>`
-        : '<p style="color:var(--text-dim);font-size:0.85rem;">Lista de precios no disponible.</p>');
+        : '<p style="color:var(--text-dim);font-size:0.85rem;">Lista de precios no disponible.</p>';
 
-    // Slots Hoy
-    let slotsHtml = isLoading ? '<div class="skeleton" style="height:80px; width:100%; border-radius:15px;"></div>' : '<p style="color:var(--text-dim);font-size:0.85rem;">Contacta por WhatsApp para verificar disponibilidad.</p>';
-    if (!isLoading && shop.staff?.length > 0) {
-        slotsHtml = `<p style="color:var(--accent); font-weight:600; font-size:0.85rem;">✓ Turnos disponibles hoy. Pulsa Reservar para ver horarios.</p>`;
+    // Slots de disponibilidad (hoy)
+    const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+    const todaySched = Array.isArray(shop.horario) ? shop.horario.find(h => h.dia === todayName) : null;
+    const takenSlots = Array.isArray(shop.slots_tomados) ? shop.slots_tomados : [];
+    let slotsHtml = '<p style="color:var(--text-dim);font-size:0.85rem;">Contacta por WhatsApp para verificar disponibilidad.</p>';
+    if (todaySched && !todaySched.cerrado && todaySched.apertura && todaySched.cierre) {
+        const [oh,om] = todaySched.apertura.split(':').map(Number);
+        const [ch,cm] = todaySched.cierre.split(':').map(Number);
+        const slots = [];
+        for (let m = oh*60+om; m < ch*60+cm; m += 30) {
+            const hStr = String(Math.floor(m/60)).padStart(2,'0') + ':' + String(m%60).padStart(2,'0');
+            slots.push(hStr);
+        }
+        slotsHtml = `<div class="slots-grid">${slots.map(sl => {
+            const [sh,sm] = sl.split(':').map(Number);
+            const slMin = sh*60+sm;
+            const past = slMin < nowMin;
+            const taken = takenSlots.includes(sl);
+            const cls = past ? 'past' : taken ? 'taken' : 'free';
+            return `<div class="slot ${cls}" onclick="selectSlot(this,'${sl}')" title="${taken?'Ocupado':past?'Pasado':'Disponible'}">${sl}</div>`;
+        }).join('')}</div>`;
     }
+
+    // Reseñas
+    const reviewsHtml = Array.isArray(shop.reseñas) && shop.reseñas.length
+        ? `<div class="reviews-list">${shop.reseñas.slice(0,3).map(r => `
+            <div class="review-item">
+                <div class="review-header">
+                    <div>
+                        <span class="review-author">${esc(r.autor)}</span>
+                        <span class="stars" style="font-size:0.75rem;margin-left:8px;color:var(--accent)">${starsHtml(r.rating)}</span>
+                    </div>
+                    <span class="review-date">${esc(r.fecha || '')}</span>
+                </div>
+                <p class="review-text">${esc(r.texto)}</p>
+            </div>`).join('')}</div>`
+        : '<p style="color:var(--text-dim);font-size:0.85rem;">Sin reseñas todavía.</p>';
+
+    // Promociones
+    const promosHtml = Array.isArray(shop.promociones) && shop.promociones.length
+        ? shop.promociones.map(p => `
+            <div class="promo-banner">
+                <div class="promo-icon">🏷</div>
+                <div>
+                    <div class="promo-title">${esc(p.titulo)}${p.descuento ? ` — ${esc(p.descuento)}% OFF` : ''}</div>
+                    ${p.descripcion ? `<div class="promo-desc">${esc(p.descripcion)}</div>` : ''}
+                </div>
+            </div>`).join('')
+        : '';
 
     const sName = DOMPurify.sanitize(shop.nombre || '');
     const sDir = DOMPurify.sanitize(shop.direccion || 'Distrito Nacional');
     const sDesc = DOMPurify.sanitize(shop.descripcion || '');
 
     document.getElementById('sheetContent').innerHTML = `
-        <div class="gallery-container">
-            <div class="gallery-main-wrap">
-                <div class="social-overlay">
-                    <div class="social-tag"><i data-lucide="instagram" size="14" color="#E4405F"></i> @${esc(shop.slug || 'auraos')}</div>
-                    <div class="social-tag"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1 .05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z"/></svg> @${esc(shop.slug || 'auraos')}</div>
-                </div>
-                <img src="${esc(shop.foto_url) || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=1200'}" 
-                     class="gallery-main-img" alt="${esc(sName)}">
-            </div>
-            <div class="gallery-thumbs">
-                <img src="${esc(shop.foto_url)}" class="gallery-thumb active">
-                <img src="https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=400" class="gallery-thumb">
-                <img src="https://images.unsplash.com/photo-1621605815841-28d944683b83?w=400" class="gallery-thumb">
-                <img src="https://images.unsplash.com/photo-1517832207067-4db24a2ae47c?w=400" class="gallery-thumb">
-                <img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400" class="gallery-thumb">
+        <div class="gallery-grid">
+            <img src="${esc(shop.foto_url) || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800'}"
+                 class="gallery-main" alt="Interior de ${esc(sName)}"
+                 onerror="this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800'">
+            <div class="gallery-side">
+                <img src="${esc(extraImgs[0])}" alt="Galería" onerror="this.src='https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=400'">
+                <img src="${esc(extraImgs[1])}" alt="Galería" onerror="this.src='https://images.unsplash.com/photo-1621605815841-28d944683b83?w=400'">
             </div>
         </div>
 
-        <div class="sheet-grid">
-            <div class="sheet-main">
-                <div class="action-header" style="margin-bottom:40px;">
-                    <div style="min-width:0">
-                        <h2 id="sheetShopName" class="shop-title font-outfit" style="font-size:3rem; margin-bottom:10px;">${sName}</h2>
-                        <div style="display:flex; align-items:center; gap:15px; color:var(--text-dim);">
-                            <span><i data-lucide="map-pin" size="14"></i> ${sDir}</span>
-                            <span>·</span>
-                            <span><i data-lucide="star" size="14" fill="var(--accent)" color="var(--accent)"></i> ${shop.rating?.toFixed(1) || '4.8'} (${shop.total_reseñas || 0} reseñas)</span>
-                        </div>
-                    </div>
+        <div class="sheet-content">
+            <div class="action-header">
+                <div style="min-width:0">
+                    <h2 id="sheetShopName" class="shop-title font-outfit">${sName}</h2>
+                    <p class="shop-subtitle">
+                        <i data-lucide="map-pin" size="13"></i> ${sDir}
+                        ${dist ? `<span>· ${dist}</span>` : ''}
+                        ${open === true ? '<span class="badge badge-open" style="margin-left:6px">● Abierto</span>' : open === false ? '<span class="badge badge-closed" style="margin-left:6px">● Cerrado</span>' : ''}
+                    </p>
+                    ${shop.rating ? `<div class="rating-row" style="margin-top:8px"><span class="stars" style="font-size:1rem">${starsHtml(shop.rating)}</span><span class="rating-count">${shop.rating.toFixed(1)} · ${shop.total_reseñas || 0} reseñas</span></div>` : ''}
                 </div>
-
-                <div class="section-card" style="margin-bottom:35px;">
-                    <span class="sheet-label">Sobre nosotros</span>
-                    <p style="font-size:1rem; line-height:1.8; opacity:0.8;">${sDesc || 'Bienvenido a una experiencia de grooming de primer nivel donde la tradición se encuentra con la modernidad.'}</p>
-                </div>
-
-                <div class="section-card" style="margin-bottom:35px;">
-                    <span class="sheet-label">Servicios & Precios</span>
-                    <div class="services-list-full">
-                        ${isLoading ? '<div class="skeleton" style="height:200px; width:100%"></div>' : (Array.isArray(shop.servicios) && shop.servicios.length
-                            ? shop.servicios.map(sv => `
-                                <div class="service-row">
-                                    <div class="service-info">
-                                        <h5>${esc(sv.nombre)}</h5>
-                                        <p>${sv.duracion_min || 30} min</p>
-                                    </div>
-                                    <div style="display:flex; align-items:center; gap:15px;">
-                                        <span class="service-price" style="font-weight:700; color:var(--accent);">RD$${Number(sv.precio).toLocaleString()}</span>
-                                        <button class="btn btn-primary" style="padding:6px 15px; font-size:0.7rem; border-radius:8px;" onclick="openBookingModal('${shop.id}')">Elegir</button>
-                                    </div>
-                                </div>
-                            `).join('')
-                            : '<p>No hay servicios disponibles.</p>')}
-                    </div>
-                </div>
-
-                <div class="section-card">
-                    <span class="sheet-label">Nuestro equipo</span>
-                    <div class="staff-list" style="margin-top:20px;">${staffHtml}</div>
+                <div class="action-btns-inner">
+                    <button class="action-btn" onclick="shareShop('${esc(shop.id)}')" aria-label="Compartir">
+                        <i data-lucide="share-2" size="18"></i>
+                    </button>
+                    <button id="sheetFavBtn" class="action-btn ${fav ? 'active' : ''}" data-id="${esc(shop.id)}"
+                            aria-label="${fav ? 'Quitar de favoritos' : 'Guardar'}"
+                            onclick="toggleFav('${esc(shop.id)}')">
+                        <i data-lucide="heart" size="18" fill="${fav ? '#fff' : 'none'}"></i>
+                    </button>
                 </div>
             </div>
 
-            <div class="sheet-sidebar">
-                <div class="section-card" style="padding:0; overflow:hidden;">
-                    <div class="mini-map-wrap" id="miniMap">
-                        <img src="https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/pin-s+D4AF37(${shop.lng},${shop.lat})/${shop.lng},${shop.lat},15/400x180@2x?access_token=pk.eyJ1IjoiYXVyYW9zIiwiYSI6ImNsZzR4YnhsczBia2wzcHBicnBicnBicnBicnBicnBicnBicnBicnBicnBicnBicnBicnBifQ" 
-                             style="width:100%; height:100%; object-fit:cover;">
-                    </div>
-                    <div style="padding:20px;">
-                        <p style="font-size:0.85rem; margin-bottom:15px; line-height:1.5;"><i data-lucide="navigation" size="14" style="margin-right:8px;"></i> ${sDir}</p>
-                        <button class="btn btn-ghost" style="width:100%; border-radius:12px;" onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${shop.lat},${shop.lng}')">¿Cómo llegar?</button>
-                    </div>
+            ${promosHtml}
+
+            <div class="sheet-grid">
+                <div>
+                    ${sDesc ? `
+                        <span class="sheet-label">Sobre nosotros</span>
+                        <p style="font-size:0.95rem;line-height:1.7;opacity:0.8;margin-bottom:35px">${sDesc}</p>
+                    ` : ''}
+
+                    <span class="sheet-label">Disponibilidad hoy</span>
+                    ${slotsHtml}
+
+                    <span class="sheet-label" style="margin-top:35px;display:block">Nuestro equipo</span>
+                    <div class="staff-list">${staffHtml}</div>
+
+                    <span class="sheet-label" style="margin-top:35px;display:block">Servicios & Precios</span>
+                    ${serviciosHtml}
+
+                    <span class="sheet-label" style="margin-top:35px;display:block">Reseñas</span>
+                    ${reviewsHtml}
                 </div>
 
-                <div class="section-card">
-                    <span class="sheet-label" style="margin-top:0">Horario Semanal</span>
+                <div style="background:rgba(255,255,255,0.03);padding:25px;border-radius:25px;border:1px solid var(--border);align-self:start;position:sticky;top:20px">
+                    <span class="sheet-label" style="margin-top:0">Horario</span>
                     ${horarioHtml}
-                </div>
-
-                <div class="sheet-cta" style="position:relative; bottom:0; padding:0; width:100%; background:transparent; border:none; display:flex; flex-direction:column; gap:10px;">
-                    <button class="btn btn-primary cta-main" style="height:60px; font-size:1rem; border-radius:18px;" onclick="openBookingModal('${esc(shop.id)}')">
-                        Reservar Ahora
-                    </button>
-                    <button class="btn btn-ghost" style="height:50px; border-radius:18px; width:100%;" onclick="window.open('https://wa.me/${esc(shop.whatsapp)}')">
-                        <i data-lucide="message-circle" size="18" style="margin-right:8px;"></i> Consultar por WhatsApp
-                    </button>
+                    ${shop.tiempo_espera != null ? `
+                        <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--border)">
+                            <span class="sheet-label" style="margin:0 0 8px">Espera actual</span>
+                            <p style="font-size:1.6rem;font-weight:800;font-family:'Outfit',sans-serif;color:var(--accent)">~${shop.tiempo_espera} min</p>
+                        </div>
+                    ` : ''}
                 </div>
             </div>
+        </div>
+
+        <div class="sheet-cta">
+            <button class="btn btn-primary cta-main" onclick="window.open('https://wa.me/${esc(shop.whatsapp)}')">
+                Reservar Turno Ahora
+            </button>
+            <button class="btn btn-ghost cta-icon" aria-label="Cómo llegar"
+                    onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${esc(shop.lat)},${esc(shop.lng)}')">
+                <i data-lucide="navigation" size="22"></i>
+            </button>
+            <button class="btn btn-ghost cta-icon" aria-label="Compartir" onclick="shareShop('${esc(shop.id)}')">
+                <i data-lucide="share-2" size="22"></i>
+            </button>
         </div>
     `;
 
@@ -1364,264 +1171,7 @@ function selectSlot(el, time) {
     showToast(`Turno ${time} seleccionado — confirma por WhatsApp`);
 }
 
-// ─── Booking Logic ────────────────────────────────────────────────────────────
-async function openBookingModal(shopId) {
-    const shop = allShops.find(s => String(s.id) === String(shopId));
-    if (!shop) return;
-    
-    currentBookingShop = shop;
-    currentBookingBarber = null;
-    currentBookingService = null;
-    currentBookingSlot = null;
-    
-    document.getElementById('bookingShopName').textContent = shop.nombre;
-    document.getElementById('bookingModal').classList.add('active');
-    document.getElementById('overlay').classList.add('active');
-    
-    // Reset UI
-    document.getElementById('barberSelector').innerHTML = '<p class="skeleton" style="height:60px; width:100%; border-radius:15px;"></p>';
-    document.getElementById('bookingSlots').innerHTML = '<p style="grid-column: 1/-1; color:var(--text-dim); text-align:center;">Selecciona un barbero primero...</p>';
-    document.getElementById('btnConfirmBooking').disabled = true;
-
-    try {
-        // Cargar Barberos
-        const { data: barbs } = await sb.from('barberos').select('*').eq('shop_id', shop.id).eq('activo', true).order('orden');
-        shopBarberos = barbs || [];
-        renderBookingBarbers();
-
-        // Cargar Servicios (NUEVO: Consulta directa a la DB)
-        const { data: svcs } = await sb.from('servicios').select('*').eq('shop_id', shop.id).eq('activo', true).order('orden');
-        currentBookingShop.servicios = svcs || []; // Actualizamos el objeto local
-        renderBookingServices();
-
-        // 3. Cargar Citas de hoy para bloquear slots (Sintaxis corregida para JS Client)
-        const today = getFechaHoySD();
-        const { data: citas } = await sb.from('citas')
-            .select('hora, barbero_id, barbero')
-            .eq('shop_id', shop.id)
-            .eq('fecha', today)
-            .not('estado', 'in', ['Cancelada', 'No-Show']);
-        shopCitasHoy = citas || [];
-
-        // 4. Seleccionar primer barbero y servicio por defecto para mostrar slots de inmediato
-        if (shopBarberos.length > 0) {
-            currentBookingBarber = shopBarberos[0];
-            if (currentBookingShop.servicios?.length > 0) {
-                currentBookingService = currentBookingShop.servicios[0];
-            }
-            renderBookingBarbers();
-            renderBookingServices();
-            calculateAvailableSlots();
-        }
-
-        // Realtime subscription
-        const channel = sb.channel('realtime-booking')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'citas', filter: `shop_id=eq.${shop.id}` }, (payload) => {
-                console.log('📡 Cambio en citas detectado, actualizando slots...');
-                refreshCitasAndSlots();
-            }).subscribe();
-            
-    } catch (e) {
-        console.error('Error loading booking data:', e);
-    }
-    
-    lucide.createIcons();
-}
-
-async function refreshCitasAndSlots() {
-    if (!currentBookingShop) return;
-    const today = getFechaHoySD();
-    const { data: citas } = await sb.from('citas')
-        .select('hora, barbero_id, barbero')
-        .eq('shop_id', currentBookingShop.id)
-        .eq('fecha', today)
-        .not('estado', 'in', ['Cancelada', 'No-Show']);
-    shopCitasHoy = citas || [];
-    calculateAvailableSlots();
-}
-
-function renderBookingBarbers() {
-    const container = document.getElementById('barberSelector');
-    if (!shopBarberos.length) {
-        container.innerHTML = '<p style="color:var(--text-dim); font-size:0.8rem;">No hay barberos disponibles.</p>';
-        return;
-    }
-    container.innerHTML = shopBarberos.map(b => `
-        <div class="barber-chip ${currentBookingBarber?.id === b.id ? 'active' : ''}" onclick="selectBookingBarber('${b.id}')">
-            <div class="barber-avt">
-                <img src="${b.foto_url || 'https://images.unsplash.com/photo-1517832207067-4db24a2ae47c?w=100'}" style="width:100%; height:100%; object-fit:cover;">
-            </div>
-            <span class="barber-name">${esc(b.nombre)}</span>
-        </div>
-    `).join('');
-}
-
-function renderBookingServices() {
-    const container = document.getElementById('bookingServices');
-    const svcs = currentBookingShop.servicios || [];
-    if (!svcs.length) {
-        container.innerHTML = '<p style="color:var(--text-dim); font-size:0.8rem;">No hay servicios definidos.</p>';
-        return;
-    }
-    container.innerHTML = svcs.map(s => `
-        <div class="service-mini ${currentBookingService?.nombre === s.nombre ? 'selected' : ''}" 
-             onclick="selectBookingService('${esc(s.nombre)}')">
-            <span>${esc(s.nombre)} <small style="opacity:0.5; font-size:0.65rem; margin-left:5px">${s.duracion_min || 30}m</small></span>
-            <span class="service-price-mini">RD$${Number(s.precio || 0).toLocaleString()}</span>
-        </div>
-    `).join('');
-}
-
-function selectBookingBarber(id) {
-    currentBookingBarber = shopBarberos.find(b => String(b.id) === String(id));
-    renderBookingBarbers();
-    calculateAvailableSlots();
-}
-
-function selectBookingService(name) {
-    currentBookingService = currentBookingShop.servicios.find(s => s.nombre === name);
-    renderBookingServices();
-    if (currentBookingBarber) calculateAvailableSlots();
-}
-
-function calculateAvailableSlots() {
-    const container = document.getElementById('bookingSlots');
-    if (!currentBookingBarber) {
-        container.innerHTML = '<p style="grid-column:1/-1; color:var(--text-dim); text-align:center;">Selecciona un barbero para ver horarios.</p>';
-        return;
-    }
-
-    const dur = currentBookingService?.duracion_min || 30;
-    const [hInicio, hFin] = resolverHorarioSD(currentBookingShop);
-
-    if (hInicio === 0 && hFin === 0) {
-        container.innerHTML = '<p style="grid-column:1/-1; color:var(--red); text-align:center;">Cerrado hoy.</p>';
-        return;
-    }
-
-    const paso = 30;
-    const slots = [];
-    const ahoraMin = getAhoraSD();
-
-    // Filtrar ocupados (ID o Nombre)
-    const ocupados = (shopCitasHoy || [])
-        .filter(c => {
-            const matchId = c.barbero_id && String(c.barbero_id) === String(currentBookingBarber.id);
-            const matchName = c.barbero && String(c.barbero).toLowerCase() === String(currentBookingBarber.nombre).toLowerCase();
-            return matchId || matchName;
-        })
-        .map(c => {
-            const [h, m] = c.hora.split(':').map(Number);
-            return h * 60 + m;
-        });
-
-    for (let min = hInicio; min + dur <= hFin; min += paso) {
-        if (min < ahoraMin + 10) continue; 
-        
-        const choca = ocupados.some(o => min < o + 30 && min + dur > o);
-        const timeStr = `${Math.floor(min/60).toString().padStart(2,'0')}:${(min%60).toString().padStart(2,'0')}`;
-        slots.push({ time: timeStr, disabled: choca });
-    }
-
-    if (!slots.length) {
-        container.innerHTML = '<p style="grid-column:1/-1; color:var(--text-dim); text-align:center;">No hay turnos disponibles para el resto del día.</p>';
-        return;
-    }
-
-    container.innerHTML = slots.map(s => `
-        <div class="slot-pill ${s.disabled ? 'disabled' : ''} ${currentBookingSlot === s.time ? 'selected' : ''}" 
-             onclick="${s.disabled ? '' : `selectBookingSlot('${s.time}')`}">
-            ${fmt12(s.time)}
-        </div>
-    `).join('');
-}
-
-function selectBookingSlot(time) {
-    currentBookingSlot = time;
-    calculateAvailableSlots();
-    validateBookingForm();
-}
-
-function validateBookingForm() {
-    const name = document.getElementById('bookingName').value.trim();
-    const phone = document.getElementById('bookingPhone').value.trim();
-    const btn = document.getElementById('btnConfirmBooking');
-    btn.disabled = !currentBookingService || !currentBookingSlot || !name || phone.length < 10;
-}
-
-// Escuchar cambios en los inputs
-document.addEventListener('input', (e) => {
-    if (e.target.id === 'bookingName' || e.target.id === 'bookingPhone') {
-        validateBookingForm();
-    }
-});
-
-function closeBookingModal() {
-    document.getElementById('bookingModal').classList.remove('active');
-    document.getElementById('overlay').classList.remove('active');
-    currentBookingShop = null;
-}
-
-async function processBooking() {
-    if (!currentBookingShop || !currentBookingBarber || !currentBookingService || !currentBookingSlot) return;
-    
-    const btn = document.getElementById('btnConfirmBooking');
-    btn.disabled = true;
-    btn.textContent = 'Procesando...';
-
-    try {
-        const name = document.getElementById('bookingName').value.trim();
-        const phone = document.getElementById('bookingPhone').value.trim();
-        const today = getFechaHoySD();
-        
-        const { error } = await sb.from('citas').insert({
-            shop_id: currentBookingShop.id,
-            barbero_id: currentBookingBarber.id,
-            fecha: today,
-            hora: currentBookingSlot + ':00',
-            servicio: currentBookingService.nombre,
-            barbero: currentBookingBarber.nombre,
-            nombre: name,
-            telefono: phone,
-            estado: 'Confirmada'
-        });
-
-        if (error) {
-            console.error('Supabase error detail:', error);
-            throw new Error(error.message || 'Error desconocido en la base de datos');
-        }
-
-        showToast('¡Cita agendada con éxito! 🎉');
-        
-        // Generar Links
-        const waUrl = getSmartWhatsApp(currentBookingShop, currentBookingService.nombre, currentBookingBarber.nombre, currentBookingSlot);
-        const calUrl = getGoogleCalendarLink(currentBookingShop, currentBookingService.nombre, currentBookingSlot);
-
-        setTimeout(() => {
-            document.getElementById('btnConfirmBooking').innerHTML = `
-                <div style="display:flex; gap:10px; width:100%">
-                    <button class="btn-confirm" onclick="window.open('${waUrl}')" style="background:#25D366; color:#fff">Confirmar en WhatsApp</button>
-                    <button class="btn-confirm" onclick="window.open('${calUrl}')" style="background:#4285F4; color:#fff">Añadir al Calendario</button>
-                </div>
-            `;
-            // Cambiamos el contenedor padre para que no sea un botón que ejecute de nuevo
-            const parent = document.getElementById('btnConfirmBooking').parentElement;
-            parent.innerHTML = `
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; width:100%">
-                    <button class="btn-confirm" onclick="window.open('${waUrl}')" style="background:#25D366; color:#fff; font-size:0.8rem">Confirmar WA</button>
-                    <button class="btn-confirm" onclick="window.open('${calUrl}')" style="background:#4285F4; color:#fff; font-size:0.8rem">Calendario</button>
-                </div>
-                <p style="text-align:center; margin-top:15px; font-size:0.75rem; opacity:0.6; cursor:pointer;" onclick="closeBookingModal()">Cerrar ventana</p>
-            `;
-        }, 800);
-
-    } catch (e) {
-        console.error('Booking error:', e);
-        showToast(`Error: ${e.message}`, 5000);
-        btn.disabled = false;
-        btn.textContent = 'Confirmar Reserva';
-    }
-}
+// ─── Share ────────────────────────────────────────────────────────────────────
 async function shareShop(id) {
     const shop = allShops.find(s => String(s.id) === String(id));
     if (!shop) return;
@@ -1669,29 +1219,6 @@ if ('serviceWorker' in navigator) {
 initMap();
 loadShops();
 lucide.createIcons();
-    // ─── Map View Toggle ──────────────────────────────────────────────────────────
-    window.isMapView = false;
-    window.toggleMapView = function() {
-        isMapView = !isMapView;
-        const mapEl = document.getElementById('map');
-        const btnText = document.getElementById('mapToggleText');
-        const btnIcon = document.querySelector('#mapToggleBtn i');
-
-        if (isMapView) {
-            mapEl.classList.add('view-active');
-            btnText.textContent = 'Ver Lista';
-            btnIcon.setAttribute('data-lucide', 'list');
-        } else {
-            mapEl.classList.remove('view-active');
-            btnText.textContent = 'Ubicar Negocios';
-            btnIcon.setAttribute('data-lucide', 'map');
-        }
-        lucide.createIcons();
-        
-        if (isMapView && typeof map !== 'undefined') {
-            setTimeout(() => map.invalidateSize(), 400);
-        }
-    }
 </script>
 </body>
 </html>
