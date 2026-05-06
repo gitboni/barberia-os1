@@ -278,6 +278,22 @@
         .history-chip { background:var(--bg); border:1px solid var(--border); padding:6px 14px; border-radius:50px; font-size:0.78rem; white-space:nowrap; cursor:pointer; transition:0.2s; }
         .history-chip:hover { border-color:var(--accent); color:var(--accent); }
 
+        /* ─── Skeletons ─── */
+        .sk-card { background:var(--surface); border:1px solid var(--border); border-radius:24px; padding:20px; margin-bottom:16px; display:flex; gap:16px; }
+        .sk-img { width:110px; height:110px; border-radius:16px; flex-shrink:0; }
+        .sk-body { flex:1; display:flex; flex-direction:column; gap:12px; }
+        .sk-line { height:12px; border-radius:6px; }
+        .w80 { width:80%; } .w50 { width:50%; } .w30 { width:30%; }
+        .skeleton { 
+            background: linear-gradient(90deg, #1a1a1a 25%, #222 50%, #1a1a1a 75%);
+            background-size: 200% 100%;
+            animation: skeleton-shimmer 1.5s infinite;
+        }
+        @keyframes skeleton-shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
         /* ─── Responsive ─── */
         @media (max-width:900px) {
             main { grid-template-columns:1fr; height:auto; }
@@ -514,7 +530,37 @@ const APP_TIMEZONE = 'America/Santo_Domingo';
 
 // ─── State ────────────────────────────────────────────────────────────────────
 let map, clusterGroup, userMarker, searchCircle;
-let allShops = [], filteredShops = [], currentPage = 0;
+const MOCK_SHOPS = [
+    {
+        id: '1', nombre: 'King Cuts Elite', slug: 'king-cuts', plan: 'elite', activo: true, categoria: 'barberia',
+        foto_url: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800',
+        direccion: 'Av. Winston Churchill 145', ciudad: 'Santo Domingo',
+        rating: 4.9, total_reseñas: 124, tiempo_espera: 15, whatsapp: '18091234567',
+        lat: 18.4735, lng: -69.9400,
+        descripcion: 'La experiencia definitiva en barbería clásica con un toque moderno.',
+        servicios: [{nombre: 'Corte Premium', precio: 800}, {nombre: 'Barba Ritual', precio: 500}]
+    },
+    {
+        id: '2', nombre: 'The Barber Post', slug: 'barber-post', plan: 'pro', activo: true, categoria: 'barberia',
+        foto_url: 'https://images.unsplash.com/photo-1621605815841-28d944683b83?w=800',
+        direccion: 'Calle El Conde 256', ciudad: 'Santo Domingo',
+        rating: 4.7, total_reseñas: 89, tiempo_espera: 0, whatsapp: '18097654321',
+        lat: 18.4715, lng: -69.8850,
+        descripcion: 'Especialistas en degradados y cortes urbanos.',
+        servicios: [{nombre: 'Corte Caballero', precio: 600}, {nombre: 'Corte Niño', precio: 400}]
+    },
+    {
+        id: '3', nombre: 'Aura Studio Nails & Hair', slug: 'aura-studio', plan: 'elite', activo: true, categoria: 'nails',
+        foto_url: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800',
+        direccion: 'Blue Mall, Nivel 2', ciudad: 'Santo Domingo',
+        rating: 5.0, total_reseñas: 210, tiempo_espera: 5, whatsapp: '18299998877',
+        lat: 18.4740, lng: -69.9390,
+        descripcion: 'Salón de belleza integral con los más altos estándares de calidad.',
+        servicios: [{nombre: 'Manicura Pro', precio: 1200}, {nombre: 'Balayage', precio: 4500}]
+    }
+];
+
+let allShops = [...MOCK_SHOPS], filteredShops = [...MOCK_SHOPS], currentPage = 0;
 let userCoords = null;
 let activeFilter = 'all', activeSort = 'default';
 let minRating = 0, maxWait = 999, filterOpen = false, filterPromo = false, filterElite = false;
@@ -528,10 +574,14 @@ function getFechaHoySD() {
     return formatter.format(d);
 }
 function getAhoraSD() {
-    const parts = new Intl.DateTimeFormat('en-US', { timeZone: APP_TIMEZONE, hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(new Date());
-    const h = parseInt(parts.find(p => p.type === 'hour')?.value ?? '0');
-    const m = parseInt(parts.find(p => p.type === 'minute')?.value ?? '0');
-    return h * 60 + m;
+    try {
+        const parts = new Intl.DateTimeFormat('en-US', { timeZone: APP_TIMEZONE, hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(new Date());
+        const hPart = parts.find(p => p.type === 'hour');
+        const mPart = parts.find(p => p.type === 'minute');
+        const h = parseInt(hPart ? hPart.value : '0');
+        const m = parseInt(mPart ? mPart.value : '0');
+        return h * 60 + m;
+    } catch(e) { return 540; } // Fallback a 9:00 AM
 }
 function getDiaSemanaSD() {
     const d = new Intl.DateTimeFormat('en-US', { timeZone: APP_TIMEZONE, weekday: 'long' }).format(new Date());
@@ -636,12 +686,16 @@ function closeBookingModal() {
 
 function renderBookingBarbers() {
     const container = document.getElementById('barberSelector');
-    container.innerHTML = shopBarberos.map(b => `
-        <div class="barber-chip ${currentBookingBarber?.id === b.id ? 'active' : ''}" onclick="selectBookingBarber('${b.id}')">
-            <div class="barber-avt"><img src="${b.foto_url || ''}" style="width:100%;height:100%;object-fit:cover;"></div>
-            <span class="barber-name">${esc(b.nombre)}</span>
-        </div>
-    `).join('');
+    if (!container) return;
+    container.innerHTML = (shopBarberos || []).map(b => {
+        const isActive = currentBookingBarber && currentBookingBarber.id === b.id;
+        return `
+            <div class="barber-chip ${isActive ? 'active' : ''}" onclick="selectBookingBarber('${b.id}')">
+                <div class="barber-avt"><img src="${b.foto_url || ''}" style="width:100%;height:100%;object-fit:cover;"></div>
+                <span class="barber-name">${esc(b.nombre)}</span>
+            </div>
+        `;
+    }).join('');
 }
 
 function selectBookingBarber(id) {
@@ -653,12 +707,15 @@ function selectBookingBarber(id) {
 function renderBookingServices() {
     const container = document.getElementById('bookingServices');
     const svcs = currentBookingShop.servicios || [];
-    container.innerHTML = svcs.map(s => `
-        <div class="service-mini ${currentBookingService?.nombre === s.nombre ? 'selected' : ''}" onclick="selectBookingService('${esc(s.nombre)}')">
-            <span>${esc(s.nombre)}</span>
-            <span class="service-price-mini">RD$${Number(s.precio).toLocaleString()}</span>
-        </div>
-    `).join('');
+    container.innerHTML = svcs.map(s => {
+        const isSelected = currentBookingService && currentBookingService.nombre === s.nombre;
+        return `
+            <div class="service-mini ${isSelected ? 'selected' : ''}" onclick="selectBookingService('${esc(s.nombre)}')">
+                <span>${esc(s.nombre)}</span>
+                <span class="service-price-mini">RD$${Number(s.precio).toLocaleString()}</span>
+            </div>
+        `;
+    }).join('');
 }
 
 function selectBookingService(name) {
@@ -823,83 +880,39 @@ function renderSkeletons(n = 4) {
 
 async function loadShops() {
     const container = document.getElementById('shopsContainer');
+    if (!container) return;
+    
+    // 1. Mostrar Skeletons inmediatamente
     container.innerHTML = renderSkeletons();
     
+    // 2. Cargar Mock Data al instante para asegurar visibilidad
+    allShops = [...MOCK_SHOPS];
+    filteredShops = [...allShops];
+    renderShops(true);
+    addMapMarkers(filteredShops);
+    renderHistory();
+
+    // 3. Intentar actualizar con datos reales en segundo plano (Opcional)
     try {
-        // Datos de prueba (Mock Data) para visualización inmediata si la API falla
-        const MOCK_SHOPS = [
-            {
-                id: '1', nombre: 'King Cuts Elite', slug: 'king-cuts', plan: 'elite', activo: true, categoria: 'barberia',
-                foto_url: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800',
-                direccion: 'Av. Winston Churchill 145', ciudad: 'Santo Domingo',
-                rating: 4.9, total_reseñas: 124, tiempo_espera: 15, whatsapp: '18091234567',
-                lat: 18.4735, lng: -69.9400,
-                descripcion: 'La experiencia definitiva en barbería clásica con un toque moderno.',
-                servicios: [{nombre: 'Corte Premium', precio: 800}, {nombre: 'Barba Ritual', precio: 500}]
-            },
-            {
-                id: '2', nombre: 'The Barber Post', slug: 'barber-post', plan: 'pro', activo: true, categoria: 'barberia',
-                foto_url: 'https://images.unsplash.com/photo-1621605815841-28d944683b83?w=800',
-                direccion: 'Calle El Conde 256', ciudad: 'Santo Domingo',
-                rating: 4.7, total_reseñas: 89, tiempo_espera: 0, whatsapp: '18097654321',
-                lat: 18.4715, lng: -69.8850,
-                descripcion: 'Especialistas en degradados y cortes urbanos.',
-                servicios: [{nombre: 'Corte Caballero', precio: 600}, {nombre: 'Corte Niño', precio: 400}]
-            },
-            {
-                id: '3', nombre: 'Aura Studio Nails & Hair', slug: 'aura-studio', plan: 'elite', activo: true, categoria: 'nails',
-                foto_url: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800',
-                direccion: 'Blue Mall, Nivel 2', ciudad: 'Santo Domingo',
-                rating: 5.0, total_reseñas: 210, tiempo_espera: 5, whatsapp: '18299998877',
-                lat: 18.4740, lng: -69.9390,
-                descripcion: 'Salón de belleza integral con los más altos estándares de calidad.',
-                servicios: [{nombre: 'Manicura Pro', precio: 1200}, {nombre: 'Balayage', precio: 4500}]
-            }
-        ];
-
-        try {
-            const response = await fetch(PROXY_URL);
-            result = await response.json();
-            if (!result.shops || result.shops.length === 0) {
-                console.log('API retornó 0 shops, usando Mock Data.');
-                result = { success: true, shops: MOCK_SHOPS };
-            }
-        } catch(e) {
-            console.warn('Proxy no disponible (entorno local). Cargando Mock Data...');
-            result = { success: true, shops: MOCK_SHOPS };
-        }
-        
-        allShops = result.shops || [];
-
-        // Si hay configuración global del marketplace, se podría aplicar aquí
-        if (result.config) {
-            console.log('Marketplace Config:', result.config);
-            if (result.config.banner_url) {
-                // Ejemplo: actualizar banner si existe un elemento con ID banner
-                const banner = document.getElementById('mktBanner');
-                if (banner) banner.src = result.config.banner_url;
+        const response = await fetch(PROXY_URL);
+        if (response.ok) {
+            const data = await response.json();
+            if (data && data.shops && data.shops.length > 0) {
+                console.log('Actualizando con datos de API...');
+                allShops = data.shops;
+                filteredShops = [...allShops];
+                renderShops(true);
+                addMapMarkers(filteredShops);
             }
         }
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const shopFilter = urlParams.get('shop');
-        if (shopFilter) allShops = allShops.filter(s => s.slug === shopFilter);
-
-        filteredShops = [...allShops];
-        currentPage = 0;
-        renderShops(true);
-        addMapMarkers(filteredShops);
-        renderHistory();
-
-        // Abrir modal si viene ?open=id en la URL
-        const openId = urlParams.get('open');
-        if (openId) openShopDetail(openId);
-
-    } catch (e) {
-        console.error('Error cargando shops:', e);
-        container.innerHTML =
-            `<p style="color:var(--text-dim);text-align:center;margin-top:40px;">Error al cargar: ${e.message}. Intenta de nuevo.</p>`;
+    } catch(e) {
+        console.warn('API no disponible, manteniendo datos locales.');
     }
+
+    // 4. Abrir modal si hay parámetro en URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const openId = urlParams.get('open');
+    if (openId) openShopDetail(openId);
 }
 
 // ─── Rendering ────────────────────────────────────────────────────────────────
@@ -924,55 +937,54 @@ function renderShops(reset = false) {
     const slice = filteredShops.slice(start, start + PAGE_SIZE);
 
     slice.forEach(s => {
-        const open = isOpenNow(s.horario);
-        const fav = isFav(s.id);
-        const dist = userCoords ? ` · ${distanceTo(s.lat, s.lng).toFixed(1)} km` : '';
-        const promo = Array.isArray(s.promociones) && s.promociones.length;
-        const wait = s.tiempo_espera != null ? `~${s.tiempo_espera} min` : null;
+        try {
+            const open = isOpenNow(s.horario);
+            const fav = isFav(s.id);
+            const dist = userCoords ? ` · ${distanceTo(s.lat, s.lng).toFixed(1)} km` : '';
+            const promo = Array.isArray(s.promociones) && s.promociones.length;
+            const wait = s.tiempo_espera != null ? `~${s.tiempo_espera} min` : null;
 
-        const card = document.createElement('div');
-        card.className = `card ${s.plan === 'elite' ? 'elite' : ''}`;
-        card.setAttribute('role', 'article');
-        card.setAttribute('tabindex', '0');
-        card.onclick = () => openShopDetail(s.id);
-        card.onkeydown = e => { if (e.key === 'Enter') openShopDetail(s.id); };
+            const card = document.createElement('div');
+            card.className = `card ${s.plan === 'elite' ? 'elite' : ''}`;
+            card.setAttribute('role', 'article');
+            card.setAttribute('tabindex', '0');
+            const shopId = String(s.id);
+            card.onclick = function() { openShopDetail(shopId); };
+            
+            const sName = esc(s.nombre || '');
+            const sDir = esc(s.direccion || 'Distrito Nacional');
 
-        const sName = DOMPurify.sanitize(s.nombre || '');
-        const sDir = DOMPurify.sanitize(s.direccion || 'Distrito Nacional');
-
-        card.innerHTML = `
-            <img src="${esc(s.foto_url) || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400'}"
-                 class="card-img" alt="Foto de ${esc(sName)}"
-                 onerror="this.src='https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400'">
-            <div class="card-body">
-                <div class="card-top">
-                    <div style="min-width:0">
-                        <h3 class="card-title font-outfit">${sName}</h3>
-                        <p class="card-meta"><i data-lucide="map-pin" size="11"></i> ${sDir}${dist}</p>
+            card.innerHTML = `
+                <img src="${esc(s.foto_url) || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400'}"
+                     class="card-img" alt="Foto de ${sName}">
+                <div class="card-body">
+                    <div class="card-top">
+                        <div style="min-width:0">
+                            <h3 class="card-title font-outfit">${sName}</h3>
+                            <p class="card-meta"><i data-lucide="map-pin" size="11"></i> ${sDir}${dist}</p>
+                        </div>
+                        <button class="fav-btn ${fav ? 'active' : ''}" data-id="${shopId}"
+                                onclick="toggleFav('${shopId}',event)">
+                            <i data-lucide="heart" size="17" fill="${fav ? '#ff3232' : 'none'}"></i>
+                        </button>
                     </div>
-                    <button class="fav-btn ${fav ? 'active' : ''}" data-id="${esc(s.id)}"
-                            aria-label="${fav ? 'Quitar de favoritos' : 'Guardar en favoritos'}"
-                            onclick="toggleFav('${esc(s.id)}',event)">
-                        <i data-lucide="heart" size="17" fill="${fav ? '#ff3232' : 'none'}"></i>
-                    </button>
+                    <div class="badge-row">
+                        ${open === true ? '<span class="badge badge-open">● Abierto</span>' : open === false ? '<span class="badge badge-closed">● Cerrado</span>' : ''}
+                        ${promo ? '<span class="badge badge-promo">🏷 Oferta</span>' : ''}
+                        ${wait ? `<span class="badge badge-wait">⏱ ${wait}</span>` : ''}
+                    </div>
+                    ${s.rating ? `<div class="rating-row"><span class="stars">${starsHtml(s.rating)}</span><span class="rating-count">${s.rating.toFixed(1)} (${s.total_reseñas || 0})</span></div>` : ''}
+                    <div class="btn-row">
+                        <button class="btn btn-primary" onclick="event.stopPropagation(); window.open(getSmartWhatsApp(allShops.find(sh => String(sh.id) === '${shopId}'))) ">Agendar</button>
+                        <button class="btn btn-ghost" onclick="event.stopPropagation(); window.open('https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}')">
+                            <i data-lucide="navigation" size="13"></i>
+                        </button>
+                        <button class="btn btn-ghost" onclick="event.stopPropagation(); window.open('/sala/${esc(s.slug)}')">Monitor</button>
+                    </div>
                 </div>
-                <div class="badge-row">
-                    ${open === true ? '<span class="badge badge-open">● Abierto</span>' : open === false ? '<span class="badge badge-closed">● Cerrado</span>' : ''}
-                    ${promo ? '<span class="badge badge-promo">🏷 Oferta</span>' : ''}
-                    ${wait ? `<span class="badge badge-wait">⏱ ${wait}</span>` : ''}
-                </div>
-                ${s.rating ? `<div class="rating-row"><span class="stars">${starsHtml(s.rating)}</span><span class="rating-count">${s.rating.toFixed(1)} (${s.total_reseñas || 0})</span></div>` : ''}
-                <div class="btn-row">
-                    <button class="btn btn-primary" onclick="event.stopPropagation();window.open(getSmartWhatsApp(${JSON.stringify(s).replace(/"/g, '&quot;')}))">Agendar</button>
-                    <button class="btn btn-ghost" title="Cómo llegar" aria-label="Cómo llegar"
-                            onclick="event.stopPropagation();window.open('https://www.google.com/maps/dir/?api=1&destination=${esc(s.lat)},${esc(s.lng)}')">
-                        <i data-lucide="navigation" size="13"></i>
-                    </button>
-                    <button class="btn btn-ghost" onclick="event.stopPropagation();window.open('/sala/${esc(s.slug)}')">Monitor</button>
-                </div>
-            </div>
-        `;
-        container.appendChild(card);
+            `;
+            container.appendChild(card);
+        } catch(err) { console.error("Error en tarjeta:", err); }
     });
 
     lucide.createIcons();
@@ -995,14 +1007,18 @@ function handleSearch() {
 
     filteredShops = applyActiveFilters(
         allShops.filter(s => {
+            const sNom = (s.nombre || '').toLowerCase();
+            const sCat = (s.categoria || '').toLowerCase();
             const matchesQuery = !query || 
-                s.nombre?.toLowerCase().includes(query) ||
-                (Array.isArray(s.servicios) && s.servicios.some(sv => sv.nombre?.toLowerCase().includes(query))) ||
-                s.categoria?.toLowerCase().includes(query);
+                sNom.indexOf(query) !== -1 ||
+                (Array.isArray(s.servicios) && s.servicios.some(sv => (sv.nombre || '').toLowerCase().indexOf(query) !== -1)) ||
+                sCat.indexOf(query) !== -1;
             
+            const sDir = (s.direccion || '').toLowerCase();
+            const sCiu = (s.ciudad || '').toLowerCase();
             const matchesLoc = !loc || 
-                s.direccion?.toLowerCase().includes(loc) ||
-                s.ciudad?.toLowerCase().includes(loc);
+                sDir.indexOf(loc) !== -1 ||
+                sCiu.indexOf(loc) !== -1;
             
             return matchesQuery && matchesLoc;
         })
@@ -1016,7 +1032,7 @@ function handleSearch() {
 function applyActiveFilters(shops) {
     let result = shops;
     const CATEGORIES = ['barberia', 'nails', 'spa', 'estetica', 'hair'];
-    if (CATEGORIES.includes(activeFilter)) result = result.filter(s => s.categoria === activeFilter);
+    if (CATEGORIES.indexOf(activeFilter) !== -1) result = result.filter(s => s.categoria === activeFilter);
     if (activeFilter === 'elite') result = result.filter(s => s.plan === 'elite');
     if (activeFilter === 'open')  result = result.filter(s => isOpenNow(s.horario) === true);
     if (activeFilter === 'favorites') result = result.filter(s => isFav(s.id));
@@ -1030,7 +1046,7 @@ function applyActiveFilters(shops) {
 
 function filterShops(type, el) {
     document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-    el.classList.add('active');
+    if (el) el.classList.add('active');
     activeFilter = type;
 
     if (type === 'near') {
@@ -1063,7 +1079,11 @@ function applySort() {
 function applySortTo(arr) {
     if (activeSort === 'rating') arr.sort((a,b) => (b.rating||0) - (a.rating||0));
     else if (activeSort === 'near') arr.sort((a,b) => distanceTo(a.lat,a.lng) - distanceTo(b.lat,b.lng));
-    else if (activeSort === 'wait') arr.sort((a,b) => (a.tiempo_espera??999) - (b.tiempo_espera??999));
+    else if (activeSort === 'wait') arr.sort((a,b) => {
+        const wa = a.tiempo_espera != null ? a.tiempo_espera : 999;
+        const wb = b.tiempo_espera != null ? b.tiempo_espera : 999;
+        return wa - wb;
+    });
 }
 
 // ─── Filter Panel ─────────────────────────────────────────────────────────────
@@ -1123,9 +1143,9 @@ function openFavoritesFilter() {
 function openShopDetail(id) {
     const shop = allShops.find(s => String(s.id) === String(id));
     if (!shop) return;
-    const sName = DOMPurify.sanitize(shop.nombre || '');
-    const sDir = DOMPurify.sanitize(shop.direccion || '');
-    const sDesc = DOMPurify.sanitize(shop.descripcion || '');
+    const sName = esc(shop.nombre || '');
+    const sDir = esc(shop.direccion || '');
+    const sDesc = esc(shop.descripcion || '');
     const open = isOpenNow(shop.horario);
     
     document.getElementById('sheetContent').innerHTML = `
@@ -1152,7 +1172,7 @@ function openShopDetail(id) {
                         <div style="display:flex; align-items:center; gap:15px; color:var(--text-dim);">
                             <span><i data-lucide="map-pin" size="14"></i> ${sDir}</span>
                             <span>·</span>
-                            <span><i data-lucide="star" size="14" fill="var(--accent)" color="var(--accent)"></i> ${shop.rating?.toFixed(1) || '4.8'} (${shop.total_reseñas || 0} reseñas)</span>
+                            <span><i data-lucide="star" size="14" fill="var(--accent)" color="var(--accent)"></i> ${shop.rating ? shop.rating.toFixed(1) : '4.8'} (${shop.total_reseñas || 0} reseñas)</span>
                         </div>
                     </div>
                 </div>
@@ -1180,12 +1200,15 @@ function openShopDetail(id) {
                 <div class="section-card">
                     <span class="sheet-label">Nuestro equipo</span>
                     <div class="staff-list" style="margin-top:20px;">
-                        ${(shop.staff || []).map(st => `
-                            <div class="staff-item">
-                                <div class="avatar">${esc((st.nombre?.slice(0,2) || '??').toUpperCase())}</div>
-                                <span class="staff-name">${esc(st.nombre)}</span>
-                            </div>
-                        `).join('')}
+                        ${(shop.staff || []).map(st => {
+                            const stInitials = st.nombre ? st.nombre.slice(0,2).toUpperCase() : '??';
+                            return `
+                                <div class="staff-item">
+                                    <div class="avatar">${esc(stInitials)}</div>
+                                    <span class="staff-name">${esc(st.nombre || 'Barbero')}</span>
+                                </div>
+                            `;
+                        }).join('')}
                     </div>
                 </div>
             </div>
@@ -1215,14 +1238,11 @@ function openShopDetail(id) {
     `;
     document.getElementById('detailSheet').classList.add('active');
     document.getElementById('overlay').classList.add('active');
-    lucide.createIcons();
-}
-
-    document.getElementById('detailSheet').classList.add('active');
-    document.getElementById('overlay').classList.add('active');
     document.querySelector('.sheet-close').focus();
     lucide.createIcons();
 }
+
+
 
 function closeSheet() {
     document.getElementById('detailSheet').classList.remove('active');
@@ -1248,12 +1268,14 @@ function saveProfile() {
     updateProfileUI();
 }
 function updateProfileUI() {
-    const user = JSON.parse(localStorage.getItem('aura_user') || '{}');
-    const btn = document.getElementById('profileBtn');
-    if (user && user.name) {
-        btn.innerHTML = `<span style="font-size:0.75rem; font-weight:800; color:var(--accent);">${user.name.slice(0,2).toUpperCase()}</span>`;
-        btn.style.borderColor = 'var(--accent)';
-    }
+    try {
+        const user = JSON.parse(localStorage.getItem('aura_user') || '{}');
+        const btn = document.getElementById('profileBtn');
+        if (btn && user && user.name) {
+            btn.innerHTML = `<span style="font-size:0.75rem; font-weight:800; color:var(--accent);">${user.name.slice(0,2).toUpperCase()}</span>`;
+            btn.style.borderColor = 'var(--accent)';
+        }
+    } catch(e) { console.warn("Perfil no cargado:", e); }
 }
 document.addEventListener('DOMContentLoaded', updateProfileUI);
 
@@ -1314,9 +1336,19 @@ if ('serviceWorker' in navigator) {
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
-initMap();
-loadShops();
-lucide.createIcons();
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("AuraOS Marketplace Iniciado");
+    // Renderizado inmediato
+    renderShops(true);
+    
+    // Luego el resto
+    try {
+        initMap();
+        loadShops(); // Esto intentará actualizar con datos de API
+    } catch(e) { console.error("Error Init:", e); }
+
+    if (window.lucide) lucide.createIcons();
+});
 </script>
 </body>
 </html>
