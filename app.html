@@ -738,17 +738,37 @@
 
             if (error) return alert("Error: " + error.message);
 
+            const uid = data.user.id;
+            const telLimpio = tel.replace(/\D/g, '');
+
             // Crear perfil en usuarios_app
-            const { error: pErr } = await sb.from('usuarios_app').upsert({
-                id: data.user.id,
-                nombre: nom,
-                telefono: tel.replace(/\D/g, ''),
+            await sb.from('usuarios_app').upsert({
+                id: uid,
+                nombre: nom.trim(),
+                telefono: telLimpio,
                 rol: 'cliente',
                 activo: true
             });
 
-            if (pErr) console.error("Error perfil:", pErr);
+            // Si hay una barbería seleccionada, vincularla
+            if (selectedShop) {
+                const { data: cliente } = await sb.from('clientes').insert({
+                    shop_id: selectedShop.id,
+                    telefono: telLimpio,
+                    nombre: nom.trim(),
+                    visitas: 0
+                }).select().single();
+
+                await sb.from('cliente_shops').insert({
+                    usuario_id: uid,
+                    shop_id: selectedShop.id,
+                    cliente_id: cliente?.id || null,
+                    favorito: true
+                });
+            }
+
             closeAuthModal();
+            location.reload();
         }
 
         function handleSignOut() {
@@ -776,9 +796,24 @@
 
         async function loadInitialData() {
             try {
-                // 1. Cargar Shops (quitando el filtro activo temporalmente para depurar si no aparecen)
-                const { data: shopsData } = await sb.from('shops').select('*').order('nombre');
-                shops = shopsData || [];
+                // 1. Cargar Mis Negocios (si está logueado)
+                if (user) {
+                    const { data: myLinks } = await sb.from('cliente_shops').select('shop_id').eq('usuario_id', user.id);
+                    const myIds = myLinks?.map(l => l.shop_id) || [];
+                    
+                    if (myIds.length > 0) {
+                        const { data: myShops } = await sb.from('shops').select('*').in('id', myIds).order('nombre');
+                        shops = myShops || [];
+                    } else {
+                        shops = [];
+                    }
+                } else {
+                    // Si no está logueado, mostrar todos o ninguno según prefieras. 
+                    // Para que pueda "seleccionar" uno para registrarse, dejaremos los activos.
+                    const { data: allShops } = await sb.from('shops').select('*').eq('activo', true).limit(5);
+                    shops = allShops || [];
+                }
+                
                 renderShops();
 
                 // 2. Cargar Próxima Cita (Simulado para Demo o real si hay ID)
