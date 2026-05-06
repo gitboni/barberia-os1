@@ -310,6 +310,9 @@
 <body>
 <div class="aurora"><div class="orb"></div></div>
 
+<!-- Overlay -->
+<div class="overlay" id="overlay" onclick="handleOverlayClick()"></div>
+
 <!-- Toast container -->
 <div class="toast-container" id="toastContainer"></div>
 
@@ -946,8 +949,15 @@ async function loadShops() {
                 allShops = apiShops.map(s => ({
                     ...s,
                     id: String(s.id || s._id || Math.random()),
-                    lat: parseFloat(s.lat || s.latitude || 18.4861),
-                    lng: parseFloat(s.lng || s.longitude || -69.9312),
+                    nombre: s.nombre || s.mkt_name || 'Sin nombre',
+                    lat: parseFloat(s.mkt_lat || s.lat || s.latitude || 18.4861),
+                    lng: parseFloat(s.mkt_lng || s.lng || s.longitude || -69.9312),
+                    direccion: s.mkt_address || s.direccion || 'Santo Domingo',
+                    ciudad: s.mkt_city || s.ciudad || 'Santo Domingo',
+                    foto_url: s.mkt_photo || s.foto_url || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800',
+                    descripcion: s.mkt_description || s.descripcion || '',
+                    categoria: s.mkt_category || s.categoria || 'barberia',
+                    plan: s.plan || 'free',
                     horario: (s.horario || s.hours || []).map(h => ({
                         dia: h.dia || h.day || '',
                         apertura: h.apertura || h.open || '09:00',
@@ -1042,7 +1052,7 @@ function renderShops(reset = false) {
         } catch(err) { console.error("Error en tarjeta:", err); }
     });
 
-    lucide.createIcons();
+    if (window.lucide) lucide.createIcons();
     currentPage++;
 
     const hasMore = currentPage * PAGE_SIZE < filteredShops.length;
