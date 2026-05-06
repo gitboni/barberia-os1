@@ -796,23 +796,31 @@
 
         async function loadInitialData() {
             try {
+                console.log("Cargando datos iniciales para:", user?.nombre || "Invitado");
+                
                 // 1. Cargar Mis Negocios (si está logueado)
                 if (user) {
-                    const { data: myLinks } = await sb.from('cliente_shops').select('shop_id').eq('usuario_id', user.id);
-                    const myIds = myLinks?.map(l => l.shop_id) || [];
-                    
-                    if (myIds.length > 0) {
-                        const { data: myShops } = await sb.from('shops').select('*').in('id', myIds).order('nombre');
-                        shops = myShops || [];
+                    // Si es superadmin, mostrar todos por defecto para facilitar pruebas
+                    if (user.rol === 'superadmin') {
+                        const { data: allShops } = await sb.from('shops').select('*').eq('activo', true).order('nombre');
+                        shops = allShops || [];
                     } else {
-                        shops = [];
+                        const { data: myLinks } = await sb.from('cliente_shops').select('shop_id').eq('usuario_id', user.id);
+                        const myIds = myLinks?.map(l => l.shop_id) || [];
+                        console.log("IDs de mis shops:", myIds);
+                        
+                        if (myIds.length > 0) {
+                            const { data: myShops } = await sb.from('shops').select('*').in('id', myIds).order('nombre');
+                            shops = myShops || [];
+                        } else {
+                            shops = [];
+                        }
                     }
                 } else {
-                    // Para invitados, no mostramos locales por defecto (privacidad y enfoque)
-                    // Solo se cargarán si vienen por QR o si eligen "Reservar" manualmente
                     shops = [];
                 }
                 
+                console.log("Shops cargadas:", shops.length);
                 renderShops();
 
                 // 2. Cargar Próxima Cita (Simulado para Demo o real si hay ID)
