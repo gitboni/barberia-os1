@@ -182,64 +182,57 @@
         .fp-reset { width:100%; padding:12px; background:transparent; color:var(--text-dim); border:1px solid var(--border); border-radius:15px; font-weight:600; font-size:0.9rem; cursor:pointer; margin-top:10px; transition:0.2s; }
         .fp-reset:hover { color:#fff; border-color:#fff; }
 
-        /* ─── Modal / Detail Sheet ─── */
-        .detail-sheet {
-            position:fixed; top:50%; left:50%;
-            transform:translate(-50%,100%);
-            width:95%; max-width:900px; height:88vh;
-            background:rgba(8,8,8,0.97); -webkit-backdrop-filter:blur(60px); backdrop-filter:blur(60px);
-            border:1px solid rgba(255,255,255,0.1); border-radius:40px;
-            z-index:2000; transition:all 0.7s cubic-bezier(0.16,1,0.3,1);
+        /* ─── Modals (Detail & Booking) ─── */
+        .detail-sheet, .booking-sheet {
+            position:fixed; top:100%; left:50%;
+            transform:translateX(-50%);
+            width:96%; max-width:1000px; height:90vh;
+            background:rgba(10,10,10,0.95); -webkit-backdrop-filter:blur(60px); backdrop-filter:blur(60px);
+            border:1px solid rgba(255,255,255,0.1); border-radius:32px;
+            z-index:2000; transition:all 0.5s cubic-bezier(0.16,1,0.3,1);
             overflow:hidden; opacity:0; pointer-events:none;
+            box-shadow: 0 30px 70px rgba(0,0,0,0.9);
         }
-        .detail-sheet.active { transform:translate(-50%,-50%); opacity:1; pointer-events:auto; }
-        .sheet-body { height:100%; overflow-y:auto; scrollbar-width:none; }
+        .detail-sheet.active, .booking-sheet.active { top:5vh; opacity:1; pointer-events:auto; }
+        
+        .sheet-body { height:100%; overflow-y:auto; scrollbar-width:none; padding:0; }
         .sheet-body::-webkit-scrollbar { display:none; }
-        .sheet-close { position:absolute; top:20px; right:20px; background:rgba(0,0,0,0.6); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1); color:#fff; width:42px; height:42px; border-radius:50%; cursor:pointer; z-index:10; display:flex; align-items:center; justify-content:center; transition:background 0.2s; }
-        .sheet-close:hover { background:rgba(255,255,255,0.1); }
+        .sheet-close { position:absolute; top:20px; right:20px; background:rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.1); color:#fff; width:40px; height:40px; border-radius:50%; cursor:pointer; z-index:2010; display:flex; align-items:center; justify-content:center; }
 
-        .gallery-grid { display:grid; grid-template-columns:2fr 1fr; gap:4px; height:380px; overflow:hidden; }
-        .gallery-main { width:100%; height:100%; object-fit:cover; }
-        .gallery-side { display:grid; grid-template-rows:1fr 1fr; gap:4px; }
-        .gallery-side img { width:100%; height:100%; object-fit:cover; }
+        .sheet-content { padding:40px; }
+        .gallery-container { display:grid; grid-template-columns:2fr 1fr; gap:4px; height:350px; background:#111; overflow:hidden; }
+        
+        /* Barber Chips */
+        .barber-chip { 
+            display:flex; flex-direction:column; align-items:center; gap:10px; min-width:90px; 
+            padding:15px; border-radius:20px; border:1px solid var(--border); background:rgba(255,255,255,0.03);
+            cursor:pointer; transition:0.3s;
+        }
+        .barber-chip.active { background:rgba(212,175,55,0.1); border-color:var(--accent); }
+        .barber-avt { width:60px; height:60px; border-radius:50%; overflow:hidden; background:var(--surface); border:2px solid transparent; transition:0.3s; }
+        .barber-chip.active .barber-avt { border-color:var(--accent); }
+        .barber-name { font-size:0.8rem; font-weight:600; color:var(--text-dim); }
+        .barber-chip.active .barber-name { color:var(--accent); }
 
-        .sheet-content { padding:35px; }
-        .sheet-label { font-size:0.65rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--accent); margin-bottom:14px; display:block; }
+        /* Booking Services */
+        .booking-service-item {
+            display:flex; justify-content:space-between; align-items:center; padding:18px;
+            background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:18px;
+            margin-bottom:10px; cursor:pointer; transition:0.2s;
+        }
+        .booking-service-item:hover { border-color:var(--accent); }
+        .booking-service-item.active { background:rgba(212,175,55,0.1); border-color:var(--accent); }
 
-        .action-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:25px; gap:20px; }
-        .shop-title { font-size:2.4rem; letter-spacing:-0.05em; line-height:1; }
-        .shop-subtitle { color:var(--text-dim); font-size:0.95rem; margin-top:8px; display:flex; align-items:center; gap:6px; }
-        .action-btns-inner { display:flex; gap:10px; flex-shrink:0; }
-        .action-btn { background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); color:#fff; width:46px; height:46px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.3s; }
-        .action-btn:hover { background:var(--accent); color:#000; border-color:var(--accent); }
-        .action-btn.active { background:var(--red); color:#fff; border-color:var(--red); }
-
-        .sheet-grid { display:grid; grid-template-columns:1.5fr 1fr; gap:35px; margin-top:35px; }
-
-        .staff-list { display:flex; gap:20px; overflow-x:auto; padding:8px 0; }
-        .staff-list::-webkit-scrollbar { display:none; }
-        .staff-item { display:flex; flex-direction:column; align-items:center; gap:8px; min-width:70px; }
-        .avatar { width:64px; height:64px; border-radius:50%; background:linear-gradient(135deg,#1a1a1a,#0a0a0a); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.85rem; color:var(--accent); }
-        .staff-name { font-size:0.75rem; opacity:0.6; font-weight:500; text-align:center; }
-
-        .hour-row { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); font-size:0.88rem; }
-        .hour-row:last-child { border-bottom:none; }
-        .hour-row.today { color:var(--accent); font-weight:600; }
-        .hour-row.today .day-label::after { content:' (Hoy)'; font-size:0.7em; opacity:0.7; }
-
-        /* Disponibilidad de turnos */
-        .slots-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:5px; }
-        .slot { padding:8px; border-radius:10px; text-align:center; font-size:0.78rem; font-weight:600; border:1px solid var(--border); cursor:pointer; transition:0.2s; }
-        .slot.free { background:rgba(0,255,100,0.06); color:var(--green); border-color:rgba(0,255,100,0.2); }
-        .slot.free:hover { background:rgba(0,255,100,0.15); }
-        .slot.taken { background:rgba(255,50,50,0.06); color:var(--red); border-color:rgba(255,50,50,0.15); cursor:default; text-decoration:line-through; opacity:0.5; }
-        .slot.past { background:transparent; color:var(--text-dim); cursor:default; opacity:0.3; }
+        /* Slots Grid */
+        .slots-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(100px, 1fr)); gap:10px; margin-top:20px; }
+        .slot {
+            padding:12px; border-radius:14px; text-align:center; font-size:0.9rem; font-weight:700;
+            border:1px solid var(--border); background:rgba(255,255,255,0.02); cursor:pointer; transition:0.2s;
+        }
+        .slot.free { color:var(--accent); border-color:rgba(212,175,55,0.3); }
+        .slot.free:hover { background:var(--accent); color:#000; }
         .slot.selected { background:var(--accent); color:#000; border-color:var(--accent); }
-
-        /* Servicios / Precios */
-        .services-list { display:flex; flex-direction:column; gap:8px; }
-        .service-row { display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:rgba(255,255,255,0.03); border-radius:12px; border:1px solid var(--border); font-size:0.88rem; }
-        .service-price { color:var(--accent); font-weight:700; }
+        .slot.taken { opacity:0.3; cursor:not-allowed; text-decoration:line-through; }
 
         /* Reseñas */
         .reviews-list { display:flex; flex-direction:column; gap:12px; }
@@ -412,44 +405,46 @@
 
 <!-- Booking Modal -->
 <div id="bookingModal" class="booking-sheet">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-        <div>
-            <h2 id="bookingShopName" class="font-outfit" style="font-size:1.8rem; margin-bottom:4px;">Reservar Turno</h2>
-            <div style="display:flex; align-items:center; gap:6px; opacity:0.8;">
-                <div style="width:6px; height:6px; background:var(--green); border-radius:50%; animation:pulse-status 2s infinite;"></div>
-                <span style="font-size:0.6rem; font-weight:800; color:var(--green); letter-spacing:0.12em;">DISPONIBILIDAD EN TIEMPO REAL</span>
+    <button class="sheet-close" onclick="closeBookingModal()"><i data-lucide="x" size="20"></i></button>
+    <div class="sheet-body">
+        <div class="sheet-content">
+            <div style="margin-bottom:30px;">
+                <h2 id="bookingShopName" class="font-outfit" style="font-size:2rem; margin-bottom:6px; color:var(--accent);">Reservar Turno</h2>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="width:8px; height:8px; background:var(--green); border-radius:50%; box-shadow:0 0 10px var(--green);"></div>
+                    <span style="font-size:0.7rem; font-weight:800; color:var(--green); letter-spacing:0.1em; text-transform:uppercase;">Disponibilidad Real</span>
+                </div>
+            </div>
+
+            <div class="fp-section">
+                <h4>1. Elige tu Barbero</h4>
+                <div id="barberSelector" style="display:flex; gap:15px; overflow-x:auto; padding-bottom:10px; margin-bottom:10px; scrollbar-width:none;"></div>
+            </div>
+
+            <div class="fp-section">
+                <h4>2. ¿Qué servicio necesitas?</h4>
+                <div id="bookingServices" class="services-list" style="margin-bottom:10px;"></div>
+            </div>
+
+            <div class="fp-section">
+                <h4>3. Confirma tu WhatsApp</h4>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom:10px;">
+                    <input type="text" id="bookingName" placeholder="Tu nombre" style="background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:14px; padding:15px; color:#fff; outline:none; font-size:1rem;">
+                    <input type="tel" id="bookingPhone" placeholder="Tu número" style="background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:14px; padding:15px; color:#fff; outline:none; font-size:1rem;">
+                </div>
+            </div>
+
+            <div class="fp-section">
+                <h4 id="labelSlotTitle">4. Selecciona tu Horario</h4>
+                <div id="bookingSlots" class="slots-grid"></div>
+            </div>
+
+            <div style="margin-top:40px;">
+                <button id="btnConfirmBooking" class="btn btn-primary" disabled onclick="processBooking()" style="height:64px; width:100%; border-radius:20px; font-size:1.1rem; font-weight:800;">
+                    Confirmar Turno Ahora
+                </button>
             </div>
         </div>
-        <button class="fp-close" onclick="closeBookingModal()"><i data-lucide="x" size="20"></i></button>
-    </div>
-
-    <div class="fp-section">
-        <h4>1. Selecciona a tu profesional</h4>
-        <div id="barberSelector" style="display:flex; gap:14px; overflow-x:auto; padding-bottom:5px; margin-bottom:25px; scrollbar-width:none;"></div>
-    </div>
-
-    <div class="fp-section">
-        <h4>2. Servicios Disponibles</h4>
-        <div id="bookingServices" class="services-list" style="margin-bottom:30px;"></div>
-    </div>
-
-    <div class="fp-section">
-        <h4>3. Tus Datos</h4>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px;">
-            <input type="text" id="bookingName" placeholder="Tu nombre" style="background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:12px; padding:12px; color:#fff; outline:none;">
-            <input type="tel" id="bookingPhone" placeholder="WhatsApp" style="background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:12px; padding:12px; color:#fff; outline:none;">
-        </div>
-    </div>
-
-    <div class="fp-section">
-        <h4 id="labelSlotTitle">4. Selecciona tu Horario para hoy</h4>
-        <div id="bookingSlots" class="slots-grid"></div>
-    </div>
-
-    <div class="booking-confirm">
-        <button id="btnConfirmBooking" class="btn-confirm" disabled onclick="processBooking()" style="height:54px; width:100%; border-radius:18px; background:var(--accent); color:#000; font-weight:800; border:none; cursor:pointer;">
-            Confirmar Reserva
-        </button>
     </div>
 </div>
 
@@ -514,13 +509,11 @@
 </div>
 
 <!-- Detail Sheet -->
-<div class="detail-sheet" id="detailSheet" role="dialog" aria-modal="true" aria-labelledby="sheetShopName">
-    <button type="button" class="sheet-close" onclick="closeSheet()" aria-label="Cerrar">
+<div class="detail-sheet" id="detailSheet" role="dialog" aria-modal="true">
+    <button type="button" class="sheet-close" onclick="closeShopDetail()" aria-label="Cerrar">
         <i data-lucide="x" size="20"></i>
     </button>
-    <div class="sheet-body">
-        <div id="sheetContent"></div>
-    </div>
+    <div class="sheet-body" id="sheetContent"></div>
 </div>
 
 <script>
@@ -586,7 +579,10 @@ let activeFilter = 'all', activeSort = 'default';
 let minRating = 0, maxWait = 999, filterOpen = false, filterPromo = false, filterElite = false;
 
 // ─── Utils ────────────────────────────────────────────────────────────────────
-const esc = str => str == null ? '' : String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+function esc(str) {
+    if (str === null || str === undefined) return '';
+    return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m]));
+}
 const DAYS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 function getFechaHoySD() {
     const d = new Date();
@@ -731,9 +727,12 @@ function renderBookingBarbers() {
     if (!container) return;
     container.innerHTML = (shopBarberos || []).map(b => {
         const isActive = currentBookingBarber && currentBookingBarber.id === b.id;
+        const initials = b.nombre ? b.nombre.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2) : '??';
         return `
             <div class="barber-chip ${isActive ? 'active' : ''}" onclick="selectBookingBarber('${b.id}')">
-                <div class="barber-avt"><img src="${b.foto_url || ''}" style="width:100%;height:100%;object-fit:cover;"></div>
+                <div class="barber-avt">
+                    ${b.foto_url ? `<img src="${b.foto_url}" style="width:100%;height:100%;object-fit:cover;">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#222,#111);color:var(--accent);font-weight:800;">${initials}</div>`}
+                </div>
                 <span class="barber-name">${esc(b.nombre)}</span>
             </div>
         `;
@@ -752,9 +751,12 @@ function renderBookingServices() {
     container.innerHTML = svcs.map(s => {
         const isSelected = currentBookingService && currentBookingService.nombre === s.nombre;
         return `
-            <div class="service-mini ${isSelected ? 'selected' : ''}" onclick="selectBookingService('${esc(s.nombre)}')">
-                <span>${esc(s.nombre)}</span>
-                <span class="service-price-mini">RD$${Number(s.precio).toLocaleString()}</span>
+            <div class="booking-service-item ${isSelected ? 'active' : ''}" onclick="selectBookingService('${esc(s.nombre)}')">
+                <div style="display:flex; flex-direction:column;">
+                    <span style="font-weight:700; color:#fff;">${esc(s.nombre)}</span>
+                    <span style="font-size:0.75rem; opacity:0.6;">${s.duracion_min || 30} min</span>
+                </div>
+                <span style="font-weight:800; color:var(--accent);">RD$${Number(s.precio).toLocaleString()}</span>
             </div>
         `;
     }).join('');
@@ -792,7 +794,7 @@ function calculateAvailableSlots() {
     }
     
     container.innerHTML = slots.map(s => `
-        <div class="slot-pill ${s.taken ? 'disabled' : ''} ${currentBookingSlot === s.time ? 'selected' : ''}" onclick="${s.taken ? '' : `selectBookingSlot('${s.time}')`}">
+        <div class="slot ${s.taken ? 'taken' : 'free'} ${currentBookingSlot === s.time ? 'selected' : ''}" onclick="${s.taken ? '' : `selectBookingSlot('${s.time}')`}">
             ${fmt12(s.time)}
         </div>
     `).join('');
@@ -1049,14 +1051,24 @@ async function loadShops() {
                     lat: parseFloat(s.mkt_lat || s.lat || 18.4861),
                     lng: parseFloat(s.mkt_lng || s.lng || -69.9312),
                     foto_url: s.mkt_photo || s.foto_url || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800',
+                    direccion: s.mkt_address || s.direccion || 'Santo Domingo',
+                    ciudad: s.mkt_city || s.ciudad || 'Santo Domingo',
                     categoria: s.mkt_category || s.categoria || 'barberia',
                     plan: s.plan || 'free',
+                    // Normalizar servicios y staff (pueden venir de Supabase o Proxy)
+                    servicios: s.servicios || [],
+                    staff: s.staff || s.barberos || [],
                     horario: (s.horario || s.hours || [
                         {dia:'Lunes', apertura:'09:00', cierre:'20:00'}, {dia:'Martes', apertura:'09:00', cierre:'20:00'},
                         {dia:'Miércoles', apertura:'09:00', cierre:'20:00'}, {dia:'Jueves', apertura:'09:00', cierre:'20:00'},
                         {dia:'Viernes', apertura:'09:00', cierre:'21:00'}, {dia:'Sábado', apertura:'09:00', cierre:'21:00'},
                         {dia:'Domingo', apertura:'10:00', cierre:'18:00'}
-                    ])
+                    ]).map(h => ({
+                        dia: h.dia || h.day || '',
+                        apertura: h.apertura || h.open || '09:00',
+                        cierre: h.cierre || h.close || '20:00',
+                        cerrado: h.cerrado || h.closed || false
+                    }))
                 }));
                 filteredShops = [...allShops];
                 renderShops(true);
@@ -1322,15 +1334,15 @@ function openShopDetail(id) {
             </div>
         </div>
 
-        <div class="sheet-grid">
-            <div class="sheet-main">
-                <div class="action-header" style="margin-bottom:40px;">
+        <div class="sheet-content">
+            <div class="sheet-grid">
+                <div class="sheet-main">
+                <div class="action-header" style="margin-bottom:30px; background:rgba(255,255,255,0.02); padding:20px; border-radius:20px; border:1px solid var(--border);">
                     <div style="min-width:0">
-                        <h2 id="sheetShopName" class="shop-title font-outfit" style="font-size:3rem; margin-bottom:10px;">${sName}</h2>
-                        <div style="display:flex; align-items:center; gap:15px; color:var(--text-dim);">
-                            <span><i data-lucide="map-pin" size="14"></i> ${sDir}</span>
-                            <span>·</span>
-                            <span><i data-lucide="star" size="14" fill="var(--accent)" color="var(--accent)"></i> ${shop.rating ? shop.rating.toFixed(1) : '4.8'} (${shop.total_reseñas || 0} reseñas)</span>
+                        <h2 id="sheetShopName" class="shop-title font-outfit" style="font-size:2rem; margin-bottom:8px; line-height:1.2; color:var(--accent);">${sName}</h2>
+                        <div style="display:flex; flex-wrap:wrap; align-items:center; gap:15px; color:var(--text-dim); font-size:0.85rem;">
+                            <span style="display:flex; align-items:center; gap:5px;"><i data-lucide="map-pin" size="14"></i> ${sDir}</span>
+                            <span style="display:flex; align-items:center; gap:5px;"><i data-lucide="star" size="14" fill="var(--accent)" color="var(--accent)"></i> ${shop.rating ? shop.rating.toFixed(1) : '4.8'} (${shop.total_reseñas || 0} reseñas)</span>
                         </div>
                     </div>
                 </div>
