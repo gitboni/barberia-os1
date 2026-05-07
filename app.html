@@ -1061,7 +1061,6 @@
 
         async function loadInitialData() {
             try {
-                console.log("Cargando datos iniciales para:", user?.nombre || "Invitado");
                 
                 // 1. Cargar Mis Negocios (si está logueado)
                 if (user) {
@@ -1072,7 +1071,6 @@
                     } else {
                         const { data: myLinks } = await sb.from('cliente_shops').select('shop_id').eq('usuario_id', user.id);
                         const myIds = myLinks?.map(l => l.shop_id) || [];
-                        console.log("IDs de mis shops:", myIds);
                         
                         if (myIds.length > 0) {
                             const { data: myShops } = await sb.from('shops').select('*').in('id', myIds).order('nombre');                            shops = myShops || [];
@@ -1084,7 +1082,6 @@
                     shops = [];
                 }
                 
-                console.log("Shops cargadas:", shops.length);
                 renderShops(); // async — no necesita await, carga en background
 
                 // 2. Cargar Próxima Cita
@@ -1108,6 +1105,8 @@
                 }
                 renderHomeQueue(); // cola en tiempo real en home
                 renderRepeatService(); // tarjeta repetir último servicio
+                verificarCalificacionPendiente(); // ¿hay servicio por calificar?
+                verificarCitaVIP(); // ¿tiene turno habitual hoy?
             } catch (e) {
                 console.error("Error loading data:", e);
             }
@@ -1187,7 +1186,10 @@
                         </div>
                         ${proximoFmt ? `<div class="shop-next">Próximo: ${proximoFmt}</div>` : ''}
                     </div>
-                    <button class="btn-reserve-sm">Reservar</button>
+                    <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+                        <button class="btn-reserve-sm" onclick="event.stopPropagation();startBooking('${s.id}')">Reservar</button>
+                        ${s.direccion ? `<button onclick="event.stopPropagation();abrirMapa('${encodeURIComponent(s.direccion)}','${encodeURIComponent(s.nombre)}')" style="font-size:0.65rem;color:var(--text-dim);background:none;border:none;cursor:pointer;padding:0;">📍 Mapa</button>` : ''}
+                    </div>
                 </div>`;
             }).join('');
         }
@@ -1673,28 +1675,29 @@
             return { citas: citas||[], durMap };
         }
 
+        function normTel(t) { return (t||'').replace(/\D/g,'').replace(/^1?(\d{10})$/,'$1'); }
+
         function calcQueueStats(citas, durMap, durDefault, userTel, userId) {
-            let curMins = 0;
-            const now = new Date();
-            const nowMins = now.getHours()*60 + now.getMinutes();
+            const nowMins = new Date().getHours()*60 + new Date().getMinutes();
             const items = [];
             let userIdx = -1;
+            const myTelN = normTel(userTel);
             citas.forEach((c, i) => {
                 const [h,m] = c.hora.split(':').map(Number);
                 const startMins = h*60+m;
                 const dur = durMap[c.servicio?.toLowerCase().trim()] ?? durDefault;
                 const isYou = (userId && c.usuario_id === userId) ||
-                              (userTel && c.telefono && c.telefono.replace(/\D/g,'') === userTel.replace(/\D/g,''));
+                              (myTelN && myTelN.length >= 7 && normTel(c.telefono) === myTelN);
                 if (isYou) userIdx = i;
                 items.push({ ...c, startMins, dur, isYou, estEnd: startMins + dur });
             });
+            // If user not found but there's 1 cita, treat it as theirs for display
+            if (userIdx === -1 && items.length === 1) userIdx = 0;
             const aheadCount = userIdx > 0 ? userIdx : 0;
             const waitMins = userIdx > 0
-                ? items.slice(0, userIdx).reduce((s,c) => s + c.dur, 0)
-                : 0;
+                ? items.slice(0, userIdx).reduce((s,c) => s + c.dur, 0) : 0;
             const totalDur = items.reduce((s,c) => s+c.dur, 0);
-            const completadas = citas.filter(c=>c.estado==='Completada').length;
-            return { items, userIdx, aheadCount, waitMins, totalDur, completadas };
+            return { items, userIdx, aheadCount, waitMins, totalDur };
         }
 
         // ── Home queue card ───────────────────────────────────────────────
@@ -1702,37 +1705,80 @@
             if (!user) return;
             const tz  = 'America/Santo_Domingo';
             const hoy = new Date().toLocaleDateString('en-CA', { timeZone: tz });
-            // Find user's cita today
+            const container = document.getElementById('realtimeQueueContainer');
+            const card = document.getElementById('queueHomeCard');
+
+            // Buscar cita del usuario hoy
             const { data: miCita } = await sb.from('citas')
-                .select('hora,servicio,barbero,shop_id,telefono,usuario_id,shops(nombre,duracion_turno)')
+                .select('hora,servicio,barbero,shop_id,telefono,usuario_id,shops(nombre,duracion_turno,icono)')
                 .or(`usuario_id.eq.${user.id},telefono.eq.${user.telefono||'__'}`)
                 .eq('fecha', hoy).in('estado',['Confirmada','En curso'])
                 .order('hora').limit(1);
 
-            const container = document.getElementById('realtimeQueueContainer');
-            const card = document.getElementById('queueHomeCard');
+            // Si no tiene cita propia pero tiene shops guardados, mostrar la cola del primer shop activo
+            let sourceShop = null;
+            let miCitaData = miCita?.[0] || null;
+            let barberoFiltro = miCitaData?.barbero || null;
 
-            if (!miCita || !miCita.length) { container.classList.add('hidden'); return; }
-            const c = miCita[0];
-            const shopName = c.shops?.nombre || '';
-            const durDefault = c.shops?.duracion_turno || 30;
+            if (!miCitaData && shops.length) {
+                sourceShop = shops[0];
+                barberoFiltro = null; // Sin cita propia → mostrar cola completa del shop
+            } else if (miCitaData) {
+                sourceShop = { id: miCitaData.shop_id, nombre: miCitaData.shops?.nombre, duracion_turno: miCitaData.shops?.duracion_turno, icono: miCitaData.shops?.icono };
+            }
 
-            const { citas, durMap } = await getQueueData(c.shop_id, c.barbero, hoy);
+            if (!sourceShop) { container.classList.add('hidden'); return; }
+
+            const shopName = sourceShop.nombre || '';
+            const durDefault = sourceShop.duracion_turno || 30;
+
+            // Si tiene cita: filtrar solo por su barbero. Si no: toda la cola del shop
+            let qCitas = sb.from('citas')
+                .select('id,nombre,hora,servicio,estado,usuario_id,telefono')
+                .eq('shop_id', sourceShop.id).eq('fecha', hoy)
+                .in('estado',['Confirmada','En curso'])
+                .order('hora');
+            if (barberoFiltro) qCitas = qCitas.eq('barbero', barberoFiltro);
+            const { data: citasRaw } = await qCitas;
+
+            const { data: svcs } = await sb.from('servicios').select('nombre,duracion_min').eq('shop_id', sourceShop.id).eq('activo', true);
+            const durMap = {};
+            (svcs||[]).forEach(s => durMap[s.nombre.toLowerCase().trim()] = s.duracion_min);
+
+            const citas = citasRaw || [];
+            if (!citas.length && !miCitaData) { container.classList.add('hidden'); return; }
+
             const { items, userIdx, aheadCount, waitMins } = calcQueueStats(citas, durMap, durDefault, user.telefono, user.id);
 
-            const listHtml = items.slice(0,5).map((item,i) => {
-                const label = item.isYou ? '<span class="qhc-you">Tú</span>' : `Cliente ${i+1}`;
+            const listHtml = items.slice(0,5).map((item, i) => {
+                const isYou = item.isYou;
+                const label = isYou ? '<span class="qhc-you">Tú</span>' : `Cliente ${i+1}`;
                 return `<div class="qhc-row"><span>${label}</span><span style="color:var(--text-dim)">${fmt12q(item.hora)}</span></div>`;
             }).join('');
+
+            const hayDisponible = citas.length === 0;
+            const statusBadge = hayDisponible
+                ? `<span style="font-size:0.72rem;font-weight:900;color:#2ECC71;">● Disponible</span>`
+                : `<span class="live-badge"><span class="live-dot"></span> LIVE</span>`;
+
+            const posInfo = userIdx >= 0
+                ? `Tu turno <b>#${userIdx+1}</b> de ${items.length} en cola`
+                : `${items.length} cliente(s) en cola`;
+
+            const waitInfo = userIdx > 0
+                ? `⏱ Faltan ~${waitMins} min`
+                : userIdx === 0
+                    ? `<span style="color:#2ECC71">🟢 ¡Eres el próximo!</span>`
+                    : hayDisponible ? `<span style="color:#2ECC71">🟢 Sin espera ahora</span>` : '';
 
             card.innerHTML = `<div class="queue-home-card">
                 <div class="qhc-header">
                     <span class="qhc-shop">${shopName}</span>
-                    <span class="live-badge"><span class="live-dot"></span> LIVE</span>
+                    ${statusBadge}
                 </div>
-                <div class="qhc-position">Tu turno <b>#${userIdx+1}</b> de ${items.length} en cola</div>
-                ${waitMins > 0 ? `<div class="qhc-wait">⏱ Faltan ~${waitMins} min</div>` : `<div class="qhc-wait" style="color:#2ECC71">🟢 ¡Eres el próximo!</div>`}
-                <div style="margin-top:10px;">${listHtml}</div>
+                ${userIdx >= 0 ? `<div class="qhc-position">${posInfo}</div>` : ''}
+                ${waitInfo ? `<div class="qhc-wait">${waitInfo}</div>` : ''}
+                <div style="margin-top:${items.length?'10px':'0'};">${listHtml}</div>
                 <button onclick="showTab('turno', document.getElementById('nav-turno'))" style="width:100%;margin-top:12px;padding:10px;border-radius:12px;background:var(--accent-soft);border:1px solid rgba(212,175,55,0.3);color:var(--accent);font-weight:900;font-size:0.82rem;cursor:pointer;">Ver cola completa →</button>
             </div>`;
             container.classList.remove('hidden');
@@ -1745,6 +1791,7 @@
         async function openMiTurno() {
             document.getElementById('miTurnoScreen').classList.add('active');
             await renderMiTurno();
+            startCountdownInterval();
             // Realtime subscription
             if (_queueRealtimeCh) sb.removeChannel(_queueRealtimeCh);
             _queueRealtimeCh = sb.channel('queue-live')
@@ -2220,6 +2267,156 @@
             );
             toast('✂️ ¡Tu turno es el próximo! Ve preparándote.', 'success', 10000);
             _notifyAt = null;
+        }
+
+        // ── Mapa ─────────────────────────────────────────────────────────
+        function abrirMapa(direccionEnc, nombreEnc) {
+            const dir = decodeURIComponent(direccionEnc);
+            const nom = decodeURIComponent(nombreEnc);
+            const query = encodeURIComponent(`${nom}, ${dir}`);
+            // iOS → Apple Maps, resto → Google Maps
+            const isIosDevice = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const url = isIosDevice
+                ? `https://maps.apple.com/?q=${query}`
+                : `https://www.google.com/maps/search/?api=1&query=${query}`;
+            window.open(url, '_blank');
+        }
+
+        // ── Calificar servicio ────────────────────────────────────────────
+        let _citaCalificar = null;
+
+        async function verificarCalificacionPendiente() {
+            if (!user) return;
+            try {
+                const tz = 'America/Santo_Domingo';
+                const hoy = new Date().toLocaleDateString('en-CA', { timeZone: tz });
+                const ayer = new Date(new Date(hoy+'T12:00:00').getTime() - 86400000).toLocaleDateString('en-CA');
+
+                // Buscar citas completadas sin calificar (hoy o ayer)
+                const { data: completadas } = await sb.from('citas')
+                    .select('id,servicio,barbero,hora,fecha,shop_id,shops(nombre)')
+                    .or(`usuario_id.eq.${user.id},telefono.eq.${user.telefono||'__'}`)
+                    .eq('estado','Completada')
+                    .gte('fecha', ayer)
+                    .order('fecha', { ascending: false })
+                    .limit(3);
+
+                if (!completadas?.length) return;
+
+                // Verificar cuáles no tienen calificación
+                for (const c of completadas) {
+                    const { data: yaCalif } = await sb.from('calificaciones')
+                        .select('id').eq('cita_id', c.id).limit(1);
+                    if (!yaCalif?.length) {
+                        _citaCalificar = c;
+                        mostrarModalCalificacion(c);
+                        break;
+                    }
+                }
+            } catch(_) {}
+        }
+
+        function mostrarModalCalificacion(cita) {
+            const shopName = cita.shops?.nombre || '';
+            const modal = document.createElement('div');
+            modal.className = 'modal active';
+            modal.id = 'califModal';
+            modal.innerHTML = `
+            <div class="modal-content" style="text-align:center;">
+                <div class="modal-handle"></div>
+                <div style="font-size:2rem;margin-bottom:8px;">⭐</div>
+                <h2 class="step-title" style="margin-bottom:4px;">¿Cómo fue tu servicio?</h2>
+                <p style="color:var(--text-dim);font-size:0.82rem;margin-bottom:6px;">${cita.servicio} con ${cita.barbero}</p>
+                <p style="color:var(--text-dim);font-size:0.75rem;margin-bottom:20px;">${shopName}</p>
+                <div id="stars" style="display:flex;gap:12px;justify-content:center;margin-bottom:20px;">
+                    ${[1,2,3,4,5].map(n => `<span onclick="selectStar(${n})" data-star="${n}" style="font-size:2.2rem;cursor:pointer;opacity:0.3;transition:all 0.15s;">★</span>`).join('')}
+                </div>
+                <textarea id="califComment" placeholder="Comentario opcional..." style="width:100%;padding:12px;border-radius:12px;background:var(--glass);border:1px solid var(--glass-border);color:var(--text);font-size:0.85rem;resize:none;height:80px;box-sizing:border-box;margin-bottom:16px;"></textarea>
+                <button class="btn-agendar" id="btnEnviarCalif" onclick="enviarCalificacion()" style="margin-bottom:10px;">Enviar calificación</button>
+                <button onclick="document.getElementById('califModal').remove()" style="width:100%;padding:10px;background:none;border:none;color:var(--text-dim);font-size:0.82rem;cursor:pointer;">Ahora no</button>
+            </div>`;
+            document.body.appendChild(modal);
+            modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+        }
+
+        let _starSelected = 0;
+        function selectStar(n) {
+            _starSelected = n;
+            document.querySelectorAll('#stars span').forEach((s, i) => {
+                s.style.opacity = i < n ? '1' : '0.3';
+                s.style.transform = i < n ? 'scale(1.15)' : 'scale(1)';
+                s.style.color = i < n ? 'var(--accent)' : 'var(--text-dim)';
+            });
+        }
+
+        async function enviarCalificacion() {
+            if (!_starSelected) { toast('Selecciona una puntuación', 'info'); return; }
+            const btn = document.getElementById('btnEnviarCalif');
+            btn.disabled = true; btn.textContent = 'Enviando...';
+            const comentario = document.getElementById('califComment')?.value?.trim() || '';
+            try {
+                await sb.from('calificaciones').insert({
+                    cita_id: _citaCalificar.id,
+                    usuario_id: user.id,
+                    barbero_id: null, // barbero_id no lo tenemos directo desde citas
+                    shop_id: _citaCalificar.shop_id,
+                    puntuacion: _starSelected,
+                    comentario: comentario || null
+                });
+                document.getElementById('califModal')?.remove();
+                toast('¡Gracias por tu calificación! ⭐', 'success', 4000);
+                _starSelected = 0; _citaCalificar = null;
+            } catch(e) {
+                toast('Error al enviar. Intenta de nuevo.', 'error');
+                btn.disabled = false; btn.textContent = 'Enviar calificación';
+            }
+        }
+
+        // ── VIP / Citas preferenciales ────────────────────────────────────
+        async function verificarCitaVIP() {
+            if (!user) return;
+            try {
+                const tz = 'America/Santo_Domingo';
+                const ahoraLocal = new Date(new Date().toLocaleString('en-US', { timeZone: tz }));
+                const dow = ahoraLocal.getDay(); // 0=Dom, 1=Lun...
+                const hoy = ahoraLocal.toLocaleDateString('en-CA');
+                const telN = normTel(user.telefono);
+
+                // Buscar slot preferencial activo para hoy
+                const { data: prefs } = await sb.from('clientes_preferenciales')
+                    .select('*, shops(nombre,icono)')
+                    .eq('dia_semana', dow)
+                    .eq('activo', true)
+                    .or(`telefono.eq.${user.telefono||'__'},telefono.eq.${telN}`);
+
+                if (!prefs?.length) return;
+
+                // Verificar que no haya reservado ya ese slot
+                for (const p of prefs) {
+                    const { data: yaReservo } = await sb.from('citas')
+                        .select('id').eq('shop_id', p.shop_id).eq('fecha', hoy)
+                        .or(`usuario_id.eq.${user.id},telefono.eq.${user.telefono||'__'}`)
+                        .limit(1);
+                    if (yaReservo?.length) continue;
+
+                    // Mostrar sugerencia VIP
+                    const shopName = p.shops?.nombre || '';
+                    const horaFmt = fmt12(p.hora?.substring(0,5) || '');
+                    toast(`⭐ Tu turno habitual de hoy: ${p.servicio} a las ${horaFmt} en ${shopName}. ¡Resérvalo con un toque!`, 'info', 8000);
+                    break;
+                }
+            } catch(_) {}
+        }
+
+        // ── Countdown interval para Mi Turno ──────────────────────────────
+        let _countdownInterval = null;
+        function startCountdownInterval() {
+            clearInterval(_countdownInterval);
+            _countdownInterval = setInterval(() => {
+                const screen = document.getElementById('miTurnoScreen');
+                if (screen?.classList.contains('active')) renderMiTurno();
+                else clearInterval(_countdownInterval);
+            }, 30000);
         }
 
         function stopScanner() {
