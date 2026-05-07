@@ -2258,64 +2258,71 @@
         }
 
         async function scheduleNotificaciones(cita, shop) {
-            // Limpiar timers anteriores
             _timers.forEach(clearTimeout);
             _timers.length = 0;
 
             if (!('Notification' in window)) return;
 
-            // Pedir permiso la primera vez (no bloqueante)
+            // Pedir permiso si hace falta — y reintentar al aceptar
             if (Notification.permission === 'default') {
-                Notification.requestPermission(); // no await — no bloqueamos el flujo
-                return; // volver a llamar cuando el usuario acepte
+                Notification.requestPermission().then(result => {
+                    if (result === 'granted') scheduleNotificaciones(cita, shop);
+                });
+                return;
             }
             if (Notification.permission !== 'granted') return;
 
-            const tz        = shop.timezone || 'America/Santo_Domingo';
+            const tz         = shop.timezone || 'America/Santo_Domingo';
             const ahoraLocal = new Date(new Date().toLocaleString('en-US', { timeZone: tz }));
             const hoyFecha   = ahoraLocal.toLocaleDateString('en-CA');
             const nowMins    = ahoraLocal.getHours() * 60 + ahoraLocal.getMinutes();
 
-            // Solo si la cita es HOY
+            // Solo citas de HOY
             if (cita.fecha !== hoyFecha) return;
 
-            const [ch, cm]  = (cita.hora || '0:0').split(':').map(Number);
-            const citaMins  = ch * 60 + cm;
-            const horaFmt   = fmt12((cita.hora || '').substring(0, 5));
-            const nombre    = user?.nombre?.split(' ')[0] || cita.nombre || 'Cliente';
-            const barbero   = cita.barbero || '';
-            const shopName  = shop.nombre || '';
-            const tpl       = shop.recordatorio_msg || null;
-            const citaId    = cita.id || (cita.hora + cita.fecha); // fallback key
+            const [ch, cm] = (cita.hora || '0:0').split(':').map(Number);
+            const citaMins = ch * 60 + cm;
 
-            // Tiempos configurados en el shop (mismos que usa el bot)
-            const t1 = shop.recordatorio_tiempo_1 ?? 60;  // default 1h
-            const t2 = shop.recordatorio_tiempo_2 ?? 20;  // default 20min
+            // Si la cita ya pasó, no hacer nada
+            if (citaMins <= nowMins) return;
 
-            // ── RECORDATORIO T1 (1 hora antes por defecto) ────────────────
-            const msT1 = ((citaMins - t1) - nowMins) * 60 * 1000;
-            if (msT1 > 0 && !yaNotificado(citaId, `rec_${t1}min`)) {
-                const timer1 = setTimeout(async () => {
-                    if (yaNotificado(citaId, `rec_${t1}min`)) return;
-                    marcarNotificado(citaId, `rec_${t1}min`);
-                    const msg = buildMsgPWA(tpl, nombre, barbero, shopName, horaFmt, t1);
-                    await mostrarNotificacion(`⏰ Tu turno en ${shopName}`, msg, `rec-t1-${citaId}`);
-                    toast(`⏰ Tu cita en ${shopName} es en ${t1} min`, 'info', 8000);
-                }, msT1);
-                _timers.push(timer1);
-            }
+            const horaFmt  = fmt12((cita.hora || '').substring(0, 5));
+            const nombre   = user?.nombre?.split(' ')[0] || cita.nombre || 'Cliente';
+            const barbero  = cita.barbero || '';
+            const shopName = shop.nombre || '';
+            const citaId   = String(cita.id || (cita.hora + cita.fecha));
 
-            // ── RECORDATORIO T2 (20 minutos antes por defecto) ────────────
-            const msT2 = ((citaMins - t2) - nowMins) * 60 * 1000;
-            if (msT2 > 0 && !yaNotificado(citaId, `rec_${t2}min`)) {
-                const timer2 = setTimeout(async () => {
-                    if (yaNotificado(citaId, `rec_${t2}min`)) return;
-                    marcarNotificado(citaId, `rec_${t2}min`);
-                    const msg = buildMsgPWA(tpl, nombre, barbero, shopName, horaFmt, t2);
-                    await mostrarNotificacion(`⚡ ¡Ve saliendo! Tu turno en ${shopName}`, msg, `rec-t2-${citaId}`);
-                    toast(`⚡ ¡Ve saliendo! Tu turno es en ${t2} minutos`, 'info', 10000);
-                }, msT2);
-                _timers.push(timer2);
+            // Tiempos FIJOS: 1 hora y 20 minutos (independiente de config del shop)
+            const recordatorios = [
+                {
+                    mins: 60,
+                    key: 'rec_60min',
+                    titulo: `⏰ Tu cita es en 1 hora`,
+                    cuerpo: `${nombre}, recuerda tu cita con ${barbero} a las ${horaFmt} en ${shopName}. ¡Prepárate para salir! 🚶`,
+                    toastMsg: `⏰ Tu cita en ${shopName} es en 1 hora (${horaFmt})`
+                },
+                {
+                    mins: 20,
+                    key: 'rec_20min',
+                    titulo: `⚡ ¡Ve saliendo ya!`,
+                    cuerpo: `${nombre}, tu turno con ${barbero} en ${shopName} comienza en 20 minutos. ¡Es hora de salir! 🏃`,
+                    toastMsg: `⚡ ¡Ve saliendo! Tu turno con ${barbero} es en 20 minutos`
+                }
+            ];
+
+            for (const r of recordatorios) {
+                const minsFaltantes = (citaMins - r.mins) - nowMins;
+                // Programar solo si faltan más de 1 minuto para disparar y no se ha enviado antes
+                if (minsFaltantes > 1 && !yaNotificado(citaId, r.key)) {
+                    const ms = minsFaltantes * 60 * 1000;
+                    const timer = setTimeout(async () => {
+                        if (yaNotificado(citaId, r.key)) return;
+                        marcarNotificado(citaId, r.key);
+                        await mostrarNotificacion(r.titulo, r.cuerpo, `${r.key}-${citaId}`);
+                        toast(r.toastMsg, 'info', 10000);
+                    }, ms);
+                    _timers.push(timer);
+                }
             }
         }
 
