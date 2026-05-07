@@ -1338,24 +1338,91 @@
         }
 
         async function selectService(id) {
-            // Re-fetch para tener el objeto completo
             const { data } = await sb.from('servicios').select('*').eq('id', id).single();
             selectedService = data;
-            
-            // Cargar Barberos
-            const { data: barbs } = await sb.from('barberos').select('*').eq('shop_id', selectedShop.id).eq('activo', true);
+
             const container = document.getElementById('barberOptions');
-            container.innerHTML = barbs.map(b => `
-                <div class="option-item" onclick="selectBarber('${b.id}')">
-                    <div style="display:flex; align-items:center; gap:12px;">
-                        <div style="width:40px; height:40px; border-radius:50%; background:var(--accent-soft); display:flex; align-items:center; justify-content:center; color:var(--accent); font-weight:900;">${b.nombre.charAt(0)}</div>
-                        <div style="font-weight:800;">${DOMPurify.sanitize(b.nombre)}</div>
+            container.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-dim);font-size:0.82rem;">Buscando disponibilidad...</div>`;
+            goToStep('barber');
+
+            // Cargar barberos + próximo slot de cada uno en paralelo
+            const tz = selectedShop?.timezone || 'America/Santo_Domingo';
+            const ahoraLocal = new Date(new Date().toLocaleString('en-US', { timeZone: tz }));
+            const hoy = ahoraLocal.toLocaleDateString('en-CA');
+            const nowMins = ahoraLocal.getHours() * 60 + ahoraLocal.getMinutes();
+            const durSvc = selectedService?.duracion_min || selectedShop?.duracion_turno || 30;
+
+            const { data: barbs } = await sb.from('barberos')
+                .select('*').eq('shop_id', selectedShop.id).eq('activo', true).order('orden');
+
+            // Calcular próximo slot de cada barbero en paralelo
+            const barberSlots = await Promise.all((barbs || []).map(async b => {
+                try {
+                    const slot = await calcularProximoSlotPWA(b.id, b.nombre, hoy, nowMins, durSvc);
+                    return { ...b, proximoSlot: slot };
+                } catch(_) {
+                    return { ...b, proximoSlot: null };
+                }
+            }));
+
+            container.innerHTML = barberSlots.map(b => {
+                const slotFmt = b.proximoSlot ? fmt12(b.proximoSlot) : null;
+                const slotColor = slotFmt ? 'var(--accent)' : '#E74C3C';
+                const slotLabel = slotFmt
+                    ? `<span style="font-size:0.8rem;font-weight:900;color:${slotColor};">⏱ ${slotFmt}</span>`
+                    : `<span style="font-size:0.75rem;color:#E74C3C;">Sin disponibilidad hoy</span>`;
+                const disabled = !slotFmt ? 'opacity:0.5;pointer-events:none;' : '';
+
+                return `
+                <div class="option-item" onclick="selectBarber('${b.id}')" style="${disabled}">
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <div style="width:44px;height:44px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;color:var(--accent);font-weight:900;font-size:1.1rem;flex-shrink:0;">${b.nombre.charAt(0).toUpperCase()}</div>
+                        <div>
+                            <div style="font-weight:800;font-size:1rem;">${DOMPurify.sanitize(b.nombre)}</div>
+                            ${slotLabel}
+                        </div>
                     </div>
                     <i data-lucide="chevron-right" color="var(--accent)"></i>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
             lucide.createIcons();
-            goToStep('barber');
+        }
+
+        // Calcula el próximo slot libre de un barbero (versión cliente, usa lógica igual al bot)
+        async function calcularProximoSlotPWA(barberoId, barberoNombre, fecha, desdeMinutos, durNuevo) {
+            const { ini, fin } = resolverHorarioDia(selectedShop, fecha);
+            const durDefault = selectedShop?.duracion_turno || 30;
+
+            const [{ data: citas }, { data: svcs }, { data: bloqueos }] = await Promise.all([
+                sb.from('citas').select('hora,servicio').eq('shop_id', selectedShop.id)
+                  .eq('barbero_id', barberoId).eq('fecha', fecha).eq('estado','Confirmada'),
+                sb.from('servicios').select('nombre,duracion_min').eq('shop_id', selectedShop.id).eq('activo', true),
+                sb.from('horarios_bloqueados').select('hora_inicio,hora_fin').eq('barbero_id', barberoId).eq('fecha', fecha)
+            ]);
+
+            const durMap = {};
+            (svcs||[]).forEach(s => durMap[s.nombre.toLowerCase().trim()] = s.duracion_min);
+
+            const bloques = [];
+            (citas||[]).forEach(c => {
+                const [h,m] = c.hora.split(':').map(Number);
+                const d = durMap[c.servicio?.toLowerCase().trim()] ?? durDefault;
+                bloques.push({ ini: h*60+m, fin: h*60+m+d });
+            });
+            (bloqueos||[]).forEach(b => {
+                const [bh,bm] = b.hora_inicio.split(':').map(Number);
+                const [fh,fm] = b.hora_fin.split(':').map(Number);
+                bloques.push({ ini: bh*60+bm, fin: fh*60+fm });
+            });
+            bloques.sort((a,b) => a.ini - b.ini);
+
+            let t = Math.max(ini, desdeMinutos + 3);
+            while (t + durNuevo <= fin) {
+                const choca = bloques.find(b => t < b.fin-0.5 && t+durNuevo > b.ini+0.5);
+                if (!choca) return `${String(Math.floor(t/60)).padStart(2,'0')}:${String(t%60).padStart(2,'0')}`;
+                t = Math.ceil(choca.fin/5)*5;
+            }
+            return null;
         }
 
         async function selectBarber(id) {
