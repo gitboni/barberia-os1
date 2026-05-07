@@ -22,8 +22,8 @@
   --green:#2ECC71;--green-s:rgba(46,204,113,.15);
   --red:#E74C3C;--red-s:rgba(231,76,60,.1);
   --glass:rgba(255,255,255,.05);--border:rgba(255,255,255,.1);
-  --safe-top:env(safe-area-inset-top,20px);
-  --safe-bottom:env(safe-area-inset-bottom,20px);
+  --safe-top: env(safe-area-inset-top, 44px);
+  --safe-bottom: env(safe-area-inset-bottom, 34px);
   --r:16px;--r-lg:22px;--r-xl:28px;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;font-family:'Inter',sans-serif}
@@ -33,7 +33,7 @@ h1,h2,h3,.outfit{font-family:'Outfit',sans-serif}
 /* ── Screen Management ── */
 .screen{display:none;position:fixed;inset:0;overflow-y:auto;background:var(--bg);z-index:10;padding:calc(var(--safe-top)+16px) 20px calc(var(--safe-bottom)+80px)}
 .screen.active{display:block}
-#loginScreen{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:40px 24px;min-height:100vh;background:radial-gradient(ellipse at top,#1a1506 0%,#000 70%);z-index:100}
+#loginScreen{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:calc(var(--safe-top) + 20px) 24px calc(var(--safe-bottom) + 20px);min-height:100vh;background:radial-gradient(ellipse at top,#1a1506 0%,#000 70%);z-index:100}
 #loginScreen.hidden{display:none}
 
 /* ── Aurora BG ── */
