@@ -250,7 +250,6 @@ input:checked+.slider:before{transform:translateX(22px)}
       </div>
     </div>
     <div class="barb-header-btns">
-      <div class="icon-btn" onclick="showScreen('monitorScreen')" title="Monitor">👁</div>
       <div class="icon-btn" onclick="showScreen('statsScreen')" title="Estadísticas">📊</div>
     </div>
   </div>
@@ -540,7 +539,7 @@ input:checked+.slider:before{transform:translateX(22px)}
 <!-- Bottom Nav -->
 <nav class="bottom-nav" id="bottomNav" style="display:none;">
   <div class="nav-btn active" id="nav-home" onclick="showScreen('homeScreen',this)"><i data-lucide="home" size="20"></i><span>Inicio</span></div>
-  <div class="nav-btn" id="nav-monitor" onclick="showScreen('monitorScreen',this)"><i data-lucide="monitor" size="20"></i><span>Monitor</span></div>
+  <div class="nav-btn" id="nav-monitor" onclick="showScreen('monitorScreen',this)" style="display:none"><i data-lucide="monitor" size="20"></i><span>Monitor</span></div>
   <div class="nav-btn" id="nav-stats" onclick="showScreen('statsScreen',this)"><i data-lucide="bar-chart-2" size="20"></i><span>Stats</span></div>
   <div class="nav-btn" id="nav-vip" onclick="showScreen('vipScreen',this)"><i data-lucide="star" size="20"></i><span>VIP</span></div>
   <div class="nav-btn" id="nav-perfil" onclick="showScreen('perfilScreen',this)"><i data-lucide="user" size="20"></i><span>Perfil</span></div>
