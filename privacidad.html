@@ -30,24 +30,33 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;font-family:'Inter',sans-serif}
 body{background:#050505;color:var(--text);overflow:hidden;user-select:none}
 h1,h2,h3,.outfit{font-family:'Outfit',sans-serif}
-/* Screen — fijo, scroll interno, respeta nav + safe area */
+/* Screen — el contenedor de cada pantalla */
 .screen{
-  display:none;position:fixed;
-  top:0;left:0;right:0;bottom:0;
-  overflow-y:auto;-webkit-overflow-scrolling:touch;
-  background:var(--bg);z-index:10;
-  /* padding top: notch + espacio; bottom: nav + safe area de casa (home indicator) */
-  padding-top:calc(env(safe-area-inset-top,0px) + 14px);
-  padding-left:16px;
-  padding-right:16px;
-  padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 16px);
+  display:none;
+  position:fixed;
+  /* Delimitamos el área de cada pantalla explícitamente:
+     top: debajo de la notch/status bar
+     bottom: justo encima del nav + home indicator
+     Así iOS sabe exactamente dónde termina el scroll y no flota el header */
+  top:0;
+  left:0;
+  right:0;
+  bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));
+  overflow-y:scroll;              /* scroll en lugar de auto — más estable en iOS */
+  -webkit-overflow-scrolling:touch;
+  background:var(--bg);
+  z-index:10;
+  padding:calc(env(safe-area-inset-top,0px) + 14px) 16px 20px;
+  /* will-change evita que iOS re-composite el header como capa flotante */
+  will-change:scroll-position;
 }
 .screen.active{display:block}
-#monitorScreen{padding:0 !important}
-/* Monitor: altura = viewport - nav - safe area */
+#monitorScreen{padding:0 !important; bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));}
+/* Monitor: ocupa todo el screen que ya tiene el bottom correcto */
 .scr-mon{
-  height:calc(100dvh - var(--nav-h) - env(safe-area-inset-bottom,0px));
-  overflow-y:auto;-webkit-overflow-scrolling:touch;
+  height:100%;
+  overflow-y:scroll;
+  -webkit-overflow-scrolling:touch;
 }
 #loginScreen{
   display:flex;flex-direction:column;justify-content:center;align-items:center;
@@ -238,8 +247,9 @@ input:checked+.slider:before{transform:translateX(21px)}
 /* Tablet */
 @media(min-width:480px){.screen{padding-left:20px !important;padding-right:20px !important}:root{--nav-h:62px}.silla-card{margin:10px 20px}}
 @media(min-width:600px){
-  .screen{max-width:600px;left:50% !important;right:auto !important;transform:translateX(-50%)}
+  .screen{max-width:600px;left:50% !important;right:auto !important;transform:translateX(-50%);width:600px}
   .modal-box{max-width:600px;margin:0 auto}
+  #monitorScreen{max-width:600px;left:50% !important;right:auto !important;transform:translateX(-50%);width:600px}
 }
 </style>
 
