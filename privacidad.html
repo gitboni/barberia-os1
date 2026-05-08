@@ -28,43 +28,61 @@
   --nav-h:58px;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;font-family:'Inter',sans-serif}
-body{background:#050505;color:var(--text);overflow:hidden;user-select:none}
+/* ══ LAYOUT RAÍZ — flex column ocupa todo el viewport ══
+   iOS PWA: position:fixed en screens causa el header flotante.
+   La solución es un contenedor flex donde el nav es flujo normal. */
+html{
+  height: -webkit-fill-available; /* iOS PWA fallback */
+}
+body{
+  background:#050505;color:var(--text);
+  overflow:hidden;user-select:none;
+  /* Usar fill-available en iOS antes de dvh */
+  height:100vh;
+  height:-webkit-fill-available;
+  height:100dvh;
+}
+#app{
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+  height:-webkit-fill-available;
+  height:100dvh;
+  overflow:hidden;
+  background:var(--bg);
+}
 h1,h2,h3,.outfit{font-family:'Outfit',sans-serif}
-/* Screen — el contenedor de cada pantalla */
+
+/* ══ SCREENS — flex children, scroll interno, SIN position:fixed ══ */
 .screen{
   display:none;
-  position:fixed;
-  /* Delimitamos el área de cada pantalla explícitamente:
-     top: debajo de la notch/status bar
-     bottom: justo encima del nav + home indicator
-     Así iOS sabe exactamente dónde termina el scroll y no flota el header */
-  top:0;
-  left:0;
-  right:0;
-  bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));
-  overflow-y:scroll;              /* scroll en lugar de auto — más estable en iOS */
+  flex:1;
+  min-height:0; /* crítico en Safari: permite que flex child tenga overflow */
+  overflow-y:scroll;
   -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
   background:var(--bg);
-  z-index:10;
   padding:calc(env(safe-area-inset-top,0px) + 14px) 16px 20px;
-  /* will-change evita que iOS re-composite el header como capa flotante */
-  will-change:scroll-position;
 }
 .screen.active{display:block}
-#monitorScreen{padding:0 !important; bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));}
-/* Monitor: ocupa todo el screen que ya tiene el bottom correcto */
+
+/* Monitor no tiene padding propio */
+#monitorScreen{padding:0 !important}
 .scr-mon{
   height:100%;
   overflow-y:scroll;
   -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
 }
+
+/* Login — overlay encima del app, posición absoluta */
 #loginScreen{
-  display:flex;flex-direction:column;justify-content:center;align-items:center;
-  padding:40px 24px;
-  padding-top:calc(env(safe-area-inset-top,0px)+40px);
-  padding-bottom:calc(env(safe-area-inset-bottom,0px)+40px);
-  min-height:100dvh;overflow-y:auto;
-  background:radial-gradient(ellipse at top,#1a1506 0%,#000 70%);z-index:100;
+  position:fixed;inset:0;z-index:100;
+  display:flex;flex-direction:column;
+  justify-content:center;align-items:center;
+  padding:calc(env(safe-area-inset-top,0px)+40px) 24px calc(env(safe-area-inset-bottom,0px)+40px);
+  overflow-y:auto;
+  background:radial-gradient(ellipse at top,#1a1506 0%,#000 70%);
 }
 #loginScreen.hidden{display:none}
 /* Aurora */
@@ -80,32 +98,19 @@ h1,h2,h3,.outfit{font-family:'Outfit',sans-serif}
 .t-success{background:#1a5c36;border:1px solid var(--green)}
 .t-error{background:#5c1a1a;border:1px solid var(--red)}
 .t-info{background:#1a3a5c;border:1px solid #3498db}
-/* Bottom Nav — pegado al fondo, rellena hasta el borde físico del iPhone */
+/* ══ BOTTOM NAV — flex child normal, NO position:fixed ══
+   Al ser parte del flujo flex, se ancla al fondo sin flotación en iOS PWA */
 .bottom-nav{
-  position:fixed;
-  bottom:0;left:0;right:0;
-  background:#050505;        /* sólido, sin transparencia */
-  border-top:1px solid rgba(255,255,255,.08);
+  flex-shrink:0;
   display:flex;
-  z-index:500;
-  /* el padding empuja los botones arriba del home indicator */
-  padding-bottom:env(safe-area-inset-bottom,0px);
-}
-/* Relleno extra debajo del safe area — elimina el "gap" flotante */
-.bottom-nav::after{
-  content:'';
-  position:fixed;
-  bottom:0;left:0;right:0;
-  height:env(safe-area-inset-bottom,0px);
   background:#050505;
-  z-index:499;
-  pointer-events:none;
+  border-top:1px solid rgba(255,255,255,.08);
+  /* El padding-bottom rellena el home indicator con el color del nav */
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  padding-left:env(safe-area-inset-left,0px);
+  padding-right:env(safe-area-inset-right,0px);
 }
-/* En tablet: centrar y limitar ancho */
-@media(min-width:600px){
-  .bottom-nav{left:50%;right:auto;width:100%;max-width:600px;transform:translateX(-50%)}
-  .bottom-nav::after{display:none}
-}
+/* ::after ya no es necesario — el padding del nav rellena el gap */
 .nav-btn{
   flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:3px;padding:6px 4px;height:var(--nav-h);  /* altura fija del área de toque */
@@ -322,21 +327,19 @@ input:checked+.slider:before{transform:translateX(22px)}
 
 /* ══ Tablet grande / centrado (≥ 600px) ══ */
 @media(min-width:600px){
-  .screen{max-width:600px;left:50% !important;right:auto !important;transform:translateX(-50%);width:600px}
+  #app{max-width:600px;margin:0 auto;box-shadow:0 0 60px rgba(0,0,0,.8)}
   .modal-box{max-width:600px;margin:0 auto}
-  #monitorScreen{max-width:600px;left:50% !important;right:auto !important;transform:translateX(-50%);width:600px}
 }
 
 /* ══ Landscape iPhone ══ */
 @media(max-height:500px) and (orientation:landscape){
-  :root{--nav-h:48px}
-  .screen{padding-top:calc(env(safe-area-inset-top,0px)+8px)}
+  :root{--nav-h:44px}
+  .screen{padding-top:calc(env(safe-area-inset-top,0px)+6px)}
   .barb-header{margin-bottom:8px}
   .kpi-grid{grid-template-columns:repeat(4,1fr)}
-  .silla-card{padding:12px 16px;margin:6px 16px}
-  .silla-num{font-size:clamp(2.5rem,10vw,3.5rem)}
-  .nav-btn span{display:none}   /* solo íconos en landscape */
-  :root{--nav-h:44px}
+  .silla-card{padding:10px 16px;margin:6px 16px}
+  .silla-num{font-size:clamp(2rem,10vw,3rem)}
+  .nav-btn span{display:none}
 }
 
 </style>
@@ -346,7 +349,7 @@ input:checked+.slider:before{transform:translateX(22px)}
 <div class="aurora-bg"><div class="orb orb1"></div><div class="orb orb2"></div></div>
 <div id="toastWrap"></div>
 
-<!-- LOGIN -->
+<!-- LOGIN — overlay fijo encima de todo -->
 <div id="loginScreen">
   <div class="login-logo">✂️</div>
   <h1 class="login-title">Panel Profesional</h1>
@@ -358,6 +361,9 @@ input:checked+.slider:before{transform:translateX(22px)}
     <div id="loginError" style="color:var(--red);font-size:.82rem;text-align:center;display:none;"></div>
   </div>
 </div>
+
+<!-- APP — contenedor flex principal, screens + nav en flujo normal -->
+<div id="app">
 
 <!-- HOME SCREEN -->
 <div id="homeScreen" class="screen">
@@ -623,6 +629,7 @@ input:checked+.slider:before{transform:translateX(22px)}
   <div class="nav-btn" id="nav-vip" onclick="showScreen('vipScreen',this)"><i data-lucide="star" size="20"></i><span>VIP</span></div>
   <div class="nav-btn" id="nav-perfil" onclick="showScreen('perfilScreen',this)"><i data-lucide="user" size="20"></i><span>Perfil</span></div>
 </nav>
+</div><!-- /app -->
 
 <!-- MODALS -->
 <div id="modalCompletar" class="modal-overlay hidden">
@@ -812,8 +819,7 @@ async function initApp(){
   servicios=svcs||[];
   servicios.forEach(s=>{svcMap[s.nombre.toLowerCase().trim()]=parseFloat(s.precio)||0;durMap[s.nombre.toLowerCase().trim()]=s.duracion_min||30;});
   document.getElementById('loginScreen').classList.add('hidden');
-  document.getElementById('bottomNav').style.display='flex';
-  lucide.createIcons();updateHeaderUI();showScreen('homeScreen');
+  document.getElementById('bottomNav').style.display='flex';updateHeaderUI();showScreen('homeScreen');
   await cargarDatos();startPolling();startRealtimeHoy();
 }
 
