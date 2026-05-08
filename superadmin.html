@@ -4660,14 +4660,19 @@ async function crearClon() {
 }
 
 const FEATURES_DEF = [
-  { key:'feature_reportes',     label:'📊 Reportes',          desc:'Estadísticas, gráficas y exportar PDF' },
-  { key:'feature_config',       label:'⚙ Configuración',      desc:'Editar nombre, horario, duración, timezone' },
-  { key:'feature_servicios',    label:'✂ Servicios & Tiempos', desc:'Gestionar servicios, precios y duraciones' },
-  { key:'feature_bot_whatsapp', label:'💬 Bot WhatsApp',       desc:'Recordatorios automáticos y comandos barberos' },
-  { key:'feature_barberos',     label:'💈 Barberos',           desc:'Agregar, editar y activar/desactivar barberos' },
-  { key:'feature_clientes',     label:'👥 Clientes',           desc:'Ver historial y datos de clientes' },
-  { key:'feature_walkin',       label:'🚶 Walk-in',            desc:'Cliente sin cita en el display' },
-  { key:'feature_monitor',      label:'📺 Monitor Elite',      desc:'Panel de gestión en vivo para tablets y operadores' },
+  { key:'feature_reportes',     label:'📊 Reportes',           desc:'Estadísticas, gráficas y exportar PDF' },
+  { key:'feature_config',       label:'⚙ Configuración',       desc:'Editar nombre, horario, duración, timezone' },
+  { key:'feature_servicios',    label:'✂ Servicios & Tiempos',  desc:'Gestionar servicios, precios y duraciones' },
+  { key:'feature_bot_whatsapp', label:'💬 Bot WhatsApp',        desc:'Recordatorios automáticos y comandos barberos' },
+  { key:'feature_barberos',     label:'💈 Barberos',            desc:'Agregar, editar y activar/desactivar barberos' },
+  { key:'feature_clientes',     label:'👥 Clientes',            desc:'Ver historial y datos de clientes' },
+  { key:'feature_walkin',       label:'🚶 Walk-in',             desc:'Cliente sin cita en el display' },
+  { key:'feature_monitor',      label:'📺 Monitor Elite',       desc:'Panel de gestión en vivo para tablets y operadores' },
+  // ── Nuevas features ──
+  { key:'feature_marketplace',  label:'🛍 Visible en Marketplace', desc:'El negocio aparece en el listado público — desactiva para ocultarlo' },
+  { key:'feature_reseñas',      label:'⭐ Reseñas',             desc:'Los clientes pueden dejar reseñas desde el marketplace' },
+  { key:'feature_caja',         label:'🏦 Cierre de Caja',      desc:'Módulo de resumen diario: ingresos, gastos, utilidad' },
+  { key:'feature_festivos',     label:'🎄 Días Festivos',       desc:'Bloquear días festivos globales para todo el negocio' },
 ];
 var _featShopId = null;
 var _featShopData = {};
@@ -4676,7 +4681,7 @@ async function openFeaturesModal(shopId, shopNombre) {
   _featShopId = shopId;
   document.getElementById('features-shop-name').textContent = shopNombre;
   try {
-    var rows = await sbGet('shops','id=eq.'+shopId+'&select=id,feature_reportes,feature_config,feature_servicios,feature_bot_whatsapp,feature_barberos,feature_clientes,feature_walkin,feature_monitor');
+    var rows = await sbGet('shops','id=eq.'+shopId+'&select=id,feature_reportes,feature_config,feature_servicios,feature_bot_whatsapp,feature_barberos,feature_clientes,feature_walkin,feature_monitor,feature_marketplace,feature_reseñas,feature_caja,feature_festivos');
     _featShopData = rows[0] || {};
   } catch(e) { _featShopData = {}; }
 
