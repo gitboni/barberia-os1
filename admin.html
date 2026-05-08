@@ -786,7 +786,7 @@ let currentPage='dashboard';
 let _citasFechaVer='';let _citasBarberoFiltro='';let _citasEstadoFiltro='';
 function setPage(page,btn){
   const f=getFeatures();
-  const blocked={'reportes':!f.reportes,'config':!f.config,'bot':!f.bot,'clientes':!f.clientes,'barberos':!f.barberos,'gastos':!f.reportes};
+  const blocked={'reportes':!f.reportes,'config':!f.config,'bot':!f.bot,'clientes':!f.clientes,'barberos':!f.barberos,'gastos':!f.reportes,'marketplace':!f.marketplace,'reseñas':!f.reseñas,'caja':!f.caja,'festivos':!f.festivos};
   if(blocked[page]){toast('Esta sección está desactivada para tu plan','warn');return;}
   currentPage=page;
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
@@ -813,9 +813,9 @@ function renderPage(){
 }
 // ── Features por plan + overrides manuales del superadmin ──
 const PLAN_FEATURES = {
-  free:  {reportes:true, config:true, servicios:true, bot:true, barberos:true, clientes:true, walkin:true},
-  pro:   {reportes:true, config:true, servicios:true, bot:true, barberos:true, clientes:true, walkin:true},
-  elite: {reportes:true, config:true, servicios:true, bot:true, barberos:true, clientes:true, walkin:true},
+  free:  {reportes:true,  config:true, servicios:true, bot:true, barberos:true, clientes:true, walkin:true, marketplace:true, reseñas:true, caja:true,  festivos:false},
+  pro:   {reportes:true,  config:true, servicios:true, bot:true, barberos:true, clientes:true, walkin:true, marketplace:true, reseñas:true, caja:true,  festivos:true},
+  elite: {reportes:true,  config:true, servicios:true, bot:true, barberos:true, clientes:true, walkin:true, marketplace:true, reseñas:true, caja:true,  festivos:true},
 };
 
 function getFeatures(){
@@ -830,13 +830,17 @@ function getFeatures(){
     bot:        s.feature_bot_whatsapp!==null&&s.feature_bot_whatsapp!==undefined ? s.feature_bot_whatsapp: base.bot,
     barberos:   s.feature_barberos    !==null&&s.feature_barberos    !==undefined ? s.feature_barberos    : base.barberos,
     clientes:   s.feature_clientes    !==null&&s.feature_clientes    !==undefined ? s.feature_clientes    : base.clientes,
-    walkin:     s.feature_walkin      !==null&&s.feature_walkin      !==undefined ? s.feature_walkin      : base.walkin,
+    walkin:      s.feature_walkin      !==null&&s.feature_walkin      !==undefined ? s.feature_walkin      : base.walkin,
+    marketplace: s.feature_marketplace !==null&&s.feature_marketplace !==undefined ? s.feature_marketplace : base.marketplace,
+    reseñas:     s.feature_reseñas     !==null&&s.feature_reseñas     !==undefined ? s.feature_reseñas     : base.reseñas,
+    caja:        s.feature_caja        !==null&&s.feature_caja        !==undefined ? s.feature_caja        : base.caja,
+    festivos:    s.feature_festivos    !==null&&s.feature_festivos    !==undefined ? s.feature_festivos    : base.festivos,
   };
 }
 function renderSidebar(){
   document.getElementById('barbers-sidebar').innerHTML=S.barberos.map(b=>'<div class="barber-mini-item"><div class="barber-mini-dot" style="background:'+(b.activo?'var(--green)':'var(--muted)')+'"></div><div class="barber-mini-name">'+b.nombre+'</div><div class="barber-mini-status" style="color:'+(b.activo?'var(--green)':'var(--muted)')+';">'+b.citas_hoy+' citas</div></div>').join('');
   const f=getFeatures();
-  const navMap={'nav-btn-reportes':'reportes','nav-btn-config':'config','nav-btn-bot':'bot','nav-btn-clientes':'clientes','nav-btn-barberos':'barberos','nav-btn-gastos':'reportes','nav-btn-marketplace':'config','nav-btn-reseñas':'reportes','nav-btn-caja':'reportes'};
+  const navMap={'nav-btn-reportes':'reportes','nav-btn-config':'config','nav-btn-bot':'bot','nav-btn-clientes':'clientes','nav-btn-barberos':'barberos','nav-btn-gastos':'reportes','nav-btn-marketplace':'marketplace','nav-btn-reseñas':'reseñas','nav-btn-caja':'caja'};
   Object.entries(navMap).forEach(function(kv){var el=document.getElementById(kv[0]);if(el)el.style.display=f[kv[1]]?'':'none';});
   var wf=document.getElementById('walkin-fab-btn');if(wf)wf.style.display=f.walkin?'':'none';
 }
@@ -2139,7 +2143,7 @@ function renderConfigPage(){
             <button class="btn-sm btn-dark" style="width:100%;padding:10px;" onclick="openModal('barbero')">+ Agregar barbero</button>
             <button class="btn-sm btn-dark" style="width:100%;padding:10px;" onclick="openModal('cliente')">+ Agregar cliente</button>
             <button class="btn-sm btn-dark" style="width:100%;padding:10px;" onclick="window.open('/sala/'+SHOP_SLUG,'_blank')">Ver sala de espera</button>
-            <button class="btn-sm btn-dark" style="width:100%;padding:10px;" onclick="abrirFestivos()">🎄 Días festivos / Vacaciones</button>
+            ${getFeatures().festivos?'<button class="btn-sm btn-dark" style="width:100%;padding:10px;" onclick="abrirFestivos()">🎄 Días festivos / Vacaciones</button>':''}
             <button class="btn-sm btn-dark" style="width:100%;padding:10px;" onclick="setPage('caja',null)">🏦 Ver cierre de caja</button>
           </div>
         </div>
