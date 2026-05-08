@@ -224,7 +224,7 @@ input:checked+.slider:before{transform:translateX(21px)}
 /* Modal */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:600;display:flex;flex-direction:column;justify-content:flex-end}
 .modal-overlay.hidden{display:none}
-.modal-box{background:var(--bg2);border-radius:var(--r-xl) var(--r-xl) 0 0;padding:18px 18px calc(var(--safe-bottom)+20px);max-height:92dvh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.modal-box{background:var(--bg2);border-radius:var(--r-xl) var(--r-xl) 0 0;padding:18px 18px calc(env(safe-area-inset-bottom,0px)+24px);max-height:92dvh;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .modal-handle{width:34px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 14px}
 .label{font-size:.68rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;display:block}
 /* Chips */
@@ -244,13 +244,101 @@ input:checked+.slider:before{transform:translateX(21px)}
 .timer-box{background:rgba(0,0,0,.3);border-radius:10px;padding:10px;margin-top:10px}
 /* Truncate */
 .silla-nombre,#proxNombre,#headerNombre{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-/* Tablet */
-@media(min-width:480px){.screen{padding-left:20px !important;padding-right:20px !important}:root{--nav-h:62px}.silla-card{margin:10px 20px}}
+
+/* ══ iOS INPUT ZOOM FIX — inputs deben ser ≥16px para evitar zoom automático en Safari ══ */
+.input, textarea.input, select {font-size:16px !important}
+
+/* ══ TOUCH TARGETS — mínimo 44px per iOS HIG ══ */
+.action-btn{width:40px;height:40px;font-size:.9rem}   /* era 32px */
+.mini-confirm,.mini-reject{width:40px;height:40px;font-size:.95rem}
+.icon-btn{width:44px;height:44px;font-size:1rem}
+.barb-avatar{width:46px;height:46px}
+.hora-chip{padding:9px 13px;min-height:40px}
+.chip{min-height:36px;display:inline-flex;align-items:center}
+.chip-sm{min-height:32px}
+.switch{width:50px;height:28px}
+.slider:before{width:22px;height:22px}
+input:checked+.slider:before{transform:translateX(22px)}
+
+/* ══ iPhone SE / pequeño (< 375px) ══ */
+@media(max-width:374px){
+  :root{--nav-h:54px}
+  .screen{padding:calc(env(safe-area-inset-top,0px)+10px) 12px 16px}
+  .kpi-grid{grid-template-columns:repeat(2,1fr);gap:5px}
+  .kpi-val{font-size:.9rem}
+  .kpi-lbl{font-size:.52rem}
+  .kpi-box{padding:7px 4px}
+  .card,.card-gold,.card-green,.card-red{padding:11px;margin-bottom:8px}
+  .barb-header{margin-bottom:12px}
+  .barb-avatar{width:40px;height:40px;font-size:1rem}
+  #headerNombre{font-size:.9rem}
+  #headerShop{font-size:.62rem}
+  .cola-row{padding:9px 10px;margin-bottom:6px}
+  .action-row{gap:4px}
+  .action-btn{width:36px;height:36px;font-size:.82rem}
+  .nav-btn span{font-size:.5rem}
+  .silla-num{font-size:clamp(2.8rem,14vw,4rem)}
+  .silla-nombre{font-size:clamp(1rem,5vw,1.3rem)}
+  .stats-bar{padding:8px 12px}
+  .stats-bar-val{font-size:.85rem}
+  .stats-bar-lbl{font-size:.45rem}
+  .btn-gold,.btn-outline{padding:13px;font-size:.88rem}
+}
+
+/* ══ iPhone estándar (375px – 389px) ══ */
+@media(min-width:375px) and (max-width:389px){
+  .kpi-grid{gap:5px}
+  .kpi-box{padding:8px 5px}
+  .kpi-val{font-size:1rem}
+  .card,.card-gold{padding:12px}
+}
+
+/* ══ iPhone 14/15 y similares (390px – 429px) — talla de referencia ══ */
+@media(min-width:390px) and (max-width:429px){
+  .kpi-val{font-size:1.1rem}
+  .card{padding:13px}
+  .action-btn{width:38px;height:38px}
+}
+
+/* ══ iPhone Pro Max / Plus (≥ 430px) ══ */
+@media(min-width:430px) and (max-width:479px){
+  :root{--nav-h:60px}
+  .kpi-val{font-size:1.2rem}
+  .kpi-box{padding:11px 8px}
+  .card{padding:15px}
+  .silla-num{font-size:clamp(4rem,15vw,5rem)}
+  .nav-btn span{font-size:.64rem}
+  .action-btn{width:42px;height:42px}
+}
+
+/* ══ Tablet (≥ 480px) ══ */
+@media(min-width:480px){
+  .screen{padding-left:20px !important;padding-right:20px !important}
+  :root{--nav-h:62px}
+  .silla-card{margin:10px 20px}
+  .kpi-val{font-size:1.3rem}
+  .action-btn{width:38px;height:38px}
+}
+
+/* ══ Tablet grande / centrado (≥ 600px) ══ */
 @media(min-width:600px){
   .screen{max-width:600px;left:50% !important;right:auto !important;transform:translateX(-50%);width:600px}
   .modal-box{max-width:600px;margin:0 auto}
   #monitorScreen{max-width:600px;left:50% !important;right:auto !important;transform:translateX(-50%);width:600px}
 }
+
+/* ══ Landscape iPhone ══ */
+@media(max-height:500px) and (orientation:landscape){
+  :root{--nav-h:48px}
+  .screen{padding-top:calc(env(safe-area-inset-top,0px)+8px)}
+  .barb-header{margin-bottom:8px}
+  .kpi-grid{grid-template-columns:repeat(4,1fr)}
+  .silla-card{padding:12px 16px;margin:6px 16px}
+  .silla-num{font-size:clamp(2.5rem,10vw,3.5rem)}
+  .nav-btn span{display:none}   /* solo íconos en landscape */
+  :root{--nav-h:44px}
+}
+
 </style>
 
 </head>
