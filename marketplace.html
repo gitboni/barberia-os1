@@ -97,6 +97,79 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overf
 }
 .hero-orb-1{width:500px;height:500px;background:rgba(212,175,55,.15);top:-150px;right:-100px}
 .hero-orb-2{width:300px;height:300px;background:rgba(212,175,55,.06);bottom:-80px;left:10%}
+
+/* ── Hero Visual ── */
+.hero-visual{
+  position:absolute;right:clamp(20px,6vw,80px);top:50%;transform:translateY(-50%);
+  width:420px;height:420px;pointer-events:none;z-index:1;
+}
+.hv-canvas{position:absolute;inset:0;width:100%;height:100%}
+/* Centro glow */
+.hv-glow{
+  position:absolute;width:140px;height:140px;border-radius:50%;
+  top:50%;left:50%;transform:translate(-50%,-50%);
+  background:radial-gradient(circle,rgba(212,175,55,.4) 0%,rgba(212,175,55,.1) 50%,transparent 70%);
+  animation:hv-pulse 3s ease-in-out infinite;
+}
+@keyframes hv-pulse{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.8}50%{transform:translate(-50%,-50%) scale(1.15);opacity:1}}
+/* Barber pole */
+.hv-pole-wrap{
+  position:absolute;width:52px;height:160px;border-radius:26px;overflow:hidden;
+  top:50%;left:50%;transform:translate(-50%,-50%);
+  border:2px solid rgba(212,175,55,.5);
+  box-shadow:0 0 30px rgba(212,175,55,.2),inset 0 0 20px rgba(0,0,0,.3);
+}
+.hv-pole-stripes{
+  width:100%;height:200%;
+  background:repeating-linear-gradient(-55deg,#D4AF37 0,#D4AF37 12px,#fff 12px,#fff 24px,#c0392b 24px,#c0392b 36px,#fff 36px,#fff 48px);
+  animation:hv-stripe 1.8s linear infinite;
+}
+@keyframes hv-stripe{0%{transform:translateY(0)}100%{transform:translateY(50%)}}
+.hv-pole-cap{
+  position:absolute;left:50%;transform:translateX(-50%);
+  width:64px;height:16px;background:var(--gold);border-radius:8px;
+  box-shadow:0 0 12px rgba(212,175,55,.5);
+}
+.hv-pole-cap.top{top:-2px}.hv-pole-cap.bottom{bottom:-2px}
+/* Orbits */
+.hv-orbit{
+  position:absolute;border-radius:50%;border:1px solid rgba(212,175,55,.18);
+  top:50%;left:50%;transform:translate(-50%,-50%);
+}
+.hv-o1{width:200px;height:200px;animation:hv-rot 14s linear infinite}
+.hv-o2{width:300px;height:300px;animation:hv-rot 22s linear infinite reverse;border-color:rgba(212,175,55,.1)}
+.hv-o3{width:400px;height:400px;animation:hv-rot 34s linear infinite;border-color:rgba(212,175,55,.06)}
+@keyframes hv-rot{from{transform:translate(-50%,-50%) rotate(0deg)}to{transform:translate(-50%,-50%) rotate(360deg)}}
+/* Dot on orbit */
+.hv-dot{
+  position:absolute;width:9px;height:9px;background:var(--gold);
+  border-radius:50%;top:-4.5px;left:50%;transform:translateX(-50%);
+  box-shadow:0 0 14px rgba(212,175,55,.9);
+}
+.hv-o2 .hv-dot{background:#fff;box-shadow:0 0 10px rgba(255,255,255,.7);width:6px;height:6px;top:-3px}
+.hv-o3 .hv-dot{background:rgba(212,175,55,.6);width:5px;height:5px;top:-2.5px}
+/* Floating pills */
+.hv-pill{
+  position:absolute;background:rgba(12,12,12,.85);
+  border:1px solid rgba(212,175,55,.3);border-radius:50px;
+  padding:8px 16px;font-size:.72rem;font-weight:700;color:var(--gold);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);white-space:nowrap;
+  animation:hv-float 5s ease-in-out infinite;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+}
+.hv-pill-1{top:12%;left:58%;animation-delay:0s}
+.hv-pill-2{bottom:20%;left:55%;animation-delay:1.8s}
+.hv-pill-3{top:55%;left:2%;animation-delay:.9s}
+@keyframes hv-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+/* Scissors icon floating */
+.hv-scissors{
+  position:absolute;top:10%;left:8%;
+  width:36px;height:36px;opacity:.35;color:var(--gold);
+  animation:hv-spin 12s linear infinite;
+}
+.hv-scissors-2{top:70%;left:72%;animation-duration:18s;animation-direction:reverse;opacity:.2}
+@keyframes hv-spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@media(max-width:900px){.hero-visual{display:none}}
 .hero-content{position:relative;z-index:2;max-width:680px}
 .hero-badge{
   display:inline-flex;align-items:center;gap:6px;
@@ -724,6 +797,38 @@ footer{
 <section class="hero">
   <div class="hero-orb hero-orb-1"></div>
   <div class="hero-orb hero-orb-2"></div>
+  <!-- ── Animated Visual ── -->
+  <div class="hero-visual" aria-hidden="true">
+    <canvas class="hv-canvas" id="heroCanvas"></canvas>
+    <!-- Glow center -->
+    <div class="hv-glow"></div>
+    <!-- Barber pole -->
+    <div class="hv-pole-wrap">
+      <div class="hv-pole-stripes"></div>
+      <div class="hv-pole-cap top"></div>
+      <div class="hv-pole-cap bottom"></div>
+    </div>
+    <!-- Orbit rings -->
+    <div class="hv-orbit hv-o1"><div class="hv-dot"></div></div>
+    <div class="hv-orbit hv-o2"><div class="hv-dot"></div></div>
+    <div class="hv-orbit hv-o3"><div class="hv-dot"></div></div>
+    <!-- Floating pills -->
+    <div class="hv-pill hv-pill-1">⚡ Disponible ya</div>
+    <div class="hv-pill hv-pill-2">⭐ 4.8 Calificación</div>
+    <div class="hv-pill hv-pill-3">💈 Reserva en 30s</div>
+    <!-- Scissors icons -->
+    <svg class="hv-scissors" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/>
+      <line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/>
+      <line x1="8.12" y1="8.12" x2="12" y2="12"/>
+    </svg>
+    <svg class="hv-scissors hv-scissors-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/>
+      <line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/>
+      <line x1="8.12" y1="8.12" x2="12" y2="12"/>
+    </svg>
+  </div>
+
   <div class="hero-content">
     <div class="hero-badge">✂️ Reservas en tiempo real</div>
     <h1 class="hero-title">Encuentra tu <em>barbería ideal</em> cerca de ti</h1>
@@ -1974,11 +2079,60 @@ document.addEventListener('keydown',e=>{
 // ── PWA ──
 if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
 
+// ── Hero Canvas Particles ──
+function initHeroCanvas(){
+  const canvas = document.getElementById('heroCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.parentElement.offsetWidth;
+  const H = canvas.parentElement.offsetHeight;
+  canvas.width = W; canvas.height = H;
+
+  const pts = Array.from({length:55},()=>({
+    x: Math.random()*W, y: Math.random()*H,
+    vx:(Math.random()-.5)*.4, vy:(Math.random()-.5)*.4,
+    r: Math.random()*2+1,
+    o: Math.random()*.5+.15,
+  }));
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    // Connections
+    for(let i=0;i<pts.length;i++){
+      for(let j=i+1;j<pts.length;j++){
+        const dx=pts[i].x-pts[j].x, dy=pts[i].y-pts[j].y;
+        const d=Math.sqrt(dx*dx+dy*dy);
+        if(d<100){
+          ctx.beginPath();
+          ctx.strokeStyle=`rgba(212,175,55,${.15*(1-d/100)})`;
+          ctx.lineWidth=.6;
+          ctx.moveTo(pts[i].x,pts[i].y);
+          ctx.lineTo(pts[j].x,pts[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+    // Dots
+    pts.forEach(p=>{
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(212,175,55,${p.o})`;
+      ctx.fill();
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0||p.x>W) p.vx*=-1;
+      if(p.y<0||p.y>H) p.vy*=-1;
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
 // ── Init ──
 document.addEventListener('DOMContentLoaded',()=>{
   initMap();
   loadShops();
   initRealtime();
+  initHeroCanvas();
 });
 </script>
 </body>
