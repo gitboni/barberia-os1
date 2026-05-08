@@ -1200,7 +1200,7 @@ footer{
 <!-- ── MODAL DETALLE ── -->
 <div class="detail-modal" id="detailModal">
   <div class="detail-hero" id="detailHero">
-    <button class="detail-back" onclick="history.back()" aria-label="Volver">←</button>
+    <button class="detail-back" onclick="closeDetail()" aria-label="Volver">←</button>
     <div id="detailHeroImg"></div>
     <div class="detail-hero-overlay" id="detailHeroOverlay"></div>
   </div>
@@ -1772,6 +1772,16 @@ function closeDetail(){
   document.getElementById('detailModal').classList.remove('active');
   document.body.style.overflow='';
   document.title = 'AuraOS — Encuentra tu barbería';
+  // Limpiar ?open= de la URL sin navegar (replaceState, no back)
+  const url = new URL(location);
+  if(url.searchParams.has('open')){
+    url.searchParams.delete('open');
+    history.replaceState(null,'', url.pathname + (url.search||''));
+  }
+  // Restaurar OG base
+  const set = (prop,val)=>{ const m=document.querySelector(`meta[property="${prop}"]`); if(m) m.content=val; };
+  set('og:title','AuraOS — Encuentra tu barbería ideal');
+  set('og:url', location.origin + location.pathname);
 }
 
 // Calcula cuándo abre próximamente un shop cerrado
@@ -2240,9 +2250,14 @@ function scrollToFeed(){
   document.querySelector('.main')?.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
-// ── Browser back button cierra el detalle ──
-window.addEventListener('popstate',()=>{
-  if(document.getElementById('detailModal').classList.contains('active')) closeDetail();
+// ── Botón atrás del browser cierra el detalle sin salir del marketplace ──
+window.addEventListener('popstate', e => {
+  const modal = document.getElementById('detailModal');
+  if(modal.classList.contains('active')){
+    // Cancelar la navegación y cerrar el modal en vez de salir
+    history.pushState(null,'', location.href); // re-push para no salir
+    closeDetail();
+  }
 });
 
 // ── Keyboard ──
