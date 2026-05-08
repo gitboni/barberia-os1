@@ -838,6 +838,81 @@ footer{
   .shop-card{flex-direction:column}
   .card-img-wrap{width:100%;height:160px}
 }
+
+/* ── Light mode ── */
+[data-theme="light"]{
+  --bg:#f8f5ee;--bg2:#ffffff;--bg3:#f0ede6;--bg4:#e5e2dc;
+  --text:#111;--dim:rgba(0,0,0,.55);--muted:rgba(0,0,0,.3);
+  --border:rgba(0,0,0,.1);--border2:rgba(0,0,0,.05);
+  --gold:#b8960c;--gold-s:rgba(184,150,12,.1);--gold-b:rgba(184,150,12,.3);
+}
+[data-theme="light"] .nav{background:rgba(248,245,238,.96)}
+[data-theme="light"] body{background:var(--bg);color:var(--text)}
+[data-theme="light"] .hero{background:linear-gradient(135deg,#f5f0e0,#fff9e6,#f8f5ee)}
+[data-theme="light"] .detail-modal{background:var(--bg)}
+[data-theme="light"] .booking-modal{background:#fff}
+[data-theme="light"] .filter-panel{background:rgba(255,255,255,.98)}
+[data-theme="light"] .bottom-nav{background:rgba(248,245,238,.97);border-top-color:rgba(0,0,0,.1)}
+[data-theme="light"] .toast{background:rgba(255,255,255,.98);color:#111;border-color:rgba(0,0,0,.1)}
+[data-theme="light"] .lightbox{background:rgba(240,237,230,.97)}
+/* ── Theme toggle ── */
+.theme-toggle{background:transparent;border:1px solid var(--border);border-radius:50px;width:36px;height:36px;color:var(--dim);cursor:pointer;font-size:1rem;transition:.2s;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.theme-toggle:hover{border-color:var(--gold-b);color:var(--gold)}
+/* ── Min price on card ── */
+.card-min-price{font-size:.7rem;font-weight:800;color:var(--gold);font-family:'Outfit',sans-serif;white-space:nowrap;background:var(--gold-s);border:1px solid var(--gold-b);padding:2px 8px;border-radius:50px;margin-right:4px;flex-shrink:0}
+/* ── Autocomplete dropdown ── */
+.ac-wrap{position:relative}
+#acDropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);z-index:9999;box-shadow:0 10px 40px rgba(0,0,0,.5);overflow:hidden;display:none}
+.ac-item{padding:10px 16px;cursor:pointer;font-size:.83rem;transition:.15s;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border2)}
+.ac-item:last-child{border-bottom:none}
+.ac-item:hover{background:var(--gold-s)}
+.ac-icon{font-size:1rem;flex-shrink:0}
+.ac-name{font-weight:600;color:var(--text)}
+.ac-sub{font-size:.7rem;color:var(--dim);margin-left:auto;white-space:nowrap}
+/* ── Booking success overlay ── */
+.booking-success{position:fixed;inset:0;z-index:3000;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(0,0,0,.88);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);padding:24px;text-align:center}
+.booking-success.show{display:flex;animation:bsIn .35s cubic-bezier(.16,1,.3,1) both}
+@keyframes bsIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+.bs-check{width:90px;height:90px;border-radius:50%;background:rgba(0,208,132,.15);border:2px solid var(--green);display:flex;align-items:center;justify-content:center;font-size:2.6rem;animation:bsPop .45s cubic-bezier(.16,1,.3,1) .1s both}
+@keyframes bsPop{from{transform:scale(0) rotate(-15deg)}to{transform:scale(1) rotate(0)}}
+.bs-title{font-family:'Outfit',sans-serif;font-size:1.7rem;font-weight:900;color:#fff}
+.bs-sub{font-size:.88rem;color:rgba(255,255,255,.65);max-width:280px;line-height:1.5}
+.bs-queue{background:var(--gold-s);border:1px solid var(--gold-b);border-radius:50px;padding:8px 24px;font-size:.85rem;font-weight:700;color:var(--gold)}
+.bs-close{margin-top:6px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.7);border-radius:50px;padding:9px 32px;font-size:.85rem;cursor:pointer;transition:.2s}
+.bs-close:hover{background:rgba(255,255,255,.16);color:#fff}
+/* ── Distance / Price range sliders ── */
+.fp-range-row{display:flex;justify-content:space-between;font-size:.78rem;color:var(--dim);margin-bottom:4px}
+input[type=range].fp-range{width:100%;accent-color:var(--gold);cursor:pointer;margin:6px 0}
+.fp-range-val{font-weight:700;color:var(--gold)}
+/* ── Share buttons in detail ── */
+.share-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.share-btn{display:flex;align-items:center;gap:6px;border:none;border-radius:50px;padding:8px 14px;font-size:.78rem;font-weight:700;cursor:pointer;transition:.2s;font-family:'Inter',sans-serif}
+.share-btn.wa{background:#25D366;color:#000}.share-btn.wa:hover{background:#1dbf59}
+.share-btn.ig{background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff}
+.share-btn.copy{background:var(--bg4);border:1px solid var(--border);color:var(--dim)}.share-btn.copy:hover{border-color:var(--gold-b);color:var(--gold)}
+/* ── Review photo upload ── */
+.review-photo-label{display:flex;align-items:center;gap:6px;background:var(--bg4);border:1px dashed var(--border);border-radius:var(--r);padding:8px 14px;cursor:pointer;font-size:.78rem;color:var(--dim);transition:.2s;box-sizing:border-box;width:100%;margin-top:6px}
+.review-photo-label:hover{border-color:var(--gold-b);color:var(--gold)}
+#reviewPhotoInput{display:none}
+.review-photo-thumb{width:100%;max-height:110px;object-fit:cover;border-radius:var(--r);margin-top:6px;display:none}
+/* ── FAQ section ── */
+.faq-section{background:var(--bg2);border-top:1px solid var(--border);padding:64px clamp(16px,4vw,80px) 56px}
+.faq-inner{max-width:740px;margin:0 auto}
+.faq-title{font-family:'Outfit',sans-serif;font-size:2rem;font-weight:900;text-align:center;margin-bottom:8px}
+.faq-title em{color:var(--gold);font-style:normal}
+.faq-sub{text-align:center;color:var(--dim);margin-bottom:36px;font-size:.9rem}
+.faq-item{border-bottom:1px solid var(--border)}
+.faq-q{display:flex;justify-content:space-between;align-items:center;padding:18px 2px;cursor:pointer;font-weight:600;font-size:.95rem;gap:16px;transition:color .2s;user-select:none}
+.faq-q:hover{color:var(--gold)}
+.faq-arrow{flex-shrink:0;font-size:1.1rem;transition:transform .3s;color:var(--dim)}
+.faq-item.open .faq-arrow{transform:rotate(180deg);color:var(--gold)}
+.faq-a{overflow:hidden;max-height:0;transition:max-height .35s ease;font-size:.88rem;color:var(--dim);line-height:1.75;padding:0 2px}
+.faq-item.open .faq-a{max-height:200px;padding-bottom:18px}
+/* ── Skeleton improved ── */
+.sk-title{height:18px;width:55%;border-radius:6px}
+.sk-sub{height:11px;width:35%;border-radius:6px}
+.sk-line{height:11px;border-radius:6px}
+.sk-tag{height:22px;width:76px;border-radius:50px}
 </style>
 </head>
 <body>
@@ -871,6 +946,7 @@ footer{
       Filtros
     </button>
     <button class="nav-btn" onclick="openFavs()">❤️ Guardados</button>
+    <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Cambiar tema" aria-label="Cambiar tema claro/oscuro">🌙</button>
     <button class="btn-registro" onclick="document.getElementById('planSection').scrollIntoView({behavior:'smooth'})">Registra tu negocio →</button>
   </div>
 </nav>
@@ -916,19 +992,22 @@ footer{
     <h1 class="hero-title">Encuentra tu <em>barbería ideal</em> cerca de ti</h1>
     <p class="hero-sub">Descubre, reserva y llega puntual. Sin llamadas, sin esperas inesperadas.</p>
 
+    <div class="ac-wrap">
     <div class="hero-search">
       <div class="hero-search-field">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input type="text" id="searchHero" placeholder="Busca servicios o barberías…" oninput="syncSearch(this,'searchNav'); debouncedSearch()">
+        <input type="text" id="searchHero" placeholder="Busca servicios o barberías…" oninput="syncSearch(this,'searchNav'); debouncedSearch(); showAutocomplete(this.value)" autocomplete="off">
       </div>
       <div class="hero-search-field">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
         <input type="text" id="locationHero" placeholder="¿En qué ciudad?" oninput="syncSearch(this,'locationNav'); debouncedSearch()">
       </div>
-      <button class="btn-hero-search" onclick="debouncedSearch();scrollToFeed()">
+      <button class="btn-hero-search" onclick="debouncedSearch();scrollToFeed();document.getElementById('acDropdown').style.display='none'">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         Buscar
       </button>
+    </div>
+    <div id="acDropdown"></div>
     </div>
 
     <div class="hero-stats">
@@ -1061,6 +1140,39 @@ footer{
   </div>
 </section>
 
+<!-- ── FAQ ── -->
+<section class="faq-section">
+  <div class="faq-inner">
+    <h2 class="faq-title">Preguntas <em>frecuentes</em></h2>
+    <p class="faq-sub">Todo lo que necesitas saber para reservar en segundos</p>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">¿Cómo hago una reserva? <span class="faq-arrow">⌄</span></div>
+      <div class="faq-a">Elige la barbería de tu preferencia, selecciona el servicio, el barbero y el horario disponible. Ingresa tu nombre y WhatsApp y confirma. ¡Listo! Recibirás un mensaje de confirmación.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">¿Es gratis reservar? <span class="faq-arrow">⌄</span></div>
+      <div class="faq-a">Sí, el marketplace y las reservas online son completamente gratuitos para los clientes. Solo pagas el servicio directamente en la barbería.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">¿Puedo cancelar mi cita? <span class="faq-arrow">⌄</span></div>
+      <div class="faq-a">Sí. Entra a "Mis citas" en el menú inferior, encuentra tu cita y presiona "Cancelar cita". Te recomendamos cancelar con al menos 1 hora de anticipación.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">¿Cómo registro mi negocio? <span class="faq-arrow">⌄</span></div>
+      <div class="faq-a">Haz clic en "Registra tu negocio" o contáctanos por WhatsApp. Nuestro equipo te guiará para configurar tu perfil, servicios, horarios y más en minutos.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">¿Los horarios son en tiempo real? <span class="faq-arrow">⌄</span></div>
+      <div class="faq-a">Sí. AuraOS usa tecnología en tiempo real para mostrar los turnos disponibles al instante. Si un turno se ocupa, desaparece automáticamente para evitar dobles reservas.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">¿Puedo guardar barberías favoritas? <span class="faq-arrow">⌄</span></div>
+      <div class="faq-a">Sí, toca el ícono de corazón ❤️ en cualquier tarjeta para guardarla. Accede a tus favoritas desde la categoría "Guardados" o el menú de navegación.</div>
+    </div>
+  </div>
+</section>
+
 <!-- ── FOOTER ── -->
 <footer>
   <div class="footer-grid">
@@ -1151,6 +1263,15 @@ footer{
   <div class="lb-counter" id="lbCounter"></div>
 </div>
 
+<!-- ── BOOKING SUCCESS OVERLAY ── -->
+<div class="booking-success" id="bookingSuccess" role="dialog" aria-modal="true">
+  <div class="bs-check">✓</div>
+  <div class="bs-title">¡Reserva confirmada!</div>
+  <div class="bs-sub" id="bsSub">Tu cita ha sido agendada correctamente.</div>
+  <div class="bs-queue" id="bsQueue" style="display:none"></div>
+  <button class="bs-close" onclick="document.getElementById('bookingSuccess').classList.remove('show')">Perfecto, gracias →</button>
+</div>
+
 <!-- ── COMPARE BAR ── -->
 <div class="compare-bar" id="compareBar" role="region" aria-label="Comparar negocios">
   <div class="compare-pills" id="comparePills"></div>
@@ -1234,6 +1355,16 @@ footer{
       <div class="star-opt" onclick="setMaxWait(30,this)">–30 min</div>
     </div>
   </div>
+  <div class="fp-section">
+    <div class="fp-section-label">Radio de distancia</div>
+    <div class="fp-range-row"><span>0 km</span><span>Límite: <span class="fp-range-val" id="distLabel">Sin límite</span></span></div>
+    <input type="range" class="fp-range" id="fDist" min="1" max="50" step="1" value="50" oninput="updateDistLabel()">
+  </div>
+  <div class="fp-section">
+    <div class="fp-section-label">Precio máximo de servicio</div>
+    <div class="fp-range-row"><span>RD$0</span><span>Hasta: <span class="fp-range-val" id="priceLabel">Cualquiera</span></span></div>
+    <input type="range" class="fp-range" id="fPrice" min="0" max="5000" step="100" value="5000" oninput="updatePriceLabel()">
+  </div>
   <div class="fp-actions">
     <button class="btn-apply" onclick="applyFilters()">Aplicar filtros</button>
     <button class="btn-reset" onclick="resetFilters()">Limpiar todo</button>
@@ -1252,7 +1383,7 @@ const sb = supabase.createClient(SB_URL, SB_KEY);
 let allShops=[], filteredShops=[], currentPage=0;
 let userCoords=null, map=null, markers=[];
 let activeFilter='all', activeSort='default';
-let minRating=0, maxWait=999, fOpen=false, fPrem=false;
+let minRating=0, maxWait=999, fOpen=false, fPrem=false, maxDist=Infinity, maxPrice=Infinity;
 let currentBookingShop=null, currentBookingBarber=null, currentBookingService=null, currentBookingSlot=null;
 let shopBarberos=[], shopCitasHoy=[];
 
@@ -1311,7 +1442,7 @@ function showToast(msg,ms=2500){const t=document.createElement('div');t.classNam
 function syncSearch(el,targetId){const t=document.getElementById(targetId);if(t)t.value=el.value}
 function getFavs(){try{return JSON.parse(localStorage.getItem('aura_favs')||'[]')}catch{return[]}}
 function isFav(id){return getFavs().includes(String(id))}
-function toggleFav(id,e){e?.stopPropagation();const f=getFavs();const i=f.indexOf(String(id));if(i===-1){f.push(String(id));showToast('❤️ Guardado')}else{f.splice(i,1);showToast('Eliminado de guardados')}localStorage.setItem('aura_favs',JSON.stringify(f));document.querySelectorAll(`.btn-icon[data-id="${id}"]`).forEach(b=>{b.classList.toggle('faved',i===-1)})}
+function toggleFav(id,e){e?.stopPropagation();const f=getFavs();const i=f.indexOf(String(id));if(i===-1){f.push(String(id));showToast('❤️ Guardado');navigator.vibrate?.([10])}else{f.splice(i,1);showToast('Eliminado de guardados')}localStorage.setItem('aura_favs',JSON.stringify(f));document.querySelectorAll(`.btn-icon[data-id="${id}"]`).forEach(b=>{b.classList.toggle('faved',i===-1)})}
 function openFavs(){filterCat('favorites',document.querySelector('[data-filter="favorites"]'))}
 
 // ── Map ──
@@ -1426,14 +1557,28 @@ function buildHorario(s){
 
 // ── Rendering ──
 function showSkeletons(){
-  document.getElementById('shopsContainer').innerHTML=Array(4).fill(0).map(()=>`
-    <div class="skeleton-card">
-      <div class="sk" style="width:200px;flex-shrink:0"></div>
-      <div style="flex:1;padding:16px 18px;display:flex;flex-direction:column;gap:10px">
-        <div class="sk" style="height:18px;width:60%;border-radius:6px"></div>
-        <div class="sk" style="height:12px;width:40%;border-radius:6px"></div>
-        <div class="sk" style="height:12px;width:80%;border-radius:6px"></div>
-        <div class="sk" style="height:12px;width:70%;border-radius:6px;margin-top:auto"></div>
+  document.getElementById('shopsContainer').innerHTML=Array(4).fill(0).map((_,i)=>`
+    <div class="skeleton-card" style="animation-delay:${i*80}ms">
+      <div class="sk" style="width:200px;flex-shrink:0;min-height:160px"></div>
+      <div style="flex:1;padding:16px 18px;display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+          <div style="flex:1;display:flex;flex-direction:column;gap:7px">
+            <div class="sk sk-title"></div>
+            <div class="sk sk-sub"></div>
+          </div>
+          <div class="sk" style="height:18px;width:54px;border-radius:50px;flex-shrink:0"></div>
+        </div>
+        <div class="sk sk-line" style="width:85%"></div>
+        <div class="sk sk-line" style="width:65%"></div>
+        <div style="display:flex;gap:6px;margin-top:6px">
+          <div class="sk sk-tag"></div>
+          <div class="sk sk-tag" style="width:60px"></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:auto;padding-top:10px;border-top:1px solid rgba(255,255,255,.04)">
+          <div class="sk" style="height:26px;flex:1;border-radius:50px"></div>
+          <div class="sk" style="height:26px;flex:1;border-radius:50px"></div>
+          <div class="sk" style="height:32px;width:80px;border-radius:10px"></div>
+        </div>
       </div>
     </div>`).join('');
 }
@@ -1464,6 +1609,7 @@ function renderShops(reset=false){
     card.onclick=()=>openDetail(s.id);
 
     const topSvcs=(s.servicios||[]).slice(0,3);
+    const minPrice = s.servicios?.length ? Math.min(...s.servicios.map(sv=>Number(sv.precio||0))) : null;
 
     const closing = closingIn(s.horario);
     const nextOpen = open===false ? nextOpenTime(s.horario) : null;
@@ -1508,6 +1654,7 @@ function renderShops(reset=false){
           ${isPrem?'<span class="card-tag gold">💎 Premium</span>':''}
         </div>
         <div class="card-footer">
+          ${minPrice?`<span class="card-min-price">desde RD$${Number(minPrice).toLocaleString()}</span>`:''}
           <div class="card-svc-preview">
             ${topSvcs.map(sv=>`<span class="svc-chip">${esc(sv.nombre)}</span>`).join('')}
           </div>
@@ -1564,6 +1711,8 @@ function applyActiveFilters(shops){
   if(fPrem)r=r.filter(s=>s.plan==='premium');
   if(minRating>0)r=r.filter(s=>(s.rating||0)>=minRating);
   if(maxWait<999)r=r.filter(s=>s.tiempo_espera!=null&&s.tiempo_espera<=maxWait);
+  if(maxDist<Infinity&&userCoords)r=r.filter(s=>s.lat&&s.lng&&distanceTo(s.lat,s.lng)<=maxDist);
+  if(maxPrice<Infinity)r=r.filter(s=>!s.servicios?.length||s.servicios.some(sv=>Number(sv.precio||0)<=maxPrice));
   return r;
 }
 
@@ -1606,7 +1755,14 @@ function closeFilterPanel(){document.getElementById('filterPanel').classList.rem
 function setMinRating(v,el){document.querySelectorAll('.fp-section .star-opts .star-opt').forEach(o=>o.classList.remove('active'));el.classList.add('active');minRating=v}
 function setMaxWait(v,el){document.querySelectorAll('[onclick*="setMaxWait"]').forEach(o=>o.classList.remove('active'));el.classList.add('active');maxWait=v}
 function applyFilters(){fOpen=document.getElementById('fOpen').checked;fPrem=document.getElementById('fPrem').checked;filteredShops=applyActiveFilters(allShops);applySortTo(filteredShops);renderShops(true);addMarkers(filteredShops);closeFilterPanel()}
-function resetFilters(){fOpen=fPrem=false;minRating=0;maxWait=999;document.getElementById('fOpen').checked=false;document.getElementById('fPrem').checked=false;document.querySelectorAll('.fp-section .star-opt').forEach((o,i)=>o.classList.toggle('active',i===0))}
+function resetFilters(){
+  fOpen=fPrem=false;minRating=0;maxWait=999;maxDist=Infinity;maxPrice=Infinity;
+  document.getElementById('fOpen').checked=false;
+  document.getElementById('fPrem').checked=false;
+  document.getElementById('fDist').value=50;updateDistLabel();
+  document.getElementById('fPrice').value=5000;updatePriceLabel();
+  document.querySelectorAll('.fp-section .star-opt').forEach((o,i)=>o.classList.toggle('active',i===0));
+}
 
 // ── Share ──
 async function shareShop(id){
@@ -1620,6 +1776,7 @@ async function shareShop(id){
 function openDetail(id){
   const s=allShops.find(x=>x.id===String(id));if(!s)return;
   addHistory(id);
+  trackConversion('shop_view',{shop_id:id,shop_name:s.nombre});
 
   // Agregar entrada al historial para que el botón atrás funcione
   history.pushState({open:id},'',`?open=${id}`);
@@ -1710,8 +1867,12 @@ function openDetail(id){
       <div class="detail-sticky">
         <button class="btn-confirm" style="margin-bottom:10px" onclick="openBooking(${JSON.stringify(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;')})">Reservar ahora</button>
         ${s.lat&&s.lng?`<button class="btn-icon" style="width:100%;height:40px;border-radius:var(--r);margin-bottom:8px;font-size:.82rem;display:flex;align-items:center;justify-content:center;gap:6px" onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}','_blank')">📍 Cómo llegar</button>`:''}
-        <button class="btn-icon" style="width:100%;height:40px;border-radius:var(--r);margin-bottom:8px;font-size:.82rem;display:flex;align-items:center;justify-content:center;gap:6px" onclick="shareShop('${s.id}')">🔗 Compartir</button>
-        <button type="button" class="notify-me-btn" id="notifyBtn_${esc(s.id)}" onclick="toggleNotify('${esc(s.id)}','${esc(s.nombre)}',this)" style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px">
+        <div class="share-row" style="margin-bottom:8px">
+          <button class="share-btn wa" onclick="shareViaWhatsApp('${s.id}')">💬 WhatsApp</button>
+          ${s.instagram?`<button class="share-btn ig" onclick="window.open('https://instagram.com/${esc(s.instagram)}','_blank')">📸 Instagram</button>`:''}
+          <button class="share-btn copy" onclick="shareShop('${s.id}')">🔗 Copiar</button>
+        </div>
+        <button type="button" class="notify-me-btn" id="notifyBtn_${esc(s.id)}" onclick="toggleNotify('${esc(s.id)}','${esc(s.nombre)}',this)" style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:8px">
           🔔 Avísame cuando haya turno
         </button>
         <div id="galleryStripSidebar"></div>
@@ -1805,6 +1966,7 @@ function openBooking(data){
   const s=typeof data==='string'?allShops.find(x=>x.id===data):data;
   if(!s)return;
   currentBookingShop=s;currentBookingSlot=null;currentBookingService=null;
+  trackConversion('booking_start',{shop_id:s.id});
   document.getElementById('bookingTitle').textContent=s.nombre;
   document.getElementById('bookingModal').classList.add('active');
   document.getElementById('overlay').classList.add('active');
@@ -1852,7 +2014,7 @@ function renderBookingServices(){
   }).join('');
 }
 
-function selectService(name){currentBookingService=currentBookingShop.servicios.find(s=>s.nombre===name);renderBookingServices();calcSlots()}
+function selectService(name){currentBookingService=currentBookingShop.servicios.find(s=>s.nombre===name);renderBookingServices();calcSlots();navigator.vibrate?.([8])}
 
 function calcSlots(){
   const container=document.getElementById('bookingSlots');
@@ -1873,7 +2035,7 @@ function calcSlots(){
   container.innerHTML=slots.map(s=>`<div class="slot${s.taken?' taken':' free'}${currentBookingSlot===s.t?' selected':''}" onclick="${s.taken?'':`selectSlot('${s.t}')`}">${fmt12(s.t)}</div>`).join('');
 }
 
-function selectSlot(t){currentBookingSlot=t;calcSlots();document.getElementById('btnConfirm').disabled=!t}
+function selectSlot(t){currentBookingSlot=t;calcSlots();document.getElementById('btnConfirm').disabled=!t;navigator.vibrate?.([12])}
 
 async function processBooking(){
   const name=document.getElementById('bookingName').value.trim();
@@ -1887,6 +2049,7 @@ async function processBooking(){
   const btn=document.getElementById('btnConfirm');
   if(btn.disabled)return;
   btn.disabled=true;btn.textContent='Reservando…';
+  navigator.vibrate?.([15,80,30]);
 
   try{
     const{error}=await sb.from('citas').insert({
@@ -1904,19 +2067,28 @@ async function processBooking(){
 
     // Guardar perfil
     localStorage.setItem('aura_user',JSON.stringify({name,phone}));
-
-    showToast('¡Reserva confirmada! 🎉',4000);
+    trackConversion('booking_complete',{shop_id:currentBookingShop.id,service:currentBookingService.nombre});
 
     // WhatsApp al negocio
     const wa = currentBookingShop.whatsapp||currentBookingShop.telefono;
     if(wa){
       const msg = encodeURIComponent(`Hola! Reservé para *${name}* el día de hoy a las *${fmt12(currentBookingSlot)}* con *${currentBookingBarber.nombre}* — Servicio: ${currentBookingService.nombre}`);
-      setTimeout(()=>window.open(`https://wa.me/${wa.replace(/\D/g,'')}?text=${msg}`,'_blank'),800);
+      setTimeout(()=>window.open(`https://wa.me/${wa.replace(/\D/g,'')}?text=${msg}`,'_blank'),1200);
     }
     // ICS calendar
     downloadICS(currentBookingShop, currentBookingSlot);
 
     closeBooking();
+
+    // Success overlay with queue position
+    const queuePos = (currentBookingShop._slotsBooked||0) + 1;
+    const bsSub = document.getElementById('bsSub');
+    const bsQueue = document.getElementById('bsQueue');
+    if(bsSub) bsSub.textContent = `${currentBookingService.nombre} con ${currentBookingBarber.nombre} · ${fmt12(currentBookingSlot)}`;
+    if(bsQueue){ bsQueue.textContent = `#${queuePos} en la cola de hoy`; bsQueue.style.display='inline-flex'; }
+    document.getElementById('bookingSuccess').classList.add('show');
+    setTimeout(()=>document.getElementById('bookingSuccess').classList.remove('show'),5500);
+
     currentBookingSlot=null;currentBookingService=null;
     loadShops();
   }catch(e){
@@ -2168,10 +2340,15 @@ function renderReviewForm(shopId){
     <div class="review-form">
       <div style="font-weight:700;margin-bottom:4px">Deja tu reseña</div>
       <div class="star-picker" id="starPicker">
-        ${[1,2,3,4,5].map(i=>`<span onclick="setReviewRating(${i})" data-star="${i}">☆</span>`).join('')}
+        ${[1,2,3,4,5].map(i=>`<span onclick="setReviewRating(${i});navigator.vibrate?.([8])" data-star="${i}">☆</span>`).join('')}
       </div>
       <textarea class="review-textarea" id="reviewText" rows="3" placeholder="Cuéntanos tu experiencia…"></textarea>
       <input class="modal-input" id="reviewAuthor" type="text" placeholder="Tu nombre" style="margin-top:8px">
+      <label class="review-photo-label" for="reviewPhotoInput">
+        📷 Añadir foto de tu corte (opcional)
+      </label>
+      <input type="file" id="reviewPhotoInput" accept="image/*" onchange="previewReviewPhoto(this)">
+      <img class="review-photo-thumb" id="reviewPhotoThumb" alt="Vista previa">
       <button type="button" class="btn-submit-review" onclick="submitReview()">Publicar reseña</button>
     </div>`;
 }
@@ -2408,6 +2585,111 @@ function updateOgForShop(shop){
   set('og:url', `${location.origin}${location.pathname}?open=${shop.id}`);
   document.title = `${shop.nombre} — AuraOS Marketplace`;
   updateJsonLd(shop);
+}
+
+// ── Dark / Light mode ──
+function toggleTheme(){
+  const isLight = document.body.getAttribute('data-theme')==='light';
+  const next = isLight ? 'dark' : 'light';
+  document.body.setAttribute('data-theme', next);
+  localStorage.setItem('aura_theme', next);
+  const btn = document.getElementById('themeToggle');
+  if(btn) btn.textContent = next==='light' ? '🌙' : '☀️';
+}
+(()=>{
+  const t = localStorage.getItem('aura_theme')||'dark';
+  if(t==='light'){
+    document.body.setAttribute('data-theme','light');
+    const btn = document.getElementById('themeToggle');
+    if(btn) btn.textContent='🌙';
+  }
+})();
+
+// ── Autocomplete ──
+function showAutocomplete(q){
+  const dropdown = document.getElementById('acDropdown');
+  if(!dropdown) return;
+  q = (q||'').trim();
+  if(q.length < 2 || !allShops.length){ dropdown.style.display='none'; return; }
+  const ql = q.toLowerCase();
+  const matches = allShops.filter(s=>{
+    const inName = s.nombre.toLowerCase().includes(ql);
+    const inSvcs = (s.servicios||[]).some(sv=>(sv.nombre||'').toLowerCase().includes(ql));
+    const inCity = (s.ciudad||s.direccion||'').toLowerCase().includes(ql);
+    return inName||inSvcs||inCity;
+  }).slice(0,6);
+  if(!matches.length){ dropdown.style.display='none'; return; }
+  dropdown.innerHTML = matches.map(s=>`
+    <div class="ac-item" onclick="acSelect('${s.id}','${esc(s.nombre).replace(/'/g,"\\'")}')" role="option">
+      <span class="ac-icon">${s.icono||'✂️'}</span>
+      <span class="ac-name">${esc(s.nombre)}</span>
+      <span class="ac-sub">${esc(s.ciudad||s.direccion||'')}</span>
+    </div>`).join('');
+  dropdown.style.display='block';
+}
+function acSelect(id, name){
+  const sh = document.getElementById('searchHero');
+  const sn = document.getElementById('searchNav');
+  if(sh) sh.value = name;
+  if(sn) sn.value = name;
+  document.getElementById('acDropdown').style.display='none';
+  debouncedSearch();
+  scrollToFeed();
+  setTimeout(()=>openDetail(id), 300);
+}
+document.addEventListener('click',e=>{
+  const ac = document.getElementById('acDropdown');
+  if(ac && !e.target.closest('.ac-wrap')) ac.style.display='none';
+});
+
+// ── Distance / Price filter helpers ──
+function updateDistLabel(){
+  const val = parseInt(document.getElementById('fDist')?.value||50);
+  maxDist = val>=50 ? Infinity : val;
+  const el = document.getElementById('distLabel');
+  if(el){ el.textContent = maxDist===Infinity?'Sin límite':`${val} km`; }
+}
+function updatePriceLabel(){
+  const val = parseInt(document.getElementById('fPrice')?.value||5000);
+  maxPrice = val>=5000 ? Infinity : val;
+  const el = document.getElementById('priceLabel');
+  if(el){ el.textContent = maxPrice===Infinity?'Cualquiera':`RD$${val.toLocaleString()}`; }
+}
+
+// ── Share via WhatsApp ──
+function shareViaWhatsApp(id){
+  const s = allShops.find(x=>x.id===String(id)); if(!s) return;
+  const url = `${location.origin}${location.pathname}?open=${id}`;
+  const msg = encodeURIComponent(`💈 *${s.nombre}* — Reserva en AuraOS:\n${url}`);
+  window.open(`https://wa.me/?text=${msg}`,'_blank');
+}
+
+// ── Review photo preview ──
+function previewReviewPhoto(input){
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById('reviewPhotoThumb');
+    if(img){ img.src=e.target.result; img.style.display='block'; }
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── FAQ accordion ──
+function toggleFaq(item){
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(i=>i.classList.remove('open'));
+  if(!isOpen) item.classList.add('open');
+}
+
+// ── Conversion tracking ──
+function trackConversion(event, data={}){
+  try{
+    const events = JSON.parse(localStorage.getItem('aura_events')||'[]');
+    events.push({event, data, ts:Date.now()});
+    localStorage.setItem('aura_events', JSON.stringify(events.slice(-100)));
+  }catch{}
+  if(window.gtag) try{ gtag('event', event, data); }catch{}
 }
 
 // ── Hero Canvas Particles ──
