@@ -1347,7 +1347,7 @@ async function loadShops(){
     const semanaIni = new Date(); semanaIni.setDate(semanaIni.getDate()-7);
     const semanaIniStr = new Intl.DateTimeFormat('en-CA',{timeZone:TZ}).format(semanaIni);
     const[shopsRes,ratingsRes,waitRes,weekRes]=await Promise.all([
-      sb.from('shops').select('*, servicios(*), staff:barberos(*), horarios_por_dia').eq('activo',true),
+      sb.from('shops').select('*, servicios(*), staff:barberos(*), horarios_por_dia, feature_marketplace, feature_reseñas').eq('activo',true),
       sb.from('calificaciones').select('shop_id,puntuacion,comentario,created_at').order('created_at',{ascending:false}),
       sb.from('citas').select('shop_id,hora,barbero_id,estado,servicio').eq('fecha',getFechaHoy()).in('estado',['Confirmada','En curso']).order('hora'),
       sb.from('citas').select('id',{count:'exact',head:true}).gte('fecha',semanaIniStr).neq('estado','Cancelada'),
@@ -1385,7 +1385,10 @@ async function loadShops(){
       servicios:s.servicios||[],
       staff:s.staff||[],
       horario:buildHorario(s),
-    })).sort((a,b)=>(b.plan==='premium'?1:0)-(a.plan==='premium'?1:0)); // premium first
+    }))
+    // Excluir shops con feature_marketplace=false (superadmin los ocultó del listing)
+    .filter(s=>s.feature_marketplace!==false)
+    .sort((a,b)=>(b.plan==='premium'?1:0)-(a.plan==='premium'?1:0)); // premium first
 
     filteredShops=[...allShops];
 
@@ -1686,7 +1689,7 @@ function openDetail(id){
             ${r.comentario?`<div class="review-text">${esc(r.comentario)}</div>`:''}
             <div class="review-date">${new Date(r.created_at).toLocaleDateString('es-DO',{month:'short',day:'numeric'})}</div>
           </div>`).join('')}
-        ${renderReviewForm(s.id)}
+        ${s.feature_reseñas!==false ? renderReviewForm(s.id) : ''}
       </div>
 
       <!-- Style Lab teaser -->
