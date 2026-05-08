@@ -27,11 +27,11 @@
   --r:16px;--r-lg:22px;--r-xl:28px;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;font-family:'Inter',sans-serif}
-body{background:var(--bg);color:var(--text);overflow-x:hidden;user-select:none}
+body{background:var(--bg);color:var(--text);overflow:hidden;height:100%;user-select:none;position:fixed;width:100%}
 h1,h2,h3,.outfit{font-family:'Outfit',sans-serif}
 
 /* ── Screen Management ── */
-.screen{display:none;position:fixed;inset:0;overflow-y:auto;background:var(--bg);z-index:10;padding:calc(var(--safe-top)+16px) 20px calc(var(--safe-bottom)+80px)}
+.screen{display:none;position:fixed;inset:0;overflow-y:auto;background:var(--bg);z-index:10;padding:calc(var(--safe-top)+16px) 20px calc(var(--safe-bottom)+88px);overscroll-behavior-y:contain}
 .screen.active{display:block}
 #loginScreen{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:40px 24px;min-height:100vh;background:radial-gradient(ellipse at top,#1a1506 0%,#000 70%);z-index:100}
 #loginScreen.hidden{display:none}
@@ -129,7 +129,7 @@ input:checked+.slider:before{transform:translateX(22px)}
 .chip-sm{padding:5px 10px;font-size:.72rem}
 
 /* ── Monitor Screen ── */
-.monitor-header{padding:calc(var(--safe-top)+12px) 20px 12px;background:rgba(0,0,0,.8);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+.monitor-header{padding:calc(var(--safe-top)+12px) 20px 12px;background:rgba(0,0,0,.8);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0}
 .island{flex:1;display:flex;align-items:center;gap:10px}
 .live-dot{width:6px;height:6px;border-radius:50%;background:#E74C3C;animation:pulse 1.2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
@@ -381,11 +381,13 @@ input:checked+.slider:before{transform:translateX(22px)}
 </div>
 
 <!-- ── MONITOR SCREEN ── -->
-<div id="monitorScreen" class="screen" style="padding:0;background:#02060C;">
-  <div class="aurora-bg" style="position:absolute;">
+<div id="monitorScreen" class="screen" style="padding:0;background:#02060C;display:flex;flex-direction:column;overflow:hidden;">
+  <div class="aurora-bg" style="position:absolute;pointer-events:none;">
     <div class="orb" style="width:350px;height:350px;background:rgba(0,245,255,.06);top:-80px;left:-80px;"></div>
     <div class="orb" style="width:280px;height:280px;background:rgba(176,110,255,.05);bottom:-60px;right:-60px;animation:orbFloat 10s ease-in-out infinite reverse;"></div>
   </div>
+
+  <!-- ── Cabecera fija (no sticky, parte del flex) ── -->
   <div class="monitor-header">
     <div class="island">
       <div id="monShopLogo" style="width:36px;height:36px;border-radius:18px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:1.1rem;">✂️</div>
@@ -397,7 +399,7 @@ input:checked+.slider:before{transform:translateX(22px)}
     <div onclick="showScreen('homeScreen')" style="width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;">✕</div>
   </div>
 
-  <div class="stats-bar">
+  <div class="stats-bar" style="flex-shrink:0;">
     <div class="stats-bar-item"><span class="stats-bar-val" style="color:var(--green);" id="mon-ing">—</span><span class="stats-bar-lbl">Mi día</span></div>
     <div class="stats-bar-divider"></div>
     <div class="stats-bar-item"><span class="stats-bar-val" id="mon-comp">0</span><span class="stats-bar-lbl">Logrados</span></div>
@@ -405,44 +407,49 @@ input:checked+.slider:before{transform:translateX(22px)}
     <div class="stats-bar-item"><span class="stats-bar-val" style="color:var(--accent);" id="mon-pend">0</span><span class="stats-bar-lbl">En espera</span></div>
   </div>
 
-  <!-- Por confirmar en monitor -->
-  <div id="monConfirmarSection" style="display:none;padding:12px 20px 0;">
-    <div style="font-size:.72rem;font-weight:900;color:var(--red);letter-spacing:1px;margin-bottom:8px;">⚠️ SOLICITUDES PENDIENTES</div>
-    <div id="monConfirmarList"></div>
-  </div>
+  <!-- ── Área de scroll interna ── -->
+  <div style="flex:1;overflow-y:auto;overscroll-behavior-y:contain;padding-bottom:calc(env(safe-area-inset-bottom,20px) + 88px);">
 
-  <!-- Tarjeta en silla -->
-  <div id="monSillaCard" class="silla-card">
-    <div id="monNumCircle" style="width:120px;height:120px;border-radius:50%;border:1px solid rgba(255,255,255,.05);background:rgba(255,255,255,.02);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;">
-      <span class="silla-num" id="monNum">—</span>
+    <!-- Por confirmar en monitor -->
+    <div id="monConfirmarSection" style="display:none;padding:12px 20px 0;">
+      <div style="font-size:.72rem;font-weight:900;color:var(--red);letter-spacing:1px;margin-bottom:8px;">⚠️ SOLICITUDES PENDIENTES</div>
+      <div id="monConfirmarList"></div>
     </div>
-    <div class="silla-nombre" id="monNombre">SALA DISPONIBLE</div>
-    <div id="monSvcBadge" style="margin-top:6px;display:none;"><span class="silla-svc" id="monSvc"></span></div>
-    <!-- Progress del servicio -->
-    <div id="monProgWrap" style="margin-top:16px;display:none;">
-      <div class="prog-wrap" style="height:4px;"><div class="prog-fill" id="monProgFill" style="width:0%;"></div></div>
-      <div style="font-size:.72rem;color:var(--dim);margin-top:4px;" id="monProgTxt"></div>
-    </div>
-    <!-- Acciones -->
-    <div id="monAcciones" style="display:none;display:flex;gap:10px;margin-top:20px;flex-direction:row;">
-      <button onclick="noShowProximo()" style="flex:1;padding:14px;border-radius:var(--r);background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);color:var(--red);font-weight:900;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">👻 NO-SHOW</button>
-      <button class="shimmer-btn" onclick="completarProximo()" id="monFinBtn" style="flex:2">✓ FINALIZAR</button>
-    </div>
-  </div>
 
-  <!-- Objetivo diario + cola de espera en monitor -->
-  <div style="padding:0 20px 20px;">
-    <div style="margin-bottom:16px;">
-      <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:.65rem;font-weight:900;color:rgba(255,255,255,.25);letter-spacing:1px;">OBJETIVO DIARIO</span><span style="font-size:.65rem;font-weight:900;color:var(--accent);letter-spacing:1px;" id="monObjetivo"></span></div>
-      <div class="prog-wrap"><div class="prog-fill" id="monObjFill" style="width:0%"></div></div>
+    <!-- Tarjeta en silla -->
+    <div id="monSillaCard" class="silla-card">
+      <div id="monNumCircle" style="width:120px;height:120px;border-radius:50%;border:1px solid rgba(255,255,255,.05);background:rgba(255,255,255,.02);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;">
+        <span class="silla-num" id="monNum">—</span>
+      </div>
+      <div class="silla-nombre" id="monNombre">SALA DISPONIBLE</div>
+      <div id="monSvcBadge" style="margin-top:6px;display:none;"><span class="silla-svc" id="monSvc"></span></div>
+      <!-- Progress del servicio -->
+      <div id="monProgWrap" style="margin-top:16px;display:none;">
+        <div class="prog-wrap" style="height:4px;"><div class="prog-fill" id="monProgFill" style="width:0%;"></div></div>
+        <div style="font-size:.72rem;color:var(--dim);margin-top:4px;" id="monProgTxt"></div>
+      </div>
+      <!-- Acciones -->
+      <div id="monAcciones" style="display:none;display:flex;gap:10px;margin-top:20px;flex-direction:row;">
+        <button onclick="noShowProximo()" style="flex:1;padding:14px;border-radius:var(--r);background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);color:var(--red);font-weight:900;font-size:.82rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">👻 NO-SHOW</button>
+        <button class="shimmer-btn" onclick="completarProximo()" id="monFinBtn" style="flex:2">✓ FINALIZAR</button>
+      </div>
     </div>
-    <div style="font-size:.65rem;font-weight:900;color:rgba(255,255,255,.2);letter-spacing:1px;margin-bottom:10px;" id="monColaLabel">PRÓXIMOS EN COLA (0)</div>
-    <div id="monColaList"></div>
-    <div id="monRecientes" style="display:none;margin-top:16px;">
-      <div style="font-size:.65rem;font-weight:900;color:var(--green);letter-spacing:1px;margin-bottom:8px;">RECIÉN ATENDIDOS</div>
-      <div id="monRecientesList"></div>
+
+    <!-- Objetivo diario + cola de espera en monitor -->
+    <div style="padding:0 20px 20px;">
+      <div style="margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:.65rem;font-weight:900;color:rgba(255,255,255,.25);letter-spacing:1px;">OBJETIVO DIARIO</span><span style="font-size:.65rem;font-weight:900;color:var(--accent);letter-spacing:1px;" id="monObjetivo"></span></div>
+        <div class="prog-wrap"><div class="prog-fill" id="monObjFill" style="width:0%"></div></div>
+      </div>
+      <div style="font-size:.65rem;font-weight:900;color:rgba(255,255,255,.2);letter-spacing:1px;margin-bottom:10px;" id="monColaLabel">PRÓXIMOS EN COLA (0)</div>
+      <div id="monColaList"></div>
+      <div id="monRecientes" style="display:none;margin-top:16px;">
+        <div style="font-size:.65rem;font-weight:900;color:var(--green);letter-spacing:1px;margin-bottom:8px;">RECIÉN ATENDIDOS</div>
+        <div id="monRecientesList"></div>
+      </div>
     </div>
-  </div>
+
+  </div><!-- fin scroll interno -->
 </div>
 
 <!-- ── STATS SCREEN ── -->
