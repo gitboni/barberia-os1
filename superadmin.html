@@ -4724,25 +4724,59 @@ function featToggle(key) {
   if(lbl) { lbl.textContent = on ? 'ACTIVO' : 'INACTIVO'; lbl.style.color = on ? 'var(--green)' : 'var(--muted)'; }
 }
 
+// Columnas originales (siempre existen en la BD)
+const FEATURES_ORIGINAL = ['feature_reportes','feature_config','feature_servicios','feature_bot_whatsapp','feature_barberos','feature_clientes','feature_walkin','feature_monitor'];
+// Columnas nuevas (pueden no existir — requieren migración SQL)
+const FEATURES_NEW = ['feature_marketplace','feature_reseñas','feature_caja','feature_festivos'];
+
 async function saveFeatures(){
   if(!_featShopId) return;
   const btn = document.getElementById('saveFeatsBtn');
   btn.textContent = '⏳ Guardando...'; btn.disabled = true;
+
+  // Construir payload completo
+  const p = {};
+  FEATURES_DEF.forEach(f => {
+    const el = document.getElementById('feat-val-'+f.key);
+    if(el) p[f.key] = (el.value === 'true');
+  });
+
   try {
-    const p = {};
-    FEATURES_DEF.forEach(f => {
-      const el = document.getElementById('feat-val-'+f.key);
-      if(el) p[f.key] = (el.value === 'true');
-    });
+    // Intentar con todos los campos (incluyendo nuevos)
     await sbPatch('shops', 'id=eq.'+_featShopId, p);
     closeModal('modalFeatures');
     showToast('✓ Features actualizadas','success');
     logSuperadminAction('update_features', `shop:${_featShopId}`);
     loadShops();
   } catch(e) {
-    showToast('Error: '+e.message,'error');
+    // Si falla (columnas nuevas no existen en BD), guardar solo las originales
+    // y mostrar aviso de migración
+    if(e.message && (e.message.includes('400') || e.message.includes('column'))) {
+      try {
+        const pOrig = {};
+        FEATURES_ORIGINAL.forEach(k => { if(p[k] !== undefined) pOrig[k] = p[k]; });
+        await sbPatch('shops', 'id=eq.'+_featShopId, pOrig);
+        closeModal('modalFeatures');
+        showToast('⚠ Features básicas guardadas. Ejecuta la migración SQL para activar las nuevas.','warn');
+        // Mostrar instrucción de migración
+        _showMigrationHint();
+        logSuperadminAction('update_features_partial', `shop:${_featShopId}`);
+        loadShops();
+      } catch(e2) {
+        showToast('Error: '+e2.message,'error');
+      }
+    } else {
+      showToast('Error: '+e.message,'error');
+    }
   } finally {
     btn.textContent = '✓ GUARDAR CAMBIOS'; btn.disabled = false;
+  }
+}
+
+function _showMigrationHint(){
+  const sql = `-- Ejecuta esto en Supabase → SQL Editor:\nALTER TABLE shops\n  ADD COLUMN IF NOT EXISTS feature_marketplace boolean DEFAULT true,\n  ADD COLUMN IF NOT EXISTS feature_reseñas boolean DEFAULT true,\n  ADD COLUMN IF NOT EXISTS feature_caja boolean DEFAULT true,\n  ADD COLUMN IF NOT EXISTS feature_festivos boolean DEFAULT false;`;
+  if(confirm('Las nuevas columnas no existen en la BD. ¿Copiar el SQL de migración al portapapeles?')){
+    navigator.clipboard?.writeText(sql).then(()=>showToast('✓ SQL copiado — pégalo en Supabase → SQL Editor','success'));
   }
 }
 
@@ -5018,6 +5052,10 @@ async function guardarEditShop(){
     <div class="modal-title">⚡ Control de Funcionalidades</div>
     <div id="features-shop-name" style="font-size:0.65rem;color:var(--muted);margin-bottom:18px;letter-spacing:.08em;"></div>
     <div id="features-list" style="margin-bottom:4px;"></div>
+    <div style="margin:12px 0 4px;padding:10px 12px;background:rgba(255,165,0,0.06);border:1px solid rgba(255,165,0,0.2);font-size:0.56rem;color:rgba(255,165,0,0.8);line-height:1.6;">
+      ⚠ Las features <strong>Marketplace, Reseñas, Caja y Festivos</strong> requieren columnas nuevas en la BD.
+      <button onclick="_showMigrationHint()" style="background:none;border:none;color:rgba(255,165,0,0.9);cursor:pointer;font-size:0.56rem;text-decoration:underline;padding:0;margin-left:4px;">Copiar SQL de migración →</button>
+    </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('modalFeatures')">CANCELAR</button>
       <button class="btn btn-primary" id="saveFeatsBtn" onclick="saveFeatures()">✓ GUARDAR CAMBIOS</button>
