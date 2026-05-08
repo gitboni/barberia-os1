@@ -1621,8 +1621,8 @@ function openDetail(id){
   const s=allShops.find(x=>x.id===String(id));if(!s)return;
   addHistory(id);
 
-  // URL push + OG/JSON-LD dinámico
-  history.pushState({open:id},'',`?open=${id}`);
+  // Actualizar URL sin agregar entrada al historial (replaceState para no interferir con el back del browser)
+  history.replaceState({open:id},'',`?open=${id}`);
   updateOgForShop(s);
 
   // Fly-to en mapa
@@ -1772,12 +1772,8 @@ function closeDetail(){
   document.getElementById('detailModal').classList.remove('active');
   document.body.style.overflow='';
   document.title = 'AuraOS — Encuentra tu barbería';
-  // Limpiar ?open= de la URL sin navegar (replaceState, no back)
-  const url = new URL(location);
-  if(url.searchParams.has('open')){
-    url.searchParams.delete('open');
-    history.replaceState(null,'', url.pathname + (url.search||''));
-  }
+  // Limpiar ?open= de la URL
+  history.replaceState(null,'', location.pathname);
   // Restaurar OG base
   const set = (prop,val)=>{ const m=document.querySelector(`meta[property="${prop}"]`); if(m) m.content=val; };
   set('og:title','AuraOS — Encuentra tu barbería ideal');
@@ -2250,12 +2246,9 @@ function scrollToFeed(){
   document.querySelector('.main')?.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
-// ── Botón atrás del browser cierra el detalle sin salir del marketplace ──
-window.addEventListener('popstate', e => {
-  const modal = document.getElementById('detailModal');
-  if(modal.classList.contains('active')){
-    // Cancelar la navegación y cerrar el modal en vez de salir
-    history.pushState(null,'', location.href); // re-push para no salir
+// ── Botón atrás del browser cierra el detalle ──
+window.addEventListener('popstate', () => {
+  if(document.getElementById('detailModal').classList.contains('active')){
     closeDetail();
   }
 });
