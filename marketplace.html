@@ -755,6 +755,34 @@ footer{
 .gallery-thumb:hover{opacity:1;border-color:var(--gold)}
 /* ── Slots count pill ── */
 .slots-pill{font-size:.62rem;font-weight:700;color:var(--green);background:rgba(0,208,132,.08);border:1px solid rgba(0,208,132,.2);padding:2px 8px;border-radius:50px;margin-left:4px}
+/* ── Stagger cards ── */
+@keyframes cardIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.shop-card{animation:cardIn .35s ease both}
+/* ── Pull to refresh ── */
+.ptr-indicator{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  height:0;overflow:hidden;transition:height .25s;
+  font-size:.78rem;color:var(--dim);
+}
+.ptr-indicator.visible{height:48px}
+.ptr-spin{animation:hv-spin .8s linear infinite;font-size:1.1rem}
+/* ── Promo badge on card ── */
+.badge-promo-card{
+  position:absolute;bottom:10px;right:10px;z-index:5;
+  background:var(--gold);color:#000;
+  font-size:.52rem;font-weight:900;padding:3px 9px;
+  border-radius:50px;text-transform:uppercase;letter-spacing:.5px;
+  font-family:'Outfit',sans-serif;
+}
+/* ── Social links ── */
+.social-links{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.social-btn{
+  display:flex;align-items:center;gap:6px;
+  background:var(--bg4);border:1px solid var(--border);
+  border-radius:50px;padding:6px 14px;font-size:.75rem;
+  cursor:pointer;transition:.2s;color:var(--dim);text-decoration:none;
+}
+.social-btn:hover{border-color:var(--gold-b);color:var(--gold)}
 /* ── Avísame ── */
 .notify-me-btn{background:transparent;border:1px solid var(--border);color:var(--dim);border-radius:50px;padding:6px 14px;font-size:.75rem;cursor:pointer;transition:.2s;white-space:nowrap;margin-top:8px}
 .notify-me-btn:hover,.notify-me-btn.on{border-color:var(--gold-b);color:var(--gold);background:var(--gold-s)}
@@ -927,6 +955,11 @@ footer{
 <div class="main">
   <!-- Feed -->
   <div class="feed-col">
+    <!-- Pull to refresh -->
+    <div class="ptr-indicator" id="ptrIndicator">
+      <span class="ptr-spin">↻</span><span>Actualizando…</span>
+    </div>
+
     <!-- History bar -->
     <div class="hist-bar" id="histBar" style="display:none">
       <span class="hist-label">🕐 Recientes:</span>
@@ -1167,7 +1200,7 @@ footer{
 <!-- ── MODAL DETALLE ── -->
 <div class="detail-modal" id="detailModal">
   <div class="detail-hero" id="detailHero">
-    <button class="detail-back" onclick="closeDetail()">←</button>
+    <button class="detail-back" onclick="history.back()" aria-label="Volver">←</button>
     <div id="detailHeroImg"></div>
     <div class="detail-hero-overlay" id="detailHeroOverlay"></div>
   </div>
@@ -1415,7 +1448,7 @@ function renderShops(reset=false){
   const slice=filteredShops.slice(currentPage*PAGE_SZ,(currentPage+1)*PAGE_SZ);
   const frag=document.createDocumentFragment();
 
-  slice.forEach(s=>{
+  slice.forEach((s,idx)=>{
     const open=isOpenNow(s.horario);
     const fav=isFav(s.id);
     const dist=userCoords&&s.lat?` · ${distanceTo(s.lat,s.lng).toFixed(1)} km`:'';
@@ -1424,23 +1457,27 @@ function renderShops(reset=false){
     const card=document.createElement('div');
     card.className=`shop-card${isPrem?' premium':''}`;
     card.dataset.id = s.id;
+    card.style.animationDelay = `${idx * 60}ms`;
     card.onclick=()=>openDetail(s.id);
 
     const topSvcs=(s.servicios||[]).slice(0,3);
 
     const closing = closingIn(s.horario);
+    const nextOpen = open===false ? nextOpenTime(s.horario) : null;
     const freeSlots = countFreeSlots(s);
     const isNewShop = isNew(s);
+    const hasPromo = Array.isArray(s.promociones) && s.promociones.length > 0;
     card.innerHTML=`
       ${isPrem?'<div class="premium-badge">💎 Elite</div>':''}
       ${isNewShop&&!isPrem?'<div class="badge-nuevo">Nuevo</div>':''}
+      ${hasPromo?'<div class="badge-promo-card">🏷 Oferta</div>':''}
       <div class="card-img-wrap">
         <img class="card-img" src="${esc(s.foto_url)}" alt="${esc(s.nombre)}" loading="lazy"
              onerror="this.src='${DEMO_IMGS[0]}'">
         <div class="card-img-placeholder" style="display:none">${s.icono||'✂️'}</div>
         <div class="card-open-pill">
           <div class="${open===true?'dot-open':'dot-closed'}"></div>
-          ${open===true?(closing?`Cierra en ${closing}`:'Abierto'):open===false?'Cerrado':'—'}
+          ${open===true?(closing?`Cierra en ${closing}`:'Abierto'):open===false?(nextOpen||'Cerrado'):'—'}
         </div>
       </div>
       <div class="card-body">
@@ -1684,6 +1721,16 @@ function openDetail(id){
               <span>${h.cerrado?'<span style="color:var(--red)">Cerrado</span>':`${fmt12(h.apertura)} – ${fmt12(h.cierre)}`}</span>
             </div>`).join('')}
         </div>
+
+        ${(s.instagram||s.facebook||s.tiktok)?`
+        <div style="margin-top:16px">
+          <div class="detail-section-title">Redes sociales</div>
+          <div class="social-links">
+            ${s.instagram?`<a href="https://instagram.com/${esc(s.instagram)}" target="_blank" rel="noopener" class="social-btn">📸 Instagram</a>`:''}
+            ${s.facebook?`<a href="${esc(s.facebook)}" target="_blank" rel="noopener" class="social-btn">📘 Facebook</a>`:''}
+            ${s.tiktok?`<a href="https://tiktok.com/@${esc(s.tiktok)}" target="_blank" rel="noopener" class="social-btn">🎵 TikTok</a>`:''}
+          </div>
+        </div>`:''}
       </div>
     </div>`;
 
@@ -1721,6 +1768,27 @@ function openDetail(id){
 function closeDetail(){
   document.getElementById('detailModal').classList.remove('active');
   document.body.style.overflow='';
+  document.title = 'AuraOS — Encuentra tu barbería';
+}
+
+// Calcula cuándo abre próximamente un shop cerrado
+function nextOpenTime(horario){
+  if(!Array.isArray(horario)) return null;
+  const now = getAhoraMin();
+  // Hoy mismo: puede que abra más tarde
+  const todayH = horario.find(h=>h.dia===todayName);
+  if(todayH && !todayH.cerrado){
+    const[oh,om]=(todayH.apertura||'').split(':').map(Number);
+    if(oh*60+om > now) return `Abre hoy ${fmt12(todayH.apertura)}`;
+  }
+  // Próximos días
+  const dIdx = DAYS.indexOf(todayName);
+  for(let i=1;i<=6;i++){
+    const d = DAYS[(dIdx+i)%7];
+    const h = horario.find(x=>x.dia===d);
+    if(h && !h.cerrado) return `Abre ${d} ${fmt12(h.apertura)}`;
+  }
+  return null;
 }
 
 // ── Booking ──
@@ -1984,6 +2052,7 @@ function openCompare(){
   // Reuse overlay as compare modal
   const overlay = document.getElementById('overlay');
   overlay.innerHTML = `<div onclick="event.stopPropagation()" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r-xl);padding:28px;max-width:600px;width:95%;margin:auto;margin-top:10vh"><h3 class="outfit" style="margin-bottom:16px;font-size:1.2rem">Comparando negocios</h3>${html}</div>`;
+  _overlayMode='compare';
   overlay.style.display = 'flex';
   overlay.style.alignItems = 'flex-start';
   overlay.classList.add('active');
@@ -2125,16 +2194,43 @@ function openRegistro(){
 // ── Infinite scroll ──
 new IntersectionObserver(e=>{if(e[0].isIntersecting&&currentPage*PAGE_SZ<filteredShops.length)renderShops(false)},{rootMargin:'100px'}).observe(document.getElementById('sentinel'));
 
-// ── closeAll (updated) ──
+// ── closeAll ──
+let _overlayMode = ''; // 'compare' | 'bookings' | ''
 function closeAll(){
-  if(document.getElementById('overlay').innerHTML.includes('Comparando')){
-    document.getElementById('overlay').innerHTML='';
-    document.getElementById('overlay').style.display='';
-    document.getElementById('overlay').style.alignItems='';
+  const overlay = document.getElementById('overlay');
+  if(_overlayMode){
+    overlay.innerHTML='';
+    overlay.style.display='';
+    overlay.style.alignItems='';
+    _overlayMode='';
   }
   closeFilterPanel();
   closeBooking();
 }
+
+// ── Pull to refresh ──
+(()=>{
+  let startY=0, pulling=false;
+  const feed = ()=>document.querySelector('.feed-col');
+  document.addEventListener('touchstart',e=>{
+    if(feed()?.scrollTop===0) startY=e.touches[0].clientY;
+  },{passive:true});
+  document.addEventListener('touchmove',e=>{
+    if(!startY) return;
+    const diff=e.touches[0].clientY-startY;
+    if(diff>60&&!pulling){
+      pulling=true;
+      document.getElementById('ptrIndicator').classList.add('visible');
+    }
+  },{passive:true});
+  document.addEventListener('touchend',()=>{
+    if(pulling){
+      pulling=false;startY=0;
+      document.getElementById('ptrIndicator').classList.remove('visible');
+      loadShops();
+    } else {startY=0;}
+  },{passive:true});
+})();
 
 // ── Smooth scroll al feed desde hero ──
 function scrollToFeed(){
@@ -2232,6 +2328,7 @@ function openMyBookings(){
         ${listHtml}
         <button type="button" onclick="closeAll()" style="width:100%;margin-top:8px;background:none;border:1px solid var(--border);color:var(--dim);padding:10px;border-radius:50px;cursor:pointer">Cerrar</button>
       </div>`;
+      _overlayMode='bookings';
       overlay.style.display='flex';
       overlay.style.alignItems='flex-end';
       overlay.classList.add('active');
@@ -2290,6 +2387,7 @@ function updateOgForShop(shop){
   set('og:description', shop.descripcion || `Reserva en ${shop.nombre}. Ubicado en ${shop.direccion||'RD'}.`);
   set('og:image', shop.foto_url || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=1200&q=80');
   set('og:url', `${location.origin}${location.pathname}?open=${shop.id}`);
+  document.title = `${shop.nombre} — AuraOS Marketplace`;
   updateJsonLd(shop);
 }
 
@@ -2298,20 +2396,22 @@ function initHeroCanvas(){
   const canvas = document.getElementById('heroCanvas');
   if(!canvas) return;
   const ctx = canvas.getContext('2d');
-  const W = canvas.parentElement.offsetWidth;
-  const H = canvas.parentElement.offsetHeight;
-  canvas.width = W; canvas.height = H;
+  let W, H, pts, rafId, paused=false;
 
-  const pts = Array.from({length:55},()=>({
-    x: Math.random()*W, y: Math.random()*H,
-    vx:(Math.random()-.5)*.4, vy:(Math.random()-.5)*.4,
-    r: Math.random()*2+1,
-    o: Math.random()*.5+.15,
-  }));
+  function resize(){
+    W = canvas.parentElement.offsetWidth;
+    H = canvas.parentElement.offsetHeight;
+    canvas.width = W; canvas.height = H;
+    pts = Array.from({length:55},()=>({
+      x:Math.random()*W, y:Math.random()*H,
+      vx:(Math.random()-.5)*.4, vy:(Math.random()-.5)*.4,
+      r:Math.random()*2+1, o:Math.random()*.5+.15,
+    }));
+  }
 
   function draw(){
+    if(paused){ rafId=requestAnimationFrame(draw); return; }
     ctx.clearRect(0,0,W,H);
-    // Connections
     for(let i=0;i<pts.length;i++){
       for(let j=i+1;j<pts.length;j++){
         const dx=pts[i].x-pts[j].x, dy=pts[i].y-pts[j].y;
@@ -2326,7 +2426,6 @@ function initHeroCanvas(){
         }
       }
     }
-    // Dots
     pts.forEach(p=>{
       ctx.beginPath();
       ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
@@ -2336,9 +2435,20 @@ function initHeroCanvas(){
       if(p.x<0||p.x>W) p.vx*=-1;
       if(p.y<0||p.y>H) p.vy*=-1;
     });
-    requestAnimationFrame(draw);
+    rafId=requestAnimationFrame(draw);
   }
+
+  resize();
   draw();
+
+  // Pausa cuando el tab está oculto — ahorra CPU
+  document.addEventListener('visibilitychange',()=>{ paused=document.hidden; });
+  // Redimensiona si cambia el tamaño de ventana
+  let resizeTimer;
+  window.addEventListener('resize',()=>{
+    clearTimeout(resizeTimer);
+    resizeTimer=setTimeout(resize,200);
+  });
 }
 
 // ── Init ──
