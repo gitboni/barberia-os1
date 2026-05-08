@@ -367,7 +367,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overf
 
 /* ── Modal de reserva ── */
 .overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:800;
+  position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;
   opacity:0;pointer-events:none;transition:.3s;
 }
 .overlay.active{opacity:1;pointer-events:all}
@@ -376,7 +376,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overf
   width:96%;max-width:740px;max-height:92vh;
   background:var(--bg2);border:1px solid var(--border);
   border-radius:var(--r-xl) var(--r-xl) 0 0;
-  z-index:900;overflow-y:auto;
+  z-index:1050;overflow-y:auto;
   transition:bottom .4s cubic-bezier(.16,1,.3,1);
 }
 .booking-modal.active{bottom:0}
@@ -521,7 +521,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overf
 .filter-panel{
   position:fixed;top:0;left:-370px;width:360px;height:100vh;
   background:rgba(10,10,10,.98);backdrop-filter:blur(40px);
-  border-right:1px solid var(--border);z-index:1000;
+  border-right:1px solid var(--border);z-index:1100;
   overflow-y:auto;padding:28px;transition:left .4s cubic-bezier(.16,1,.3,1);
 }
 .filter-panel.open{left:0}
@@ -1041,6 +1041,19 @@ let shopBarberos=[], shopCitasHoy=[];
 
 // ── Utils ──
 const esc=s=>DOMPurify.sanitize(String(s??''));
+
+// Imágenes de muestra para negocios sin foto
+const DEMO_IMGS=[
+  'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=600&q=80',
+  'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=600&q=80',
+  'https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=600&q=80',
+  'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=600&q=80',
+  'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=600&q=80',
+  'https://images.unsplash.com/photo-1512690459411-b9245aed614b?w=600&q=80',
+  'https://images.unsplash.com/photo-1605497788044-5a32c7078486?w=600&q=80',
+  'https://images.unsplash.com/photo-1634735985735-b3e73ea04c7d?w=600&q=80',
+];
+function getDemoImg(id){ const n=parseInt(String(id).replace(/\D/g,'').slice(-3)||'0');return DEMO_IMGS[n%DEMO_IMGS.length]; }
 const DAYS=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 const getFechaHoy=()=>new Intl.DateTimeFormat('en-CA',{timeZone:TZ}).format(new Date());
 const getAhoraMin=()=>{const p=new Intl.DateTimeFormat('en-US',{timeZone:TZ,hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(new Date());const h=parseInt(p.find(x=>x.type==='hour')?.value??0);const m=parseInt(p.find(x=>x.type==='minute')?.value??0);return h*60+m};
@@ -1144,7 +1157,7 @@ async function loadShops(){
       nombre:s.nombre||'Sin nombre',
       lat:parseFloat(s.lat||0)||null,
       lng:parseFloat(s.lng||0)||null,
-      foto_url:s.foto_url||null,
+      foto_url:s.foto_url||getDemoImg(s.id),
       icono:s.icono||'✂️',
       plan:s.plan||'free',
       rating:rMap[s.id]?Math.round(rMap[s.id].sum/rMap[s.id].n*10)/10:null,
@@ -1238,11 +1251,9 @@ function renderShops(reset=false){
       ${isPrem?'<div class="premium-badge">💎 Elite</div>':''}
       ${isNewShop&&!isPrem?'<div class="badge-nuevo">Nuevo</div>':''}
       <div class="card-img-wrap">
-        ${s.foto_url
-          ?`<img class="card-img" src="${esc(s.foto_url)}" alt="${esc(s.nombre)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
-          :''
-        }
-        <div class="card-img-placeholder" style="${s.foto_url?'display:none':''}">${s.icono||'✂️'}</div>
+        <img class="card-img" src="${esc(s.foto_url)}" alt="${esc(s.nombre)}" loading="lazy"
+             onerror="this.src='${DEMO_IMGS[0]}'">
+        <div class="card-img-placeholder" style="display:none">${s.icono||'✂️'}</div>
         <div class="card-open-pill">
           <div class="${open===true?'dot-open':'dot-closed'}"></div>
           ${open===true?(closing?`Cierra en ${closing}`:'Abierto'):open===false?'Cerrado':'—'}
@@ -1396,17 +1407,18 @@ function openDetail(id){
   const todayH=s.horario.find(h=>h.dia===todayName);
 
   // Galería: foto principal + galeria[] — guardada globalmente para el lightbox
-  window._detailImgs=[s.foto_url,...(s.galeria||[])].filter(Boolean);
+  // Galería: foto real + galería de DB + demos de relleno hasta 4 fotos
+  const realImgs=[s.foto_url,...(s.galeria||[])].filter(Boolean);
+  const needed=Math.max(0,3-realImgs.length);
+  const extras=DEMO_IMGS.filter(u=>!realImgs.includes(u)).slice(0,needed);
+  window._detailImgs=[...realImgs,...extras];
 
   // Hero clickeable → lightbox (listener aparte, sin JSON en onclick)
   const heroWrap=document.getElementById('detailHeroImg');
-  heroWrap.innerHTML=s.foto_url
-    ?`<img style="width:100%;height:100%;object-fit:cover;opacity:.6;cursor:zoom-in" src="${esc(s.foto_url)}" alt="${esc(s.nombre)}">`
-    :`<div class="detail-hero-icon">${s.icono||'✂️'}</div>`;
-  if(s.foto_url){
-    heroWrap.querySelector('img')?.addEventListener('click',()=>openLightbox(window._detailImgs,0));
-    heroWrap.querySelector('img')?.addEventListener('error',function(){this.parentNode.innerHTML=`<div class="detail-hero-icon">${s.icono||'✂️'}</div>`});
-  }
+  heroWrap.innerHTML=`<img style="width:100%;height:100%;object-fit:cover;opacity:.6;cursor:zoom-in" src="${esc(s.foto_url)}" alt="${esc(s.nombre)}">`;
+  const heroImg = heroWrap.querySelector('img');
+  heroImg.addEventListener('click',()=>openLightbox(window._detailImgs,0));
+  heroImg.addEventListener('error',function(){this.src=DEMO_IMGS[0]});
 
   document.getElementById('detailHeroOverlay').innerHTML=`
     <div style="font-family:'Outfit',sans-serif;font-size:clamp(1.8rem,5vw,3rem);font-weight:900;line-height:1;margin-bottom:8px">${esc(s.nombre)}</div>
