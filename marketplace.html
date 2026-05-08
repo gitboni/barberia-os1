@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>AuraOS — Marketplace Pro</title>
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -63,6 +63,28 @@
 
         /* ─── Layout ─── */
         main { display:grid; grid-template-columns:500px 1fr; height:calc(100vh - 70px); }
+
+        /* ─── Mobile responsive ─── */
+        @media(max-width:900px) {
+            nav { padding:0 16px; gap:12px; height:70px; }
+            .logo { font-size:1.2rem; min-width:auto; }
+            .search-group { display:none; }
+            .nav-actions { gap:12px; }
+            main { grid-template-columns:1fr; height:auto; }
+            #map { display:none; height:0; }
+            #map.view-active { display:block; height:65vh; }
+            .feed { padding:16px; }
+            .search-box { display:flex !important; }
+            .map-toggle-btn { display:flex !important; bottom:16px; right:16px; }
+        }
+        @media(max-width:600px) {
+            .detail-sheet, .booking-sheet { width:100%; border-radius:24px 24px 0 0; height:95vh; }
+            .gallery-header { height:220px; }
+            .header-overlay h2 { font-size:1.8rem !important; }
+            .sheet-content { padding:0 16px 16px; }
+            .sheet-close { top:12px; right:12px; }
+            .slots-grid { grid-template-columns:repeat(3,1fr); }
+        }
 
         /* ─── Feed ─── */
         .feed { padding:25px; overflow-y:auto; background:var(--bg); display:flex; flex-direction:column; gap:0; }
@@ -739,40 +761,52 @@ async function openBookingModal(data) {
     if (!data) return;
     let shop = (typeof data === 'object') ? data : allShops.find(s => String(s.id) === String(data));
     if (!shop) return;
-    
+
     currentBookingShop = shop;
-    
-    // Intentar cerrar modal de detalles sin bloquear
+    currentBookingSlot = null;
+    currentBookingService = null;
+
     try { closeShopDetail(); } catch(e) {}
-    
+
     document.getElementById('bookingShopName').textContent = shop.nombre;
     document.getElementById('bookingModal').classList.add('active');
     document.getElementById('overlay').classList.add('active');
-    
-    // Usar datos pre-cargados para rapidez
+
+    // Pre-rellenar nombre y teléfono del perfil guardado
+    const savedUser = JSON.parse(localStorage.getItem('aura_user') || '{}');
+    if (savedUser.name)  document.getElementById('bookingName').value  = savedUser.name;
+    if (savedUser.phone) document.getElementById('bookingPhone').value = savedUser.phone;
+
     shopBarberos = shop.staff || [];
     renderBookingBarbers();
     renderBookingServices();
-    
-    if (shopBarberos.length > 0) {
-        selectBookingBarber(shopBarberos[0].id);
-    }
 
-    // Intentar cargar citas del día para los slots (esto sí requiere red)
+    if (shopBarberos.length > 0) selectBookingBarber(shopBarberos[0].id);
+
+    // Cargar citas del día con duración para calcular slots correctamente
     if (sb) {
         try {
             const today = getFechaHoySD();
             const { data: citas } = await sb.from('citas')
-                .select('hora, barbero_id')
+                .select('hora, barbero_id, estado, servicio')
                 .eq('shop_id', shop.id)
-                .eq('fecha', today);
-            
+                .eq('fecha', today)
+                .in('estado', ['Confirmada', 'En curso']);
+
             if (citas) {
-                shopCitasHoy = citas;
+                // Enriquecer con duracion_min de servicios del shop
+                const svcMap = {};
+                (shop.servicios || []).forEach(s => {
+                    svcMap[s.nombre?.toLowerCase().trim()] = s.duracion_min;
+                });
+                shopCitasHoy = citas.map(c => ({
+                    ...c,
+                    duracion_min: svcMap[c.servicio?.toLowerCase().trim()] || shop.duracion_turno || 30
+                }));
                 calculateAvailableSlots();
             }
         } catch(err) {
-            console.warn("No se pudieron cargar las citas en tiempo real:", err);
+            // Silencioso — mostrar slots sin chequeo de conflictos
         }
     }
 }
@@ -831,30 +865,58 @@ function selectBookingService(name) {
 function calculateAvailableSlots() {
     const container = document.getElementById('bookingSlots');
     if (!currentBookingBarber || !currentBookingShop) return;
-    
+
     // Obtener horario de hoy
     const hHoy = (currentBookingShop.horario || []).find(h => h.dia === todayName);
-    let startMin = 540; // 9 AM default
-    let endMin = 1200; // 8 PM default
-    
+    let startMin = (currentBookingShop.hora_inicio || 9) * 60;
+    let endMin   = (currentBookingShop.hora_fin   || 20) * 60;
+
     if (hHoy && !hHoy.cerrado) {
         const [ah, am] = (hHoy.apertura || '09:00').split(':').map(Number);
-        const [ch, cm] = (hHoy.cierre || '20:00').split(':').map(Number);
+        const [ch, cm] = (hHoy.cierre   || '20:00').split(':').map(Number);
         startMin = ah * 60 + am;
-        endMin = ch * 60 + cm;
+        endMin   = ch * 60 + cm;
     }
-    
+
+    // Duración del turno: servicio seleccionado > duracion_turno del shop > 30 min
+    const durMin = currentBookingService?.duracion_min
+        || currentBookingShop?.duracion_turno
+        || 30;
+
     const slots = [];
     const nowMin = getAhoraSD();
-    for (let m = startMin; m < endMin; m += 30) {
-        if (m < nowMin + 15) continue;
+
+    // Filtrar solo citas Confirmadas/En curso del barbero (no canceladas ni completadas)
+    const citasActivas = (shopCitasHoy || []).filter(c =>
+        !['Cancelada', 'Completada', 'No-Show'].includes(c.estado)
+    );
+
+    for (let m = startMin; m + durMin <= endMin; m += durMin) {
+        if (m < nowMin + 10) continue; // 10 min de margen mínimo
+
         const t = `${Math.floor(m/60).toString().padStart(2,'0')}:${(m%60).toString().padStart(2,'0')}`;
-        const taken = (shopCitasHoy || []).some(c => c.hora.startsWith(t) && String(c.barbero_id) === String(currentBookingBarber.id));
+
+        // Un slot está tomado si hay una cita del barbero que se solapa con él
+        const taken = citasActivas.some(c => {
+            if (String(c.barbero_id) !== String(currentBookingBarber.id)) return false;
+            const [ch, cm2] = (c.hora || '00:00').split(':').map(Number);
+            const citaIni = ch * 60 + cm2;
+            // Duración de la cita existente (30 min fallback)
+            const citaDur = c.duracion_min || durMin;
+            return m < citaIni + citaDur && m + durMin > citaIni;
+        });
+
         slots.push({ time: t, taken });
     }
-    
+
+    if (!slots.length) {
+        container.innerHTML = '<div style="color:var(--text-dim); padding:10px 0; font-size:0.9rem;">Sin horarios disponibles para hoy.</div>';
+        return;
+    }
+
     container.innerHTML = slots.map(s => `
-        <div class="slot ${s.taken ? 'taken' : 'free'} ${currentBookingSlot === s.time ? 'selected' : ''}" onclick="${s.taken ? '' : `selectBookingSlot('${s.time}')`}">
+        <div class="slot ${s.taken ? 'taken' : 'free'} ${currentBookingSlot === s.time ? 'selected' : ''}"
+             onclick="${s.taken ? '' : `selectBookingSlot('${s.time}')`}">
             ${fmt12(s.time)}
         </div>
     `).join('');
@@ -867,20 +929,48 @@ function selectBookingSlot(t) {
 }
 
 async function processBooking() {
-    const name = document.getElementById('bookingName').value;
-    const phone = document.getElementById('bookingPhone').value;
-    const { error } = await sb.from('citas').insert({
-        shop_id: currentBookingShop.id,
-        barbero_id: currentBookingBarber.id,
-        fecha: getFechaHoySD(),
-        hora: currentBookingSlot + ':00',
-        servicio: currentBookingService.nombre,
-        nombre: name,
-        telefono: phone
-    });
-    if (!error) {
-        showToast('¡Reserva exitosa! 🎉');
+    const name  = document.getElementById('bookingName').value.trim();
+    const phone = document.getElementById('bookingPhone').value.trim().replace(/\D/g,'');
+
+    if (!name)  { showToast('Ingresa tu nombre'); return; }
+    if (!phone) { showToast('Ingresa tu número de WhatsApp'); return; }
+    if (!currentBookingBarber)  { showToast('Elige un barbero'); return; }
+    if (!currentBookingService) { showToast('Elige un servicio'); return; }
+    if (!currentBookingSlot)    { showToast('Elige un horario'); return; }
+    if (!sb) { showToast('Sin conexión a la base de datos'); return; }
+
+    const btn = document.getElementById('btnConfirmBooking');
+    if (btn.disabled) return;
+    btn.disabled = true;
+    btn.textContent = 'Reservando...';
+
+    try {
+        const { error } = await sb.from('citas').insert({
+            shop_id:    currentBookingShop.id,
+            barbero_id: currentBookingBarber.id,
+            barbero:    currentBookingBarber.nombre,
+            fecha:      getFechaHoySD(),
+            hora:       currentBookingSlot + ':00',
+            servicio:   currentBookingService.nombre,
+            nombre:     name,
+            telefono:   phone.length === 10 ? '1' + phone : phone,
+            estado:     'Confirmada',
+        });
+
+        if (error) throw error;
+
+        showToast('¡Reserva confirmada! 🎉');
         closeBookingModal();
+
+        // Limpiar estado para próxima reserva
+        currentBookingSlot = null;
+        currentBookingService = null;
+
+    } catch(e) {
+        showToast('Error al reservar. Intenta de nuevo.');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Confirmar Turno Ahora';
     }
 }
 
@@ -888,48 +978,47 @@ async function processBooking() {
 function subscribeRealtime() {
     if (!sb) return;
 
-    console.log("Iniciando Realtime Marketplace...");
-
-    // 1. Escuchar cambios en Shops (Metadatos y Disponibilidad General)
     sb.channel('mkt_shops')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'shops' }, payload => {
-          console.log('Realtime Shop Change:', payload);
-          const index = allShops.findIndex(s => String(s.id) === String(payload.new.id || payload.old.id));
-          
-          if (payload.eventType === 'UPDATE') {
-              if (index !== -1) {
-                  // Fusionar cambios preservando campos locales mapeados
-                  allShops[index] = { ...allShops[index], ...payload.new };
-                  handleSearch(); // Re-filtrar y re-renderizar
-              }
+          const index = allShops.findIndex(s => String(s.id) === String(payload.new?.id || payload.old?.id));
+          if (payload.eventType === 'UPDATE' && index !== -1) {
+              allShops[index] = { ...allShops[index], ...payload.new };
+              handleSearch();
           } else if (payload.eventType === 'INSERT') {
-              // Recargar todo si entra una nueva shop (poco frecuente pero posible)
               loadShops();
-          } else if (payload.eventType === 'DELETE') {
-              if (index !== -1) {
-                  allShops.splice(index, 1);
-                  handleSearch();
-              }
+          } else if (payload.eventType === 'DELETE' && index !== -1) {
+              allShops.splice(index, 1);
+              handleSearch();
           }
       })
       .subscribe();
 
-    // 2. Escuchar cambios en Citas (para actualización de slots en vivo)
+    // Solo escuchar citas del shop actualmente abierto en booking
+    // Se re-suscribe en openBookingModal si cambia de shop
     sb.channel('mkt_citas')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'citas' }, async payload => {
-          if (currentBookingShop && String(payload.new.shop_id || payload.old.shop_id) === String(currentBookingShop.id)) {
-              console.log('Realtime Cita Change for current shop:', payload);
-              // Refrescar citas para actualizar slots del modal abierto
-              const today = getFechaHoySD();
-              const { data: citas } = await sb.from('citas')
-                  .select('hora, barbero_id')
-                  .eq('shop_id', currentBookingShop.id)
-                  .eq('fecha', today);
-              
-              if (citas) {
-                  shopCitasHoy = citas;
-                  calculateAvailableSlots();
-              }
+          if (!currentBookingShop) return;
+          const shopId = payload.new?.shop_id || payload.old?.shop_id;
+          if (String(shopId) !== String(currentBookingShop.id)) return;
+
+          // Refrescar citas del shop abierto
+          const today = getFechaHoySD();
+          const { data: citas } = await sb.from('citas')
+              .select('hora, barbero_id, estado, servicio')
+              .eq('shop_id', currentBookingShop.id)
+              .eq('fecha', today)
+              .in('estado', ['Confirmada', 'En curso']);
+
+          if (citas) {
+              const svcMap = {};
+              (currentBookingShop.servicios || []).forEach(s => {
+                  svcMap[s.nombre?.toLowerCase().trim()] = s.duracion_min;
+              });
+              shopCitasHoy = citas.map(c => ({
+                  ...c,
+                  duracion_min: svcMap[c.servicio?.toLowerCase().trim()] || currentBookingShop.duracion_turno || 30
+              }));
+              calculateAvailableSlots();
           }
       })
       .subscribe();
@@ -1110,51 +1199,49 @@ async function loadShops() {
                 if (titleEl) titleEl.textContent = apiConfig.mkt_banner_title;
             }
             
-            if (Array.isArray(apiShops) && apiShops.length > 0) {
+                if (Array.isArray(apiShops) && apiShops.length > 0) {
                 allShops = apiShops.map(s => ({
                     ...s,
                     id: String(s.id),
-                    nombre: s.mkt_name || s.nombre || 'Sin nombre',
-                    lat: parseFloat(s.mkt_lat || s.lat || 18.4861),
-                    lng: parseFloat(s.mkt_lng || s.lng || -69.9312),
-                    foto_url: s.mkt_photo || s.foto_url || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800',
-                    direccion: s.mkt_address || s.direccion || 'Santo Domingo',
-                    ciudad: s.mkt_city || s.ciudad || 'Santo Domingo',
-                    categoria: s.mkt_category || s.categoria || 'barberia',
+                    nombre: s.nombre || 'Sin nombre',
+                    lat: parseFloat(s.lat || 18.4861),
+                    lng: parseFloat(s.lng || -69.9312),
+                    foto_url: s.foto_url || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800',
+                    direccion: s.direccion || 'Santo Domingo, RD',
+                    ciudad: s.ciudad || 'Santo Domingo',
+                    categoria: s.categoria || 'barberia',
                     plan: s.plan || 'free',
+                    // whatsapp: usar campo whatsapp del shop directamente
+                    whatsapp: s.whatsapp || s.whatsapp_dueño || '',
                     servicios: s.servicios || [],
                     staff: s.staff || s.barberos || [],
+                    // rating calculado de la BD
+                    rating: s.rating ? parseFloat(s.rating) : null,
+                    total_reseñas: s.total_reseñas || s.reseñas || 0,
+                    duracion_turno: s.duracion_turno || 30,
+                    hora_inicio: s.hora_inicio || 9,
+                    hora_fin: s.hora_fin || 20,
                     horario: (() => {
-                        const hSource = s.horario || s.hours;
-                        if (Array.isArray(hSource)) return hSource.map(h => ({
-                            dia: h.dia || h.day || '',
-                            apertura: h.apertura || h.open || '09:00',
-                            cierre: h.cierre || h.close || '20:00',
-                            cerrado: h.cerrado || h.closed || false
-                        }));
-                        
-                        // Fallback a horarios_por_dia (formato objeto de Supabase)
                         const hpd = s.horarios_por_dia || {};
                         const days = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
                         return days.map((d, i) => {
                             const conf = hpd[i] || hpd[String(i)];
                             if (conf) {
-                                // Convertir minutos o strings a HH:MM
                                 const toHHMM = v => {
                                     if (typeof v === 'number') return `${Math.floor(v/60).toString().padStart(2,'0')}:${(v%60).toString().padStart(2,'0')}`;
                                     if (typeof v === 'string' && v.includes(':')) return v;
-                                    return v;
+                                    // Si es hora decimal (9 = 09:00)
+                                    const h = Math.floor(v); const m = Math.round((v-h)*60);
+                                    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
                                 };
                                 return {
                                     dia: d,
-                                    apertura: toHHMM(conf.inicio || conf.ini || s.hora_inicio || 9),
-                                    cierre: toHHMM(conf.fin || s.hora_fin || 20),
-                                    cerrado: conf.cerrado || (s.dias_atencion && s.dias_atencion.length > 0 && !s.dias_atencion.includes(i))
+                                    apertura: toHHMM(conf.inicio ?? conf.ini ?? s.hora_inicio ?? 9),
+                                    cierre:   toHHMM(conf.fin ?? s.hora_fin ?? 20),
+                                    cerrado:  conf.cerrado ?? false
                                 };
                             }
-                            // Si no hay config para ese día, pero hay dias_atencion, verificar si está cerrado
-                            const isClosed = s.dias_atencion && s.dias_atencion.length > 0 && !s.dias_atencion.includes(i);
-                            return { dia: d, apertura: '09:00', cierre: '20:00', cerrado: isClosed };
+                            return { dia: d, apertura: '09:00', cierre: '20:00', cerrado: false };
                         });
                     })()
                 }));
@@ -1525,8 +1612,9 @@ function closeProfileModal() {
     document.getElementById('overlay').classList.remove('active');
 }
 function saveProfile() {
-    const name = document.getElementById('userName').value.trim();
-    localStorage.setItem('aura_user', JSON.stringify({ name }));
+    const name  = document.getElementById('userName').value.trim();
+    const phone = document.getElementById('userPhone').value.trim();
+    localStorage.setItem('aura_user', JSON.stringify({ name, phone }));
     showToast('Perfil actualizado ✨');
     closeProfileModal();
     updateProfileUI();
@@ -1603,17 +1691,12 @@ if ('serviceWorker' in navigator) {
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("AuraOS Marketplace Iniciado");
-    // Renderizado inmediato
     renderShops(true);
-    
-    // Luego el resto
     try {
         initMap();
-        loadShops(); // Esto intentará actualizar con datos de API
-        subscribeRealtime(); // Activar sincronización en tiempo real
-    } catch(e) { console.error("Error Init:", e); }
-
+        loadShops();
+        subscribeRealtime();
+    } catch(e) { /* silencioso */ }
     if (window.lucide) lucide.createIcons();
 });
 </script>
