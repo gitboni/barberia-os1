@@ -6,6 +6,7 @@
 <title>AuraOS — SuperAdmin</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <style>
 :root{
   --bg:#0C0C0C;--bg2:#141414;--bg3:#1A1A1A;
@@ -458,12 +459,14 @@ tr:hover td{background:rgba(255,255,255,0.016);}
   <div class="nav-section sidebar-text">Sistema</div>
   <div class="nav-item" data-page="citas"><i data-lucide="calendar" class="icon"></i><span class="sidebar-text">Citas Global</span></div>
   <div class="nav-item" data-page="simulador"><i data-lucide="flask-conical" class="icon"></i><span class="sidebar-text">Simulador Chat</span></div>
+  <div class="nav-item" data-page="stuck-threads"><i data-lucide="alert-circle" class="icon"></i><span class="sidebar-text">Hilos Perdidos</span><span class="badge sidebar-text" id="stuckBadge" style="display:none;background:var(--orange)">0</span></div>
   <div class="nav-item" data-page="whatsapp"><i data-lucide="message-square" class="icon"></i><span class="sidebar-text">WhatsApp</span></div>
-  <div class="nav-item" data-page="leads"><i data-lucide="list-checks" class="icon"></i><span class="sidebar-text">Leads</span></div>
   <div class="nav-item" data-page="landing"><i data-lucide="globe" class="icon"></i><span class="sidebar-text">Landing Page</span></div>
+  <div class="nav-item" data-page="marketplace"><i data-lucide="shopping-bag" class="icon"></i><span class="sidebar-text">Marketplace</span></div>
   <div class="nav-item" data-page="analytics"><i data-lucide="line-chart" class="icon"></i><span class="sidebar-text">Analytics</span></div>
   <div class="nav-item" data-page="reportes"><i data-lucide="bar-chart-3" class="icon"></i><span class="sidebar-text">Reportes</span></div>
   <div class="nav-item" data-page="seguridad"><i data-lucide="lock" class="icon"></i><span class="sidebar-text">Seguridad</span></div>
+  <div class="nav-item" data-page="ia-audit"><i data-lucide="cpu" class="icon"></i><span class="sidebar-text">Auditoría IA</span></div>
   <div class="nav-item" data-page="logs"><i data-lucide="terminal" class="icon"></i><span class="sidebar-text">Logs</span></div>
   <div class="nav-item" data-page="config"><i data-lucide="settings" class="icon"></i><span class="sidebar-text">Configuración</span></div>
   <div class="nav-item" data-page="estado"><i data-lucide="activity" class="icon"></i><span class="sidebar-text">Estado Sistema</span></div>
@@ -1028,24 +1031,140 @@ tr:hover td{background:rgba(255,255,255,0.016);}
       </div>
     </div>
 
+    <!-- MARKETPLACE EDITOR -->
+    <div class="page" id="page-marketplace">
+      <div class="section-header">
+        <div class="section-title">🏪 Marketplace Hub — Configuración Global</div>
+        <div style="display:flex;gap:8px;">
+          <a href="marketplace.html" target="_blank" class="btn btn-ghost">Ver Marketplace ↗</a>
+          <button class="btn btn-primary" onclick="saveMarketplaceConfig()">💾 GUARDAR CAMBIOS</button>
+        </div>
+      </div>
+      <div style="background:rgba(52,152,219,0.06);border:1px solid rgba(52,152,219,0.18);padding:12px 16px;margin-bottom:20px;font-size:0.62rem;color:var(--blue);">
+        🚀 Gestiona el banner promocional, categorías y visibilidad global del ecosistema Marketplace.
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div class="config-card">
+          <div class="config-section-title">📢 BANNER PROMOCIONAL</div>
+          <div class="form-group">
+            <label class="form-label">Título del Banner</label>
+            <input class="form-input" id="mktBannerTitle" placeholder="ej: ¡Encuentra tu estilo hoy!">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Subtítulo / Texto</label>
+            <input class="form-input" id="mktBannerSub" placeholder="ej: Las mejores barberías de la ciudad en un solo lugar.">
+          </div>
+          <div class="form-group">
+            <label class="form-label">URL de la Imagen de Fondo</label>
+            <input class="form-input" id="mktBannerImg" placeholder="https://...">
+          </div>
+          <div class="form-group">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <label class="form-label" style="margin:0;">Mostrar Banner</label>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                <input type="checkbox" id="mktBannerActive" style="width:16px;height:16px;accent-color:var(--gold);cursor:pointer;">
+                <span style="font-size:0.58rem;color:var(--muted);">ACTIVO</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="config-card">
+          <div class="config-section-title">⚙️ ESTADÍSTICAS & SEO</div>
+          <div class="form-group">
+            <label class="form-label">Título SEO Marketplace</label>
+            <input class="form-input" id="mktSeoTitle" placeholder="Barberías - Marketplace AuraOS">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Descripción SEO</label>
+            <textarea class="form-input" id="mktSeoDesc" rows="3" placeholder="Busca y reserva en las mejores barberías..."></textarea>
+          </div>
+          <div style="padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;font-size:0.58rem;color:var(--muted);">
+            📍 La geolocalización utiliza Leaflet y OpenStreetMap. Asegúrate de que las barberías tengan Latitud/Longitud para aparecer en el mapa.
+          </div>
+        </div>
+      </div>
+
+      <div class="section-header" style="margin-top:20px;">
+        <div class="section-title">💎 Barberías Destacadas</div>
+        <button class="btn btn-ghost" onclick="showPage('shops')">Ir a Barberías →</button>
+      </div>
+      <div id="mktFeaturedList" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:14px;margin-top:12px;">
+        <!-- Se llena con barberías que tengan plan elite o marketplace_featured -->
+      </div>
+    </div>
+
     <!-- LOGS -->
+    <!-- AUDITORÍA IA -->
+    <div class="page" id="page-ia-audit">
+      <div class="section-header">
+        <div class="section-title">Auditoría de IA (Groq)</div>
+        <div class="btn-group">
+          <button class="btn btn-ghost" onclick="loadIAAudit()">↻ Actualizar</button>
+          <button class="btn btn-ghost" onclick="clearIAAudit()">Limpiar</button>
+        </div>
+      </div>
+      <div class="config-card">
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:140px;">Fecha</th>
+                <th>Barbería</th>
+                <th>Cliente</th>
+                <th>Prompt (Usuario)</th>
+                <th>Respuesta (IA)</th>
+                <th style="width:120px;">Modelo/Tokens</th>
+              </tr>
+            </thead>
+            <tbody id="iaAuditTable">
+              <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--muted);">Cargando registros...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <div class="page" id="page-logs">
       <div class="section-header">
         <div class="section-title">Logs del Sistema</div>
         <div class="btn-group">
-          <select class="filter-select" id="logLevelFilter"><option value="">Todos</option><option value="ERROR">Errores</option><option value="WARN">Warnings</option><option value="OK">OK</option><option value="INFO">Info</option></select>
-          <button class="btn btn-ghost" id="exportLogsBtn">↓ Exportar</button>
-          <button class="btn btn-ghost" id="clearLogsBtn">Limpiar</button>
+          <button class="btn btn-ghost" onclick="loadLogs()">↻ Actualizar</button>
+          <button class="btn btn-ghost danger" onclick="clearLogs()">Limpiar</button>
         </div>
       </div>
-      <div class="terminal-container">
-        <div class="terminal-header">
-          <div class="t-dot t-red"></div>
-          <div class="t-dot t-yellow"></div>
-          <div class="t-dot t-green"></div>
-          <div class="t-title">zsh — aura-os — logs</div>
+      <div class="config-card">
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:140px;">Fecha</th>
+                <th style="width:80px;">Tipo</th>
+                <th>Acción / Resultado</th>
+              </tr>
+            </thead>
+            <tbody id="logsTable">
+              <tr><td colspan="3" style="text-align:center;padding:40px;color:var(--muted);">Cargando logs...</td></tr>
+            </tbody>
+          </table>
         </div>
-        <div class="logs-terminal" id="logsTerminal"></div>
+      </div>
+    </div>
+
+    <!-- HILOS PERDIDOS -->
+    <div class="page" id="page-stuck-threads">
+      <div class="section-header">
+        <div class="section-title">Monitor de Hilos Perdidos</div>
+        <div class="btn-group">
+          <button class="btn btn-ghost" onclick="loadStuckThreads()">↻ Actualizar</button>
+        </div>
+      </div>
+      <div style="margin-bottom:20px;padding:12px 16px;background:rgba(230,126,34,0.1);border-left:3px solid var(--orange);border-radius:4px;font-size:0.62rem;color:var(--text);line-height:1.5;">
+        ⚠️ Se muestran conversaciones en estados pendientes (esperando servicio, horario, etc.) que no han tenido actividad en los últimos <b>15 minutos</b>.
+      </div>
+      <div id="stuckThreadsList" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(320px, 1fr));gap:16px;">
+        <!-- Populated by JS -->
       </div>
     </div>
 
@@ -1293,6 +1412,61 @@ tr:hover td{background:rgba(255,255,255,0.016);}
 
 <script>
 'use strict';
+const SB_URL = 'https://mmokunpuslcfphalrwot.supabase.co';
+const SB_KEY = 'sb_publishable_aETz_9ECH5RcBMjmRhUnfw_g71zRdwT';
+let sb = null;
+
+function initSupabase() {
+    if (typeof supabase !== 'undefined') {
+        sb = supabase.createClient(SB_URL, SB_KEY);
+    }
+}
+initSupabase();
+
+function playPing() {
+    try {
+        const audio = new Audio('https://assets.mixkit.io/active_storage/sfx/2869/2869-preview.mp3');
+        audio.volume = 0.5;
+        audio.play();
+    } catch(e) {}
+}
+
+function subscribeRealtimeSuper() {
+    if (!sb) return;
+    console.log("Iniciando Realtime SuperAdmin...");
+
+    // 1. Nuevas Solicitudes de Barberías
+    sb.channel('super_shops')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'shops' }, payload => {
+          console.log('Nueva barbería registrada:', payload.new);
+          showToast(`🚀 Nueva barbería: ${payload.new.nombre}`, 'success');
+          playPing();
+          loadSolicitudes(); // Actualizar tabla de pendientes
+          renderDashboard();
+      })
+      .subscribe();
+
+    // 2. Nuevas Citas en TODA la plataforma
+    sb.channel('super_citas')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'citas' }, payload => {
+          console.log('Nueva cita global:', payload.new);
+          showToast(`📅 Nueva cita en ${payload.new.servicio}`, 'info');
+          pushActivity('📅', 'var(--blue)', `Nueva cita: ${payload.new.nombre}`);
+          playPing();
+      })
+      .subscribe();
+
+    // 3. Actividad de Chat (Conversaciones)
+    sb.channel('super_conv')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'conversaciones' }, payload => {
+          if (payload.new.ultimo_mensaje !== payload.old.ultimo_mensaje) {
+              console.log('Actividad de chat:', payload.new);
+              showToast(`💬 Mensaje de ${payload.new.nombre_parcial || 'Cliente'}`, 'info');
+          }
+      })
+      .subscribe();
+}
+
 // ═══════════════════════════════════════════════════════════════
 //  AuraOS SuperAdmin v4
 //  FIXES:
@@ -1452,17 +1626,25 @@ let usingDemo = false;
 async function fetchAll() {
   showRefreshProgress();
   try {
-    // FIX: fecha en timezone America/Santo_Domingo (evita UTC bug)
     const rdNow = new Date(new Date().toLocaleString('en-US',{timeZone:'America/Santo_Domingo'}));
     const today = rdNow.getFullYear()+'-'+String(rdNow.getMonth()+1).padStart(2,'0')+'-'+String(rdNow.getDate()).padStart(2,'0');
-    // FIX: queries separadas consolidadas — menos round-trips al servidor
-    const [shops, barberos, citas, convs] = await Promise.all([
+    const quinceMins = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+    
+    const [shops, barberos, citas, convs, stuck] = await Promise.all([
       sbGet('shops','select=*&order=created_at.desc'),
       sbGet('barberos','select=id,nombre,shop_id,activo,orden&order=orden.asc'),
       sbGet('citas',`select=id,nombre,telefono,hora,fecha,servicio,barbero,estado,shop_id&fecha=eq.${today}&order=hora.asc`),
       sbGet('conversaciones','select=id,shop_id,chat_id,telefono,nombre_parcial,estado_conversacion,ultimo_mensaje,ultima_actualizacion&order=ultima_actualizacion.desc&limit=50'),
+      sbGet('conversaciones', `ultima_actualizacion=lt.${quinceMins}&ultima_actualizacion=gt.${today}T00:00:00Z&estado_conversacion=not.in.(completado,inicio,esperando_otra_cita)&select=id`)
     ]);
     _shops=shops; _barberos=barberos; _citas=citas; _convs=convs;
+    
+    const badge = document.getElementById('stuckBadge');
+    if(badge) {
+      badge.textContent = stuck.length;
+      badge.style.display = stuck.length > 0 ? 'inline-block' : 'none';
+    }
+
     usingDemo=false;
     document.getElementById('demoBanner').style.display='none';
     addLog('OK',`Supabase: ${shops.length} barberías, ${barberos.length} barberos, ${citas.length} citas hoy`);
@@ -1622,8 +1804,10 @@ const PAGE_TITLES = {
   usuarios:'Usuarios & Accesos', barberos:'Gestión de Barberos', pagos:'Pagos & Suscripciones',
   'clientes-app':'Clientes en la App',
   facturacion:'Facturación', citas:'Citas Global', simulador:'Simulador de Chat WhatsApp', whatsapp:'WhatsApp',
-  leads:'Leads del Landing', reportes:'Reportes por Barbería', seguridad:'Centro de Seguridad', logs:'Logs del Sistema', config:'Configuración Global',
-  estado:'Estado del Sistema', broadcast:'Broadcast WhatsApp', grupos:'Grupos Multi-Sucursal'
+  leads:'Leads del Landing', reportes:'Reportes por Barbería', seguridad:'Centro de Seguridad', 'ia-audit':'Auditoría de IA', logs:'Logs del Sistema', config:'Configuración Global',
+  'stuck-threads':'Hilos Perdidos',
+  estado:'Estado del Sistema', broadcast:'Broadcast WhatsApp', grupos:'Grupos Multi-Sucursal',
+  marketplace: 'Marketplace Hub'
 };
 document.querySelectorAll('.nav-item[data-page]').forEach(el => {
   el.addEventListener('click', () => showPage(el.dataset.page, el));
@@ -1650,7 +1834,9 @@ function showPage(id, el) {
     citas:() => { document.getElementById('citasFecha').value=new Date().toISOString().split('T')[0]; loadCitas(); },
     estado:loadEstado,
     broadcast:loadBroadcast,
-    grupos:loadGrupos
+    grupos:loadGrupos,
+    'ia-audit':loadIAAudit,
+    marketplace: loadMarketplace
   };
   if(loaders[id]) loaders[id]();
   if(window.lucide) setTimeout(lucide.createIcons, 100);
@@ -2311,7 +2497,9 @@ function _renderShopsTable(shops, barberos=[]) {
       </div></td>
     </tr>`;
   }).join('');
-  if(window.lucide) lucide.createIcons();
+  if(window.lucide && typeof lucide.createIcons === 'function') {
+    try { lucide.createIcons(); } catch(e) { console.warn('Lucide error:', e); }
+  }
 }
 
 // ── v86: Multi-sucursal — Vista consolidada por grupo ──────────────────────
@@ -4729,12 +4917,15 @@ async function saveFeatures(){
       const el = document.getElementById('feat-val-'+f.key);
       if(el) p[f.key] = (el.value === 'true');
     });
+    console.log("Enviando features a Supabase:", p);
     await sbPatch('shops', 'id=eq.'+_featShopId, p);
+    console.log("Guardado exitoso en Supabase ✓");
     closeModal('modalFeatures');
     showToast('✓ Features actualizadas','success');
     logSuperadminAction('update_features', `shop:${_featShopId}`);
     loadShops();
   } catch(e) {
+    console.error("Error al guardar en Supabase:", e);
     showToast('Error: '+e.message,'error');
   } finally {
     btn.textContent = '✓ GUARDAR CAMBIOS'; btn.disabled = false;
@@ -4869,6 +5060,17 @@ function abrirEditShop(shopId){
   document.getElementById('editShopLabelProfesional').value = shop.label_profesional || 'barbero';
   document.getElementById('editShopTemaDisplay').value = shop.tema_display || 'dark';
   document.getElementById('editShopShowcase').value = Array.isArray(shop.showcase_images) ? shop.showcase_images.join('\n') : '';
+  // Marketplace Metadata
+  document.getElementById('editShopMktFeatured').checked = shop.mkt_featured === true;
+  document.getElementById('editShopMktCategory').value = shop.mkt_category || '';
+  document.getElementById('editShopMktDesc').value = shop.mkt_description || '';
+  document.getElementById('editShopMktCiudad').value = shop.mkt_city || '';
+  document.getElementById('editShopMktDir').value = shop.mkt_address || '';
+  document.getElementById('editShopMktLat').value = shop.mkt_lat || '';
+  document.getElementById('editShopMktLng').value = shop.mkt_lng || '';
+  document.getElementById('editShopMktFoto').value = shop.mkt_photo || '';
+  document.getElementById('editShopMktGaleria').value = Array.isArray(shop.mkt_gallery) ? shop.mkt_gallery.join('\n') : '';
+
   renderIconoPicker(shop.icono||'✂️');
   toggleEditShopProvider();
   openModal('modalEditShop');
@@ -4944,7 +5146,17 @@ async function guardarEditShop(){
     tipo_negocio: document.getElementById('editShopTipoNegocio').value || 'barberia',
     label_profesional: document.getElementById('editShopLabelProfesional').value.trim() || 'barbero',
     tema_display: document.getElementById('editShopTemaDisplay').value || 'dark',
-    showcase_images: document.getElementById('editShopShowcase').value.split('\n').map(u=>u.trim()).filter(u=>u.length > 5)
+    showcase_images: document.getElementById('editShopShowcase').value.split('\n').map(u=>u.trim()).filter(u=>u.length > 5),
+    // Marketplace Metadata
+    mkt_featured: document.getElementById('editShopMktFeatured').checked,
+    mkt_category: document.getElementById('editShopMktCategory').value.trim() || null,
+    mkt_description: document.getElementById('editShopMktDesc').value.trim() || null,
+    mkt_city: document.getElementById('editShopMktCiudad').value.trim() || null,
+    mkt_address: document.getElementById('editShopMktDir').value.trim() || null,
+    mkt_lat: parseFloat(document.getElementById('editShopMktLat').value) || null,
+    mkt_lng: parseFloat(document.getElementById('editShopMktLng').value) || null,
+    mkt_photo: document.getElementById('editShopMktFoto').value.trim() || null,
+    mkt_gallery: document.getElementById('editShopMktGaleria').value.split('\n').map(u=>u.trim()).filter(u=>u.length > 5)
   };
   // Solo actualizar token si se ingresó uno nuevo
   if(provider==='meta'&&token) updates.meta_access_token=token;
@@ -4961,6 +5173,174 @@ async function guardarEditShop(){
     closeModal('modalEditShop');
     await fetchAll(); loadShops();
   }catch(e){showToast('Error: '+e.message,'error');}
+}
+
+async function loadStuckThreads() {
+  const list = document.getElementById('stuckThreadsList');
+  if(!list) return;
+  list.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">Buscando hilos atascados...</div>';
+  
+  try {
+    const quinceMins = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+    // Traemos hilos no completados/inicio con actividad antigua pero de hoy
+    const hoy = new Date().toISOString().split('T')[0];
+    const data = await sbGet('conversaciones', `ultima_actualizacion=lt.${quinceMins}&ultima_actualizacion=gt.${hoy}T00:00:00Z&estado_conversacion=not.in.(completado,inicio,esperando_otra_cita)&order=ultima_actualizacion.desc`);
+    
+    const badge = document.getElementById('stuckBadge');
+    if(badge) {
+      badge.textContent = data.length;
+      badge.style.display = data.length > 0 ? 'inline-block' : 'none';
+    }
+
+    if(!data.length) {
+      list.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--green);background:rgba(62,207,142,0.05);border-radius:12px;border:1px dashed var(--green);">✨ No hay hilos perdidos en este momento.</div>';
+      return;
+    }
+
+    const shopsMap = Object.fromEntries(_shops.map(s => [s.id, s.nombre]));
+    list.innerHTML = data.map(c => {
+      const mins = Math.round((Date.now() - new Date(c.ultima_actualizacion)) / 60000);
+      return `
+        <div class="kpi-card" style="display:flex;flex-direction:column;gap:12px;padding:20px;border:1px solid var(--border2);background:rgba(255,255,255,0.02);">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+              <div style="font-size:0.5rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;">${shopsMap[c.shop_id] || 'Tienda desconocida'}</div>
+              <div style="font-size:0.9rem;font-weight:800;color:var(--text);margin-top:2px;">${c.telefono}</div>
+            </div>
+            <div style="padding:4px 8px;background:rgba(230,126,34,0.15);color:var(--orange);font-size:0.5rem;border-radius:4px;font-weight:700;">HACE ${mins} MIN</div>
+          </div>
+          <div style="padding:10px;background:var(--bg3);border-radius:6px;font-size:0.6rem;color:var(--muted);border-left:2px solid var(--border2);">
+            <div style="font-size:0.45rem;color:var(--gold);margin-bottom:4px;letter-spacing:0.05em;">ÚLTIMO MENSAJE</div>
+            "${c.ultimo_mensaje || '(vacío)'}"
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+            <div style="font-size:0.55rem;color:var(--muted);">Estado: <span style="color:var(--blue)">${c.estado_conversacion}</span></div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-ghost" onclick="window.open('https://wa.me/${c.telefono.replace(/\D/g,'')}', '_blank')" style="font-size:0.5rem;padding:5px 10px;">💬 CHAT</button>
+              <button class="btn btn-ghost danger" onclick="resetThread('${c.id}')" style="font-size:0.5rem;padding:5px 10px;">↺ RESET</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch(e) {
+    list.innerHTML = `<div style="grid-column:1/-1;color:var(--red);text-align:center;padding:20px;">Error: ${e.message}</div>`;
+  }
+}
+
+async function resetThread(id) {
+  if(!confirm('¿Deseas reiniciar el estado de esta conversación a "inicio"?')) return;
+  try {
+    await sbPatch('conversaciones', `id=eq.${id}`, { estado_conversacion: 'inicio', ultima_actualizacion: new Date().toISOString() });
+    showToast('Conversación reiniciada ✓', 'success');
+    loadStuckThreads();
+  } catch(e) { showToast('Error: '+e.message, 'error'); }
+}
+
+async function loadIAAudit() {
+  const table = document.getElementById('iaAuditTable');
+  if(!table) return;
+  try {
+    const data = await sbGet('auditoria_ia', 'order=created_at.desc&limit=50');
+    if(!data.length) {
+      table.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--muted);">No hay registros de IA aún.</td></tr>';
+      return;
+    }
+    const shopsMap = Object.fromEntries(_shops.map(s => [s.id, s.nombre]));
+    table.innerHTML = data.map(l => `
+      <tr>
+        <td style="color:var(--muted);font-size:0.58rem;">${new Date(l.created_at).toLocaleString('es')}</td>
+        <td><div style="font-weight:700;">${shopsMap[l.shop_id] || '—'}</div><div style="font-size:0.5rem;color:var(--muted);">${l.shop_id.slice(0,8)}</div></td>
+        <td><div style="color:var(--text);">${l.chat_id}</div></td>
+        <td><div style="max-width:250px;white-space:pre-wrap;font-size:0.6rem;color:var(--muted);">${l.prompt}</div></td>
+        <td><div style="max-width:300px;white-space:pre-wrap;font-size:0.6rem;color:var(--gold); border-left:2px solid var(--gold3); padding-left:8px;">${l.respuesta}</div></td>
+        <td><div style="font-size:0.55rem;color:var(--muted);">${l.modelo}</div><div style="color:var(--green);font-size:0.55rem;">${l.tokens} tokens</div></td>
+      </tr>`).join('');
+  } catch(e) {
+    table.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--red);">Error: ${e.message}</td></tr>`;
+  }
+}
+
+async function clearIAAudit() {
+  if(!confirm('¿Seguro que deseas borrar todos los logs de IA?')) return;
+  try {
+    // Para borrar todos usamos un filtro que siempre sea cierto o llamamos a una rpc si está disponible
+    // Aquí usamos un delete con filtro sobre created_at (hace menos de 10 años)
+    const diezAnios = new Date(Date.now() - 3650*24*60*60*1000).toISOString();
+    await sbDelete('auditoria_ia', `created_at=gt.${diezAnios}`);
+    showToast('Logs de IA eliminados', 'info');
+    loadIAAudit();
+  } catch(e) { showToast('Error al borrar: '+e.message, 'error'); }
+}
+
+async function loadMarketplace() {
+  const list = document.getElementById('mktFeaturedList');
+  if(!list) return;
+  list.innerHTML = '<div style="color:var(--muted);font-size:0.6rem;">Cargando...</div>';
+  
+  try {
+    // Cargar config global desde landing_config (prefijo mkt_)
+    const config = await sbGet('landing_config', 'key=like.mkt_*');
+    const cfgMap = Object.fromEntries(config.map(c => [c.key, c.value]));
+    
+    if(document.getElementById('mktBannerTitle')) document.getElementById('mktBannerTitle').value = cfgMap['mkt_banner_title'] || '';
+    if(document.getElementById('mktBannerSub')) document.getElementById('mktBannerSub').value = cfgMap['mkt_banner_sub'] || '';
+    if(document.getElementById('mktBannerImg')) document.getElementById('mktBannerImg').value = cfgMap['mkt_banner_img'] || '';
+    if(document.getElementById('mktBannerActive')) document.getElementById('mktBannerActive').checked = cfgMap['mkt_banner_active'] === 'true';
+    if(document.getElementById('mktSeoTitle')) document.getElementById('mktSeoTitle').value = cfgMap['mkt_seo_title'] || '';
+    if(document.getElementById('mktSeoDesc')) document.getElementById('mktSeoDesc').value = cfgMap['mkt_seo_desc'] || '';
+
+    // Renderizar destacadas (Elite o manual)
+    const featured = _shops.filter(s => s.plan === 'elite' || s.mkt_featured);
+    if(!featured.length) {
+      list.innerHTML = '<div style="color:var(--muted);font-size:0.58rem;padding:20px;border:1px dashed var(--border);text-align:center;">No hay barberías destacadas configuradas.</div>';
+    } else {
+      list.innerHTML = featured.map(s => `
+        <div class="kpi-card" style="display:flex;align-items:center;gap:12px;padding:12px;">
+          <div style="width:40px;height:40px;border-radius:8px;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:1.2rem;">${s.icono||'✂️'}</div>
+          <div style="flex:1;">
+            <div style="font-size:0.7rem;font-weight:700;color:var(--text);">${s.nombre}</div>
+            <div style="font-size:0.52rem;color:var(--muted);">${s.mkt_category || 'Sin categoría'}</div>
+          </div>
+          <div style="text-align:right;">
+             <span class="plan-badge plan-${s.plan}" style="font-size:0.4rem;">${s.plan}</span>
+             <div style="font-size:0.45rem;color:var(--gold);margin-top:2px;">${s.mkt_featured?'💎 DESTACADO':''}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+  } catch(e) {
+    list.innerHTML = `<div style="color:var(--red);font-size:0.6rem;">Error: ${e.message}</div>`;
+  }
+}
+
+async function saveMarketplaceConfig() {
+  const updates = [
+    { key: 'mkt_banner_title', value: document.getElementById('mktBannerTitle').value.trim() },
+    { key: 'mkt_banner_sub', value: document.getElementById('mktBannerSub').value.trim() },
+    { key: 'mkt_banner_img', value: document.getElementById('mktBannerImg').value.trim() },
+    { key: 'mkt_banner_active', value: String(document.getElementById('mktBannerActive').checked) },
+    { key: 'mkt_seo_title', value: document.getElementById('mktSeoTitle').value.trim() },
+    { key: 'mkt_seo_desc', value: document.getElementById('mktSeoDesc').value.trim() }
+  ];
+
+  const btn = event.target;
+  const originalText = btn.textContent;
+  btn.textContent = '⏳ Guardando...';
+  btn.disabled = true;
+
+  try {
+    await Promise.all(updates.map(u => 
+      sbPatch('landing_config', `key=eq.${u.key}`, { value: u.value })
+    ));
+    showToast('Configuración del Marketplace guardada ✓', 'success');
+    addLog('OK', 'Marketplace config actualizada');
+  } catch(e) {
+    showToast('Error al guardar config: ' + e.message, 'error');
+  } finally {
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
 }
 
 </script>
@@ -5184,6 +5564,56 @@ async function guardarEditShop(){
         <label class="form-label">URLs de Imágenes (Una por línea)</label>
         <textarea class="form-input" id="editShopShowcase" rows="4" placeholder="https://ejemplo.com/foto1.jpg&#10;https://ejemplo.com/foto2.png" style="resize:vertical;font-size:0.65rem;font-family:'DM Mono',monospace;line-height:1.4;"></textarea>
         <div class="form-hint">Estas fotos rotarán en el carrusel lateral del modo TV.</div>
+      </div>
+    </div>
+
+    <!-- ── Marketplace Metadata ── -->
+    <div style="border-top:1px solid var(--border);margin:18px 0 14px;padding-top:14px;">
+      <div style="font-size:0.5rem;letter-spacing:0.22em;color:var(--muted);text-transform:uppercase;margin-bottom:12px;">🏪 MARKETPLACE METADATA</div>
+      <div class="form-group">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <label class="form-label" style="margin:0;">Destacado en Marketplace</label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <input type="checkbox" id="editShopMktFeatured" style="width:16px;height:16px;accent-color:var(--gold);cursor:pointer;">
+            <span style="font-size:0.58rem;color:var(--muted);letter-spacing:0.1em;">FEATURED</span>
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Categoría Marketplace</label>
+        <input class="form-input" id="editShopMktCategory" placeholder="ej: Barbería Premium, Salón Unisex">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descripción Marketplace</label>
+        <textarea class="form-input" id="editShopMktDesc" rows="3" placeholder="Descripción que se verá en el marketplace..." style="resize:vertical;font-size:0.65rem;line-height:1.5;"></textarea>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-group">
+          <label class="form-label">Ciudad</label>
+          <input class="form-input" id="editShopMktCiudad" placeholder="ej: Santo Domingo">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Dirección</label>
+          <input class="form-input" id="editShopMktDir" placeholder="ej: Av. Winston Churchill #123">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-group">
+          <label class="form-label">Latitud</label>
+          <input class="form-input" id="editShopMktLat" placeholder="18.4861">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Longitud</label>
+          <input class="form-input" id="editShopMktLng" placeholder="-69.9312">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">URL Foto Principal</label>
+        <input class="form-input" id="editShopMktFoto" placeholder="https://...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Galería (URLs una por línea)</label>
+        <textarea class="form-input" id="editShopMktGaleria" rows="3" placeholder="https://...&#10;https://..." style="resize:vertical;font-size:0.65rem;line-height:1.4;"></textarea>
       </div>
     </div>
 
