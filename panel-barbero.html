@@ -34,6 +34,8 @@ h1,h2,h3,.outfit{font-family:'Outfit',sans-serif}
 /* ── Screen Management ── */
 .screen{display:none;position:fixed;inset:0;overflow-y:auto;background:var(--bg);z-index:10;padding:calc(var(--safe-top)+10px) 14px calc(var(--safe-bottom)+76px);overscroll-behavior-y:contain}
 .screen.active{display:block}
+#monitorScreen{flex-direction:column;overflow:hidden;padding:0;background:#02060C}
+#monitorScreen.active{display:flex}
 #loginScreen{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:24px 20px;height:100%;background:radial-gradient(ellipse at top,#1a1506 0%,#000 70%);z-index:100}
 #loginScreen.hidden{display:none}
 
@@ -382,7 +384,7 @@ input:checked+.slider:before{transform:translateX(22px)}
 </div>
 
 <!-- ── MONITOR SCREEN ── -->
-<div id="monitorScreen" class="screen" style="padding:0;background:#02060C;display:flex;flex-direction:column;overflow:hidden;">
+<div id="monitorScreen" class="screen">
   <div class="aurora-bg" style="position:absolute;pointer-events:none;">
     <div class="orb" style="width:350px;height:350px;background:rgba(0,245,255,.06);top:-80px;left:-80px;"></div>
     <div class="orb" style="width:280px;height:280px;background:rgba(176,110,255,.05);bottom:-60px;right:-60px;animation:orbFloat 10s ease-in-out infinite reverse;"></div>
