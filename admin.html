@@ -333,6 +333,8 @@ tr:last-child td{border-bottom:none;}
     <button class="nav-item" id="nav-btn-reportes" onclick="setPage('reportes',this)"><i data-lucide="bar-chart-3" class="nav-icon"></i>Reportes</button>
     <button class="nav-item" id="nav-btn-gastos" onclick="setPage('gastos',this)"><i data-lucide="wallet" class="nav-icon"></i>Gastos</button>
     <button class="nav-item" id="nav-btn-bot" onclick="setPage('bot',this)"><i data-lucide="message-square" class="nav-icon"></i>Bot WhatsApp<span class="nav-badge" style="background:rgba(62,207,142,0.12);color:var(--green)">ON</span></button>
+    <div class="nav-section">Marketing</div>
+    <button class="nav-item" id="nav-btn-marketplace" onclick="setPage('marketplace',this)"><i data-lucide="store" class="nav-icon"></i>Perfil Marketplace</button>
     <div class="nav-section">Sistema</div>
     <button class="nav-item" id="nav-btn-config" onclick="setPage('config',this)"><i data-lucide="settings" class="nav-icon"></i>Configuración</button>
     <button class="nav-item" onclick="window.open('/sala/'+SHOP_SLUG,'_blank')"><i data-lucide="monitor" class="nav-icon"></i>Ver Sala →</button>
@@ -711,7 +713,7 @@ function setPage(page,btn){
   currentPage=page;
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   if(btn)btn.classList.add('active');
-  const T={dashboard:'Dashboard',citas:'Citas del día',clientes:'Clientes',barberos:'Barberos',reportes:'Reportes',bot:'Bot WhatsApp',config:'Configuración',gastos:'Gestión de Gastos'};
+  const T={dashboard:'Dashboard',citas:'Citas del día',clientes:'Clientes',barberos:'Barberos',reportes:'Reportes',bot:'Bot WhatsApp',config:'Configuración',gastos:'Gestión de Gastos',marketplace:'Mi Perfil en Marketplace'};
   document.getElementById('page-title').textContent=T[page]||page;
   renderPage();
 }
@@ -725,6 +727,7 @@ function renderPage(){
   else if(currentPage==='bot'){el.innerHTML=renderBot();setTimeout(initModoRecordatorio,50);}
   else if(currentPage==='config'){el.innerHTML=renderConfigPage();}
   else if(currentPage==='gastos'){el.innerHTML=renderGastos();}
+  else if(currentPage==='marketplace'){el.innerHTML=renderMarketplace();setTimeout(initMarketplacePage,100);}
   renderSidebar();updateBarberoSelect();
   if(window.lucide) lucide.createIcons();
 }
@@ -2116,6 +2119,266 @@ async function saveConfigPage(){
     renderPage();
     toast('Configuración guardada ✓');
   }catch(e){toast('Error: '+e.message,'error');}
+}
+
+// ── MARKETPLACE PROFILE ──
+let _mpGaleria = [], _mpPromos = [];
+
+function renderMarketplace(){
+  const s = S.shopData || {};
+  _mpGaleria = Array.isArray(s.galeria) ? [...s.galeria] : [];
+  _mpPromos  = Array.isArray(s.promociones) ? [...s.promociones] : [];
+
+  const galeriaHtml = () => _mpGaleria.length
+    ? _mpGaleria.map((url,i)=>`
+        <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);">
+          <img src="${url}" style="width:50px;height:38px;object-fit:cover;border-radius:5px;flex-shrink:0;" onerror="this.style.opacity=0.2">
+          <span style="flex:1;font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${url}</span>
+          <button onclick="mpRemoveGaleria(${i})" style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.2);color:var(--red);font-size:0.5rem;padding:3px 8px;cursor:pointer;border-radius:4px;">✕</button>
+        </div>`).join('')
+    : '<p style="color:var(--muted);font-size:0.62rem;padding:8px 0">Sin fotos en galería aún.</p>';
+
+  const promosHtml = () => _mpPromos.length
+    ? _mpPromos.map((p,i)=>`
+        <div style="background:rgba(201,168,76,0.05);border:1px solid rgba(201,168,76,0.15);border-radius:10px;padding:12px;margin-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div style="flex:1;">
+              <div style="font-weight:700;font-size:0.82rem;">${p.titulo||'—'} ${p.descuento?'<span style="color:var(--gold);font-size:0.7rem;">–'+p.descuento+'%</span>':''}</div>
+              <div style="color:var(--muted);font-size:0.68rem;margin-top:3px;">${p.descripcion||''}</div>
+            </div>
+            <button onclick="mpRemovePromo(${i})" style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.2);color:var(--red);font-size:0.5rem;padding:3px 8px;cursor:pointer;border-radius:4px;flex-shrink:0;margin-left:8px;">✕</button>
+          </div>
+        </div>`).join('')
+    : '<p style="color:var(--muted);font-size:0.62rem;padding:8px 0">Sin promociones activas.</p>';
+
+  return `
+  <div style="max-width:860px;display:flex;flex-direction:column;gap:16px;">
+
+    <!-- Preview link -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.2);border-radius:12px;">
+      <div>
+        <div style="font-size:0.78rem;font-weight:700;color:var(--gold);">Tu perfil en el Marketplace</div>
+        <div style="font-size:0.6rem;color:var(--muted);margin-top:2px;">Los cambios se reflejan inmediatamente al guardar</div>
+      </div>
+      <a href="/marketplace.html?open=${s.id||''}" target="_blank" rel="noopener"
+         style="background:var(--gold);color:#000;border:none;padding:8px 18px;font-size:0.72rem;font-weight:700;cursor:pointer;border-radius:8px;text-decoration:none;white-space:nowrap;">
+        Ver en Marketplace →
+      </a>
+    </div>
+
+    <!-- Foto principal -->
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden;">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+        <i data-lucide="image" style="width:16px;height:16px;color:var(--gold);"></i>
+        <span style="font-weight:700;font-size:0.85rem;">Foto principal</span>
+      </div>
+      <div style="padding:20px;display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;">
+        <div style="flex:1;min-width:240px;">
+          <div class="fg"><label>URL de la foto</label>
+            <input type="text" id="mp-foto" value="${s.foto_url||''}" placeholder="https://…" oninput="document.getElementById('mp-foto-preview').src=this.value">
+          </div>
+          <div style="font-size:0.55rem;color:var(--muted);margin-top:4px;">Recomendado: 800×500px · Formatos JPG, PNG, WebP</div>
+        </div>
+        <div style="flex-shrink:0;">
+          <div style="font-family:'DM Mono',monospace;font-size:0.46rem;color:var(--muted);letter-spacing:0.15em;margin-bottom:6px;">PREVIEW</div>
+          <img id="mp-foto-preview" src="${s.foto_url||''}" style="width:140px;height:90px;object-fit:cover;border-radius:10px;background:#1a1a1a;border:1px solid var(--border);" onerror="this.style.opacity=0.2">
+        </div>
+      </div>
+    </div>
+
+    <!-- Información del negocio -->
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden;">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+        <i data-lucide="info" style="width:16px;height:16px;color:var(--gold);"></i>
+        <span style="font-weight:700;font-size:0.85rem;">Información del negocio</span>
+      </div>
+      <div style="padding:20px;display:flex;flex-direction:column;gap:0;">
+        <div class="fg"><label>Descripción (aparece en "Sobre nosotros")</label>
+          <textarea id="mp-desc" rows="3" placeholder="Describe tu negocio, especialidades, años de experiencia…"
+            style="resize:vertical;">${s.descripcion||''}</textarea>
+        </div>
+        <div class="fg-row">
+          <div class="fg"><label>Ciudad</label><input type="text" id="mp-ciudad" value="${s.ciudad||''}" placeholder="Santiago, Santo Domingo…"></div>
+          <div class="fg"><label>Dirección completa</label><input type="text" id="mp-direccion" value="${s.direccion||''}" placeholder="Calle 1 #23, Sector…"></div>
+        </div>
+        <div class="fg-row">
+          <div class="fg"><label>Latitud (para el mapa)</label><input type="number" id="mp-lat" step="any" value="${s.lat||''}" placeholder="18.4861"></div>
+          <div class="fg"><label>Longitud (para el mapa)</label><input type="number" id="mp-lng" step="any" value="${s.lng||''}" placeholder="-69.9312"></div>
+        </div>
+        <div style="font-size:0.55rem;color:var(--muted);margin-top:-8px;margin-bottom:16px;">
+          💡 Busca tu dirección en <a href="https://maps.google.com" target="_blank" style="color:var(--gold);">Google Maps</a>, haz clic derecho y copia las coordenadas.
+        </div>
+        <div class="fg" style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);padding-top:14px;margin-top:4px;">
+          <div>
+            <div style="font-size:0.82rem;font-weight:600;">Visible en Marketplace</div>
+            <div style="font-size:0.6rem;color:var(--muted);margin-top:2px;">Desactiva para ocultar temporalmente tu negocio del listado público</div>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="mp-activo" ${s.activo!==false?'checked':''}><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Redes sociales -->
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden;">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+        <i data-lucide="share-2" style="width:16px;height:16px;color:var(--gold);"></i>
+        <span style="font-weight:700;font-size:0.85rem;">Redes sociales</span>
+      </div>
+      <div style="padding:20px;">
+        <div class="fg-row">
+          <div class="fg"><label>📸 Instagram (solo el handle)</label><input type="text" id="mp-instagram" value="${s.instagram||''}" placeholder="mi_barberia"></div>
+          <div class="fg"><label>🎵 TikTok (solo el handle)</label><input type="text" id="mp-tiktok" value="${s.tiktok||''}" placeholder="mi_barberia"></div>
+        </div>
+        <div class="fg"><label>📘 Facebook (URL completa)</label><input type="text" id="mp-facebook" value="${s.facebook||''}" placeholder="https://facebook.com/mi-barberia"></div>
+      </div>
+    </div>
+
+    <!-- Galería -->
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden;">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+        <i data-lucide="images" style="width:16px;height:16px;color:var(--gold);"></i>
+        <span style="font-weight:700;font-size:0.85rem;">Galería de fotos</span>
+        <span style="margin-left:auto;font-family:'DM Mono',monospace;font-size:0.48rem;color:var(--muted);">${_mpGaleria.length} fotos</span>
+      </div>
+      <div style="padding:20px;">
+        <div id="mp-galeria-list">${galeriaHtml()}</div>
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <input type="text" id="mp-galeria-new" placeholder="URL de nueva foto…" style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:10px;font-family:'Outfit',sans-serif;font-size:0.82rem;outline:none;">
+          <button onclick="mpAddGaleria()" style="background:var(--gold);color:#000;border:none;padding:9px 18px;font-size:0.72rem;font-weight:700;cursor:pointer;border-radius:10px;white-space:nowrap;">+ Agregar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Promociones -->
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;overflow:hidden;">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+        <i data-lucide="tag" style="width:16px;height:16px;color:var(--gold);"></i>
+        <span style="font-weight:700;font-size:0.85rem;">Promociones activas</span>
+        <span style="margin-left:auto;font-family:'DM Mono',monospace;font-size:0.48rem;color:var(--muted);">${_mpPromos.length} activas</span>
+      </div>
+      <div style="padding:20px;">
+        <div id="mp-promos-list">${promosHtml()}</div>
+        <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:12px;padding:14px;margin-top:12px;">
+          <div style="font-family:'DM Mono',monospace;font-size:0.46rem;color:var(--muted);letter-spacing:0.15em;margin-bottom:10px;">NUEVA PROMOCIÓN</div>
+          <div class="fg-row" style="margin-bottom:8px;">
+            <div class="fg" style="margin:0;"><label>Título</label><input type="text" id="mp-promo-titulo" placeholder="Ej: 2x1 en corte"></div>
+            <div class="fg" style="margin:0;"><label>Descuento (%)</label><input type="number" id="mp-promo-descuento" placeholder="20" min="0" max="100"></div>
+          </div>
+          <div class="fg" style="margin-bottom:10px;"><label>Descripción (opcional)</label><input type="text" id="mp-promo-desc" placeholder="Solo lunes y martes · Válido hasta el 30/06"></div>
+          <button onclick="mpAddPromo()" style="background:rgba(201,168,76,0.15);color:var(--gold);border:1px solid rgba(201,168,76,0.3);padding:8px 18px;font-size:0.72rem;font-weight:700;cursor:pointer;border-radius:8px;">+ Agregar promoción</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Guardar -->
+    <div style="display:flex;gap:10px;padding-bottom:20px;">
+      <button onclick="saveMarketplace()" class="btn-sm btn-gold" style="flex:1;padding:14px;font-size:0.88rem;">
+        <i data-lucide="save" style="width:16px;height:16px;"></i> Guardar todos los cambios
+      </button>
+      <a href="/marketplace.html?open=${s.id||''}" target="_blank" rel="noopener" class="btn-sm btn-dark" style="text-decoration:none;padding:14px 24px;">
+        👁 Vista previa
+      </a>
+    </div>
+  </div>`;
+}
+
+function initMarketplacePage(){
+  if(window.lucide) lucide.createIcons();
+}
+
+function mpRefreshGaleria(){
+  const el = document.getElementById('mp-galeria-list');
+  if(!el) return;
+  el.innerHTML = _mpGaleria.length
+    ? _mpGaleria.map((url,i)=>`
+        <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);">
+          <img src="${url}" style="width:50px;height:38px;object-fit:cover;border-radius:5px;flex-shrink:0;" onerror="this.style.opacity=0.2">
+          <span style="flex:1;font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${url}</span>
+          <button onclick="mpRemoveGaleria(${i})" style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.2);color:var(--red);font-size:0.5rem;padding:3px 8px;cursor:pointer;border-radius:4px;">✕</button>
+        </div>`).join('')
+    : '<p style="color:var(--muted);font-size:0.62rem;padding:8px 0">Sin fotos en galería aún.</p>';
+}
+
+function mpRefreshPromos(){
+  const el = document.getElementById('mp-promos-list');
+  if(!el) return;
+  el.innerHTML = _mpPromos.length
+    ? _mpPromos.map((p,i)=>`
+        <div style="background:rgba(201,168,76,0.05);border:1px solid rgba(201,168,76,0.15);border-radius:10px;padding:12px;margin-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div style="flex:1;">
+              <div style="font-weight:700;font-size:0.82rem;">${p.titulo||'—'} ${p.descuento?`<span style="color:var(--gold);font-size:0.7rem;">–${p.descuento}%</span>`:''}</div>
+              <div style="color:var(--muted);font-size:0.68rem;margin-top:3px;">${p.descripcion||''}</div>
+            </div>
+            <button onclick="mpRemovePromo(${i})" style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.2);color:var(--red);font-size:0.5rem;padding:3px 8px;cursor:pointer;border-radius:4px;flex-shrink:0;margin-left:8px;">✕</button>
+          </div>
+        </div>`).join('')
+    : '<p style="color:var(--muted);font-size:0.62rem;padding:8px 0">Sin promociones activas.</p>';
+}
+
+function mpAddGaleria(){
+  const inp = document.getElementById('mp-galeria-new');
+  const url = inp?.value?.trim();
+  if(!url){ toast('Ingresa una URL válida','error'); return; }
+  _mpGaleria.push(url);
+  inp.value = '';
+  mpRefreshGaleria();
+}
+
+function mpRemoveGaleria(i){
+  _mpGaleria.splice(i,1);
+  mpRefreshGaleria();
+}
+
+function mpAddPromo(){
+  const titulo = document.getElementById('mp-promo-titulo')?.value?.trim();
+  if(!titulo){ toast('Ingresa un título para la promoción','error'); return; }
+  const descuento = parseInt(document.getElementById('mp-promo-descuento')?.value)||null;
+  const descripcion = document.getElementById('mp-promo-desc')?.value?.trim()||null;
+  _mpPromos.push({titulo, descuento, descripcion});
+  document.getElementById('mp-promo-titulo').value='';
+  document.getElementById('mp-promo-descuento').value='';
+  document.getElementById('mp-promo-desc').value='';
+  mpRefreshPromos();
+}
+
+function mpRemovePromo(i){
+  _mpPromos.splice(i,1);
+  mpRefreshPromos();
+}
+
+async function saveMarketplace(){
+  const btn = document.querySelector('[onclick="saveMarketplace()"]');
+  if(btn){ btn.textContent='Guardando…'; btn.disabled=true; }
+
+  const patch = {
+    foto_url:     document.getElementById('mp-foto')?.value?.trim()||null,
+    descripcion:  document.getElementById('mp-desc')?.value?.trim()||null,
+    ciudad:       document.getElementById('mp-ciudad')?.value?.trim()||null,
+    direccion:    document.getElementById('mp-direccion')?.value?.trim()||null,
+    lat:          parseFloat(document.getElementById('mp-lat')?.value)||null,
+    lng:          parseFloat(document.getElementById('mp-lng')?.value)||null,
+    instagram:    document.getElementById('mp-instagram')?.value?.trim().replace('@','')||null,
+    tiktok:       document.getElementById('mp-tiktok')?.value?.trim().replace('@','')||null,
+    facebook:     document.getElementById('mp-facebook')?.value?.trim()||null,
+    galeria:      _mpGaleria.length ? _mpGaleria : null,
+    promociones:  _mpPromos.length ? _mpPromos : null,
+    activo:       document.getElementById('mp-activo')?.checked ?? true,
+  };
+
+  // Limpiar nulos opcionales
+  Object.keys(patch).forEach(k=>{ if(patch[k]===null) delete patch[k]; });
+  patch.activo = document.getElementById('mp-activo')?.checked ?? true;
+
+  try{
+    await sbPatch('shops','id=eq.'+S.shopId, patch);
+    Object.assign(S.shopData, patch);
+    toast('Perfil del marketplace guardado ✓');
+  }catch(e){
+    toast('Error al guardar: '+e.message,'error');
+  }finally{
+    if(btn){ btn.innerHTML='<i data-lucide="save" style="width:16px;height:16px;"></i> Guardar todos los cambios'; btn.disabled=false; if(window.lucide)lucide.createIcons(); }
+  }
 }
 
 // ── BOT CONFIG FUNCTIONS ──
