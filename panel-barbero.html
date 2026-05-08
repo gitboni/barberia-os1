@@ -241,18 +241,6 @@ input:checked+.slider:before{transform:translateX(22px)}
 <!-- ══════════════════════════════════════════════════════ -->
 <!-- ── HOME SCREEN ── -->
 <div id="homeScreen" class="screen">
-  <div class="barb-header">
-    <div style="display:flex;align-items:center;gap:10px;">
-      <div class="barb-avatar" id="headerAvatar" onclick="showScreen('perfilScreen')">?</div>
-      <div>
-        <div style="font-size:1.1rem;font-weight:900;font-family:Outfit,sans-serif;" id="headerNombre">...</div>
-        <div style="font-size:.72rem;color:var(--dim);" id="headerShop">...</div>
-      </div>
-    </div>
-    <div class="barb-header-btns">
-      <div class="icon-btn" onclick="showScreen('statsScreen')" title="Estadísticas">📊</div>
-    </div>
-  </div>
 
   <!-- Toggle disponible -->
   <div class="card toggle-row" id="toggleCard">
@@ -456,10 +444,7 @@ input:checked+.slider:before{transform:translateX(22px)}
 
 <!-- ── STATS SCREEN ── -->
 <div id="statsScreen" class="screen">
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
-    <div onclick="showScreen('homeScreen')" class="icon-btn">←</div>
-    <h2 style="font-size:1.3rem;font-weight:900;font-family:Outfit,sans-serif;">Estadísticas</h2>
-  </div>
+  <h2 style="font-size:1.1rem;font-weight:900;font-family:Outfit,sans-serif;margin-bottom:14px;">Estadísticas</h2>
   <div class="chip-row" id="statsRangoRow">
     <div class="chip on" onclick="setStatsRango(0,this)">7 días</div>
     <div class="chip" onclick="setStatsRango(1,this)">30 días</div>
@@ -485,10 +470,9 @@ input:checked+.slider:before{transform:translateX(22px)}
 
 <!-- ── VIP PREFERENCIALES SCREEN ── -->
 <div id="vipScreen" class="screen">
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-    <div onclick="showScreen('homeScreen')" class="icon-btn">←</div>
-    <h2 style="font-size:1.3rem;font-weight:900;font-family:Outfit,sans-serif;">Clientes VIP ⭐</h2>
-    <div id="vipActivosBadge" style="margin-left:auto;background:var(--accent-s);border:1px solid var(--accent-b);border-radius:20px;padding:3px 10px;font-size:.72rem;font-weight:700;color:var(--accent);"></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+    <h2 style="font-size:1.1rem;font-weight:900;font-family:Outfit,sans-serif;">Clientes VIP ⭐</h2>
+    <div id="vipActivosBadge" style="background:var(--accent-s);border:1px solid var(--accent-b);border-radius:20px;padding:3px 10px;font-size:.72rem;font-weight:700;color:var(--accent);"></div>
   </div>
   <p style="font-size:.78rem;color:var(--dim);margin-bottom:20px;">Clientes con cita fija semanal — se generan automáticamente.</p>
   <div id="vipList"></div>
@@ -498,10 +482,7 @@ input:checked+.slider:before{transform:translateX(22px)}
 
 <!-- ── PERFIL SCREEN ── -->
 <div id="perfilScreen" class="screen">
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
-    <div onclick="showScreen('homeScreen')" class="icon-btn">←</div>
-    <h2 style="font-size:1.3rem;font-weight:900;font-family:Outfit,sans-serif;">Mi Perfil</h2>
-  </div>
+  <h2 style="font-size:1.1rem;font-weight:900;font-family:Outfit,sans-serif;margin-bottom:16px;">Mi Perfil</h2>
   <div style="text-align:center;margin-bottom:24px;">
     <div id="perfilAvatar" style="width:80px;height:80px;border-radius:50%;background:var(--accent);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:900;color:#000;">?</div>
     <div id="perfilNombre" style="font-size:1.3rem;font-weight:900;font-family:Outfit,sans-serif;"></div>
@@ -850,10 +831,6 @@ function startRealtimeHoy(){
 // ══════════════════════════════════════════════════════════
 function updateHeaderUI(){
   if(!barbero)return;
-  const ini=barbero.nombre.charAt(0).toUpperCase();
-  document.getElementById('headerAvatar').textContent=ini;
-  document.getElementById('headerNombre').textContent=barbero.nombre;
-  document.getElementById('headerShop').textContent=shop?.nombre||'';
   document.getElementById('maxTurnosVal').textContent=maxTurnos;
   document.getElementById('activoSwitch').checked=barbero.activo;
   renderStatusText(barbero.activo);
