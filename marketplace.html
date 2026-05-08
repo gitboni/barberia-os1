@@ -311,13 +311,17 @@
         .slot.selected { background:var(--accent); color:#000; border-color:var(--accent); }
         .slot.taken { opacity:0.3; cursor:not-allowed; text-decoration:line-through; }
 
-        /* Reseñas */
+        /* ─── Reviews ─── */
         .reviews-list { display:flex; flex-direction:column; gap:12px; }
-        .review-item { background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:16px; padding:16px; }
-        .review-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
-        .review-author { font-weight:600; font-size:0.88rem; }
-        .review-date { font-size:0.75rem; color:var(--text-dim); }
+        .review-item { background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:16px; padding:14px; }
+        .review-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+        .review-date { font-size:0.72rem; color:var(--text-dim); }
         .review-text { font-size:0.85rem; line-height:1.6; color:rgba(255,255,255,0.75); }
+
+        /* ─── Hour row ─── */
+        .hour-row { border-bottom:1px solid var(--border); }
+        .hour-row:last-child { border-bottom:none; }
+        .hour-row.today .day-label { color:var(--accent) !important; font-weight:800 !important; }
 
         /* Promociones */
         .promo-banner { background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(245,224,80,0.05)); border:1px solid rgba(212,175,55,0.3); border-radius:16px; padding:16px; display:flex; align-items:center; gap:14px; margin-bottom:12px; }
@@ -1171,22 +1175,41 @@ async function loadShops() {
         
         if (response.ok) {
             apiData = await response.json();
-            console.log("Marketplace data loaded via Proxy");
+            // datos cargados via proxy
         } else if (sb) {
-            // FALLBACK DIRECTO A SUPABASE si el proxy falla (ej: local dev)
-            console.warn("Proxy failed, falling back to direct Supabase fetch");
-            const { data: shops } = await sb.from('shops')
-                .select('*, servicios(*), staff:barberos(*)')
-                .eq('activo', true);
-            
-            const { data: config } = await sb.from('landing_config')
-                .select('key, value')
-                .filter('key', 'ilike', 'mkt_%');
-            
-            const mktConfig = {};
-            if (config) config.forEach(c => mktConfig[c.key] = c.value);
-            
-            apiData = { shops, config: mktConfig };
+            // FALLBACK DIRECTO A SUPABASE si el proxy falla
+            const [shopsRes, ratingsRes, waitRes] = await Promise.all([
+                sb.from('shops').select('*, servicios(*), staff:barberos(*)').eq('activo', true),
+                sb.from('calificaciones').select('shop_id, puntuacion, comentario, created_at').order('created_at', { ascending: false }),
+                sb.from('citas').select('shop_id, hora, barbero_id').eq('fecha', getFechaHoySD()).eq('estado', 'Confirmada').order('hora'),
+            ]);
+
+            // Agregar ratings por shop
+            const ratingsMap = {};
+            for (const r of ratingsRes.data || []) {
+                if (!ratingsMap[r.shop_id]) ratingsMap[r.shop_id] = { total: 0, sum: 0, reseñas: [] };
+                ratingsMap[r.shop_id].total++;
+                ratingsMap[r.shop_id].sum += r.puntuacion;
+                if (r.comentario) ratingsMap[r.shop_id].reseñas.push(r);
+            }
+
+            // Calcular tiempo de espera real por shop
+            const waitMap = {};
+            for (const c of waitRes.data || []) {
+                if (!waitMap[c.shop_id]) waitMap[c.shop_id] = [];
+                waitMap[c.shop_id].push(c);
+            }
+
+            apiData = {
+                shops: (shopsRes.data || []).map(s => ({
+                    ...s,
+                    rating: ratingsMap[s.id] ? Math.round((ratingsMap[s.id].sum / ratingsMap[s.id].total) * 10) / 10 : null,
+                    total_reseñas: ratingsMap[s.id]?.total || 0,
+                    reseñas_recientes: (ratingsMap[s.id]?.reseñas || []).slice(0, 3),
+                    tiempo_espera: waitMap[s.id] ? Math.min(waitMap[s.id].length * (s.duracion_turno || 25), 120) : 0,
+                })),
+                config: {},
+            };
         }
 
         if (apiData) {
@@ -1218,6 +1241,8 @@ async function loadShops() {
                     // rating calculado de la BD
                     rating: s.rating ? parseFloat(s.rating) : null,
                     total_reseñas: s.total_reseñas || s.reseñas || 0,
+                    reseñas_recientes: s.reseñas_recientes || [],
+                    icono: s.icono || '✂️',
                     duracion_turno: s.duracion_turno || 30,
                     hora_inicio: s.hora_inicio || 9,
                     hora_fin: s.hora_fin || 20,
@@ -1299,9 +1324,21 @@ function renderShops(reset = false) {
             const sName = esc(s.nombre || '');
             const sDir = esc(s.direccion || 'Distrito Nacional');
 
+            // Imagen: foto real o icono del shop en fondo dorado
+            const imgHtml = s.foto_url
+                ? `<img src="${esc(s.foto_url)}" class="card-img" alt="Foto de ${sName}" onerror="this.outerHTML=this.nextElementSibling.outerHTML;this.nextElementSibling.style.display='flex'">
+                   <div class="card-img" style="display:none;align-items:center;justify-content:center;font-size:2.2rem;background:linear-gradient(135deg,#1a1506,#111);border:1px solid rgba(212,175,55,.2);">${s.icono || '✂️'}</div>`
+                : `<div class="card-img" style="display:flex;align-items:center;justify-content:center;font-size:2.5rem;background:linear-gradient(135deg,#1a1506,#111);border:1px solid rgba(212,175,55,.2);">${s.icono || '✂️'}</div>`;
+
+            // Tiempo de espera: badge dinámico
+            const waitLabel = s.tiempo_espera === 0
+                ? '<span class="badge" style="background:rgba(0,255,100,.12);color:#00e676;border:1px solid rgba(0,255,100,.25);">⚡ Disponible ya</span>'
+                : s.tiempo_espera != null
+                    ? `<span class="badge badge-wait">⏱ ~${s.tiempo_espera} min</span>`
+                    : '';
+
             card.innerHTML = `
-                <img src="${esc(s.foto_url) || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=400'}"
-                     class="card-img" alt="Foto de ${sName}">
+                ${imgHtml}
                 <div class="card-body">
                     <div class="card-top">
                         <div style="min-width:0">
@@ -1316,15 +1353,15 @@ function renderShops(reset = false) {
                     <div class="badge-row">
                         ${open === true ? '<span class="badge badge-open">Abierto</span>' : open === false ? '<span class="badge badge-closed">Cerrado</span>' : ''}
                         ${promo ? '<span class="badge badge-promo">🏷 Oferta</span>' : ''}
-                        ${wait ? `<span class="badge badge-wait">⏱ ${wait}</span>` : ''}
+                        ${waitLabel}
                     </div>
-                    ${s.rating ? `<div class="rating-row"><span class="stars">${starsHtml(s.rating)}</span><span class="rating-count">${s.rating.toFixed(1)} (${s.total_reseñas || 0})</span></div>` : ''}
+                    ${s.rating ? `<div class="rating-row"><span class="stars">${starsHtml(s.rating)}</span><span style="font-weight:700;color:var(--accent);margin-left:2px;">${s.rating.toFixed(1)}</span><span class="rating-count"> (${s.total_reseñas || 0} reseñas)</span></div>` : ''}
                     <div class="btn-row" style="margin-top:15px; display:grid; grid-template-columns:1fr 46px 46px; gap:8px;">
                         <button class="btn btn-primary" onclick="event.stopPropagation(); openBookingModal('${shopId}')" style="height:46px; font-weight:800; border-radius:12px;">Reservar</button>
-                        <button class="btn btn-ghost" onclick="event.stopPropagation(); window.open('https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}')" style="height:46px; border-radius:12px;">
-                            <i data-lucide="navigation" size="16"></i>
+                        <button class="btn btn-ghost" onclick="event.stopPropagation(); shareShop('${shopId}')" style="height:46px; border-radius:12px;" title="Compartir">
+                            <i data-lucide="share-2" size="16"></i>
                         </button>
-                        <button class="btn btn-ghost" onclick="event.stopPropagation(); openShopDetail('${shopId}')" style="height:46px; border-radius:12px;">
+                        <button class="btn btn-ghost" onclick="event.stopPropagation(); openShopDetail('${shopId}')" style="height:46px; border-radius:12px;" title="Ver detalles">
                             <i data-lucide="info" size="16"></i>
                         </button>
                     </div>
@@ -1506,13 +1543,16 @@ function openShopDetail(id) {
     
     document.getElementById('sheetContent').innerHTML = `
         <div class="gallery-header">
-            <img src="${shop.foto_url || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=1200'}" class="gallery-main-img">
+            ${shop.foto_url
+                ? `<img src="${shop.foto_url}" class="gallery-main-img" onerror="this.style.display='none'; document.getElementById('shopIconFallback').style.display='flex'">
+                   <div id="shopIconFallback" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;font-size:6rem;background:linear-gradient(135deg,#0d0d0d,#1a1506);">${shop.icono || '✂️'}</div>`
+                : `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:6rem;background:linear-gradient(135deg,#0d0d0d,#1a1506);">${shop.icono || '✂️'}</div>`
+            }
             <div class="header-overlay">
                 <h2 class="font-outfit" style="font-size:3.5rem; margin-bottom:10px; line-height:1;">${sName}</h2>
-                <div style="display:flex; align-items:center; gap:20px; color:var(--text-dim); font-size:0.95rem;">
+                <div style="display:flex; align-items:center; gap:20px; color:var(--text-dim); font-size:0.95rem; flex-wrap:wrap;">
                     <span><i data-lucide="map-pin" size="16"></i> ${sDir}</span>
-                    <span>·</span>
-                    <span><i data-lucide="star" size="16" fill="var(--accent)" color="var(--accent)"></i> ${shop.rating || '4.8'} (${shop.total_reseñas || 0} reseñas)</span>
+                    ${shop.rating ? `<span>·</span><span><i data-lucide="star" size="16" fill="var(--accent)" color="var(--accent)"></i> <strong style="color:var(--accent)">${shop.rating}</strong> (${shop.total_reseñas} reseñas)</span>` : ''}
                 </div>
             </div>
         </div>
@@ -1523,6 +1563,18 @@ function openShopDetail(id) {
                     <div class="section-card">
                         <span class="section-title">Sobre nosotros</span>
                         <p style="color:var(--text-dim); line-height:1.6; font-size:1.05rem;">${sDesc}</p>
+                    </div>
+
+                    <!-- Style Lab teaser -->
+                    <div class="section-card" style="background:linear-gradient(135deg,rgba(212,175,55,.08),rgba(212,175,55,.02));border-color:rgba(212,175,55,.25);cursor:pointer;" onclick="window.location.href='app.html'">
+                        <div style="display:flex;align-items:center;gap:14px;">
+                            <div style="font-size:2rem;">🤖</div>
+                            <div>
+                                <div style="font-weight:800;font-size:1rem;color:var(--accent);">Style Lab IA</div>
+                                <div style="font-size:0.8rem;color:var(--text-dim);margin-top:3px;">Sube tu foto y el AI sugiere el corte ideal para ti antes de reservar</div>
+                            </div>
+                            <div style="margin-left:auto;color:var(--accent);font-size:1.2rem;">→</div>
+                        </div>
                     </div>
 
                     <div class="section-card">
@@ -1556,6 +1608,23 @@ function openShopDetail(id) {
                             }).join('')}
                         </div>
                     </div>
+
+                    <!-- Reseñas reales -->
+                    ${(shop.reseñas_recientes && shop.reseñas_recientes.length) ? `
+                    <div class="section-card">
+                        <span class="section-title">Reseñas recientes</span>
+                        <div class="reviews-list">
+                            ${shop.reseñas_recientes.map(r => `
+                                <div class="review-item">
+                                    <div class="review-header">
+                                        <span class="stars" style="font-size:.95rem;">${'★'.repeat(r.puntuacion)}${'☆'.repeat(5-r.puntuacion)}</span>
+                                        <span class="review-date">${new Date(r.created_at).toLocaleDateString('es-DO',{month:'short',day:'numeric'})}</span>
+                                    </div>
+                                    ${r.comentario ? `<p class="review-text">${esc(r.comentario)}</p>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>` : ''}
                 </div>
 
                 <div class="sheet-sidebar">
@@ -1563,22 +1632,23 @@ function openShopDetail(id) {
                         <button class="btn btn-primary" onclick="openBookingModal('${shop.id}')" style="width:100%; height:70px; border-radius:20px; font-size:1.2rem; font-weight:900; box-shadow:0 15px 40px rgba(212,175,55,0.25);">
                             Reservar Ahora
                         </button>
+                        ${shop.lat && shop.lng ? `
+                        <button class="btn btn-ghost" onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${shop.lat},${shop.lng}')" style="width:100%;height:46px;border-radius:14px;margin-top:8px;font-size:.85rem;">
+                            <i data-lucide="navigation" size="14"></i> Cómo llegar
+                        </button>` : ''}
+                        <button class="btn btn-ghost" onclick="shareShop('${shop.id}')" style="width:100%;height:46px;border-radius:14px;margin-top:8px;font-size:.85rem;">
+                            <i data-lucide="share-2" size="14"></i> Compartir
+                        </button>
                     </div>
 
                     <div class="section-card">
                         <span class="section-title">Horario Semanal</span>
                         ${(shop.horario || []).map(h => `
-                            <div class="hour-row ${h.dia === todayName ? 'today' : ''}" style="padding:12px 0;">
-                                <span class="day-label">${h.dia}</span>
-                                <span style="font-weight:600;">${h.cerrado ? '<span style="color:var(--red)">Cerrado</span>' : `${h.apertura} - ${h.cierre}`}</span>
+                            <div class="hour-row ${h.dia === todayName ? 'today' : ''}" style="padding:12px 0; display:flex; justify-content:space-between; border-bottom:1px solid var(--border);">
+                                <span class="day-label" style="font-weight:${h.dia===todayName?'800':'400'};color:${h.dia===todayName?'var(--accent)':'var(--text-dim)'};">${h.dia}</span>
+                                <span style="font-weight:600;">${h.cerrado ? '<span style="color:var(--red)">Cerrado</span>' : `${fmt12(h.apertura)} – ${fmt12(h.cierre)}`}</span>
                             </div>
                         `).join('')}
-                    </div>
-
-                    <div class="section-card" style="padding:0; overflow:hidden;">
-                        <div class="mini-map-wrap" style="height:200px;">
-                            <img src="https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/pin-s+D4AF37(${shop.lng},${shop.lat})/${shop.lng},${shop.lat},15/400x200@2x?access_token=pk.eyJ1IjoiYXVyYW9zIiwiYSI6ImNsZzR4YnhsczBia2wzcHBicnBicnBicnBicnBicnBicnBicnBicnBicnBicnBicnBicnBicnBicnBicnBifQ" style="width:100%; height:100%; object-fit:cover;">
-                        </div>
                     </div>
                 </div>
             </div>
