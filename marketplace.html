@@ -1621,8 +1621,8 @@ function openDetail(id){
   const s=allShops.find(x=>x.id===String(id));if(!s)return;
   addHistory(id);
 
-  // Actualizar URL sin agregar entrada al historial (replaceState para no interferir con el back del browser)
-  history.replaceState({open:id},'',`?open=${id}`);
+  // Agregar entrada al historial para que el botón atrás funcione
+  history.pushState({open:id},'',`?open=${id}`);
   updateOgForShop(s);
 
   // Fly-to en mapa
@@ -2247,9 +2247,17 @@ function scrollToFeed(){
 }
 
 // ── Botón atrás del browser cierra el detalle ──
-window.addEventListener('popstate', () => {
-  if(document.getElementById('detailModal').classList.contains('active')){
-    closeDetail();
+// El browser ya restauró la URL al ir atrás, solo cerramos el modal
+window.addEventListener('popstate', (e) => {
+  const modal = document.getElementById('detailModal');
+  if(modal.classList.contains('active')){
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+    document.title = 'AuraOS — Encuentra tu barbería';
+    // Restaurar OG base
+    const set = (prop,val)=>{ const m=document.querySelector(`meta[property="${prop}"]`); if(m) m.content=val; };
+    set('og:title','AuraOS — Encuentra tu barbería ideal');
+    set('og:url', location.origin + location.pathname);
   }
 });
 
