@@ -5,6 +5,32 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>AuraOS — Encuentra tu barbería</title>
 <meta name="description" content="Descubre y reserva en las mejores barberías cerca de ti. Reserva en segundos, sin llamadas.">
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="AuraOS Marketplace">
+<meta property="og:title" content="AuraOS — Encuentra tu barbería ideal">
+<meta property="og:description" content="Descubre y reserva en las mejores barberías cerca de ti. Sin llamadas, sin esperas inesperadas.">
+<meta property="og:image" content="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=1200&q=80">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://barberia-os1.vercel.app/marketplace.html">
+<meta property="og:locale" content="es_DO">
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="AuraOS — Encuentra tu barbería ideal">
+<meta name="twitter:description" content="Reserva en las mejores barberías. Sin llamadas, sin esperas.">
+<meta name="twitter:image" content="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=1200&q=80">
+<!-- JSON-LD base (se actualiza dinámicamente al abrir un shop) -->
+<script type="application/ld+json" id="jsonLd">
+{
+  "@context":"https://schema.org",
+  "@type":"WebSite",
+  "name":"AuraOS Marketplace",
+  "url":"https://barberia-os1.vercel.app/marketplace.html",
+  "description":"Plataforma de reservas para barberías en República Dominicana",
+  "potentialAction":{"@type":"SearchAction","target":"https://barberia-os1.vercel.app/marketplace.html?q={search_term_string}","query-input":"required name=search_term_string"}
+}
+</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="/icon.png">
 <meta name="theme-color" content="#050505">
@@ -732,6 +758,34 @@ footer{
 /* ── Avísame ── */
 .notify-me-btn{background:transparent;border:1px solid var(--border);color:var(--dim);border-radius:50px;padding:6px 14px;font-size:.75rem;cursor:pointer;transition:.2s;white-space:nowrap;margin-top:8px}
 .notify-me-btn:hover,.notify-me-btn.on{border-color:var(--gold-b);color:var(--gold);background:var(--gold-s)}
+/* ── Bottom Nav móvil ── */
+.bottom-nav{
+  display:none;position:fixed;bottom:0;left:0;right:0;z-index:950;
+  background:rgba(8,8,8,.97);border-top:1px solid var(--border);
+  -webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
+  padding:8px 0 max(8px,env(safe-area-inset-bottom));
+}
+.bn-items{display:flex;justify-content:space-around;align-items:center}
+.bn-item{
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  padding:6px 20px;cursor:pointer;border:none;background:transparent;
+  color:var(--dim);transition:.2s;border-radius:var(--r);flex:1;
+}
+.bn-item.active{color:var(--gold)}
+.bn-item svg{width:22px;height:22px;stroke-width:2}
+.bn-label{font-size:.58rem;font-weight:700;letter-spacing:.3px;text-transform:uppercase;white-space:nowrap}
+.bn-badge{
+  position:absolute;top:-2px;right:-4px;background:var(--red);
+  color:#fff;font-size:.5rem;font-weight:900;border-radius:50%;
+  width:14px;height:14px;display:flex;align-items:center;justify-content:center;
+}
+.bn-icon-wrap{position:relative}
+@media(max-width:768px){
+  .bottom-nav{display:block}
+  body{padding-bottom:72px}
+  .wa-fab{bottom:80px}
+  #toast-wrap{bottom:80px}
+}
 /* ── Responsive ── */
 @media(max-width:1024px){
   .map-col{width:320px}
@@ -1022,6 +1076,31 @@ footer{
     </div>
   </div>
 </footer>
+
+<!-- ── BOTTOM NAV (móvil) ── -->
+<nav class="bottom-nav" aria-label="Navegación principal">
+  <div class="bn-items">
+    <button type="button" class="bn-item active" id="bn-home" onclick="bnNav('home')" aria-label="Inicio">
+      <svg viewbox="0 0 24 24" fill="none" stroke="currentColor"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span class="bn-label">Inicio</span>
+    </button>
+    <button type="button" class="bn-item" id="bn-search" onclick="bnNav('search')" aria-label="Buscar">
+      <svg viewbox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <span class="bn-label">Buscar</span>
+    </button>
+    <button type="button" class="bn-item" id="bn-bookings" onclick="bnNav('bookings')" aria-label="Mis citas">
+      <div class="bn-icon-wrap">
+        <svg viewbox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span class="bn-badge" id="bnBadge" style="display:none">0</span>
+      </div>
+      <span class="bn-label">Mis citas</span>
+    </button>
+    <button type="button" class="bn-item" id="bn-saved" onclick="bnNav('saved')" aria-label="Guardados">
+      <svg viewbox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      <span class="bn-label">Guardados</span>
+    </button>
+  </div>
+</nav>
 
 <!-- ── OVERLAYS ── -->
 <div class="overlay" id="overlay" onclick="closeAll()"></div>
@@ -1502,8 +1581,9 @@ function openDetail(id){
   const s=allShops.find(x=>x.id===String(id));if(!s)return;
   addHistory(id);
 
-  // URL push sin recargar
+  // URL push + OG/JSON-LD dinámico
   history.pushState({open:id},'',`?open=${id}`);
+  updateOgForShop(s);
 
   // Fly-to en mapa
   if(s.lat&&s.lng&&map) map.flyTo([s.lat,s.lng],15,{duration:1.2});
@@ -2079,6 +2159,140 @@ document.addEventListener('keydown',e=>{
 // ── PWA ──
 if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
 
+// ── Lightbox swipe (touch) ──
+(()=>{
+  let tx=0;
+  const lb=()=>document.getElementById('lightbox');
+  document.addEventListener('touchstart',e=>{if(lb().classList.contains('open'))tx=e.touches[0].clientX},{passive:true});
+  document.addEventListener('touchend',e=>{
+    if(!lb().classList.contains('open'))return;
+    const diff=e.changedTouches[0].clientX-tx;
+    if(Math.abs(diff)>50) lbNav(diff<0?1:-1);
+  },{passive:true});
+})();
+
+// ── Bottom Nav ──
+function bnNav(tab){
+  document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById(`bn-${tab}`)?.classList.add('active');
+  switch(tab){
+    case 'home':
+      closeDetail();
+      window.scrollTo({top:0,behavior:'smooth'});
+      break;
+    case 'search':
+      closeDetail();
+      document.querySelector('.hero-search input')?.focus();
+      document.querySelector('.hero')?.scrollIntoView({behavior:'smooth',block:'start'});
+      break;
+    case 'bookings':
+      openMyBookings();
+      break;
+    case 'saved':
+      closeDetail();
+      filterCat('favorites',document.querySelector('[data-filter="favorites"]'));
+      scrollToFeed();
+      break;
+  }
+}
+
+function openMyBookings(){
+  const phone = JSON.parse(localStorage.getItem('aura_user')||'{}').phone;
+  if(!phone){ showToast('Reserva primero para ver tus citas'); return; }
+  sb.from('citas')
+    .select('*, shops(nombre,direccion)')
+    .eq('telefono', phone.length===10?'1'+phone:phone)
+    .in('estado',['Confirmada','En curso'])
+    .order('fecha',{ascending:true})
+    .order('hora',{ascending:true})
+    .then(({data})=>{
+      const citas = data||[];
+      // Badge
+      const badge = document.getElementById('bnBadge');
+      if(badge){ badge.textContent=citas.length; badge.style.display=citas.length?'flex':'none'; }
+
+      const overlay = document.getElementById('overlay');
+      const listHtml = citas.length
+        ? citas.map(c=>`
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;margin-bottom:10px">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start">
+              <div>
+                <div style="font-weight:800;font-family:'Outfit',sans-serif">${esc(c.shops?.nombre||c.shop_id)}</div>
+                <div style="font-size:.78rem;color:var(--dim);margin-top:3px">📅 ${c.fecha} · 🕐 ${fmt12(c.hora?.slice(0,5))}</div>
+                <div style="font-size:.78rem;color:var(--dim);margin-top:2px">✂️ ${esc(c.servicio||'')} · 💈 ${esc(c.barbero||'')}</div>
+              </div>
+              <span style="font-size:.62rem;font-weight:800;padding:3px 10px;border-radius:50px;background:rgba(0,208,132,.1);color:var(--green);border:1px solid rgba(0,208,132,.2)">${esc(c.estado)}</span>
+            </div>
+            <button type="button" onclick="cancelarCita('${c.id}',this)" style="margin-top:10px;background:transparent;border:1px solid rgba(255,71,87,.3);color:var(--red);border-radius:50px;padding:5px 14px;font-size:.72rem;cursor:pointer;transition:.2s">Cancelar cita</button>
+          </div>`).join('')
+        : '<p style="color:var(--dim);text-align:center;padding:30px 0">No tienes citas próximas</p>';
+
+      overlay.innerHTML=`<div onclick="event.stopPropagation()" style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r-xl) var(--r-xl) 0 0;padding:28px;max-width:540px;width:100%;margin:auto;margin-top:auto;max-height:80vh;overflow-y:auto">
+        <h3 class="outfit" style="margin-bottom:16px;font-size:1.1rem">📅 Mis citas próximas</h3>
+        ${listHtml}
+        <button type="button" onclick="closeAll()" style="width:100%;margin-top:8px;background:none;border:1px solid var(--border);color:var(--dim);padding:10px;border-radius:50px;cursor:pointer">Cerrar</button>
+      </div>`;
+      overlay.style.display='flex';
+      overlay.style.alignItems='flex-end';
+      overlay.classList.add('active');
+    });
+}
+
+async function cancelarCita(id, btn){
+  if(!confirm('¿Cancelar esta cita?')) return;
+  btn.disabled=true; btn.textContent='Cancelando…';
+  const {error} = await sb.from('citas').update({estado:'Cancelada'}).eq('id',id);
+  if(error){ showToast('Error al cancelar'); btn.disabled=false; btn.textContent='Cancelar cita'; return; }
+  showToast('✅ Cita cancelada');
+  openMyBookings();
+}
+
+function updateBnBadge(){
+  const phone = JSON.parse(localStorage.getItem('aura_user')||'{}').phone;
+  if(!phone) return;
+  sb.from('citas').select('id',{count:'exact',head:true})
+    .eq('telefono', phone.length===10?'1'+phone:phone)
+    .in('estado',['Confirmada','En curso'])
+    .then(({count})=>{
+      const badge = document.getElementById('bnBadge');
+      if(badge){ badge.textContent=count||0; badge.style.display=count?'flex':'none'; }
+    });
+}
+
+// ── JSON-LD dinámico al abrir un shop ──
+function updateJsonLd(shop){
+  const el = document.getElementById('jsonLd');
+  if(!el) return;
+  const ld = {
+    '@context':'https://schema.org',
+    '@type':'HairSalon',
+    'name': shop.nombre,
+    'description': shop.descripcion || `Barbería ${shop.nombre} en ${shop.direccion||'República Dominicana'}`,
+    'address': { '@type':'PostalAddress', 'addressLocality': shop.ciudad||shop.direccion||'República Dominicana', 'addressCountry':'DO' },
+    'telephone': shop.whatsapp || shop.telefono || '',
+    'image': shop.foto_url || '',
+    'aggregateRating': shop.rating ? { '@type':'AggregateRating', 'ratingValue': shop.rating, 'reviewCount': shop.total_reseñas||1, 'bestRating':5 } : undefined,
+    'openingHoursSpecification': (shop.horario||[]).filter(h=>!h.cerrado).map(h=>({
+      '@type':'OpeningHoursSpecification',
+      'dayOfWeek': `https://schema.org/${h.dia}`,
+      'opens': h.apertura,
+      'closes': h.cierre
+    })),
+  };
+  // Limpiar campos undefined
+  el.textContent = JSON.stringify(ld, (k,v)=>v!==undefined?v:undefined);
+}
+
+// ── OG dinámico al abrir un shop ──
+function updateOgForShop(shop){
+  const set = (prop, val) => { let m=document.querySelector(`meta[property="${prop}"]`); if(m) m.content=val; };
+  set('og:title', `${shop.nombre} — AuraOS Marketplace`);
+  set('og:description', shop.descripcion || `Reserva en ${shop.nombre}. Ubicado en ${shop.direccion||'RD'}.`);
+  set('og:image', shop.foto_url || 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=1200&q=80');
+  set('og:url', `${location.origin}${location.pathname}?open=${shop.id}`);
+  updateJsonLd(shop);
+}
+
 // ── Hero Canvas Particles ──
 function initHeroCanvas(){
   const canvas = document.getElementById('heroCanvas');
@@ -2133,6 +2347,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   loadShops();
   initRealtime();
   initHeroCanvas();
+  updateBnBadge();
 });
 </script>
 </body>
