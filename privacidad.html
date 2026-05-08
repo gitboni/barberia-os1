@@ -22,20 +22,41 @@
   --green:#2ECC71;--green-s:rgba(46,204,113,.15);
   --red:#E74C3C;--red-s:rgba(231,76,60,.1);
   --glass:rgba(255,255,255,.05);--border:rgba(255,255,255,.1);
-  --safe-top:env(safe-area-inset-top,20px);
-  --safe-bottom:env(safe-area-inset-bottom,20px);
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
   --r:16px;--r-lg:22px;--r-xl:28px;
   --nav-h:58px;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;font-family:'Inter',sans-serif}
 body{background:var(--bg);color:var(--text);overflow:hidden;user-select:none}
 h1,h2,h3,.outfit{font-family:'Outfit',sans-serif}
-/* Screen */
-.screen{display:none;position:fixed;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--bg);z-index:10;padding:calc(var(--safe-top)+14px) 16px calc(var(--nav-h) + var(--safe-bottom) + 8px)}
+/* Screen — fijo, scroll interno, respeta nav + safe area */
+.screen{
+  display:none;position:fixed;
+  top:0;left:0;right:0;bottom:0;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+  background:var(--bg);z-index:10;
+  /* padding top: notch + espacio; bottom: nav + safe area de casa (home indicator) */
+  padding-top:calc(env(safe-area-inset-top,0px) + 14px);
+  padding-left:16px;
+  padding-right:16px;
+  padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 16px);
+}
 .screen.active{display:block}
 #monitorScreen{padding:0 !important}
-.scr-mon{height:calc(100dvh - var(--nav-h) - var(--safe-bottom));overflow-y:auto;-webkit-overflow-scrolling:touch}
-#loginScreen{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:40px 24px;height:100dvh;overflow-y:auto;background:radial-gradient(ellipse at top,#1a1506 0%,#000 70%);z-index:100}
+/* Monitor: altura = viewport - nav - safe area */
+.scr-mon{
+  height:calc(100dvh - var(--nav-h) - env(safe-area-inset-bottom,0px));
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+}
+#loginScreen{
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  padding:40px 24px;
+  padding-top:calc(env(safe-area-inset-top,0px)+40px);
+  padding-bottom:calc(env(safe-area-inset-bottom,0px)+40px);
+  min-height:100dvh;overflow-y:auto;
+  background:radial-gradient(ellipse at top,#1a1506 0%,#000 70%);z-index:100;
+}
 #loginScreen.hidden{display:none}
 /* Aurora */
 .aurora-bg{position:fixed;inset:0;z-index:-1;pointer-events:none}
@@ -50,9 +71,30 @@ h1,h2,h3,.outfit{font-family:'Outfit',sans-serif}
 .t-success{background:#1a5c36;border:1px solid var(--green)}
 .t-error{background:#5c1a1a;border:1px solid var(--red)}
 .t-info{background:#1a3a5c;border:1px solid #3498db}
-/* Bottom Nav */
-.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:600px;background:rgba(8,8,8,.97);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--border);display:flex;z-index:500;height:calc(var(--nav-h) + var(--safe-bottom));padding-bottom:var(--safe-bottom)}
-.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 4px;cursor:pointer;color:var(--dim);transition:color .2s;-webkit-tap-highlight-color:transparent}
+/* Bottom Nav — pegado al fondo, sin transform, rellena safe area */
+.bottom-nav{
+  position:fixed;
+  bottom:0;left:0;right:0;   /* sin transform — evita el efecto flotante en iOS */
+  background:rgba(5,5,5,.98);
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border-top:1px solid var(--border);
+  display:flex;
+  z-index:500;
+  /* altura del nav + relleno del home indicator */
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  padding-left:env(safe-area-inset-left,0px);
+  padding-right:env(safe-area-inset-right,0px);
+}
+/* En tablet: centrar y limitar ancho */
+@media(min-width:600px){
+  .bottom-nav{left:50%;right:auto;width:100%;max-width:600px;transform:translateX(-50%)}
+}
+.nav-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;padding:6px 4px;height:var(--nav-h);  /* altura fija del área de toque */
+  cursor:pointer;color:var(--dim);transition:color .2s;
+  -webkit-tap-highlight-color:transparent;
+}
 .nav-btn.active{color:var(--accent)}
 .nav-btn.active svg{filter:drop-shadow(0 0 5px rgba(212,175,55,.5))}
 .nav-btn span{font-size:clamp(.52rem,1.8vw,.62rem);font-weight:700;text-transform:uppercase;letter-spacing:.3px;line-height:1}
@@ -110,7 +152,7 @@ input:checked+.slider:before{transform:translateX(21px)}
 .barb-header-btns{display:flex;gap:6px;flex-shrink:0}
 .icon-btn{width:38px;height:38px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem;color:var(--dim)}
 /* Monitor */
-.monitor-header{padding:calc(var(--safe-top)+10px) 16px 10px;background:rgba(0,0,0,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100}
+.monitor-header{padding:calc(env(safe-area-inset-top,0px)+10px) 16px 10px;background:rgba(0,0,0,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100}
 .island{flex:1;display:flex;align-items:center;gap:10px}
 .live-dot{width:6px;height:6px;border-radius:50%;background:#E74C3C;animation:pulse 1.2s infinite;flex-shrink:0}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
@@ -187,7 +229,10 @@ input:checked+.slider:before{transform:translateX(21px)}
 .silla-nombre,#proxNombre,#headerNombre{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* Tablet */
 @media(min-width:480px){.screen{padding-left:20px !important;padding-right:20px !important}:root{--nav-h:62px}.silla-card{margin:10px 20px}}
-@media(min-width:600px){.screen,.bottom-nav{max-width:600px;left:50%;right:auto;transform:translateX(-50%)}.modal-box{max-width:600px;margin:0 auto}}
+@media(min-width:600px){
+  .screen{max-width:600px;left:50% !important;right:auto !important;transform:translateX(-50%)}
+  .modal-box{max-width:600px;margin:0 auto}
+}
 </style>
 
 </head>
