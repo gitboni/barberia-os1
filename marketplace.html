@@ -13,6 +13,7 @@
 <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://unpkg.com/dompurify@3.1.6/dist/purify.min.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
 /* ── Variables ── */
@@ -643,6 +644,21 @@ footer{
 /* ── ICS / Notify ── */
 .btn-ics{background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--dim);border-radius:50px;padding:7px 16px;font-size:.78rem;cursor:pointer;transition:.2s;white-space:nowrap}
 .btn-ics:hover{border-color:var(--gold-b);color:var(--gold)}
+/* ── WhatsApp FAB ── */
+.wa-fab{position:fixed;bottom:24px;right:24px;width:52px;height:52px;border-radius:50%;background:#25D366;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.5rem;z-index:800;box-shadow:0 4px 20px rgba(37,211,102,.4);transition:.2s}
+.wa-fab:hover{transform:scale(1.1);box-shadow:0 6px 28px rgba(37,211,102,.55)}
+/* ── Badge nuevo ── */
+.badge-nuevo{position:absolute;top:12px;left:12px;z-index:5;background:var(--green);color:#000;font-size:.54rem;font-weight:900;padding:3px 9px;border-radius:50px;text-transform:uppercase;letter-spacing:.5px;font-family:'Outfit',sans-serif}
+/* ── Gallery strip en detalle ── */
+.gallery-strip{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin-top:12px}
+.gallery-strip::-webkit-scrollbar{display:none}
+.gallery-thumb{width:90px;height:70px;border-radius:10px;object-fit:cover;cursor:pointer;opacity:.7;transition:.2s;flex-shrink:0;border:2px solid transparent}
+.gallery-thumb:hover{opacity:1;border-color:var(--gold)}
+/* ── Slots count pill ── */
+.slots-pill{font-size:.62rem;font-weight:700;color:var(--green);background:rgba(0,208,132,.08);border:1px solid rgba(0,208,132,.2);padding:2px 8px;border-radius:50px;margin-left:4px}
+/* ── Avísame ── */
+.notify-me-btn{background:transparent;border:1px solid var(--border);color:var(--dim);border-radius:50px;padding:6px 14px;font-size:.75rem;cursor:pointer;transition:.2s;white-space:nowrap;margin-top:8px}
+.notify-me-btn:hover,.notify-me-btn.on{border-color:var(--gold-b);color:var(--gold);background:var(--gold-s)}
 /* ── Responsive ── */
 @media(max-width:1024px){
   .map-col{width:320px}
@@ -722,7 +738,7 @@ footer{
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
         <input type="text" id="locationHero" placeholder="¿En qué ciudad?" oninput="syncSearch(this,'locationNav'); debouncedSearch()">
       </div>
-      <button class="btn-hero-search" onclick="debouncedSearch()">
+      <button class="btn-hero-search" onclick="debouncedSearch();scrollToFeed()">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         Buscar
       </button>
@@ -731,7 +747,7 @@ footer{
     <div class="hero-stats">
       <div><div class="hero-stat-val" id="statNegocios">2</div><div class="hero-stat-lbl">Negocios activos</div></div>
       <div><div class="hero-stat-val" id="statCitasSemana">276</div><div class="hero-stat-lbl">Citas esta semana</div></div>
-      <div><div class="hero-stat-val">⭐ 4.6</div><div class="hero-stat-lbl">Rating promedio</div></div>
+      <div><div class="hero-stat-val" id="statRating">⭐ 4.6</div><div class="hero-stat-lbl">Rating promedio</div></div>
     </div>
   </div>
 </section>
@@ -906,6 +922,9 @@ footer{
 <div class="overlay" id="overlay" onclick="closeAll()"></div>
 <div id="toast-wrap"></div>
 
+<!-- ── WA FAB ── -->
+<button type="button" class="wa-fab" onclick="openRegistro()" title="Contactar soporte AuraOS" aria-label="WhatsApp soporte">💬</button>
+
 <!-- ── LIGHTBOX ── -->
 <div class="lightbox" id="lightbox" role="dialog" aria-label="Galería de fotos" aria-modal="true">
   <button type="button" class="lb-close" onclick="closeLightbox()" aria-label="Cerrar">✕</button>
@@ -1031,6 +1050,33 @@ function fmt12(h){if(!h||!h.includes(':'))return h??'';let[hh,mm]=h.split(':').m
 function isOpenNow(horario){if(!Array.isArray(horario))return null;const h=horario.find(d=>d.dia===todayName);if(!h||h.cerrado)return false;const now=getAhoraMin();const[oh,om]=(h.apertura||'').split(':').map(Number);const[ch,cm]=(h.cierre||'').split(':').map(Number);return now>=oh*60+om&&now<=ch*60+cm}
 function starsHtml(r){if(!r)return'';return'★'.repeat(Math.floor(r))+(r%1>=.5?'½':'')+'☆'.repeat(5-Math.floor(r)-(r%1>=.5?1:0))}
 function distanceTo(lat,lng){if(!userCoords||!lat||!lng)return Infinity;const R=6371;const dL=(lat-userCoords.lat)*Math.PI/180;const dl=(lng-userCoords.lng)*Math.PI/180;const a=Math.sin(dL/2)**2+Math.cos(userCoords.lat*Math.PI/180)*Math.cos(lat*Math.PI/180)*Math.sin(dl/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))}
+function closingIn(horario){
+  const h=horario?.find(d=>d.dia===todayName);
+  if(!h||h.cerrado)return null;
+  const now=getAhoraMin();
+  const[ch,cm]=(h.cierre||'').split(':').map(Number);
+  const closeMin=ch*60+cm;
+  const diff=closeMin-now;
+  if(diff<=0||diff>240)return null; // solo si cierra en menos de 4h
+  if(diff<60)return`${diff} min`;
+  return`${Math.floor(diff/60)}h ${diff%60?diff%60+'min':''}`;
+}
+function isNew(shop){
+  if(!shop.created_at)return false;
+  return(Date.now()-new Date(shop.created_at).getTime())<30*24*3600*1000;
+}
+function countFreeSlots(shop){
+  // Estimación rápida sin fetch: turnos del día restantes
+  const h=shop.horario?.find(d=>d.dia===todayName);
+  if(!h||h.cerrado)return 0;
+  const now=getAhoraMin();
+  const[ch,cm]=(h.cierre||'').split(':').map(Number);
+  const[ah,am]=(h.apertura||'09:00').split(':').map(Number);
+  const dur=shop.duracion_turno||25;
+  const total=Math.floor((ch*60+cm-Math.max(ah*60+am,now))/dur);
+  const booked=shop._slotsBooked||0;
+  return Math.max(0,total-booked);
+}
 function showToast(msg,ms=2500){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.getElementById('toast-wrap').appendChild(t);setTimeout(()=>t.remove(),ms)}
 function syncSearch(el,targetId){const t=document.getElementById(targetId);if(t)t.value=el.value}
 function getFavs(){try{return JSON.parse(localStorage.getItem('aura_favs')||'[]')}catch{return[]}}
@@ -1068,10 +1114,13 @@ function toggleMap(){
 async function loadShops(){
   showSkeletons();
   try{
-    const[shopsRes,ratingsRes,waitRes]=await Promise.all([
+    const semanaIni = new Date(); semanaIni.setDate(semanaIni.getDate()-7);
+    const semanaIniStr = new Intl.DateTimeFormat('en-CA',{timeZone:TZ}).format(semanaIni);
+    const[shopsRes,ratingsRes,waitRes,weekRes]=await Promise.all([
       sb.from('shops').select('*, servicios(*), staff:barberos(*), horarios_por_dia').eq('activo',true),
       sb.from('calificaciones').select('shop_id,puntuacion,comentario,created_at').order('created_at',{ascending:false}),
       sb.from('citas').select('shop_id,hora,barbero_id,estado,servicio').eq('fecha',getFechaHoy()).in('estado',['Confirmada','En curso']).order('hora'),
+      sb.from('citas').select('id',{count:'exact',head:true}).gte('fecha',semanaIniStr).neq('estado','Cancelada'),
     ]);
 
     // Ratings por shop
@@ -1102,13 +1151,23 @@ async function loadShops(){
       total_reseñas:rMap[s.id]?.n||0,
       reseñas_recientes:(rMap[s.id]?.list||[]).slice(0,3),
       tiempo_espera:wMap[s.id]?Math.min(wMap[s.id].length*(s.duracion_turno||25),120):0,
+      _slotsBooked:wMap[s.id]?.length||0,
       servicios:s.servicios||[],
       staff:s.staff||[],
       horario:buildHorario(s),
     })).sort((a,b)=>(b.plan==='premium'?1:0)-(a.plan==='premium'?1:0)); // premium first
 
     filteredShops=[...allShops];
-    document.getElementById('statNegocios').textContent=allShops.length;
+
+    // Stats hero desde DB
+    document.getElementById('statNegocios').textContent = allShops.length;
+    if(weekRes.count) document.getElementById('statCitasSemana').textContent = weekRes.count.toLocaleString();
+    const allRatings = Object.values(rMap);
+    if(allRatings.length){
+      const avg = allRatings.reduce((s,r)=>s+r.sum/r.n,0)/allRatings.length;
+      document.getElementById('statRating').textContent = `⭐ ${avg.toFixed(1)}`;
+    }
+
     renderShops(true);
     addMarkers(filteredShops);
     renderHistory();
@@ -1172,8 +1231,12 @@ function renderShops(reset=false){
 
     const topSvcs=(s.servicios||[]).slice(0,3);
 
+    const closing = closingIn(s.horario);
+    const freeSlots = countFreeSlots(s);
+    const isNewShop = isNew(s);
     card.innerHTML=`
       ${isPrem?'<div class="premium-badge">💎 Elite</div>':''}
+      ${isNewShop&&!isPrem?'<div class="badge-nuevo">Nuevo</div>':''}
       <div class="card-img-wrap">
         ${s.foto_url
           ?`<img class="card-img" src="${esc(s.foto_url)}" alt="${esc(s.nombre)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
@@ -1182,7 +1245,7 @@ function renderShops(reset=false){
         <div class="card-img-placeholder" style="${s.foto_url?'display:none':''}">${s.icono||'✂️'}</div>
         <div class="card-open-pill">
           <div class="${open===true?'dot-open':'dot-closed'}"></div>
-          ${open===true?'Abierto':open===false?'Cerrado':'—'}
+          ${open===true?(closing?`Cierra en ${closing}`:'Abierto'):open===false?'Cerrado':'—'}
         </div>
       </div>
       <div class="card-body">
@@ -1205,6 +1268,7 @@ function renderShops(reset=false){
           ${s.tiempo_espera===0
             ?'<span class="card-tag green">⚡ Disponible ya</span>'
             :`<span class="card-tag">⏱ ~${s.tiempo_espera} min</span>`}
+          ${freeSlots>0?`<span class="card-tag green">🟢 ${freeSlots} turno${freeSlots>1?'s':''}` + (freeSlots<=2?' — ¡Último!':'') + `</span>`:''}
           ${(s.staff||[]).length?`<span class="card-tag blue">👤 ${(s.staff||[]).length} barbero${(s.staff||[]).length>1?'s':''}</span>`:''}
           ${isPrem?'<span class="card-tag gold">💎 Premium</span>':''}
         </div>
@@ -1321,13 +1385,28 @@ async function shareShop(id){
 function openDetail(id){
   const s=allShops.find(x=>x.id===String(id));if(!s)return;
   addHistory(id);
+
+  // URL push sin recargar
+  history.pushState({open:id},'',`?open=${id}`);
+
+  // Fly-to en mapa
+  if(s.lat&&s.lng&&map) map.flyTo([s.lat,s.lng],15,{duration:1.2});
+
   const modal=document.getElementById('detailModal');
   const todayH=s.horario.find(h=>h.dia===todayName);
 
-  // Hero
-  document.getElementById('detailHeroImg').innerHTML=s.foto_url
-    ?`<img style="width:100%;height:100%;object-fit:cover;opacity:.6" src="${esc(s.foto_url)}" onerror="this.parentNode.innerHTML='<div class=detail-hero-icon>${s.icono||'✂️'}</div>'">`
+  // Galería: foto principal + galeria[] — guardada globalmente para el lightbox
+  window._detailImgs=[s.foto_url,...(s.galeria||[])].filter(Boolean);
+
+  // Hero clickeable → lightbox (listener aparte, sin JSON en onclick)
+  const heroWrap=document.getElementById('detailHeroImg');
+  heroWrap.innerHTML=s.foto_url
+    ?`<img style="width:100%;height:100%;object-fit:cover;opacity:.6;cursor:zoom-in" src="${esc(s.foto_url)}" alt="${esc(s.nombre)}">`
     :`<div class="detail-hero-icon">${s.icono||'✂️'}</div>`;
+  if(s.foto_url){
+    heroWrap.querySelector('img')?.addEventListener('click',()=>openLightbox(window._detailImgs,0));
+    heroWrap.querySelector('img')?.addEventListener('error',function(){this.parentNode.innerHTML=`<div class="detail-hero-icon">${s.icono||'✂️'}</div>`});
+  }
 
   document.getElementById('detailHeroOverlay').innerHTML=`
     <div style="font-family:'Outfit',sans-serif;font-size:clamp(1.8rem,5vw,3rem);font-weight:900;line-height:1;margin-bottom:8px">${esc(s.nombre)}</div>
@@ -1394,9 +1473,13 @@ function openDetail(id){
       <div class="detail-sticky">
         <button class="btn-confirm" style="margin-bottom:10px" onclick="openBooking(${JSON.stringify(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;')})">Reservar ahora</button>
         ${s.lat&&s.lng?`<button class="btn-icon" style="width:100%;height:40px;border-radius:var(--r);margin-bottom:8px;font-size:.82rem;display:flex;align-items:center;justify-content:center;gap:6px" onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}','_blank')">📍 Cómo llegar</button>`:''}
-        <button class="btn-icon" style="width:100%;height:40px;border-radius:var(--r);font-size:.82rem;display:flex;align-items:center;justify-content:center;gap:6px" onclick="shareShop('${s.id}')">🔗 Compartir</button>
+        <button class="btn-icon" style="width:100%;height:40px;border-radius:var(--r);margin-bottom:8px;font-size:.82rem;display:flex;align-items:center;justify-content:center;gap:6px" onclick="shareShop('${s.id}')">🔗 Compartir</button>
+        <button type="button" class="notify-me-btn" id="notifyBtn_${esc(s.id)}" onclick="toggleNotify('${esc(s.id)}','${esc(s.nombre)}',this)" style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px">
+          🔔 Avísame cuando haya turno
+        </button>
+        <div id="galleryStripSidebar"></div>
 
-        <div style="margin-top:20px">
+        <div style="margin-top:16px">
           <div class="detail-section-title">Horario semanal</div>
           ${s.horario.map(h=>`
             <div class="horario-row${h.dia===todayName?' today':''}">
@@ -1406,6 +1489,33 @@ function openDetail(id){
         </div>
       </div>
     </div>`;
+
+  // Galería lateral — inyectada aparte para evitar JSON en template literal
+  if(window._detailImgs.length>1){
+    const strip = document.getElementById('galleryStripSidebar');
+    if(strip){
+      strip.innerHTML = '<div class="detail-section-title" style="margin-top:14px">Galería</div><div class="gallery-strip">' +
+        window._detailImgs.map((img,i)=>{
+          const thumb = document.createElement('img');
+          thumb.className='gallery-thumb';
+          thumb.src=img;
+          thumb.alt=`Foto ${i+1}`;
+          thumb.loading='lazy';
+          return thumb.outerHTML;
+        }).join('') + '</div>';
+      // Asignar listeners sin inline JS
+      strip.querySelectorAll('.gallery-thumb').forEach((el,i)=>{
+        el.addEventListener('click',()=>openLightbox(window._detailImgs,i));
+      });
+    }
+  }
+
+  // Notificación: marcar botón si ya está suscrito
+  const notifyBtn = document.getElementById(`notifyBtn_${s.id}`);
+  if(notifyBtn){
+    const subs = JSON.parse(localStorage.getItem('aura_notify')||'[]');
+    if(subs.includes(String(s.id))) notifyBtn.classList.add('on');
+  }
 
   modal.classList.add('active');
   document.body.style.overflow='hidden';
@@ -1713,21 +1823,66 @@ function drawRoute(){
     }).catch(()=>showToast('Error al obtener ruta'));
 }
 
+// ── Avísame ──
+function toggleNotify(shopId, shopName, btn){
+  if(!('Notification' in window)){ showToast('Tu navegador no soporta notificaciones'); return; }
+  const subs = JSON.parse(localStorage.getItem('aura_notify')||'[]');
+  const idx = subs.indexOf(String(shopId));
+  if(idx!==-1){
+    subs.splice(idx,1);
+    localStorage.setItem('aura_notify',JSON.stringify(subs));
+    btn.classList.remove('on');
+    btn.textContent='🔔 Avísame cuando haya turno';
+    showToast('Notificación cancelada');
+    return;
+  }
+  Notification.requestPermission().then(p=>{
+    if(p==='granted'){
+      subs.push(String(shopId));
+      localStorage.setItem('aura_notify',JSON.stringify(subs));
+      btn.classList.add('on');
+      btn.textContent='🔕 Cancelar aviso';
+      new Notification(`AuraOS — ${shopName}`,{body:'Te avisaremos cuando haya turnos disponibles.',icon:'/icon.png'});
+      showToast('✅ Te avisaremos cuando haya turno');
+    } else {
+      showToast('Activa los permisos de notificación en el navegador');
+    }
+  });
+}
+
 // ── Supabase Realtime ──
 function initRealtime(){
-  sb.channel('shops-live')
+  sb.channel('marketplace-live')
     .on('postgres_changes',{event:'UPDATE',schema:'public',table:'shops'},payload=>{
       const idx = allShops.findIndex(s=>String(s.id)===String(payload.new.id));
       if(idx===-1) return;
       allShops[idx] = {...allShops[idx], ...payload.new};
-      // Update wait badge in visible card
       const card = document.querySelector(`.shop-card[data-id="${payload.new.id}"]`);
       if(card){
         const tag = card.querySelector('.card-tag');
         if(tag && payload.new.tiempo_espera!=null)
           tag.textContent = payload.new.tiempo_espera===0 ? '⚡ Disponible ya' : `⏱ ~${payload.new.tiempo_espera} min`;
       }
-    }).subscribe();
+    })
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'citas'},payload=>{
+      // Nueva cita: recalcular espera del shop afectado
+      const sid = String(payload.new.shop_id);
+      const shop = allShops.find(s=>s.id===sid);
+      if(!shop) return;
+      shop._slotsBooked = (shop._slotsBooked||0)+1;
+      shop.tiempo_espera = Math.min((shop._slotsBooked)*(shop.duracion_turno||25),120);
+      const card = document.querySelector(`.shop-card[data-id="${sid}"]`);
+      if(card){
+        const tag = card.querySelector('.card-tag');
+        if(tag) tag.textContent = shop.tiempo_espera===0?'⚡ Disponible ya':`⏱ ~${shop.tiempo_espera} min`;
+      }
+      // Disparar notificación si estaba suscrito y ahora hay turno libre
+      const subs = JSON.parse(localStorage.getItem('aura_notify')||'[]');
+      if(subs.includes(sid) && shop.tiempo_espera===0 && Notification.permission==='granted'){
+        new Notification(`AuraOS — ${shop.nombre}`,{body:'¡Hay turnos disponibles ahora!',icon:'/icon.png'});
+      }
+    })
+    .subscribe();
 }
 
 // ── Leave review ──
@@ -1770,12 +1925,6 @@ function openRegistro(){
   window.open(`https://wa.me/18494398374?text=${msg}`,'_blank');
 }
 
-// ── Misc ──
-function closeAll(){
-  closeFilterPanel();
-  closeBooking();
-}
-
 // ── Infinite scroll ──
 new IntersectionObserver(e=>{if(e[0].isIntersecting&&currentPage*PAGE_SZ<filteredShops.length)renderShops(false)},{rootMargin:'100px'}).observe(document.getElementById('sentinel'));
 
@@ -1789,6 +1938,16 @@ function closeAll(){
   closeFilterPanel();
   closeBooking();
 }
+
+// ── Smooth scroll al feed desde hero ──
+function scrollToFeed(){
+  document.querySelector('.main')?.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ── Browser back button cierra el detalle ──
+window.addEventListener('popstate',()=>{
+  if(document.getElementById('detailModal').classList.contains('active')) closeDetail();
+});
 
 // ── Keyboard ──
 document.addEventListener('keydown',e=>{
