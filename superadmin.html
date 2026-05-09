@@ -5108,6 +5108,8 @@ function abrirEditShop(shopId){
   document.getElementById('editShopTipoNegocio').value = shop.tipo_negocio || 'barberia';
   document.getElementById('editShopLabelProfesional').value = shop.label_profesional || 'barbero';
   document.getElementById('editShopTemaDisplay').value = shop.tema_display || 'dark';
+  const tipos = Array.isArray(shop.profesionales_tipos) ? shop.profesionales_tipos.join(', ') : '';
+  document.getElementById('editShopProfTipos').value = tipos;
   document.getElementById('editShopShowcase').value = Array.isArray(shop.showcase_images) ? shop.showcase_images.join('\n') : '';
   renderIconoPicker(shop.icono||'✂️');
   toggleEditShopProvider();
@@ -5184,6 +5186,7 @@ async function guardarEditShop(){
     tipo_negocio: document.getElementById('editShopTipoNegocio').value || 'barberia',
     label_profesional: document.getElementById('editShopLabelProfesional').value.trim() || 'barbero',
     tema_display: document.getElementById('editShopTemaDisplay').value || 'dark',
+    profesionales_tipos: (() => { const v = document.getElementById('editShopProfTipos').value.trim(); return v ? v.split(',').map(t=>t.trim()).filter(t=>t.length>0) : null; })(),
     showcase_images: document.getElementById('editShopShowcase').value.split('\n').map(u=>u.trim()).filter(u=>u.length > 5)
   };
   // Solo actualizar token si se ingresó uno nuevo
@@ -5320,6 +5323,11 @@ async function guardarEditShop(){
         <label class="form-label">Nombre del profesional</label>
         <input class="form-input" id="editShopLabelProfesional" placeholder="ej: barbero, estilista, terapeuta">
         <div class="form-hint">El bot usará esta palabra. Ej: "¿Con qué <b>estilista</b> prefieres?"</div>
+      </div>
+      <div class="form-group" id="editShopProfTiposGroup">
+        <label class="form-label">Categorías de servicio <span style="color:var(--gold);font-size:0.65em;">MULTI-SERVICIO</span></label>
+        <input class="form-input" id="editShopProfTipos" placeholder="ej: Barbería, Spa, Salón (separadas por coma)">
+        <div class="form-hint">Solo completar si el negocio ofrece múltiples disciplinas. El bot preguntará primero la categoría.</div>
       </div>
       <div class="form-group">
         <label class="form-label">Tema del display</label>
