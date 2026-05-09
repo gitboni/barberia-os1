@@ -465,6 +465,7 @@ tr:hover td{background:rgba(255,255,255,0.016);}
   <div class="nav-item" data-page="reportes"><i data-lucide="bar-chart-3" class="icon"></i><span class="sidebar-text">Reportes</span></div>
   <div class="nav-item" data-page="seguridad"><i data-lucide="lock" class="icon"></i><span class="sidebar-text">Seguridad</span></div>
   <div class="nav-item" data-page="logs"><i data-lucide="terminal" class="icon"></i><span class="sidebar-text">Logs</span></div>
+  <div class="nav-item" data-page="auditoria"><i data-lucide="bot" class="icon"></i><span class="sidebar-text">Auditoría IA</span><span class="badge green sidebar-text" id="auditoriaCount" style="display:none">0</span></div>
   <div class="nav-item" data-page="config"><i data-lucide="settings" class="icon"></i><span class="sidebar-text">Configuración</span></div>
   <div class="nav-item" data-page="estado"><i data-lucide="activity" class="icon"></i><span class="sidebar-text">Estado Sistema</span></div>
   <div class="nav-item" data-page="broadcast"><i data-lucide="megaphone" class="icon"></i><span class="sidebar-text">Broadcast</span></div>
@@ -730,6 +731,71 @@ tr:hover td{background:rgba(255,255,255,0.016);}
       <div id="grupos-container" style="display:grid;gap:18px;"></div>
       <div id="grupos-empty" style="display:none;text-align:center;padding:60px 20px;color:var(--muted);font-size:0.7rem;letter-spacing:0.1em;">
         SIN GRUPOS CONFIGURADOS — ASIGNA UN NOMBRE DE GRUPO EN LA EDICIÓN DE CADA BARBERÍA
+      </div>
+    </div>
+
+    <!-- AUDITORÍA IA -->
+    <div class="page" id="page-auditoria">
+      <div class="section-header">
+        <div class="section-title">Auditoría IA</div>
+        <div class="btn-group">
+          <button class="btn btn-ghost" onclick="exportAuditoriaCSV()" title="Exportar CSV">⬇ CSV</button>
+          <button class="btn btn-ghost" onclick="loadAuditoria()">↻</button>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div id="auditoria-kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;"></div>
+
+      <!-- Filtros -->
+      <div class="filters-bar" style="margin-bottom:14px;">
+        <select class="filter-input" id="auditoriaShopFilter" style="max-width:220px;" onchange="renderAuditoriaTable()">
+          <option value="">Todas las barberías</option>
+        </select>
+        <select class="filter-input" id="auditoriaModelFilter" style="max-width:180px;" onchange="renderAuditoriaTable()">
+          <option value="">Todos los modelos</option>
+        </select>
+        <input class="filter-input" id="auditoriaSearch" placeholder="Buscar en prompts..." style="flex:1;" oninput="renderAuditoriaTable()">
+      </div>
+
+      <!-- Tabla -->
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Fecha</th>
+            <th>Barbería</th>
+            <th>Chat ID</th>
+            <th>Modelo</th>
+            <th>Tokens</th>
+            <th>Prompt</th>
+            <th>Acción</th>
+          </tr></thead>
+          <tbody id="auditoriaTable"></tbody>
+        </table>
+      </div>
+      <div id="auditoria-empty" style="display:none;text-align:center;padding:60px 20px;color:var(--muted);font-size:0.7rem;letter-spacing:0.1em;">
+        SIN REGISTROS DE AUDITORÍA IA
+      </div>
+    </div>
+
+    <!-- MODAL DETALLE AUDITORIA -->
+    <div class="modal-overlay" id="modalAuditoria" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:9000;align-items:center;justify-content:center;backdrop-filter:blur(6px);">
+      <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:28px;max-width:700px;width:92%;max-height:85vh;overflow-y:auto;position:relative;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+          <div>
+            <div id="auditoria-modal-title" style="font-size:0.75rem;font-weight:700;color:var(--gold);letter-spacing:0.1em;"></div>
+            <div id="auditoria-modal-meta" style="font-size:0.55rem;color:var(--muted);margin-top:3px;letter-spacing:0.08em;"></div>
+          </div>
+          <button onclick="closeModal('modalAuditoria')" style="background:none;border:1px solid var(--border);color:var(--muted);padding:5px 10px;cursor:pointer;border-radius:4px;font-size:0.8rem;">✕</button>
+        </div>
+        <div style="margin-bottom:14px;">
+          <div style="font-size:0.5rem;color:var(--muted);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:6px;">PROMPT</div>
+          <div id="auditoria-modal-prompt" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:14px;font-size:0.65rem;color:var(--text);white-space:pre-wrap;line-height:1.6;max-height:200px;overflow-y:auto;"></div>
+        </div>
+        <div>
+          <div style="font-size:0.5rem;color:var(--muted);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:6px;">RESPUESTA</div>
+          <div id="auditoria-modal-respuesta" style="background:var(--bg3);border:1px solid rgba(62,207,142,0.2);border-radius:6px;padding:14px;font-size:0.65rem;color:var(--green);white-space:pre-wrap;line-height:1.6;max-height:280px;overflow-y:auto;"></div>
+        </div>
       </div>
     </div>
 
@@ -1623,7 +1689,8 @@ const PAGE_TITLES = {
   'clientes-app':'Clientes en la App',
   facturacion:'Facturación', citas:'Citas Global', simulador:'Simulador de Chat WhatsApp', whatsapp:'WhatsApp',
   leads:'Leads del Landing', reportes:'Reportes por Barbería', seguridad:'Centro de Seguridad', logs:'Logs del Sistema', config:'Configuración Global',
-  estado:'Estado del Sistema', broadcast:'Broadcast WhatsApp', grupos:'Grupos Multi-Sucursal'
+  estado:'Estado del Sistema', broadcast:'Broadcast WhatsApp', grupos:'Grupos Multi-Sucursal',
+  auditoria:'Auditoría IA — Uso del Bot'
 };
 document.querySelectorAll('.nav-item[data-page]').forEach(el => {
   el.addEventListener('click', () => showPage(el.dataset.page, el));
@@ -1650,7 +1717,8 @@ function showPage(id, el) {
     citas:() => { document.getElementById('citasFecha').value=new Date().toISOString().split('T')[0]; loadCitas(); },
     estado:loadEstado,
     broadcast:loadBroadcast,
-    grupos:loadGrupos
+    grupos:loadGrupos,
+    auditoria:loadAuditoria
   };
   if(loaders[id]) loaders[id]();
   if(window.lucide) setTimeout(lucide.createIcons, 100);
@@ -4063,6 +4131,137 @@ document.getElementById('exportLogsBtn').addEventListener('click',()=>{
 ');
   downloadCSV(txt,'barberos_logs_'+new Date().toISOString().split('T')[0]+'.txt');
   showToast('Logs exportados ✓','info');
+});
+
+// ════════════════════════════════════════════
+//  AUDITORÍA IA
+// ════════════════════════════════════════════
+let _auditoriaRows = [];
+
+async function loadAuditoria() {
+  document.getElementById('auditoriaTable').innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px;font-size:0.6rem;letter-spacing:0.1em;">CARGANDO...</td></tr>';
+  document.getElementById('auditoria-empty').style.display = 'none';
+  try {
+    const rows = await sbGet('auditoria_ia', 'order=created_at.desc&limit=500&select=id,created_at,shop_id,chat_id,prompt,respuesta,modelo,tokens');
+    _auditoriaRows = rows;
+
+    // Badge count
+    const badge = document.getElementById('auditoriaCount');
+    badge.textContent = rows.length;
+    badge.style.display = rows.length ? '' : 'none';
+
+    // Poblar filtro shops
+    const shopSel = document.getElementById('auditoriaShopFilter');
+    const prevShop = shopSel.value;
+    const shopIds = [...new Set(rows.map(r => r.shop_id).filter(Boolean))];
+    shopSel.innerHTML = '<option value="">Todas las barberías</option>' +
+      shopIds.map(sid => {
+        const shop = (_shops||[]).find(s => s.id === sid);
+        const nombre = shop ? shop.nombre : sid.slice(0,8)+'…';
+        return `<option value="${sid}">${nombre}</option>`;
+      }).join('');
+    shopSel.value = prevShop;
+
+    // Poblar filtro modelos
+    const modelSel = document.getElementById('auditoriaModelFilter');
+    const prevModel = modelSel.value;
+    const modelos = [...new Set(rows.map(r => r.modelo).filter(Boolean))];
+    modelSel.innerHTML = '<option value="">Todos los modelos</option>' +
+      modelos.map(m => `<option value="${m}">${m}</option>`).join('');
+    modelSel.value = prevModel;
+
+    // KPIs
+    const totalTokens = rows.reduce((a, r) => a + (r.tokens || 0), 0);
+    const byShop = {};
+    rows.forEach(r => { byShop[r.shop_id] = (byShop[r.shop_id]||0) + (r.tokens||0); });
+    const topShopId = Object.entries(byShop).sort((a,b)=>b[1]-a[1])[0];
+    const topShopName = topShopId ? ((_shops||[]).find(s=>s.id===topShopId[0])?.nombre || topShopId[0].slice(0,8)) : '—';
+    const byModelo = {};
+    rows.forEach(r => { byModelo[r.modelo||'unknown'] = (byModelo[r.modelo||'unknown']||0)+1; });
+    const topModelo = Object.entries(byModelo).sort((a,b)=>b[1]-a[1])[0];
+
+    document.getElementById('auditoria-kpis').innerHTML = [
+      { label:'Registros', val: rows.length, color:'var(--text)' },
+      { label:'Tokens totales', val: totalTokens.toLocaleString(), color:'var(--gold)' },
+      { label:'Barbería top', val: topShopName, color:'var(--blue)' },
+      { label:'Modelo top', val: topModelo?topModelo[0].split('-').slice(-2).join('-'):'—', color:'var(--purple)' },
+    ].map(k => `
+      <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:16px 14px;">
+        <div style="font-size:1.1rem;font-weight:800;color:${k.color};margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${k.val}</div>
+        <div style="font-size:0.52rem;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;">${k.label}</div>
+      </div>`).join('');
+
+    renderAuditoriaTable();
+  } catch(e) {
+    document.getElementById('auditoriaTable').innerHTML = `<tr><td colspan="7" style="color:var(--red);text-align:center;padding:24px;font-size:0.62rem;">Error: ${e.message}</td></tr>`;
+    addLog('ERROR','Auditoría IA: '+e.message);
+  }
+}
+
+function renderAuditoriaTable() {
+  const shopFilter  = document.getElementById('auditoriaShopFilter').value;
+  const modelFilter = document.getElementById('auditoriaModelFilter').value;
+  const search      = (document.getElementById('auditoriaSearch').value||'').toLowerCase();
+
+  let rows = _auditoriaRows;
+  if (shopFilter)  rows = rows.filter(r => r.shop_id === shopFilter);
+  if (modelFilter) rows = rows.filter(r => r.modelo === modelFilter);
+  if (search)      rows = rows.filter(r => (r.prompt||'').toLowerCase().includes(search) || (r.respuesta||'').toLowerCase().includes(search) || (r.chat_id||'').toLowerCase().includes(search));
+
+  const empty = document.getElementById('auditoria-empty');
+  const tbody = document.getElementById('auditoriaTable');
+  if (!rows.length) { tbody.innerHTML=''; empty.style.display=''; return; }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = rows.map(r => {
+    const shop = (_shops||[]).find(s => s.id === r.shop_id);
+    const shopNombre = shop ? shop.nombre : (r.shop_id||'').slice(0,8)+'…';
+    const fecha = r.created_at ? new Date(r.created_at).toLocaleString('es-DO',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
+    const modelo = (r.modelo||'—').split('-').slice(-2).join('-');
+    const promptShort = (r.prompt||'').slice(0,60).replace(/</g,'&lt;') + ((r.prompt||'').length>60?'…':'');
+    const tokens = r.tokens ? `<span style="color:var(--gold)">${r.tokens.toLocaleString()}</span>` : '<span style="color:var(--muted)">—</span>';
+    return `<tr>
+      <td style="font-size:0.58rem;white-space:nowrap">${fecha}</td>
+      <td style="font-size:0.62rem;font-weight:600">${shopNombre}</td>
+      <td style="font-size:0.55rem;color:var(--muted);font-family:'DM Mono',monospace">${(r.chat_id||'').slice(0,14)}</td>
+      <td><span style="font-size:0.52rem;background:rgba(176,110,255,0.1);color:var(--purple);border:1px solid rgba(176,110,255,0.25);border-radius:4px;padding:2px 6px;">${modelo}</span></td>
+      <td style="text-align:right">${tokens}</td>
+      <td style="font-size:0.58rem;color:var(--muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${promptShort}</td>
+      <td><button class="action-btn" onclick="verDetalleAuditoria('${r.id}')" style="font-size:0.52rem;padding:3px 8px;">Ver</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function verDetalleAuditoria(id) {
+  const r = _auditoriaRows.find(x => x.id === id);
+  if (!r) return;
+  const shop = (_shops||[]).find(s => s.id === r.shop_id);
+  const fecha = r.created_at ? new Date(r.created_at).toLocaleString('es-DO') : '—';
+  document.getElementById('auditoria-modal-title').textContent = (shop?.nombre || r.shop_id||'—') + ' — ' + (r.modelo||'?');
+  document.getElementById('auditoria-modal-meta').textContent = `${fecha} · ${r.tokens||0} tokens · chat: ${r.chat_id||'—'}`;
+  document.getElementById('auditoria-modal-prompt').textContent = r.prompt || '(sin prompt)';
+  document.getElementById('auditoria-modal-respuesta').textContent = r.respuesta || '(sin respuesta)';
+  const modal = document.getElementById('modalAuditoria');
+  modal.style.display = 'flex';
+}
+
+function exportAuditoriaCSV() {
+  const rows = _auditoriaRows;
+  if (!rows.length) { showToast('Sin datos para exportar','error'); return; }
+  const header = 'fecha,shop_id,chat_id,modelo,tokens,prompt,respuesta';
+  const lines = rows.map(r => [
+    r.created_at||'', r.shop_id||'', r.chat_id||'',
+    r.modelo||'', r.tokens||0,
+    '"'+(r.prompt||'').replace(/"/g,'""')+'"',
+    '"'+(r.respuesta||'').replace(/"/g,'""')+'"'
+  ].join(','));
+  downloadCSV([header,...lines].join('\n'), 'auditoria_ia_'+new Date().toISOString().split('T')[0]+'.csv');
+  showToast('CSV exportado ✓','success');
+}
+
+// Modal close para auditoría
+document.getElementById('modalAuditoria').addEventListener('click', function(e){
+  if(e.target === this) this.style.display='none';
 });
 
 // ════════════════════════════════════════════
