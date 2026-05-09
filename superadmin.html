@@ -5146,7 +5146,6 @@ function abrirEditShop(shopId){
     if (hex)    hex.value    = val;
   });
   document.getElementById('editShopTipoNegocio').value = shop.tipo_negocio || 'barberia';
-  document.getElementById('editShopLabelProfesional').value = shop.label_profesional || 'barbero';
   document.getElementById('editShopTemaDisplay').value = shop.tema_display || 'dark';
   const tipos = Array.isArray(shop.profesionales_tipos) ? shop.profesionales_tipos.join(', ') : '';
   document.getElementById('editShopProfTipos').value = tipos;
