@@ -2771,7 +2771,7 @@ async function loadBarberos() {
     const savedPass=_barberoInputs[b.id]?.pass??'';
     return `<tr id="brow-${b.id}">
       <td style="color:var(--muted)">${String(i+1).padStart(2,'0')}</td>
-      <td style="color:var(--text);font-weight:600">${b.nombre}</td>
+      <td style="color:var(--text);font-weight:600">${b.nombre}${Array.isArray(b.categorias)&&b.categorias.length?`<div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:4px;">${b.categorias.map(c=>`<span style="font-size:0.45rem;font-family:'DM Mono',monospace;background:rgba(201,168,76,0.12);color:var(--gold);border:1px solid rgba(201,168,76,0.25);border-radius:3px;padding:1px 5px;text-transform:uppercase;letter-spacing:0.07em;">${c}</span>`).join('')}</div>`:''}</td>
       <td style="color:var(--muted)">${shop?shop.nombre:'—'}</td>
       <td class="${b.activo?'status-active':'status-inactive'}">${b.activo?'● Activo':'○ Inactivo'}</td>
       <td style="color:var(--gold);text-align:center">${citasHoy}</td>
