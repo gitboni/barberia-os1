@@ -441,6 +441,7 @@ tr:last-child td{border-bottom:none;}
       <label class="toggle-switch"><input type="checkbox" id="mb-activo" checked><span class="toggle-slider"></span></label>
     </div>
     <div class="fg"><label>Límite de turnos por día</label><input type="number" id="mb-max-turnos" value="10" min="1" max="99" style="width:100px;"></div>
+    <div id="mb-cat-wrap"></div>
     <div class="modal-actions">
       <button class="btn-full btn-gold" onclick="saveBarbero()">Guardar</button>
       <button class="btn-full btn-cancel" onclick="closeModal('barbero')">Cancelar</button>
@@ -1302,7 +1303,8 @@ function renderBarberos(){
                  style="color:var(--red); font-size:0.9rem; cursor:help; animation: pulse-red 1.5s infinite;">🔔</span>`;
         })()}
       </div>
-      <div style="font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);margin-bottom:12px;">${b.citas_hoy} citas hoy · Límite ${b.max_turnos_dia||10}/día · Orden #${b.orden||1}</div>
+      <div style="font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);margin-bottom:${Array.isArray(b.categorias)&&b.categorias.length?'6px':'12px'};">${b.citas_hoy} citas hoy · Límite ${b.max_turnos_dia||10}/día · Orden #${b.orden||1}</div>
+      ${Array.isArray(b.categorias)&&b.categorias.length?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;">${b.categorias.map(c=>`<span style="font-size:0.5rem;font-family:'DM Mono',monospace;background:rgba(201,168,76,0.12);color:var(--gold);border:1px solid rgba(201,168,76,0.25);border-radius:4px;padding:2px 7px;text-transform:uppercase;letter-spacing:0.08em;">${c}</span>`).join('')}</div>`:''}
       <div style="height:2px;background:rgba(255,255,255,0.06);margin-bottom:12px;"><div style="height:100%;background:${b.activo?'var(--gold)':'var(--muted)'};width:${Math.round(b.citas_hoy/maxC*100)}%;transition:width 1s;"></div></div>
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <span class="${b.activo?'chip-active':'chip-off'}">${b.activo?'✓ Disponible':'✗ No disponible'}</span>
@@ -1366,6 +1368,13 @@ function showShopSuspended(nombre){
 async function toggleBarbero(id,activo){
   try{await sbPatch('barberos','id=eq.'+id,{activo});const b=S.barberos.find(x=>x.id===id);if(b){b.activo=activo;toast(b.nombre+' '+(activo?'activado ✓':'desactivado'));}renderPage();}catch(e){toast('Error: '+e.message,'error');}
 }
+function renderBarberoCategories(selectedCats){
+  const wrap=document.getElementById('mb-cat-wrap');
+  if(!wrap)return;
+  const tipos=Array.isArray(S.shopData?.profesionales_tipos)&&S.shopData.profesionales_tipos.length>1?S.shopData.profesionales_tipos:null;
+  if(!tipos){wrap.innerHTML='';return;}
+  wrap.innerHTML=`<div class="fg"><label style="font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;">Categorías <span style="color:var(--gold);">· Multi-tipo</span></label><div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:6px;">${tipos.map(t=>`<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.82rem;color:var(--text);"><input type="checkbox" class="mb-cat-cb" value="${t}" ${(selectedCats||[]).includes(t)?'checked':''} style="accent-color:var(--gold);width:14px;height:14px;"> ${t}</label>`).join('')}</div><div style="font-size:0.6rem;color:var(--muted);margin-top:6px;">Sin selección = aparece en todas las categorías.</div></div>`;
+}
 function editBarbero(id){
   const b=S.barberos.find(x=>x.id===id);if(!b)return;
   document.getElementById('modal-barbero-title').textContent='Editar Barbero';
@@ -1374,11 +1383,13 @@ function editBarbero(id){
   document.getElementById('mb-orden').value=b.orden||1;
   document.getElementById('mb-activo').checked=b.activo;
   document.getElementById('mb-max-turnos').value=b.max_turnos_dia||10;
+  renderBarberoCategories(b.categorias||[]);
   openModal('barbero');
 }
 async function saveBarbero(){
   const id=document.getElementById('mb-id').value;
-  const p={nombre:document.getElementById('mb-nombre').value.trim(),orden:parseInt(document.getElementById('mb-orden').value)||1,activo:document.getElementById('mb-activo').checked,max_turnos_dia:parseInt(document.getElementById('mb-max-turnos').value)||10,shop_id:S.shopId};
+  const catCbs=[...document.querySelectorAll('.mb-cat-cb:checked')].map(cb=>cb.value);
+  const p={nombre:document.getElementById('mb-nombre').value.trim(),orden:parseInt(document.getElementById('mb-orden').value)||1,activo:document.getElementById('mb-activo').checked,max_turnos_dia:parseInt(document.getElementById('mb-max-turnos').value)||10,shop_id:S.shopId,categorias:catCbs.length>0?catCbs:null};
   if(!p.nombre){toast('Nombre requerido','error');return;}
   try{
     if(id){await sbPatch('barberos','id=eq.'+id,p);const b=S.barberos.find(x=>x.id===id);if(b)Object.assign(b,p);toast('Barbero actualizado');}
@@ -2826,7 +2837,7 @@ async function addServicio(){
 function openModal(type, reset = false){
   if(reset){
     if(type==='cita'){document.getElementById('modal-cita-title').textContent='Nueva Cita';document.getElementById('m-cita-id').value='';document.getElementById('m-nombre').value='';document.getElementById('m-tel').value='';document.getElementById('m-fecha').value=nowStr();document.getElementById('m-hora').value='09:00';document.getElementById('m-estado').value='Confirmada';updateServicioSelect();updateBarberoSelect();}
-    if(type==='barbero'){document.getElementById('modal-barbero-title').textContent='Nuevo Barbero';document.getElementById('mb-id').value='';document.getElementById('mb-nombre').value='';document.getElementById('mb-orden').value=S.barberos.length+1;document.getElementById('mb-activo').checked=true;}
+    if(type==='barbero'){document.getElementById('modal-barbero-title').textContent='Nuevo Barbero';document.getElementById('mb-id').value='';document.getElementById('mb-nombre').value='';document.getElementById('mb-orden').value=S.barberos.length+1;document.getElementById('mb-activo').checked=true;renderBarberoCategories([]);}
     if(type==='cliente'){document.getElementById('modal-cliente-title').textContent='Nuevo Cliente';document.getElementById('mc-id').value='';document.getElementById('mc-nombre').value='';document.getElementById('mc-tel').value='';document.getElementById('mc-notas').value='';}
     if(type==='config'){const s=S.shopData||{};document.getElementById('cfg-nombre').value=s.nombre||'';document.getElementById('cfg-whatsapp').value=s.whatsapp_dueño||'';document.getElementById('cfg-duracion').value=s.duracion_turno||45;document.getElementById('cfg-timezone').value=s.timezone||'America/Santo_Domingo';buildHpdGrid('cfg',s.dias_atencion,s.horarios_por_dia,s.hora_inicio||9,s.hora_fin||21);}
   }
