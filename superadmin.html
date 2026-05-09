@@ -4673,6 +4673,8 @@ const FEATURES_DEF = [
   { key:'feature_reseñas',      label:'⭐ Reseñas',             desc:'Los clientes pueden dejar reseñas desde el marketplace' },
   { key:'feature_caja',         label:'🏦 Cierre de Caja',      desc:'Módulo de resumen diario: ingresos, gastos, utilidad' },
   { key:'feature_festivos',     label:'🎄 Días Festivos',       desc:'Bloquear días festivos globales para todo el negocio' },
+  { key:'feature_pwa',          label:'📱 App Móvil (PWA)',     desc:'Acceso a la app móvil del barbero — desactiva para bloquear el ingreso' },
+  { key:'feature_stats_barbero',label:'📊 Ventas del Barbero',  desc:'La pestaña de Ventas/Estadísticas es visible para el barbero en la app' },
 ];
 var _featShopId = null;
 var _featShopData = {};
@@ -4681,7 +4683,7 @@ async function openFeaturesModal(shopId, shopNombre) {
   _featShopId = shopId;
   document.getElementById('features-shop-name').textContent = shopNombre;
   try {
-    var rows = await sbGet('shops','id=eq.'+shopId+'&select=id,feature_reportes,feature_config,feature_servicios,feature_bot_whatsapp,feature_barberos,feature_clientes,feature_walkin,feature_monitor,feature_marketplace,feature_reseñas,feature_caja,feature_festivos');
+    var rows = await sbGet('shops','id=eq.'+shopId+'&select=id,feature_reportes,feature_config,feature_servicios,feature_bot_whatsapp,feature_barberos,feature_clientes,feature_walkin,feature_monitor,feature_marketplace,feature_reseñas,feature_caja,feature_festivos,feature_pwa,feature_stats_barbero');
     _featShopData = rows[0] || {};
   } catch(e) { _featShopData = {}; }
 
@@ -4727,7 +4729,7 @@ function featToggle(key) {
 // Columnas originales (siempre existen en la BD)
 const FEATURES_ORIGINAL = ['feature_reportes','feature_config','feature_servicios','feature_bot_whatsapp','feature_barberos','feature_clientes','feature_walkin','feature_monitor'];
 // Columnas nuevas (pueden no existir — requieren migración SQL)
-const FEATURES_NEW = ['feature_marketplace','feature_reseñas','feature_caja','feature_festivos'];
+const FEATURES_NEW = ['feature_marketplace','feature_reseñas','feature_caja','feature_festivos','feature_pwa','feature_stats_barbero'];
 
 async function saveFeatures(){
   if(!_featShopId) return;
@@ -4774,7 +4776,7 @@ async function saveFeatures(){
 }
 
 function _showMigrationHint(){
-  const sql = `-- Ejecuta esto en Supabase → SQL Editor:\nALTER TABLE shops\n  ADD COLUMN IF NOT EXISTS feature_marketplace boolean DEFAULT true,\n  ADD COLUMN IF NOT EXISTS feature_reseñas boolean DEFAULT true,\n  ADD COLUMN IF NOT EXISTS feature_caja boolean DEFAULT true,\n  ADD COLUMN IF NOT EXISTS feature_festivos boolean DEFAULT false;`;
+  const sql = `-- Ejecuta esto en Supabase → SQL Editor:\nALTER TABLE shops\n  ADD COLUMN IF NOT EXISTS feature_marketplace boolean DEFAULT true,\n  ADD COLUMN IF NOT EXISTS feature_reseñas boolean DEFAULT true,\n  ADD COLUMN IF NOT EXISTS feature_caja boolean DEFAULT true,\n  ADD COLUMN IF NOT EXISTS feature_festivos boolean DEFAULT false,\n  ADD COLUMN IF NOT EXISTS feature_pwa boolean DEFAULT true;`;
   if(confirm('Las nuevas columnas no existen en la BD. ¿Copiar el SQL de migración al portapapeles?')){
     navigator.clipboard?.writeText(sql).then(()=>showToast('✓ SQL copiado — pégalo en Supabase → SQL Editor','success'));
   }
