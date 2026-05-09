@@ -1247,7 +1247,8 @@ tr:hover td{background:rgba(255,255,255,0.016);}
   <div class="modal">
     <div class="modal-title">Nuevo Barbero</div>
     <div class="form-group"><label class="form-label">Nombre</label><input class="form-input" id="newBarberoNombre" placeholder="ej: Matías"></div>
-    <div class="form-group"><label class="form-label">Barbería</label><select class="form-select" id="newBarberoShop"></select></div>
+    <div class="form-group"><label class="form-label">Barbería</label><select class="form-select" id="newBarberoShop" onchange="renderNewBarberoCategories()"></select></div>
+    <div id="newBarberoCatWrap"></div>
     <div class="form-group"><label class="form-label">Orden</label><input class="form-input" id="newBarberoOrden" value="1" type="number" min="1"></div>
     <div class="form-group"><label class="form-label">Estado</label><select class="form-select" id="newBarberoActivo"><option value="true">Activo</option><option value="false">Inactivo</option></select></div>
     <div style="border-top:1px solid var(--border);margin:12px 0;padding-top:12px;">
@@ -2943,6 +2944,15 @@ document.getElementById('newBarberoBtn').addEventListener('click',()=>{ loadUser
 document.getElementById('refreshBarberosBtn').addEventListener('click',loadBarberos);
 document.getElementById('barberoSearch').addEventListener('input',loadBarberos);
 document.getElementById('barberoShopFilter').addEventListener('change',loadBarberos);
+function renderNewBarberoCategories(){
+  const wrap=document.getElementById('newBarberoCatWrap');
+  if(!wrap)return;
+  const shopId=document.getElementById('newBarberoShop').value;
+  const shop=(_shops||[]).find(s=>s.id===shopId);
+  const tipos=Array.isArray(shop?.profesionales_tipos)&&shop.profesionales_tipos.length>1?shop.profesionales_tipos:null;
+  if(!tipos){wrap.innerHTML='';return;}
+  wrap.innerHTML=`<div class="form-group"><label class="form-label">Categorías <span style="color:var(--gold);font-size:0.65em;">MULTI-TIPO</span></label><div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:4px;">${tipos.map(t=>`<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;color:var(--text-secondary);"><input type="checkbox" class="new-barbero-cat-cb" value="${t}" style="accent-color:var(--gold);width:15px;height:15px;"> ${t}</label>`).join('')}</div><div class="form-hint">Si no seleccionas ninguna, el profesional aparece en todas.</div></div>`;
+}
 document.getElementById('createBarberoBtn').addEventListener('click',async()=>{
   const nombre=document.getElementById('newBarberoNombre').value.trim();
   const shopId=document.getElementById('newBarberoShop').value;
@@ -2951,7 +2961,9 @@ document.getElementById('createBarberoBtn').addEventListener('click',async()=>{
   const pass=document.getElementById('newBarberoPass').value.trim();
   if(!nombre){showToast('Nombre requerido','error');return;}
   if((tel&&!pass)||(pass&&!tel)){showToast('Ingresa teléfono Y contraseña para el acceso','error');return;}
-  const newB={shop_id:shopId||null,nombre:nombre.toUpperCase(),activo:document.getElementById('newBarberoActivo').value==='true',orden};
+  const catCbs=[...document.querySelectorAll('.new-barbero-cat-cb:checked')].map(cb=>cb.value);
+  const categoriasVal=catCbs.length>0?catCbs:null;
+  const newB={shop_id:shopId||null,nombre:nombre.toUpperCase(),activo:document.getElementById('newBarberoActivo').value==='true',orden,categorias:categoriasVal};
   try {
     let barberoId=null;
     if(!usingDemo){
