@@ -1482,7 +1482,7 @@ async function eliminarBloqueoBarbero(id){
 }
 
 // ── REPORTES ──
-let _reporteRango = 'mes';
+let _reporteRango = 'mes', _liqPct = 50;
 function fmt12rpt(h){ if(!h)return'—'; const[hh,mm]=(h+':00').split(':').map(Number),ap=hh>=12?'PM':'AM',h12=hh===0?12:hh>12?hh-12:hh; return h12+':'+(mm<10?'0':'')+mm+' '+ap; }
 
 function renderReportes(){
@@ -1535,6 +1535,13 @@ const hoyStr = hoy.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'}
   const totalGastos = gastosRango.reduce((sum, g) => sum + parseFloat(g.monto||0), 0);
   const utilidadReal = ingresos - totalGastos;
   const margenNeto = ingresos > 0 ? ((utilidadReal / ingresos) * 100).toFixed(1) : 0;
+
+  // Cálculo de Ingreso Perdido (No-Show y Canceladas)
+  const perdidasArr = filtradas.filter(c => c.estado === 'Cancelada' || c.estado === 'No-Show');
+  const ingresoPerdido = perdidasArr.reduce((sum, c) => {
+    const sObj = S.servicios.find(s => s.nombre.trim().toUpperCase() === (c.servicio||'').trim().toUpperCase());
+    return sum + (sObj ? parseFloat(sObj.precio||0) : 0);
+  }, 0);
 
   // Monitor en vivo (Hoy)
   const citasHoy = todasCitas.filter(c => c.fecha === hoyStr && c.estado !== 'Cancelada');
@@ -1664,12 +1671,12 @@ const hoyStr = hoy.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'}
             <div class="card-title">💰 Liquidación & Comisiones</div>
             <div style="display:flex;align-items:center;gap:8px; background:var(--bg3); padding:4px 8px; border-radius:8px; border:1px solid var(--border);">
               <span style="font-family:'DM Mono',monospace; font-size:0.55rem; color:var(--muted);">% BARBERO</span>
-              <input type="number" id="liq-pct" value="50" oninput="renderPage()" style="background:transparent;border:none;color:var(--gold);width:35px;font-family:'DM Mono',monospace;font-size:0.75rem;font-weight:700;outline:none;text-align:right;">
+              <input type="number" id="liq-pct" value="${_liqPct}" onchange="_liqPct=this.value;renderPage()" style="background:transparent;border:none;color:var(--gold);width:35px;font-family:'DM Mono',monospace;font-size:0.75rem;font-weight:700;outline:none;text-align:right;">
             </div>
           </div>
           <div style="padding:18px;">
             ${(()=>{
-              const bCount={}; const pct = parseInt(document.getElementById('liq-pct')?.value)||50;
+              const bCount={}; const pct = parseInt(_liqPct)||50;
               completadas.forEach(c=>{ 
                 const sObj = S.servicios.find(s => s.nombre.trim().toUpperCase() === (c.servicio||'').trim().toUpperCase());
                 bCount[c.barbero] = (bCount[c.barbero]||0) + (sObj ? parseFloat(sObj.precio||0) : 0);
@@ -1692,13 +1699,16 @@ const hoyStr = hoy.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'}
             })()}
             <div style="margin-top:15px; padding-top:15px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
               <span style="font-family:'DM Mono',monospace; font-size:0.55rem; color:var(--muted); text-transform:uppercase;">TOTAL BARBEROS</span>
-              <span style="font-family:'DM Mono',monospace; font-weight:800; font-size:0.9rem; color:var(--text);">$${(ingresos * (parseInt(document.getElementById('liq-pct')?.value||50)/100)).toLocaleString()}</span>
+              <span style="font-family:'DM Mono',monospace; font-weight:800; font-size:0.9rem; color:var(--text);">$${(ingresos * (parseInt(_liqPct)||50)/100).toLocaleString()}</span>
             </div>
           </div>
         </div>
         
         <div class="card">
-          <div class="card-header"><div class="card-title">⚖️ Salud Financiera</div><span class="card-meta">Break-even</span></div>
+          <div class="card-header">
+            <div class="card-title">⚖️ Salud Financiera</div>
+            ${ingresoPerdido > 0 ? `<span style="font-size:0.6rem; color:var(--red); font-weight:600; background:rgba(248,113,113,0.1); padding:2px 8px; border-radius:4px;">-$${ingresoPerdido.toLocaleString()} perdidos</span>` : ''}
+          </div>
           <div style="padding:18px;">
             <div style="display:flex;justify-content:space-between;margin-bottom:12px;align-items:flex-end;">
               <div>
@@ -1723,6 +1733,12 @@ const hoyStr = hoy.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'}
               </div>
               <div style="padding:12px;background:rgba(248,113,113,0.03);border:1px solid rgba(248,113,113,0.1);border-radius:12px;">
                 <div style="font-size:0.5rem;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">Gastos</div>
+                <div style="font-size:0.95rem;font-weight:800;color:var(--red);">$${totalGastos.toLocaleString()}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>`;
 }
