@@ -98,11 +98,46 @@ tr:last-child td{border-bottom:none;}
 .badge-blue{background:rgba(96,165,250,0.12);color:var(--blue);border:1px solid rgba(96,165,250,0.25);}
 .badge-dot{width:4px;height:4px;border-radius:50%;background:currentColor;}
 .row-actions{display:flex;gap:4px;}
-.ra-btn{padding:4px 10px;font-family:'DM Mono',monospace;font-size:0.44rem;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);text-transform:uppercase;transition:all 0.15s;}
-.ra-btn:hover{border-color:rgba(255,255,255,0.15);color:var(--text);}
-.ra-btn.danger:hover{border-color:rgba(248,113,113,0.3);color:var(--red);}
-.ra-btn.success:hover{border-color:rgba(62,207,142,0.3);color:var(--green);}
-.ra-btn.warning:hover{border-color:rgba(201,168,76,0.3);color:var(--gold);}
+.ra-btn {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s var(--bez);
+  border-radius: 8px;
+  padding: 0;
+}
+.ra-btn:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: var(--muted);
+  color: var(--text);
+  transform: translateY(-2px);
+}
+.ra-btn svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.5px;
+}
+.ra-btn.danger:hover {
+  background: rgba(248,113,113,0.1);
+  border-color: rgba(248,113,113,0.3);
+  color: var(--red);
+}
+.ra-btn.warning:hover {
+  background: rgba(201,168,76,0.1);
+  border-color: rgba(201,168,76,0.4);
+  color: var(--gold);
+}
+.ra-btn.success:hover {
+  background: rgba(62,207,142,0.1);
+  border-color: rgba(62,207,142,0.4);
+  color: var(--green);
+}
 /* BARBEROS DASHBOARD PREMIUM */
 .barber-row {
   display: flex;
@@ -1393,10 +1428,18 @@ function renderBarberos(){
 
           <!-- Acciones de Configuración -->
           <div class="row-actions" style="justify-content: flex-end;">
-            <button class="ra-btn" onclick="abrirBloqueoBarbero('${b.id}','${b.nombre.replace(/'/g,"\\'")}')" title="Bloqueos">🕐</button>
-            <button class="ra-btn" onclick="editBarbero('${b.id}')" title="Editar">✏</button>
-            <button class="ra-btn" onclick="resetPasswordAdmin('barbero','${b.id}','${b.nombre.replace(/'/g,"\\'")}','${(b.telefono||'').replace(/'/g,"\\'")}')" title="PIN">🔑</button>
-            <button class="ra-btn danger" onclick="deleteBarbero('${b.id}','${b.nombre}')" title="Eliminar">✕</button>
+            <button class="ra-btn" onclick="abrirBloqueoBarbero('${b.id}','${b.nombre.replace(/'/g,"\\'")}')" title="Bloqueos">
+              <i data-lucide="clock"></i>
+            </button>
+            <button class="ra-btn warning" onclick="editBarbero('${b.id}')" title="Editar">
+              <i data-lucide="edit-3"></i>
+            </button>
+            <button class="ra-btn" onclick="resetPasswordAdmin('barbero','${b.id}','${b.nombre.replace(/'/g,"\\'")}','${(b.telefono||'').replace(/'/g,"\\'")}')" title=" PIN">
+              <i data-lucide="key"></i>
+            </button>
+            <button class="ra-btn danger" onclick="deleteBarbero('${b.id}','${b.nombre}')" title="Eliminar">
+              <i data-lucide="trash-2"></i>
+            </button>
           </div>
         </div>`;
       }).join('')}
