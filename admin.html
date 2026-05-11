@@ -198,11 +198,57 @@ tr:last-child td{border-bottom:none;}
   color: var(--text);
   border-color: var(--muted);
 }
-.barber-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;}
-.barber-card{background:var(--bg2);border:1px solid var(--border);padding:20px;transition:border-color 0.2s;}
-.barber-card:hover{border-color:rgba(255,255,255,0.1);}
-.barber-card.inactive{opacity:0.5;}
-.barber-avatar-lg{width:56px;height:56px;background:var(--bg3);border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:800;color:var(--gold);margin-bottom:12px;border-radius:18px;}
+.barber-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.barber-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  padding: 12px 20px;
+  border-radius: 16px;
+  display: grid;
+  grid-template-columns: 50px 1.5fr 1fr 1fr 160px;
+  align-items: center;
+  gap: 20px;
+  transition: all 0.3s var(--bez);
+  position: relative;
+  overflow: hidden;
+}
+.barber-card:hover {
+  background: rgba(255,255,255,0.03);
+  border-color: rgba(201,168,76,0.3);
+  transform: translateX(4px);
+}
+.barber-card.inactive { opacity: 0.5; }
+.barber-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--gold);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.barber-card:hover::before { opacity: 1; }
+
+.barber-avatar-lg {
+  width: 44px;
+  height: 44px;
+  background: var(--bg3);
+  border: 1px solid var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--gold);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
 /* MODAL */
 .modal-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);align-items:center;justify-content:center;}
 .modal-overlay.open{display:flex;}
@@ -1279,53 +1325,96 @@ function openHistorialCliente(nombre,tel){
 
 // ── BARBEROS ──
 function renderBarberos(){
-  const maxC=Math.max(...S.barberos.map(b=>b.citas_hoy),1);
-  return `<div class="card-header" style="background:var(--bg2);border:1px solid var(--border);padding:14px 18px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
-    <div class="card-title">Gestión de Barberos · ${S.barberos.filter(b=>b.activo).length} activos</div>
-    <button class="btn-sm btn-gold" onclick="openModal('barbero', true)">+ Agregar barbero</button>
-  </div>
-  <div class="barber-grid">
-    ${S.barberos.map(b=>`<div class="barber-card ${b.activo?'':'inactive'}">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-        <div class="barber-avatar-lg">${b.nombre[0]}</div>
-        <label class="toggle-switch" title="${b.activo?'Click para desactivar':'Click para activar'}">
-          <input type="checkbox" ${b.activo?'checked':''} onchange="toggleBarbero('${b.id}',this.checked)">
-          <span class="toggle-slider"></span>
-        </label>
+  const maxC = Math.max(...S.barberos.map(b=>b.citas_hoy), 1);
+  return `
+  <div style="display:flex; flex-direction:column; gap:16px; animation: modal-in 0.4s var(--bez);">
+    <!-- Header de Gestión -->
+    <div class="card-header" style="background:var(--bg2); border:1px solid var(--border); padding:18px 24px; border-radius:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+      <div>
+        <div class="card-title" style="font-size:1.2rem;">Gestión de Barberos</div>
+        <div class="card-meta">${S.barberos.filter(b=>b.activo).length} profesionales activos ahora</div>
       </div>
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-        <div style="font-size:1rem;font-weight:800;">${b.nombre}</div>
-        ${(()=>{
-          const hasPush = S.pushTokens && S.pushTokens[b.id];
-          return hasPush 
-            ? `<span title="Notificaciones Push Activas" style="color:var(--green); font-size:0.9rem; cursor:help;">🔔</span>`
-            : `<span title="¡ATENCIÓN! Este barbero no tiene notificaciones activas. Debe abrir la App y aceptar permisos." 
-                 style="color:var(--red); font-size:0.9rem; cursor:help; animation: pulse-red 1.5s infinite;">🔔</span>`;
-        })()}
-      </div>
-      <div style="font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);margin-bottom:${Array.isArray(b.categorias)&&b.categorias.length?'6px':'12px'};">${b.citas_hoy} citas hoy · Límite ${b.max_turnos_dia||10}/día · Orden #${b.orden||1}</div>
-      ${Array.isArray(b.categorias)&&b.categorias.length?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;">${b.categorias.map(c=>`<span style="font-size:0.5rem;font-family:'DM Mono',monospace;background:rgba(201,168,76,0.12);color:var(--gold);border:1px solid rgba(201,168,76,0.25);border-radius:4px;padding:2px 7px;text-transform:uppercase;letter-spacing:0.08em;">${c}</span>`).join('')}</div>`:''}
-      <div style="height:2px;background:rgba(255,255,255,0.06);margin-bottom:12px;"><div style="height:100%;background:${b.activo?'var(--gold)':'var(--muted)'};width:${Math.round(b.citas_hoy/maxC*100)}%;transition:width 1s;"></div></div>
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <span class="${b.activo?'chip-active':'chip-off'}">${b.activo?'✓ Disponible':'✗ No disponible'}</span>
-        <div class="row-actions">
-          <button class="ra-btn" onclick="abrirBloqueoBarbero('${b.id}','${b.nombre.replace(/'/g,"\\'")}')">🕐</button>
-          <button class="ra-btn" onclick="editBarbero('${b.id}')">✏</button>
-          <button class="ra-btn" onclick="resetPasswordAdmin('barbero','${b.id}','${b.nombre.replace(/'/g,"\\'")}','${(b.telefono||'').replace(/'/g,"\\'")}')">🔑</button>
-          <button class="ra-btn danger" onclick="deleteBarbero('${b.id}','${b.nombre}')">✕</button>
+      <div style="display:flex; gap:12px; align-items:center;">
+        <div class="search-bar" style="height:40px;">
+          🔍 <input type="text" id="search-barberos" placeholder="Buscar barbero..." oninput="filterBarberosList(this.value)">
         </div>
+        <button class="btn-sm btn-gold" onclick="openModal('barbero', true)" style="height:40px; padding:0 24px;">+ Agregar barbero</button>
       </div>
-    </div>`).join('')}
-    <div class="barber-card" style="display:flex;align-items:center;justify-content:center;cursor:pointer;border-style:dashed;min-height:180px;" onclick="openModal('barbero', true)">
-      <div style="text-align:center;"><div style="font-size:2rem;color:var(--muted);margin-bottom:8px;">+</div><div style="font-family:'DM Mono',monospace;font-size:0.54rem;color:var(--muted);text-transform:uppercase;">Agregar</div></div>
     </div>
-  </div>
-  <div class="card" style="margin-top:16px;">
-    <div class="card-header"><div class="card-title">Lista completa</div></div>
-    <table><thead><tr><th>Barbero</th><th>Citas hoy</th><th>Estado</th><th>Orden</th><th>Acciones</th></tr></thead>
-    <tbody>${S.barberos.map(b=>`<tr><td style="font-weight:700">${b.nombre}</td><td><span class="badge ${b.citas_hoy>0?'badge-green':'badge-gold'}">${b.citas_hoy}</span></td><td><span class="badge ${b.activo?'badge-green':'badge-red'}">${b.activo?'Activo':'Off'}</span></td><td style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted);">#${b.orden||1}</td><td><div class="row-actions"><button class="ra-btn ${b.activo?'danger':'success'}" onclick="toggleBarbero('${b.id}',${!b.activo})">${b.activo?'Poner Off':'Activar'}</button><button class="ra-btn" onclick="editBarbero('${b.id}')">Editar</button><button class="ra-btn danger" onclick="deleteBarbero('${b.id}','${b.nombre}')">Eliminar</button></div></td></tr>`).join('')}</tbody>
-    </table>
+
+    <!-- Lista de Barberos (Formato Row) -->
+    <div class="barber-grid" id="barberos-list-container">
+      ${S.barberos.map(b => {
+        const hasPush = S.pushTokens && S.pushTokens[b.id];
+        const pct = Math.round(b.citas_hoy/maxC*100);
+        return `
+        <div class="barber-card ${b.activo?'':'inactive'}" data-name="${b.nombre.toLowerCase()}">
+          <!-- Avatar -->
+          <div class="barber-avatar-lg">${b.nombre[0]}</div>
+
+          <!-- Info Principal -->
+          <div>
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+              <span style="font-size:1rem; font-weight:700;">${b.nombre}</span>
+              ${hasPush 
+                ? `<span title="Push Activo" style="color:var(--green); font-size:0.8rem;">🔔</span>`
+                : `<span title="Sin Notificaciones" style="color:var(--red); font-size:0.8rem; animation: pulse-red 1.5s infinite;">🔔</span>`
+              }
+            </div>
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+              ${Array.isArray(b.categorias) && b.categorias.length 
+                ? b.categorias.map(c => `<span style="font-size:0.45rem; font-family:'DM Mono',monospace; background:rgba(201,168,76,0.1); color:var(--gold); border:1px solid rgba(201,168,76,0.2); border-radius:4px; padding:1px 5px; text-transform:uppercase;">${c}</span>`).join('')
+                : `<span style="font-size:0.45rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em;">Sin categoría</span>`
+              }
+            </div>
+          </div>
+
+          <!-- Stats & Progress -->
+          <div style="display:flex; flex-direction:column; gap:4px;">
+            <div style="display:flex; justify-content:space-between; font-family:'DM Mono',monospace; font-size:0.55rem; color:var(--muted);">
+              <span>CITAS HOY</span>
+              <span style="color:var(--text)">${b.citas_hoy} / ${b.max_turnos_dia || 10}</span>
+            </div>
+            <div style="height:4px; background:rgba(255,255,255,0.05); border-radius:2px; overflow:hidden;">
+              <div style="height:100%; background:var(--gold); width:${pct}%; transition:width 1s;"></div>
+            </div>
+          </div>
+
+          <!-- Disponibilidad -->
+          <div style="display:flex; align-items:center; gap:12px;">
+            <label class="toggle-switch">
+              <input type="checkbox" ${b.activo?'checked':''} onchange="toggleBarbero('${b.id}',this.checked)">
+              <span class="toggle-slider"></span>
+            </label>
+            <span style="font-family:'DM Mono',monospace; font-size:0.55rem; color:${b.activo?'var(--green)':'var(--muted)'}; text-transform:uppercase;">
+              ${b.activo ? 'Disponible' : 'Off'}
+            </span>
+          </div>
+
+          <!-- Acciones de Configuración -->
+          <div class="row-actions" style="justify-content: flex-end;">
+            <button class="ra-btn" onclick="abrirBloqueoBarbero('${b.id}','${b.nombre.replace(/'/g,"\\'")}')" title="Bloqueos">🕐</button>
+            <button class="ra-btn" onclick="editBarbero('${b.id}')" title="Editar">✏</button>
+            <button class="ra-btn" onclick="resetPasswordAdmin('barbero','${b.id}','${b.nombre.replace(/'/g,"\\'")}','${(b.telefono||'').replace(/'/g,"\\'")}')" title="PIN">🔑</button>
+            <button class="ra-btn danger" onclick="deleteBarbero('${b.id}','${b.nombre}')" title="Eliminar">✕</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <!-- Leyenda Informativa -->
+    <div style="padding:16px; background:rgba(201,168,76,0.03); border:1px solid rgba(201,168,76,0.1); border-radius:12px; font-size:0.65rem; color:var(--muted); text-align:center;">
+      💡 <b>Pro-tip:</b> Utiliza el buscador para encontrar rápidamente a un profesional. Todos los cambios se sincronizan en tiempo real.
+    </div>
   </div>`;
+}
+
+function filterBarberosList(q) {
+  const query = q.toLowerCase();
+  document.querySelectorAll('.barber-card').forEach(card => {
+    const name = card.getAttribute('data-name') || '';
+    card.style.display = name.includes(query) ? 'grid' : 'none';
+  });
 }
 // ── PANTALLA BARBERÍA SUSPENDIDA ─────────────────────────
 function showShopSuspended(nombre){
