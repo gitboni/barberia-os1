@@ -165,21 +165,16 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;he
 
   <!-- TAB CLIENTE -->
   <div class="tab-panel active" id="pc">
-    <div class="ps" style="margin-top:4px;">Barbería</div>
-    <div id="shop-list">
-      <div class="shop-card active" data-id="108a1a3b-802c-4fc3-ad99-3b2a42f6c875" data-name="PRUEBALAB" onclick="selectShop(this)">
-        <div class="sa">P</div><div class="si"><div class="sn">PRUEBALAB</div><div class="sm">9AM–11PM · 30min · 2 barberos</div></div><div class="sbb">BOT ✓</div>
-      </div>
-      <div class="shop-card" data-id="61797d02-7674-48c7-9b65-1ad30da82f7a" data-name="Elite Cuts" onclick="selectShop(this)">
-        <div class="sa">E</div><div class="si"><div class="sn">Elite Cuts</div><div class="sm">6AM–11PM · 30min · 3 barberos</div></div><div class="sbb">BOT ✓</div>
-      </div>
-      <div class="shop-card" data-id="dd513d7d-8051-4586-b0cf-93587b5df32d" data-name="pruba4" onclick="selectShop(this)">
-        <div class="sa">T</div><div class="si"><div class="sn">pruba4</div><div class="sm">9AM–6PM · 45min</div></div>
-      </div>
-      <div class="shop-card" data-id="5a81d543-537c-4846-b0ad-abf5c3a42364" data-name="Richarbar" onclick="selectShop(this)">
-        <div class="sa">R</div><div class="si"><div class="sn">Richarbar</div><div class="sm">7AM–9PM · 30min</div></div>
+    <div class="cs" style="border-bottom:none; padding-bottom:0;">
+      <div class="cr">
+        <input class="ci" id="shop-search" placeholder="🔍 Buscar negocio..." oninput="filterShops(this.value)">
+        <button class="hbtn" onclick="loadShops()" title="Refrescar lista">🔄</button>
       </div>
     </div>
+    <div id="shop-list" class="qs" style="max-height: 250px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <div class="nb" style="padding:15px 10px;">Cargando negocios...</div>
+    </div>
+
     <div class="cs">
       <div class="cl">Teléfono del cliente</div>
       <div class="cr"><input class="ci" id="tel-input" value="+18091234567"><button class="hbtn" onclick="randomTel()">🎲</button></div>
@@ -273,9 +268,11 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;he
         <div class="bcmd" onclick="quickSend('hola')"><div class="bcmd-i">ℹ️</div><div><div class="bcmd-t">hola (menú)</div><div class="bcmd-s">Ver opciones disponibles</div></div></div>
       </div>
       <div style="font-size:0.56rem;font-weight:700;letter-spacing:0.14em;color:var(--text2);text-transform:uppercase;margin:10px 0 5px;display:flex;align-items:center;gap:5px;">Barberos con BOT activo<span style="flex:1;height:1px;background:rgba(255,255,255,0.05);display:block;"></span></div>
-      <div id="barber-list"></div>
+      <div id="barber-list">
+        <div class="nb">Selecciona un negocio para ver sus profesionales.</div>
+      </div>
       <div style="font-size:0.55rem;color:var(--text2);margin-top:7px;padding:7px;background:var(--bg3);border-radius:4px;line-height:1.6;">
-        ⚠ Solo PRUEBALAB y Elite Cuts tienen <em>bot_barbero_activo = true</em>. pruba4 y Richarbar no lo soportan.
+        💡 Solo los profesionales con <em>bot_barbero_activo</em> pueden usar comandos.
       </div>
     </div>
   </div>
@@ -333,14 +330,8 @@ const H = {'apikey':SBK,'Authorization':`Bearer ${SBK}`};
 
 let shopId='108a1a3b-802c-4fc3-ad99-3b2a42f6c875',shopName='PRUEBALAB';
 let mode='client',selBarber=null,msgs=0,errs=0,busy=false;
+let SHOPS=[], BARBEROS=[];
 
-const BARBEROS=[
-  {id:'d0700b88-1fa3-45b3-b24e-b5b15ec1ae70',nombre:'barbero-prueba 1',tel:'18091110001',sid:'108a1a3b-802c-4fc3-ad99-3b2a42f6c875',shop:'PRUEBALAB',activo:true},
-  {id:'475cf193-dd1d-4bd7-9ba0-c2724a8bf797',nombre:'RAFAEL',tel:'18091110002',sid:'108a1a3b-802c-4fc3-ad99-3b2a42f6c875',shop:'PRUEBALAB',activo:true},
-  {id:'4b238c83-5085-4938-923a-cbff35e73945',nombre:'Matías',tel:'18091110010',sid:'61797d02-7674-48c7-9b65-1ad30da82f7a',shop:'Elite Cuts',activo:true},
-  {id:'a78ac724-f861-487b-8bad-128b785d2252',nombre:'Lucas',tel:'18091110011',sid:'61797d02-7674-48c7-9b65-1ad30da82f7a',shop:'Elite Cuts',activo:true},
-  {id:'65456bc1-67d2-40a7-a456-f2628afbe2e1',nombre:'Gonzalo',tel:'18091110012',sid:'61797d02-7674-48c7-9b65-1ad30da82f7a',shop:'Elite Cuts',activo:false},
-];
 
 const SM={'inicio':'s0','esperando_servicio':'s1','esperando_barbero':'s2','esperando_confirmacion_slot':'s3','esperando_horario':'s4','esperando_nombre':'s5','esperando_confirmacion':'s6','completado':'s7','esperando_cancelacion':'s8','preguntando_reinicio':'s9','esperando_confirmacion_duplicado':'s10'};
 
@@ -360,19 +351,25 @@ function switchTab(t){
 }
 
 function renderBarbers(){
-  document.getElementById('barber-list').innerHTML=BARBEROS.map(b=>`
+  const list = document.getElementById('barber-list');
+  if(!BARBEROS.length){
+    list.innerHTML = `<div class="nb">No se encontraron profesionales para este negocio.</div>`;
+    return;
+  }
+  list.innerHTML=BARBEROS.map(b=>`
     <div class="bcard${b.activo?'':' off'}${selBarber?.id===b.id?' sel':''}" onclick="selB('${b.id}')">
       <div class="bc-row">
         <div class="bc-av">${b.nombre.charAt(0).toUpperCase()}</div>
         <div style="flex:1;min-width:0;">
           <div class="bc-nm">${b.nombre}</div>
-          <div class="bc-sh">✂ ${b.shop}</div>
-          <div class="bc-tl">+${b.tel}</div>
+          <div class="bc-sh">${b.shop_name}</div>
+          <div class="bc-tl">${b.telefono ? '+'+b.telefono : 'Sin tel'}</div>
         </div>
-        <div class="bc-st ${b.activo?'on':'of'}">${b.activo?'ACTIVO':'INACTIVO'}</div>
+        <div class="bc-st ${b.activo?'on':'of'}">${b.activo?'ACTIVO':'OFF'}</div>
       </div>
     </div>`).join('');
 }
+
 
 function selB(id){
   selBarber=BARBEROS.find(b=>b.id===id)||null;
@@ -390,12 +387,59 @@ function selB(id){
 }
 
 function selectShop(el){
-  if(mode==='barber')return;
+  if(mode==='barber') return;
   document.querySelectorAll('.shop-card').forEach(c=>c.classList.remove('active'));
   el.classList.add('active');
   shopId=el.dataset.id; shopName=el.dataset.name;
-  updateHeader(); clearChat();
+  updateHeader(); 
+  clearChat();
+  loadBarbers(shopId);
+  log(`Negocio seleccionado: ${shopName}`,'info');
 }
+
+async function loadShops(){
+  try {
+    log('Cargando negocios desde Supabase...','info');
+    const r = await fetch(`${SBU}/rest/v1/shops?select=id,nombre,configuracion,slug&order=nombre.asc`, { headers: H });
+    SHOPS = await r.json();
+    renderShops();
+  } catch(e) {
+    log('Error cargando negocios: '+e.message, 'err');
+  }
+}
+
+function renderShops(filter = ''){
+  const list = document.getElementById('shop-list');
+  const filtered = SHOPS.filter(s => s.nombre.toLowerCase().includes(filter.toLowerCase()));
+  if(!filtered.length){
+    list.innerHTML = `<div class="nb">No se encontraron negocios.</div>`;
+    return;
+  }
+  list.innerHTML = filtered.map(s => `
+    <div class="shop-card ${s.id===shopId?'active':''}" data-id="${s.id}" data-name="${s.nombre}" onclick="selectShop(this)">
+      <div class="sa">${s.nombre.charAt(0).toUpperCase()}</div>
+      <div class="si">
+        <div class="sn">${s.nombre}</div>
+        <div class="sm">${s.slug || 'sin-slug'}</div>
+      </div>
+      ${s.configuracion?.bot_activo ? '<div class="sbb">BOT ✓</div>' : ''}
+    </div>
+  `).join('');
+}
+
+function filterShops(q){ renderShops(q); }
+
+async function loadBarbers(sid){
+  try {
+    const r = await fetch(`${SBU}/rest/v1/barberos?shop_id=eq.${sid}&select=id,nombre,telefono,activo,bot_barbero_activo&order=nombre.asc`, { headers: H });
+    const data = await r.json();
+    BARBEROS = data.map(b => ({...b, shop_name: shopName}));
+    if(mode==='barber') renderBarbers();
+  } catch(e) {
+    console.error('Err barbers:', e);
+  }
+}
+
 
 function getTel(){
   if(mode==='barber'&&selBarber)return'+'+selBarber.tel;
@@ -536,8 +580,10 @@ function clearChat(){
 }
 
 document.getElementById('mi').focus();
-log('Simulador listo · PRUEBALAB','ok');
-log('5 barberos con tel asignado en BD','info');
+loadShops();
+loadBarbers(shopId);
+log('Simulador dinámico listo','ok');
+
 </script>
 </body>
 </html>
