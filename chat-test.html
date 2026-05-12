@@ -400,7 +400,7 @@ function selectShop(el){
 async function loadShops(){
   try {
     log('Cargando negocios desde Supabase...','info');
-    const r = await fetch(`${SBU}/rest/v1/shops?select=id,nombre,configuracion,slug&order=nombre.asc`, { headers: H });
+    const r = await fetch(`${SBU}/rest/v1/shops?select=*&order=nombre.asc`, { headers: H });
     const data = await r.json();
     
     if (!Array.isArray(data)) {
@@ -432,7 +432,7 @@ function renderShops(filter = ''){
         <div class="sn">${s.nombre}</div>
         <div class="sm">${s.slug || 'sin-slug'}</div>
       </div>
-      ${s.configuracion?.bot_activo ? '<div class="sbb">BOT ✓</div>' : ''}
+      ${(s.recordatorio_activo !== false || s.bot_barbero_activo) ? '<div class="sbb">BOT ✓</div>' : ''}
     </div>
   `).join('');
 }
@@ -443,8 +443,13 @@ async function loadBarbers(sid){
   try {
     const r = await fetch(`${SBU}/rest/v1/barberos?shop_id=eq.${sid}&select=id,nombre,telefono,activo,bot_barbero_activo&order=nombre.asc`, { headers: H });
     const data = await r.json();
-    BARBEROS = data.map(b => ({...b, shop_name: shopName}));
-    if(mode==='barber') renderBarbers();
+    if (Array.isArray(data)) {
+      BARBEROS = data.map(b => ({...b, shop_name: shopName}));
+      log(`✓ ${BARBEROS.length} profesionales cargados`, 'ok');
+    } else {
+      BARBEROS = [];
+      log('Error cargando barberos: ' + (data.message || 'Respuesta inválida'), 'err');
+    }
   } catch(e) {
     console.error('Err barbers:', e);
   }
