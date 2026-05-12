@@ -118,11 +118,30 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overf
   background:linear-gradient(135deg,#000 0%,#0d0900 50%,#050505 100%);
   overflow:hidden;padding:60px clamp(16px,4vw,80px);
 }
-.hero-orb{
-  position:absolute;border-radius:50%;filter:blur(100px);pointer-events:none;
+@keyframes aurora {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(10%, 10%) scale(1.1); }
+  66% { transform: translate(-5%, 5%) scale(0.9); }
+  100% { transform: translate(0, 0) scale(1); }
 }
-.hero-orb-1{width:500px;height:500px;background:rgba(212,175,55,.15);top:-150px;right:-100px}
-.hero-orb-2{width:300px;height:300px;background:rgba(212,175,55,.06);bottom:-80px;left:10%}
+.hero-orb {
+  position: absolute; border-radius: 50%; filter: blur(120px); pointer-events: none;
+  animation: aurora 20s ease-in-out infinite;
+  opacity: 0.5;
+}
+.hero-orb-1 { width: 600px; height: 600px; background: rgba(212,175,55,0.2); top: -200px; right: -100px; animation-duration: 25s; }
+.hero-orb-2 { width: 400px; height: 400px; background: rgba(59,130,246,0.1); bottom: -100px; left: 5%; animation-duration: 30s; animation-direction: reverse; }
+.hero-orb-3 { width: 500px; height: 500px; background: rgba(201,168,76,0.1); top: 20%; left: 40%; animation-duration: 40s; }
+
+.city-tags {
+  display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap;
+}
+.city-tag {
+  background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+  padding: 6px 14px; border-radius: 50px; font-size: 0.72rem; color: var(--dim);
+  cursor: pointer; transition: 0.2s;
+}
+.city-tag:hover { background: var(--gold-s); border-color: var(--gold-b); color: var(--gold); }
 
 /* ── Hero Visual ── */
 .hero-visual{
@@ -322,13 +341,27 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overf
   box-shadow:0 8px 40px rgba(0,0,0,.4);
   transform:translateY(-2px);
 }
-.shop-card.premium{border-color:rgba(212,175,55,.3)}
-.premium-badge{
-  position:absolute;top:12px;right:12px;z-index:5;
-  background:var(--gold);color:#000;
-  font-size:.58rem;font-weight:900;padding:3px 10px;
-  border-radius:50px;text-transform:uppercase;letter-spacing:.5px;
-  font-family:'Outfit',sans-serif;
+.shop-card.premium {
+  border-color: rgba(212,175,55,0.4);
+  background: linear-gradient(135deg, #0f0f0f 0%, #1a1506 100%);
+  box-shadow: 0 0 20px rgba(212,175,55,0.05);
+}
+.shop-card.premium::after {
+  content: ''; position: absolute; inset: 0; 
+  background: linear-gradient(45deg, transparent 0%, rgba(212,175,55,0.05) 50%, transparent 100%);
+  pointer-events: none; opacity: 0.5;
+}
+.premium-badge {
+  position: absolute; top: 12px; right: 12px; z-index: 5;
+  background: linear-gradient(135deg, #D4AF37, #F0C840); color: #000;
+  font-size: 0.6rem; font-weight: 900; padding: 4px 12px;
+  border-radius: 50px; text-transform: uppercase; letter-spacing: 0.8px;
+  font-family: 'Outfit', sans-serif; box-shadow: 0 4px 12px rgba(212,175,55,0.3);
+}
+.dist-badge {
+  position: absolute; top: 12px; left: 12px; z-index: 5;
+  background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); color: #fff;
+  font-size: 0.6rem; font-weight: 700; padding: 4px 10px; border-radius: 50px;
 }
 .card-img-wrap{
   width:200px;flex-shrink:0;position:relative;overflow:hidden;
@@ -755,6 +788,39 @@ footer{
 .gallery-thumb:hover{opacity:1;border-color:var(--gold)}
 /* ── Slots count pill ── */
 .slots-pill{font-size:.62rem;font-weight:700;color:var(--green);background:rgba(0,208,132,.08);border:1px solid rgba(0,208,132,.2);padding:2px 8px;border-radius:50px;margin-left:4px}
+
+/* ── Barber Micro Card in Listing ── */
+.card-barbers-preview { display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; margin-top:10px; padding-bottom:4px; border-top:1px solid var(--border2); padding-top:10px; }
+.card-barbers-preview::-webkit-scrollbar { display:none; }
+.barber-tooltip-wrap { position:relative; display:inline-flex; cursor:pointer; }
+.barber-micro-chip {
+  display:flex; align-items:center; gap:4px;
+  background:var(--bg3); border:1px solid var(--border);
+  padding:3px 8px 3px 3px; border-radius:50px;
+  font-size:0.65rem; font-weight:600; color:var(--dim); white-space:nowrap;
+  transition:.2s;
+}
+.barber-tooltip-wrap:hover .barber-micro-chip {
+  border-color:var(--gold-b); color:var(--gold); background:var(--gold-s);
+}
+.barber-micro-avt {
+  width:16px; height:16px; border-radius:50%; background:var(--bg4);
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.5rem; font-weight:800; overflow:hidden; color:var(--gold);
+}
+.barber-micro-avt img { width:100%; height:100%; object-fit:cover; }
+.barber-tooltip {
+  position:absolute; bottom:calc(100% + 5px); left:50%; transform:translateX(-50%) scale(0.95);
+  background:rgba(10,10,10,0.95); border:1px solid var(--border);
+  color:#fff; padding:6px 10px; border-radius:8px; font-size:0.65rem;
+  white-space:nowrap; opacity:0; pointer-events:none; transition:.2s; z-index:20;
+  backdrop-filter:blur(8px); box-shadow:0 4px 12px rgba(0,0,0,0.5);
+}
+.barber-tooltip-wrap:hover .barber-tooltip {
+  opacity:1; transform:translateX(-50%) scale(1);
+}
+.barber-tooltip-label { color:var(--dim); font-size:0.58rem; display:block; margin-bottom:2px; text-transform:uppercase; letter-spacing:0.5px; }
+.barber-tooltip-time { font-weight:700; color:var(--gold); font-size:0.75rem; }
 /* ── Stagger cards ── */
 @keyframes cardIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 .shop-card{animation:cardIn .35s ease both}
@@ -1006,6 +1072,12 @@ input[type=range].fp-range{width:100%;accent-color:var(--gold);cursor:pointer;ma
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         Buscar
       </button>
+    </div>
+    <div class="city-tags">
+      <div class="city-tag" onclick="setCity('Santo Domingo')">Santo Domingo</div>
+      <div class="city-tag" onclick="setCity('Santiago')">Santiago</div>
+      <div class="city-tag" onclick="setCity('Punta Cana')">Punta Cana</div>
+      <div class="city-tag" onclick="setCity('La Romana')">La Romana</div>
     </div>
     <div id="acDropdown"></div>
     </div>
@@ -1457,6 +1529,7 @@ function addMarkers(shops){
     if(!s.lat||!s.lng)return;
     const icon=L.divIcon({className:'',html:`<div style="width:30px;height:30px;border-radius:50% 50% 50% 0;background:${s.plan==='premium'?'#D4AF37':'#555'};border:2px solid #000;transform:rotate(-45deg);box-shadow:0 0 10px rgba(0,0,0,.5)"></div>`,iconSize:[30,38],iconAnchor:[15,38]});
     const m=L.marker([s.lat,s.lng],{icon}).addTo(map);
+    m._shopId = s.id;
     m.bindPopup(`<div style="background:#111;color:#fff;border-radius:8px;padding:8px 12px;font-family:Inter,sans-serif"><strong>${s.nombre}</strong><br><small style="color:rgba(255,255,255,.6)">${s.rating?`⭐ ${s.rating} · `:''}${s.tiempo_espera===0?'Disponible ya':`~${s.tiempo_espera}min espera`}</small><br><button onclick="document.getElementById('detailModal') && openDetail('${s.id}')" style="margin-top:6px;background:#D4AF37;color:#000;border:none;padding:4px 10px;border-radius:6px;font-size:.75rem;cursor:pointer;font-weight:700">Ver detalles</button></div>`,{className:'leaflet-popup-dark'});
     m.on('click',()=>openDetail(s.id));
     markers.push(m);
@@ -1513,6 +1586,7 @@ async function loadShops(){
       reseñas_recientes:(rMap[s.id]?.list||[]).slice(0,3),
       tiempo_espera:wMap[s.id]?Math.min(wMap[s.id].length*(s.duracion_turno||25),120):0,
       _slotsBooked:wMap[s.id]?.length||0,
+      _citasHoy:wMap[s.id]||[],
       servicios:s.servicios||[],
       staff:s.staff||[],
       horario:buildHorario(s),
@@ -1583,6 +1657,38 @@ function showSkeletons(){
     </div>`).join('');
 }
 
+function getNextBarberSlot(shop, barber, citasHoy){
+  const hHoy = (shop.horario||[]).find(h=>h.dia===todayName);
+  let ini = (shop.hora_inicio||9)*60, fin = (shop.hora_fin||20)*60;
+  if(hHoy && !hHoy.cerrado){
+    const [ah, am] = (hHoy.apertura||'09:00').split(':').map(Number);
+    const [ch, cm] = (hHoy.cierre||'20:00').split(':').map(Number);
+    ini = ah*60+am; fin = ch*60+cm;
+  } else {
+    return 'Mañana';
+  }
+  const now = getAhoraMin();
+  const dur = shop.duracion_turno || 25;
+  const svcDurMap = {};
+  (shop.servicios||[]).forEach(sv=>{ svcDurMap[sv.nombre?.toLowerCase().trim()] = sv.duracion_min });
+  
+  const activas = citasHoy.filter(c => String(c.barbero_id) === String(barber.id) && !['Cancelada','Completada','No-Show'].includes(c.estado));
+  
+  for(let m = Math.max(ini, now+5); m+dur <= fin; m += dur){
+    const taken = activas.some(c => {
+      const [ch_c, cm_c] = (c.hora||'').split(':').map(Number);
+      const ci = ch_c*60 + cm_c;
+      const cDur = svcDurMap[c.servicio?.toLowerCase().trim()] || dur;
+      return m < ci + cDur && m + dur > ci;
+    });
+    if(!taken){
+      const t = `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;
+      return fmt12(t);
+    }
+  }
+  return 'Ocupado hoy';
+}
+
 function renderShops(reset=false){
   const container=document.getElementById('shopsContainer');
   if(reset){container.innerHTML='';currentPage=0}
@@ -1599,14 +1705,14 @@ function renderShops(reset=false){
   slice.forEach((s,idx)=>{
     const open=isOpenNow(s.horario);
     const fav=isFav(s.id);
-    const dist=userCoords&&s.lat?` · ${distanceTo(s.lat,s.lng).toFixed(1)} km`:'';
+    const dist=userCoords&&s.lat?distanceTo(s.lat,s.lng):Infinity;
+    const distText = dist < Infinity ? `${dist.toFixed(1)} km` : '';
     const isPrem=s.plan==='premium';
 
     const card=document.createElement('div');
     card.className=`shop-card${isPrem?' premium':''}`;
     card.dataset.id = s.id;
     card.style.animationDelay = `${idx * 60}ms`;
-    card.onclick=()=>openDetail(s.id);
 
     const topSvcs=(s.servicios||[]).slice(0,3);
     const minPrice = s.servicios?.length ? Math.min(...s.servicios.map(sv=>Number(sv.precio||0))) : null;
@@ -1616,26 +1722,43 @@ function renderShops(reset=false){
     const freeSlots = countFreeSlots(s);
     const isNewShop = isNew(s);
     const hasPromo = Array.isArray(s.promociones) && s.promociones.length > 0;
+
+    const barbersHtml = (s.staff||[]).map(b => {
+      const nextSlot = getNextBarberSlot(s, b, s._citasHoy||[]);
+      return `<div class="barber-tooltip-wrap" onclick="event.stopPropagation();openDetail('${s.id}')">
+                <div class="barber-micro-chip">
+                  <div class="barber-micro-avt">${b.foto_url?`<img src="${esc(b.foto_url)}">`:`<span>${esc(b.nombre?.[0]||'B')}</span>`}</div>
+                  <span>${esc(b.nombre?.split(' ')[0])}</span>
+                </div>
+                <div class="barber-tooltip">
+                  <span class="barber-tooltip-label">Próximo turno</span>
+                  <span class="barber-tooltip-time">${nextSlot}</span>
+                </div>
+              </div>`;
+    }).join('');
+
     card.innerHTML=`
       ${isPrem?'<div class="premium-badge">💎 Elite</div>':''}
       ${isNewShop&&!isPrem?'<div class="badge-nuevo">Nuevo</div>':''}
-      ${hasPromo?'<div class="badge-promo-card">🏷 Oferta</div>':''}
+      ${distText ? `<div class="dist-badge">📍 ${distText}</div>` : ''}
+      
       <div class="card-img-wrap">
         <img class="card-img" src="${esc(s.foto_url)}" alt="${esc(s.nombre)}" loading="lazy"
              onerror="this.src='${DEMO_IMGS[0]}'">
-        <div class="card-img-placeholder" style="display:none">${s.icono||'✂️'}</div>
         <div class="card-open-pill">
           <div class="${open===true?'dot-open':'dot-closed'}"></div>
           ${open===true?(closing?`Cierra en ${closing}`:'Abierto'):open===false?(nextOpen||'Cerrado'):'—'}
         </div>
+        ${s._slotsBooked > 15 ? `<div class="badge-promo-card">Ocupación Alta</div>` : ''}
       </div>
+
       <div class="card-body">
         <div class="card-head">
-          <div style="min-width:0">
+          <div style="min-width:0; flex:1;">
             <div class="card-name">${esc(s.nombre)}</div>
             <div class="card-loc">
               <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-              ${esc(s.direccion||'República Dominicana')}${dist}
+              ${esc(s.ciudad || 'República Dominicana')}
             </div>
           </div>
           ${s.rating?`
@@ -1644,32 +1767,32 @@ function renderShops(reset=false){
             <span class="rating-count">(${s.total_reseñas})</span>
           </div>`:''}
         </div>
-        ${s.descripcion?`<div class="card-desc">${esc(s.descripcion)}</div>`:''}
-        <div class="card-tags">
-          ${s.tiempo_espera===0
-            ?'<span class="card-tag green">⚡ Disponible ya</span>'
-            :`<span class="card-tag">⏱ ~${s.tiempo_espera} min</span>`}
-          ${freeSlots>0?`<span class="card-tag green">🟢 ${freeSlots} turno${freeSlots>1?'s':''}` + (freeSlots<=2?' — ¡Último!':'') + `</span>`:''}
-          ${(s.staff||[]).length?`<span class="card-tag blue">👤 ${(s.staff||[]).length} barbero${(s.staff||[]).length>1?'s':''}</span>`:''}
-          ${isPrem?'<span class="card-tag gold">💎 Premium</span>':''}
+
+        <div class="card-svc-preview" style="margin-top:4px;">
+          ${topSvcs.map(sv=>`<span class="svc-chip">${esc(sv.nombre)}</span>`).join('')}
+          ${s.servicios.length>3?`<span class="svc-chip">+${s.servicios.length-3}</span>`:''}
         </div>
-        <div class="card-footer">
-          ${minPrice?`<span class="card-min-price">desde RD$${Number(minPrice).toLocaleString()}</span>`:''}
-          <div class="card-svc-preview">
-            ${topSvcs.map(sv=>`<span class="svc-chip">${esc(sv.nombre)}</span>`).join('')}
+
+        ${s.staff?.length ? `
+        <div class="card-barbers-preview">
+          ${barbersHtml}
+        </div>` : ''}
+
+        <div class="card-footer" style="margin-top:auto; padding-top:12px;">
+          <div style="display:flex; gap:8px;">
+            <button class="btn-icon${fav?' faved':''}" data-id="${s.id}" onclick="event.stopPropagation();toggleFav('${s.id}',event)" title="Guardar">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="${fav?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </button>
+            <button class="btn-icon" onclick="event.stopPropagation();shareShop('${s.id}')" title="Compartir">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            </button>
           </div>
-          <button class="btn-icon${fav?' faved':''}" data-id="${s.id}" onclick="toggleFav('${s.id}',event)" title="Guardar">
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="${fav?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-          </button>
-          <button class="btn-icon" onclick="event.stopPropagation();shareShop('${s.id}')" title="Compartir">
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-          </button>
-          <button type="button" class="btn-icon" onclick="toggleCompare('${s.id}',event)" title="Comparar" aria-label="Añadir a comparar">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-          </button>
-          <button class="btn-reservar" onclick="event.stopPropagation();openBooking(${JSON.stringify(s).replace(/"/g,'&quot;')})">Reservar</button>
+          <button class="btn-reservar" style="margin-left:auto" onclick="event.stopPropagation();openDetail('${s.id}')">Ver Negocio</button>
         </div>
       </div>`;
+
+    card.addEventListener('mouseenter', () => highlightMarker(s.id));
+    card.addEventListener('click', () => openDetail(s.id));
     frag.appendChild(card);
   });
 
@@ -2750,6 +2873,24 @@ function initHeroCanvas(){
     clearTimeout(resizeTimer);
     resizeTimer=setTimeout(resize,200);
   });
+}
+
+function setCity(city) {
+  const input = document.getElementById('locationHero');
+  if(input) {
+    input.value = city;
+    syncSearch(input, 'locationNav');
+    debouncedSearch();
+    scrollToFeed();
+  }
+}
+
+function highlightMarker(id) {
+  const m = markers.find(m => m._shopId === id);
+  if(m) {
+    m.openPopup();
+    map.panTo(m.getLatLng());
+  }
 }
 
 // ── Init ──
