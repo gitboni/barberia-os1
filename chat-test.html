@@ -401,10 +401,20 @@ async function loadShops(){
   try {
     log('Cargando negocios desde Supabase...','info');
     const r = await fetch(`${SBU}/rest/v1/shops?select=id,nombre,configuracion,slug&order=nombre.asc`, { headers: H });
-    SHOPS = await r.json();
+    const data = await r.json();
+    
+    if (!Array.isArray(data)) {
+      log('Error API: ' + (data.message || 'Respuesta inválida'), 'err');
+      SHOPS = [];
+    } else {
+      SHOPS = data;
+      log(`✓ ${SHOPS.length} negocios cargados`, 'ok');
+    }
     renderShops();
   } catch(e) {
-    log('Error cargando negocios: '+e.message, 'err');
+    log('Error de red: '+e.message, 'err');
+    SHOPS = [];
+    renderShops();
   }
 }
 
