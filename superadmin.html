@@ -464,9 +464,9 @@ tr:hover td{background:rgba(255,255,255,0.016);}
   <div class="nav-item" data-page="analytics"><i data-lucide="line-chart" class="icon"></i><span class="sidebar-text">Analytics</span></div>
   <div class="nav-item" data-page="reportes"><i data-lucide="bar-chart-3" class="icon"></i><span class="sidebar-text">Reportes</span></div>
   <div class="nav-item" data-page="seguridad"><i data-lucide="lock" class="icon"></i><span class="sidebar-text">Seguridad</span></div>
-  <div class="nav-item" data-page="page-auditoria"><i data-lucide="bot" class="icon"></i><span class="sidebar-text">Auditoría IA</span><div class="nav-badge" id="auditoriaCount" style="display:none">0</div></div>
-  <div class="nav-item" data-page="page-system-logs"><i data-lucide="activity" class="icon"></i><span class="sidebar-text">Logs de Sistema</span></div>
-  <div class="nav-item" data-page="page-logs"><i data-lucide="terminal" class="icon"></i><span class="sidebar-text">Logs UI</span></div>
+  <div class="nav-item" data-page="auditoria"><i data-lucide="bot" class="icon"></i><span class="sidebar-text">Auditoría IA</span><div class="nav-badge" id="auditoriaCount" style="display:none">0</div></div>
+  <div class="nav-item" data-page="system-logs"><i data-lucide="activity" class="icon"></i><span class="sidebar-text">Logs de Sistema</span></div>
+  <div class="nav-item" data-page="logs-ui"><i data-lucide="terminal" class="icon"></i><span class="sidebar-text">Logs UI</span></div>
   <div class="nav-item" data-page="config"><i data-lucide="settings" class="icon"></i><span class="sidebar-text">Configuración</span></div>
   <div class="nav-item" data-page="estado"><i data-lucide="activity" class="icon"></i><span class="sidebar-text">Estado Sistema</span></div>
   <div class="nav-item" data-page="broadcast"><i data-lucide="megaphone" class="icon"></i><span class="sidebar-text">Broadcast</span></div>
@@ -776,6 +776,35 @@ tr:hover td{background:rgba(255,255,255,0.016);}
       </div>
       <div id="auditoria-empty" style="display:none;text-align:center;padding:60px 20px;color:var(--muted);font-size:0.7rem;letter-spacing:0.1em;">
         SIN REGISTROS DE AUDITORÍA IA
+      </div>
+    </div>
+
+    <!-- LOGS DE SISTEMA (BASE DE DATOS) -->
+    <div class="page" id="page-system-logs">
+      <div class="page-header">
+        <div class="header-title">
+          <div class="title-main">📊 Logs de Sistema</div>
+          <div class="title-sub">Errores técnicos y eventos críticos capturados desde las Edge Functions.</div>
+        </div>
+        <div class="header-actions">
+          <button class="action-btn" onclick="loadSystemLogs()">↻ Refrescar</button>
+          <button class="action-btn danger" onclick="clearSystemLogs()">🗑 Limpiar todo</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table style="min-width:900px;">
+          <thead><tr>
+            <th>Fecha</th>
+            <th>Nivel</th>
+            <th>Origen</th>
+            <th>Contexto</th>
+            <th>Mensaje de Error / Evento</th>
+          </tr></thead>
+          <tbody id="systemLogsTable"></tbody>
+        </table>
+      </div>
+      <div id="system-logs-empty" style="display:none;text-align:center;padding:60px 20px;color:var(--muted);font-size:0.7rem;letter-spacing:0.1em;">
+        SIN LOGS DE SISTEMA — TODO OPERANDO NORMALMENTE
       </div>
     </div>
 
@@ -1715,12 +1744,13 @@ function showPage(id, el) {
     'clientes-app':loadClientesApp,
     pagos:loadPayments, facturacion:loadFacturacion, whatsapp:loadWebhooks,
     logs:loadLogs, solicitudes:loadSolicitudes, seguridad:loadSeguridad,
-    leads:loadLeads, reportes:loadReportesPage,
+    reportes:loadReportesPage,
     citas:() => { document.getElementById('citasFecha').value=new Date().toISOString().split('T')[0]; loadCitas(); },
     estado:loadEstado,
     broadcast:loadBroadcast,
     grupos:loadGrupos,
-    auditoria:loadAuditoria
+    auditoria:loadAuditoria,
+    'system-logs':loadSystemLogs
   };
   if(loaders[id]) loaders[id]();
   if(window.lucide) setTimeout(lucide.createIcons, 100);
