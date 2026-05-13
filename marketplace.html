@@ -283,6 +283,7 @@
       position: absolute;
       border-radius: 50%;
       filter: blur(100px);
+      transition: transform 0.2s ease-out;
       pointer-events: none;
     }
 
@@ -310,6 +311,7 @@
       transform: translateY(-50%);
       width: 420px;
       height: 420px;
+      transition: transform 0.3s ease-out;
       pointer-events: none;
       z-index: 1;
     }
@@ -2671,6 +2673,18 @@
       border-color: var(--gold)
     }
 
+    /* ── Pulse animation for map ── */
+    @keyframes marker-pulse {
+      0% { transform: scale(1) rotate(-45deg); box-shadow: 0 0 0 0 rgba(0, 208, 132, 0.4); }
+      70% { transform: scale(1.1) rotate(-45deg); box-shadow: 0 0 0 10px rgba(0, 208, 132, 0); }
+      100% { transform: scale(1) rotate(-45deg); box-shadow: 0 0 0 0 rgba(0, 208, 132, 0); }
+    }
+
+    .marker-pulse {
+      animation: marker-pulse 2s infinite;
+      background: var(--green) !important;
+    }
+
     /* ── ICS / Notify ── */
     .btn-ics {
       background: rgba(255, 255, 255, .05);
@@ -3553,7 +3567,7 @@
         <input type="text" id="locationNav" placeholder="Ubicación…" oninput="debouncedSearch()">
       </div>
       <div class="nav-search-part" style="flex:0">
-        <button class="btn-search" onclick="debouncedSearch()">
+        <button class="btn-search" onclick="debouncedSearch(); navigator.vibrate?.([20])">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2.5">
             <circle cx="11" cy="11" r="8" />
@@ -3561,7 +3575,7 @@
           </svg>
         </button>
       </div>
-      <button type="button" class="mic-btn" id="micBtn" onclick="toggleVoice()" title="Buscar por voz"
+      <button type="button" class="mic-btn" id="micBtn" onclick="toggleVoice(); navigator.vibrate?.([20])" title="Buscar por voz"
         aria-label="Búsqueda por voz">
         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2">
@@ -3574,7 +3588,7 @@
     </div>
 
     <div class="nav-actions">
-      <button class="nav-btn" onclick="openFilterPanel()">
+      <button class="nav-btn" onclick="openFilterPanel(); navigator.vibrate?.([20])">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2">
           <line x1="4" y1="6" x2="20" y2="6" />
@@ -3583,23 +3597,23 @@
         </svg>
         Filtros
       </button>
-      <button class="nav-btn" onclick="openFavs()"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg> Guardados</button>
-      <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Cambiar tema"
+      <button class="nav-btn" onclick="openFavs(); navigator.vibrate?.([20])"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:6px"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg> Guardados</button>
+      <button class="theme-toggle" id="themeToggle" onclick="toggleTheme(); navigator.vibrate?.([20])" title="Cambiar tema"
         aria-label="Cambiar tema claro/oscuro">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="theme-icon-sun"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
       </button>
       <button class="btn-registro"
-        onclick="document.getElementById('planSection').scrollIntoView({behavior:'smooth'})">Registra tu negocio
+        onclick="document.getElementById('planSection').scrollIntoView({behavior:'smooth'}); navigator.vibrate?.([20])">Registra tu negocio
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:4px"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
     </div>
   </nav>
 
   <!-- ── HERO ── -->
-  <section class="hero">
-    <div class="hero-orb hero-orb-1"></div>
-    <div class="hero-orb hero-orb-2"></div>
+  <section class="hero" onmousemove="handleParallax(event)">
+    <div class="hero-orb hero-orb-1" data-speed="20"></div>
+    <div class="hero-orb hero-orb-2" data-speed="-15"></div>
     <!-- ── Animated Visual ── -->
-    <div class="hero-visual" aria-hidden="true">
+    <div class="hero-visual" id="heroVisual" aria-hidden="true">
       <canvas class="hv-canvas" id="heroCanvas"></canvas>
       <!-- Glow center -->
       <div class="hv-glow"></div>
@@ -3673,7 +3687,7 @@
               oninput="syncSearch(this,'locationNav'); debouncedSearch()">
           </div>
           <button class="btn-hero-search"
-            onclick="debouncedSearch();scrollToFeed();document.getElementById('acDropdown').style.display='none'">
+            onclick="debouncedSearch();scrollToFeed();document.getElementById('acDropdown').style.display='none'; navigator.vibrate?.([20])">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" stroke-width="2.5">
               <circle cx="11" cy="11" r="8" />
@@ -3706,35 +3720,35 @@
 
   <!-- ── CATEGORIES ── -->
   <div class="cats" id="catsRow">
-    <div class="cat active" data-filter="all" onclick="filterCat('all',this)">
+    <div class="cat active" data-filter="all" onclick="filterCat('all',this); navigator.vibrate?.([15])">
       <span class="cat-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg></span>
       <span class="cat-lbl">Todos</span>
     </div>
-    <div class="cat" data-filter="barberia" onclick="filterCat('barberia',this)">
+    <div class="cat" data-filter="barberia" onclick="filterCat('barberia',this); navigator.vibrate?.([15])">
       <span class="cat-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg></span>
       <span class="cat-lbl">Barbería</span>
     </div>
-    <div class="cat" data-filter="nails" onclick="filterCat('nails',this)">
+    <div class="cat" data-filter="nails" onclick="filterCat('nails',this); navigator.vibrate?.([15])">
       <span class="cat-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 22 1-1h3l9-9"/><path d="M14 14l5 5"/><path d="M11.5 15.5L15 12"/><path d="M22 9l-2 2"/></svg></span>
       <span class="cat-lbl">Nails</span>
     </div>
-    <div class="cat" data-filter="spa" onclick="filterCat('spa',this)">
+    <div class="cat" data-filter="spa" onclick="filterCat('spa',this); navigator.vibrate?.([15])">
       <span class="cat-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 10V2"/><path d="m4.93 10.93 1.41-1.41"/><path d="M2 18h2"/><path d="m4.93 25.07 1.41 1.41"/><path d="M12 26v8"/><path d="m19.07 25.07-1.41 1.41"/><path d="M22 18h-2"/><path d="m19.07 10.93-1.41-1.41"/><path d="M12 22a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/></svg></span>
       <span class="cat-lbl">Spa</span>
     </div>
-    <div class="cat" data-filter="hair" onclick="filterCat('hair',this)">
+    <div class="cat" data-filter="hair" onclick="filterCat('hair',this); navigator.vibrate?.([15])">
       <span class="cat-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5s-3 3.5-3 5.5a7 7 0 0 0 7 7Z"/></svg></span>
       <span class="cat-lbl">Hair</span>
     </div>
-    <div class="cat" data-filter="open" onclick="filterCat('open',this)">
+    <div class="cat" data-filter="open" onclick="filterCat('open',this); navigator.vibrate?.([15])">
       <span class="cat-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
       <span class="cat-lbl">Abiertos</span>
     </div>
-    <div class="cat" data-filter="premium" onclick="filterCat('premium',this)">
+    <div class="cat" data-filter="premium" onclick="filterCat('premium',this); navigator.vibrate?.([15])">
       <span class="cat-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12l4 6-10 12L2 9Z"/><path d="M11 3 8 9l3.5 11"/><path d="M13 3l3 6-3.5 11"/><path d="M2 9h20"/></svg></span>
       <span class="cat-lbl">Premium</span>
     </div>
-    <div class="cat" data-filter="favorites" onclick="filterCat('favorites',this)">
+    <div class="cat" data-filter="favorites" onclick="filterCat('favorites',this); navigator.vibrate?.([15])">
       <span class="cat-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg></span>
       <span class="cat-lbl">Guardados</span>
     </div>
@@ -3969,21 +3983,21 @@
   <!-- ── BOTTOM NAV (móvil) ── -->
   <nav class="bottom-nav" aria-label="Navegación principal">
     <div class="bn-items">
-      <button type="button" class="bn-item active" id="bn-home" onclick="bnNav('home')" aria-label="Inicio">
+      <button type="button" class="bn-item active" id="bn-home" onclick="bnNav('home'); navigator.vibrate?.([15])" aria-label="Inicio">
         <svg viewbox="0 0 24 24" fill="none" stroke="currentColor">
           <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
           <polyline points="9 22 9 12 15 12 15 22" />
         </svg>
         <span class="bn-label">Inicio</span>
       </button>
-      <button type="button" class="bn-item" id="bn-search" onclick="bnNav('search')" aria-label="Buscar">
+      <button type="button" class="bn-item" id="bn-search" onclick="bnNav('search'); navigator.vibrate?.([15])" aria-label="Buscar">
         <svg viewbox="0 0 24 24" fill="none" stroke="currentColor">
           <circle cx="11" cy="11" r="8" />
           <path d="m21 21-4.35-4.35" />
         </svg>
         <span class="bn-label">Buscar</span>
       </button>
-      <button type="button" class="bn-item" id="bn-bookings" onclick="bnNav('bookings')" aria-label="Mis citas">
+      <button type="button" class="bn-item" id="bn-bookings" onclick="bnNav('bookings'); navigator.vibrate?.([15])" aria-label="Mis citas">
         <div class="bn-icon-wrap">
           <svg viewbox="0 0 24 24" fill="none" stroke="currentColor">
             <rect x="3" y="4" width="18" height="18" rx="2" />
@@ -3995,7 +4009,7 @@
         </div>
         <span class="bn-label">Mis citas</span>
       </button>
-      <button type="button" class="bn-item" id="bn-saved" onclick="bnNav('saved')" aria-label="Guardados">
+      <button type="button" class="bn-item" id="bn-saved" onclick="bnNav('saved'); navigator.vibrate?.([15])" aria-label="Guardados">
         <svg viewbox="0 0 24 24" fill="none" stroke="currentColor">
           <path
             d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
@@ -4010,7 +4024,7 @@
   <div id="toast-wrap"></div>
 
   <!-- ── WA FAB ── -->
-  <button type="button" class="wa-fab" onclick="openRegistro()" title="Contactar soporte AuraOS"
+  <button type="button" class="wa-fab" onclick="openRegistro(); navigator.vibrate?.([20])" title="Contactar soporte AuraOS"
     aria-label="WhatsApp soporte">💬</button>
 
   <!-- ── LIGHTBOX ── -->
@@ -4036,7 +4050,7 @@
   <!-- ── COMPARE BAR ── -->
   <div class="compare-bar" id="compareBar" role="region" aria-label="Comparar negocios">
     <div class="compare-pills" id="comparePills"></div>
-    <button type="button" class="btn-compare-go" onclick="openCompare()">Comparar →</button>
+    <button type="button" class="btn-compare-go" onclick="openCompare(); navigator.vibrate?.([20])">Comparar →</button>
     <button type="button"
       style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:1.1rem;padding:0 4px"
       onclick="clearCompare()" aria-label="Limpiar comparación">✕</button>
@@ -4168,6 +4182,22 @@
     let currentBookingShop = null, currentBookingBarber = null, currentBookingService = null, currentBookingSlot = null;
     let shopBarberos = [], shopCitasHoy = [];
 
+    // ── Parallax ──
+    function handleParallax(e) {
+      const v = document.getElementById('heroVisual');
+      if (v) {
+        const x = (window.innerWidth / 2 - e.clientX) / 25;
+        const y = (window.innerHeight / 2 - e.clientY) / 25;
+        v.style.transform = `translateY(-50%) translate(${x}px, ${y}px)`;
+      }
+      document.querySelectorAll('.hero-orb').forEach(orb => {
+        const speed = orb.getAttribute('data-speed') || 10;
+        const x = (window.innerWidth / 2 - e.clientX) / speed;
+        const y = (window.innerHeight / 2 - e.clientY) / speed;
+        orb.style.transform = `translate(${x}px, ${y}px)`;
+      });
+    }
+
     // ── Utils ──
     const esc = s => DOMPurify.sanitize(String(s ?? ''));
 
@@ -4232,11 +4262,17 @@
       map = L.map('leafletMap', { zoomControl: true, scrollWheelZoom: true }).setView([18.4861, -69.9312], 12);
       L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '©AuraOS', maxZoom: 19 }).addTo(map);
     }
-    function addMarkers(shops) {
+    function addMarkers(filtered) {
       markers.forEach(m => m.remove()); markers = [];
-      shops.forEach(s => {
+      filtered.forEach(s => {
         if (!s.lat || !s.lng) return;
-        const icon = L.divIcon({ className: '', html: `<div style="width:30px;height:30px;border-radius:50% 50% 50% 0;background:${s.plan === 'premium' ? '#D4AF37' : '#555'};border:2px solid #000;transform:rotate(-45deg);box-shadow:0 0 10px rgba(0,0,0,.5)"></div>`, iconSize: [30, 38], iconAnchor: [15, 38] });
+        const isReady = s.tiempo_espera === 0;
+        const icon = L.divIcon({ 
+          className: '', 
+          html: `<div class="${isReady ? 'marker-pulse' : ''}" style="width:30px;height:30px;border-radius:50% 50% 50% 0;background:${s.plan === 'premium' ? '#D4AF37' : '#555'};border:2px solid #000;transform:rotate(-45deg);box-shadow:0 0 10px rgba(0,0,0,.5)"></div>`, 
+          iconSize: [30, 38], 
+          iconAnchor: [15, 38] 
+        });
         const m = L.marker([s.lat, s.lng], { icon }).addTo(map);
         m.bindPopup(`<div style="background:#111;color:#fff;border-radius:8px;padding:8px 12px;font-family:Inter,sans-serif"><strong>${s.nombre}</strong><br><small style="color:rgba(255,255,255,.6)">${s.rating ? `<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="vertical-align:middle;margin-top:-2px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> ${s.rating} · ` : ''}${s.tiempo_espera === 0 ? 'Disponible ya' : `<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-top:-2px;margin-right:2px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>~${s.tiempo_espera}min espera`}</small><br><button onclick="document.getElementById('detailModal') && openDetail('${s.id}')" style="margin-top:6px;background:#D4AF37;color:#000;border:none;padding:4px 10px;border-radius:6px;font-size:.75rem;cursor:pointer;font-weight:700">Ver detalles</button></div>`, { className: 'leaflet-popup-dark' });
         m.on('click', () => openDetail(s.id));
@@ -4288,10 +4324,13 @@
           // Aura Score Algorithm: High rating + Low wait + Reasonable price
           const auraScore = ((rating || 3) * 15) - (wait * 0.3) - (minP / 200);
 
+          // Mapear tipo_negocio del superadmin → categoria de filtro del marketplace
+          const catMap = { barberia: 'barberia', salon: 'hair', spa: 'spa', estetica: 'spa', nails: 'nails' };
           return {
             ...s,
             id: String(s.id),
             nombre: s.nombre || 'Sin nombre',
+            categoria: catMap[s.tipo_negocio] || s.tipo_negocio || 'barberia',
             lat: parseFloat(s.lat || 0) || null,
             lng: parseFloat(s.lng || 0) || null,
             foto_url: s.foto_url || getDemoImg(s.id),
@@ -5497,6 +5536,31 @@
       }, 800);
     }
 
+    function initHeroParallax() {
+      const hero = document.querySelector('.hero');
+      if (!hero) return;
+      const orb1 = document.querySelector('.hero-orb-1');
+      const orb2 = document.querySelector('.hero-orb-2');
+      const visual = document.querySelector('.hero-visual');
+
+      hero.addEventListener('mousemove', (e) => {
+        const { clientX: x, clientY: y } = e;
+        const { width: w, height: h } = hero.getBoundingClientRect();
+        const dx = (x - w / 2) / w;
+        const dy = (y - h / 2) / h;
+
+        if (orb1) orb1.style.transform = `translate(${dx * 40}px, ${dy * 40}px)`;
+        if (orb2) orb2.style.transform = `translate(${dx * -60}px, ${dy * -60}px)`;
+        if (visual) visual.style.transform = `translateY(-50%) translate(${dx * -20}px, ${dy * -20}px)`;
+      });
+    }
+
+    function haptic() {
+      if (window.navigator && window.navigator.vibrate) {
+        window.navigator.vibrate(5);
+      }
+    }
+
     // ── Autocomplete ──
     function showAutocomplete(q) {
       const dropdown = document.getElementById('acDropdown');
@@ -5801,6 +5865,12 @@
       updateBnBadge();
       initScrollReveal();
       initHeroCounters();
+      initHeroParallax();
+
+      // Attach haptic feedback to buttons
+      document.querySelectorAll('button, .chip, .cat, .app-badge').forEach(el => {
+        el.addEventListener('click', haptic);
+      });
     });
   </script>
 </body>
