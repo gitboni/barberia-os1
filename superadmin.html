@@ -4247,9 +4247,13 @@ function renderAuditoriaTable() {
   
   // Si hay un Chat ID activo, filtramos y ordenamos ASC (cronológico)
   if (_activeChatId) {
-    rows = rows.filter(r => r.chat_id === _activeChatId);
+    const target = _activeChatId.trim();
+    rows = rows.filter(r => (r.chat_id||'').trim() === target);
     rows.sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
-    if (clearBtn) clearBtn.style.display = 'block';
+    if (clearBtn) {
+      clearBtn.style.display = 'block';
+      clearBtn.innerHTML = `✕ CERRAR HISTORIAL (${rows.length} msgs)`;
+    }
   } else {
     if (clearBtn) clearBtn.style.display = 'none';
     // Orden normal (descendente por fecha)
