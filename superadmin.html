@@ -3534,8 +3534,10 @@ function _isStuck(c) {
   if (!c.ultima_actualizacion) return false;
   const last = new Date(c.ultima_actualizacion).getTime();
   const diff = (Date.now() - last) / 60000; // minutos
-  const active = c.estado_conversacion && !c.estado_conversacion.includes('confirmada') && !c.estado_conversacion.includes('error');
-  return active && diff > 15 && diff < 1440; // entre 15 min y 24h
+  const st = (c.estado_conversacion || '').toLowerCase();
+  // No está estancado si ya terminó, se confirmó o dio error
+  const isFinished = st.includes('confirmada') || st.includes('completado') || st.includes('terminado') || st.includes('error');
+  return !isFinished && diff > 15 && diff < 1440; // entre 15 min y 24h
 }
 
 function _renderClientType(c) {
