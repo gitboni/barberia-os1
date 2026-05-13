@@ -5281,7 +5281,7 @@ async function loadSystemLogs() {
   if (empty) empty.style.display = 'none';
 
   try {
-    const logs = await sbGet('logs_sistema', 'order=ts.desc&limit=200');
+    const logs = await sbGet('logs_sistema', 'order=created_at.desc&limit=200');
     if (!logs || !logs.length) {
       tbody.innerHTML = '';
       if (empty) empty.style.display = '';
@@ -5290,7 +5290,7 @@ async function loadSystemLogs() {
 
     tbody.innerHTML = logs.map(l => {
       const color = l.level === 'ERROR' ? 'var(--red)' : l.level === 'WARN' ? 'var(--orange)' : 'var(--blue)';
-      const fecha = new Date(l.ts).toLocaleString('es-DO', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+      const fecha = new Date(l.created_at).toLocaleString('es-DO', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',second:'2-digit'});
       const shop = (_shops||[]).find(s => s.id === l.shop_id);
       const origin = l.origin || 'edge-function';
       const context = l.shop_id ? (shop?.nombre || l.shop_id.slice(0,8)) : (l.chat_id ? 'Chat: '+l.chat_id.slice(0,8) : '—');
