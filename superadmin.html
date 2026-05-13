@@ -1052,7 +1052,7 @@ tr:hover td{background:rgba(255,255,255,0.016);}
     </div>
 
     <!-- MODAL CHAT RÁPIDO (WhatsApp Monitor) -->
-    <div class="modal-overlay" id="modalChatConversacion" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:9000;align-items:center;justify-content:center;backdrop-filter:blur(6px);">
+    <div class="modal-overlay" id="modalChatConversacion" style="z-index:9000;">
       <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:22px;max-width:600px;width:92%;max-height:85vh;display:flex;flex-direction:column;position:relative;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
           <div id="modalChatTitle" style="font-size:0.75rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:0.1em;">Historial de Chat</div>
@@ -3508,7 +3508,7 @@ async function verChatConversacion(chatId) {
   
   document.getElementById('modalChatTitle').textContent = 'Chat: ' + chatId.replace('whatsapp:','');
   container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted);font-size:0.6rem;">Cargando historial...</div>';
-  modal.style.display = 'flex';
+  openModal('modalChatConversacion');
 
   try {
     const cleanTarget = chatId.replace(/\D/g, '');
