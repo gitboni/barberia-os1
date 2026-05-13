@@ -464,8 +464,9 @@ tr:hover td{background:rgba(255,255,255,0.016);}
   <div class="nav-item" data-page="analytics"><i data-lucide="line-chart" class="icon"></i><span class="sidebar-text">Analytics</span></div>
   <div class="nav-item" data-page="reportes"><i data-lucide="bar-chart-3" class="icon"></i><span class="sidebar-text">Reportes</span></div>
   <div class="nav-item" data-page="seguridad"><i data-lucide="lock" class="icon"></i><span class="sidebar-text">Seguridad</span></div>
-  <div class="nav-item" data-page="logs"><i data-lucide="terminal" class="icon"></i><span class="sidebar-text">Logs</span></div>
-  <div class="nav-item" data-page="auditoria"><i data-lucide="bot" class="icon"></i><span class="sidebar-text">Auditoría IA</span><span class="badge green sidebar-text" id="auditoriaCount" style="display:none">0</span></div>
+  <div class="nav-item" data-page="page-auditoria"><i data-lucide="bot" class="icon"></i><span class="sidebar-text">Auditoría IA</span><div class="nav-badge" id="auditoriaCount" style="display:none">0</div></div>
+  <div class="nav-item" data-page="page-system-logs"><i data-lucide="activity" class="icon"></i><span class="sidebar-text">Logs de Sistema</span></div>
+  <div class="nav-item" data-page="page-logs"><i data-lucide="terminal" class="icon"></i><span class="sidebar-text">Logs UI</span></div>
   <div class="nav-item" data-page="config"><i data-lucide="settings" class="icon"></i><span class="sidebar-text">Configuración</span></div>
   <div class="nav-item" data-page="estado"><i data-lucide="activity" class="icon"></i><span class="sidebar-text">Estado Sistema</span></div>
   <div class="nav-item" data-page="broadcast"><i data-lucide="megaphone" class="icon"></i><span class="sidebar-text">Broadcast</span></div>
@@ -736,39 +737,39 @@ tr:hover td{background:rgba(255,255,255,0.016);}
 
     <!-- AUDITORÍA IA -->
     <div class="page" id="page-auditoria">
-      <div class="section-header">
-        <div class="section-title">Auditoría IA</div>
-        <div class="btn-group">
-          <button class="btn btn-ghost" onclick="exportAuditoriaCSV()" title="Exportar CSV">⬇ CSV</button>
-          <button class="btn btn-ghost" onclick="loadAuditoria()">↻</button>
+      <div class="page-header">
+        <div class="header-title">
+          <div class="title-main">🤖 Auditoría IA</div>
+          <div class="title-sub">Monitoreo de peticiones, respuestas y consumo de tokens de los modelos de lenguaje.</div>
+        </div>
+        <div class="header-actions">
+          <button class="action-btn" onclick="loadAuditoria()">↻ Refrescar</button>
+          <button class="action-btn" onclick="exportAuditoriaCSV()">📥 Exportar CSV</button>
         </div>
       </div>
 
-      <!-- KPIs -->
-      <div id="auditoria-kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;"></div>
-
-      <!-- Filtros -->
-      <div class="filters-bar" style="margin-bottom:14px;">
-        <select class="filter-input" id="auditoriaShopFilter" style="max-width:220px;" onchange="renderAuditoriaTable()">
-          <option value="">Todas las barberías</option>
-        </select>
-        <select class="filter-input" id="auditoriaModelFilter" style="max-width:180px;" onchange="renderAuditoriaTable()">
-          <option value="">Todos los modelos</option>
-        </select>
-        <input class="filter-input" id="auditoriaSearch" placeholder="Buscar en prompts..." style="flex:1;" oninput="renderAuditoriaTable()">
+      <div class="stats-grid" id="auditoria-kpis" style="margin-bottom:24px;">
+        <!-- Poblado por JS -->
       </div>
 
-      <!-- Tabla -->
+      <div class="filters-bar">
+        <div class="filter-group">
+          <select id="auditoriaShopFilter" onchange="renderAuditoriaTable()"><option value="">Todas las barberías</option></select>
+          <select id="auditoriaModelFilter" onchange="renderAuditoriaTable()"><option value="">Todos los modelos</option></select>
+          <input type="text" id="auditoriaSearch" placeholder="Buscar en prompts..." oninput="renderAuditoriaTable()">
+        </div>
+      </div>
+
       <div class="table-wrap">
-        <table>
+        <table style="min-width:1000px;">
           <thead><tr>
             <th>Fecha</th>
             <th>Barbería</th>
             <th>Chat ID</th>
             <th>Modelo</th>
-            <th>Tokens</th>
-            <th>Prompt</th>
-            <th>Acción</th>
+            <th style="text-align:right">Tokens</th>
+            <th>Prompt (resumen)</th>
+            <th style="width:80px">Acción</th>
           </tr></thead>
           <tbody id="auditoriaTable"></tbody>
         </table>
@@ -5267,6 +5268,56 @@ async function guardarEditShop(){
     closeModal('modalEditShop');
     await fetchAll(); loadShops();
   }catch(e){showToast('Error: '+e.message,'error');}
+}
+
+// ════════════════════════════════════════════
+//  SYSTEM LOGS (Edge Functions)
+// ════════════════════════════════════════════
+async function loadSystemLogs() {
+  const tbody = document.getElementById('systemLogsTable');
+  const empty = document.getElementById('system-logs-empty');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px;font-size:0.6rem;letter-spacing:0.1em;">CARGANDO LOGS...</td></tr>';
+  if (empty) empty.style.display = 'none';
+
+  try {
+    const logs = await sbGet('logs_sistema', 'order=created_at.desc&limit=200');
+    if (!logs || !logs.length) {
+      tbody.innerHTML = '';
+      if (empty) empty.style.display = '';
+      return;
+    }
+
+    tbody.innerHTML = logs.map(l => {
+      const color = l.level === 'ERROR' ? 'var(--red)' : l.level === 'WARN' ? 'var(--orange)' : 'var(--blue)';
+      const fecha = new Date(l.created_at).toLocaleString('es-DO', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+      const shop = (_shops||[]).find(s => s.id === l.shop_id);
+      const origin = l.origin || 'edge-function';
+      const context = l.shop_id ? (shop?.nombre || l.shop_id.slice(0,8)) : (l.chat_id ? 'Chat: '+l.chat_id.slice(0,8) : '—');
+      
+      return `<tr>
+        <td style="font-size:0.58rem;font-family:'DM Mono',monospace;color:var(--muted);">${fecha}</td>
+        <td><span style="font-size:0.5rem;padding:2px 6px;border:1px solid ${color};color:${color};border-radius:4px;font-weight:700;">${l.level}</span></td>
+        <td style="font-size:0.62rem;color:var(--muted);">${origin}</td>
+        <td style="font-size:0.62rem;font-weight:600;">${context}</td>
+        <td style="font-size:0.64rem;color:var(--text);line-height:1.4;">${l.message}</td>
+      </tr>`;
+    }).join('');
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="5" style="color:var(--red);text-align:center;padding:24px;">Error: ${e.message}<br><small style="color:var(--muted)">Asegúrate que la tabla "logs_sistema" exista.</small></td></tr>`;
+  }
+}
+
+async function clearSystemLogs() {
+  if (!confirm('¿Seguro que deseas eliminar todos los logs de sistema? Esta acción no se puede deshacer.')) return;
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/logs_sistema`, {
+      method: 'DELETE',
+      headers: {'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${_accessToken||SUPABASE_KEY}`}
+    });
+    showToast('Logs eliminados ✓', 'success');
+    loadSystemLogs();
+  } catch (e) { showToast('Error: ' + e.message, 'error'); }
 }
 
 </script>
