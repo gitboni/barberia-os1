@@ -1055,6 +1055,17 @@ tr:hover td{background:rgba(255,255,255,0.016);}
       <div class="table-wrap"><table><thead><tr><th>Barbería</th><th>Número WhatsApp</th><th class="col-hide-xs">Webhook URL</th><th>Estado</th><th class="col-hide-xs">Últ. conversación</th><th class="col-hide-xs">Mensajes</th></tr></thead><tbody id="webhooksTable"></tbody></table></div>
       <div style="margin-top:20px;">
         <div class="section-header"><div class="section-title">Conversaciones Recientes</div></div>
+        <div class="filters-bar" style="margin-bottom:14px;">
+          <input class="filter-input" placeholder="Buscar teléfono..." id="convsSearch" style="flex:1;" oninput="renderConvsTable()">
+          <div style="display:flex;align-items:center;gap:6px;background:var(--surface);padding:0 8px;border:1px solid var(--border);">
+            <span style="font-size:0.45rem;color:var(--muted);text-transform:uppercase;">Desde</span>
+            <input type="date" class="filter-input" id="convsDateFrom" style="border:none;padding:8px 4px;" onchange="renderConvsTable()">
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;background:var(--surface);padding:0 8px;border:1px solid var(--border);">
+            <span style="font-size:0.45rem;color:var(--muted);text-transform:uppercase;">Hasta</span>
+            <input type="date" class="filter-input" id="convsDateTo" style="border:none;padding:8px 4px;" onchange="renderConvsTable()">
+          </div>
+        </div>
         <div class="table-wrap"><table><thead><tr><th>Barbería</th><th>Teléfono</th><th>Estado Conv.</th><th>Últ. mensaje</th><th>Actualizado</th><th>Acción</th></tr></thead><tbody id="convsTable"></tbody></table></div>
       </div>
     </div>
@@ -3460,14 +3471,14 @@ document.getElementById('exportCitasBtn').addEventListener('click',()=>{
 async function loadWebhooks() {
   const shops=usingDemo?_shops.filter(s=>s.activo):await sbGet('shops','select=*&activo=eq.true').catch(()=>_shops.filter(s=>s.activo));
   // ✅ FIX: campo correcto es "ultima_actualizacion" no "updated_at"
-  const convs=usingDemo?_convs:await sbGet('conversaciones','select=*&order=ultima_actualizacion.desc&limit=50').catch(()=>_convs);
-  document.getElementById('wa-convs-total').textContent=convs.length;
+  _allConvs=usingDemo?_convs:await sbGet('conversaciones','select=*&order=ultima_actualizacion.desc&limit=100').catch(()=>_convs);
+  document.getElementById('wa-convs-total').textContent=_allConvs.length;
   const withWA=shops.filter(s=>s.meta_phone_number_id||s.twilio_number);
   document.getElementById('wa-shops-active').textContent=withWA.length;
   document.getElementById('wa-shops-missing').textContent=shops.length-withWA.length;
 
   const convMap={};
-  convs.forEach(c=>{ if(!convMap[c.shop_id]) convMap[c.shop_id]=c; });
+  _allConvs.forEach(c=>{ if(!convMap[c.shop_id]) convMap[c.shop_id]=c; });
 
   document.getElementById('webhooksTable').innerHTML=shops.map(s=>`
     <tr>
@@ -3481,11 +3492,31 @@ async function loadWebhooks() {
           ?new Date(convMap[s.id].ultima_actualizacion).toLocaleString('es')
           :'—'}
       </td>
-      <td style="color:var(--gold)">${convs.filter(c=>c.shop_id===s.id).length}</td>
+      <td style="color:var(--gold)">${_allConvs.filter(c=>c.shop_id===s.id).length}</td>
     </tr>`).join('');
 
-  const shopMap=Object.fromEntries(shops.map(s=>[s.id,s.nombre]));
-  document.getElementById('convsTable').innerHTML=convs.slice(0,20).map(c=>`
+  renderConvsTable();
+}
+
+let _allConvs = [];
+function renderConvsTable() {
+  const q = (document.getElementById('convsSearch')?.value || '').toLowerCase();
+  const from = document.getElementById('convsDateFrom')?.value;
+  const to = document.getElementById('convsDateTo')?.value;
+  const shopMap = Object.fromEntries(_shops.map(s=>[s.id, s.nombre]));
+
+  let filtered = _allConvs;
+  if (q) filtered = filtered.filter(c => (c.chat_id||'').toLowerCase().includes(q));
+  if (from) {
+    const fromTs = new Date(from + 'T00:00:00').getTime();
+    filtered = filtered.filter(c => new Date(c.ultima_actualizacion).getTime() >= fromTs);
+  }
+  if (to) {
+    const toTs = new Date(to + 'T23:59:59').getTime();
+    filtered = filtered.filter(c => new Date(c.ultima_actualizacion).getTime() <= toTs);
+  }
+
+  document.getElementById('convsTable').innerHTML=filtered.slice(0,30).map(c=>`
     <tr>
       <td style="color:var(--text)">${shopMap[c.shop_id]||'—'}</td>
       <td style="color:var(--muted);font-family:'DM Mono',monospace;">${c.chat_id.replace('whatsapp:','')}</td>
