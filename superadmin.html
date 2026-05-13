@@ -757,6 +757,7 @@ tr:hover td{background:rgba(255,255,255,0.016);}
           <option value="">Todos los modelos</option>
         </select>
         <input class="filter-input" id="auditoriaSearch" placeholder="Buscar en prompts..." style="flex:1;" oninput="renderAuditoriaTable()">
+        <button class="btn btn-ghost" id="clearChatFilter" style="display:none;white-space:nowrap;color:var(--gold);" onclick="clearChatIdFilter()">✕ CERRAR HISTORIAL</button>
       </div>
 
       <!-- Tabla -->
@@ -4240,8 +4241,21 @@ function renderAuditoriaTable() {
   const shopFilter  = document.getElementById('auditoriaShopFilter').value;
   const modelFilter = document.getElementById('auditoriaModelFilter').value;
   const search      = (document.getElementById('auditoriaSearch').value||'').toLowerCase();
+  const clearBtn    = document.getElementById('clearChatFilter');
 
   let rows = _auditoriaRows;
+  
+  // Si hay un Chat ID activo, filtramos y ordenamos ASC (cronológico)
+  if (_activeChatId) {
+    rows = rows.filter(r => r.chat_id === _activeChatId);
+    rows.sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
+    if (clearBtn) clearBtn.style.display = 'block';
+  } else {
+    if (clearBtn) clearBtn.style.display = 'none';
+    // Orden normal (descendente por fecha)
+    rows.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+  }
+
   if (shopFilter)  rows = rows.filter(r => r.shop_id === shopFilter);
   if (modelFilter) rows = rows.filter(r => r.modelo === modelFilter);
   if (search)      rows = rows.filter(r => (r.prompt||'').toLowerCase().includes(search) || (r.respuesta||'').toLowerCase().includes(search) || (r.chat_id||'').toLowerCase().includes(search));
@@ -4261,7 +4275,7 @@ function renderAuditoriaTable() {
     return `<tr>
       <td style="font-size:0.58rem;white-space:nowrap">${fecha}</td>
       <td style="font-size:0.62rem;font-weight:600">${shopNombre}</td>
-      <td style="font-size:0.55rem;color:var(--muted);font-family:'DM Mono',monospace">${(r.chat_id||'').slice(0,14)}</td>
+      <td style="font-size:0.55rem;color:var(--gold);font-family:'DM Mono',monospace;cursor:pointer;text-decoration:underline;" onclick="verHistorialChat('${r.chat_id}')" title="Ver historial completo">${(r.chat_id||'').slice(0,14)}</td>
       <td><span style="font-size:0.52rem;background:rgba(176,110,255,0.1);color:var(--purple);border:1px solid rgba(176,110,255,0.25);border-radius:4px;padding:2px 6px;">${modelo}</span></td>
       <td style="text-align:right">${tokens}</td>
       <td style="font-size:0.62rem;color:var(--text);line-height:1.4;max-width:400px;word-break:break-word;">${r.prompt||'—'}</td>
@@ -4281,6 +4295,18 @@ function verDetalleAuditoria(id) {
   document.getElementById('auditoria-modal-respuesta').textContent = r.respuesta || '(sin respuesta)';
   const modal = document.getElementById('modalAuditoria');
   modal.style.display = 'flex';
+}
+
+let _activeChatId = null;
+function verHistorialChat(chatId) {
+  _activeChatId = chatId;
+  showToast('Viendo historial de chat: ' + chatId.slice(0,8), 'info');
+  renderAuditoriaTable();
+}
+
+function clearChatIdFilter() {
+  _activeChatId = null;
+  renderAuditoriaTable();
 }
 
 function exportAuditoriaCSV() {
