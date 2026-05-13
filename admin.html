@@ -2807,30 +2807,44 @@ async function saveMarketplace(){
   const btn = document.querySelector('[onclick="saveMarketplace()"]');
   if(btn){ btn.textContent='Guardando…'; btn.disabled=true; }
 
-  const patch = {
+  // Campos core (siempre existen en shops)
+  const corePatch = {
     foto_url:     document.getElementById('mp-foto')?.value?.trim()||null,
     descripcion:  document.getElementById('mp-desc')?.value?.trim()||null,
-    ciudad:       document.getElementById('mp-ciudad')?.value?.trim()||null,
-    direccion:    document.getElementById('mp-direccion')?.value?.trim()||null,
     lat:          parseFloat(document.getElementById('mp-lat')?.value)||null,
     lng:          parseFloat(document.getElementById('mp-lng')?.value)||null,
-    instagram:    document.getElementById('mp-instagram')?.value?.trim().replace('@','')||null,
-    tiktok:       document.getElementById('mp-tiktok')?.value?.trim().replace('@','')||null,
-    facebook:     document.getElementById('mp-facebook')?.value?.trim()||null,
     galeria:      _mpGaleria.length ? _mpGaleria : null,
     promociones:  _mpPromos.length ? _mpPromos : null,
     activo:       document.getElementById('mp-activo')?.checked ?? true,
   };
 
-  // Asegurar que activo siempre se envíe (boolean)
-  patch.activo = document.getElementById('mp-activo')?.checked ?? true;
+  // Campos extendidos (requieren migración SQL — pueden no existir aún)
+  const extPatch = {
+    ciudad:       document.getElementById('mp-ciudad')?.value?.trim()||null,
+    direccion:    document.getElementById('mp-direccion')?.value?.trim()||null,
+    instagram:    document.getElementById('mp-instagram')?.value?.trim().replace('@','')||null,
+    tiktok:       document.getElementById('mp-tiktok')?.value?.trim().replace('@','')||null,
+    facebook:     document.getElementById('mp-facebook')?.value?.trim()||null,
+  };
 
+  // Intentar guardar todo; si falla por columnas faltantes, guardar solo core
   try{
-    await sbPatch('shops','id=eq.'+S.shopId, patch);
-    Object.assign(S.shopData, patch);
+    await sbPatch('shops','id=eq.'+S.shopId, {...corePatch, ...extPatch});
+    Object.assign(S.shopData, corePatch, extPatch);
     toast('Perfil del marketplace guardado ✓');
   }catch(e){
-    toast('Error al guardar: '+e.message,'error');
+    if(e.message && (e.message.includes('PGRST204') || e.message.includes('column') || e.message.includes('schema'))) {
+      // Columnas extendidas no existen — guardar solo core
+      try{
+        await sbPatch('shops','id=eq.'+S.shopId, corePatch);
+        Object.assign(S.shopData, corePatch);
+        toast('⚠ Guardado parcial — ejecuta la migración SQL para habilitar ciudad, redes sociales, etc.','warn');
+      }catch(e2){
+        toast('Error al guardar: '+e2.message,'error');
+      }
+    } else {
+      toast('Error al guardar: '+e.message,'error');
+    }
   }finally{
     if(btn){ btn.innerHTML='<i data-lucide="save" style="width:16px;height:16px;"></i> Guardar todos los cambios'; btn.disabled=false; if(window.lucide)lucide.createIcons(); }
   }
