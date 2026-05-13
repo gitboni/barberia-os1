@@ -407,6 +407,12 @@ tr:hover td{background:rgba(255,255,255,0.016);}
   .btn-group{flex-direction:column;}
   .btn-group .btn{width:100%;text-align:center;}
 }
+  .msg-meta { font-size:0.48rem; color:var(--muted); margin-top:6px; display:flex; justify-content:space-between; gap:10px; }
+  .row-warning { background:rgba(231,76,60,0.08) !important; border-left:3px solid var(--red) !important; }
+  .chat-history-container { display:flex; flex-direction:column; gap:12px; padding:20px; background:rgba(0,0,0,0.2); border-radius:12px; max-height:600px; overflow-y:auto; border:1px solid var(--border); margin-top:10px; }
+  .msg-bubble { max-width:80%; padding:12px 16px; border-radius:14px; font-size:0.65rem; line-height:1.5; position:relative; }
+  .msg-client { align-self:flex-start; background:var(--bg2); color:var(--text); border-bottom-left-radius:2px; border:1px solid var(--border); }
+  .msg-bot { align-self:flex-end; background:rgba(62,207,142,0.1); color:var(--green); border-bottom-right-radius:2px; border:1px solid rgba(62,207,142,0.2); }
 </style>
 </head>
 <body>
@@ -775,6 +781,10 @@ tr:hover td{background:rgba(255,255,255,0.016);}
           <tbody id="auditoriaTable"></tbody>
         </table>
       </div>
+      
+      <!-- CONTENEDOR DE BURBUJAS (Se muestra en modo historial) -->
+      <div id="auditoriaChatView" style="display:none;" class="chat-history-container"></div>
+
       <div id="auditoria-empty" style="display:none;text-align:center;padding:60px 20px;color:var(--muted);font-size:0.7rem;letter-spacing:0.1em;">
         SIN REGISTROS DE AUDITORÍA IA
       </div>
