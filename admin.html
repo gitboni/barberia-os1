@@ -2822,8 +2822,7 @@ async function saveMarketplace(){
     activo:       document.getElementById('mp-activo')?.checked ?? true,
   };
 
-  // Limpiar nulos opcionales
-  Object.keys(patch).forEach(k=>{ if(patch[k]===null) delete patch[k]; });
+  // Asegurar que activo siempre se envíe (boolean)
   patch.activo = document.getElementById('mp-activo')?.checked ?? true;
 
   try{
