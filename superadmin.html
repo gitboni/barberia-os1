@@ -4271,7 +4271,7 @@ function renderAuditoriaTable() {
 }
 
 function verDetalleAuditoria(id) {
-  const r = _auditoriaRows.find(x => x.id === id);
+  const r = _auditoriaRows.find(x => String(x.id) === String(id));
   if (!r) return;
   const shop = (_shops||[]).find(s => s.id === r.shop_id);
   const fecha = r.created_at ? new Date(r.created_at).toLocaleString('es-DO') : '—';
