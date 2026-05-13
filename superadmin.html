@@ -4276,17 +4276,58 @@ function renderAuditoriaTable() {
 
   const empty = document.getElementById('auditoria-empty');
   const tbody = document.getElementById('auditoriaTable');
-  if (!rows.length) { tbody.innerHTML=''; empty.style.display=''; return; }
+  const tableWrap = document.querySelector('#page-auditoria .table-wrap');
+  const chatView = document.getElementById('auditoriaChatView');
+
+  if (!rows.length) { 
+    tbody.innerHTML=''; 
+    if(tableWrap) tableWrap.style.display='block';
+    if(chatView) chatView.style.display='none';
+    empty.style.display=''; 
+    return; 
+  }
   empty.style.display = 'none';
+
+  // MODO CHAT (Historial activo)
+  if (_activeChatId) {
+    if(tableWrap) tableWrap.style.display='none';
+    if(chatView) {
+      chatView.style.display='flex';
+      chatView.innerHTML = rows.map(r => `
+        <div class="msg-bubble msg-client">
+          <div style="font-size:0.5rem;color:var(--gold);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.05em;">Cliente</div>
+          ${(r.prompt || '—').replace(/\n/g,'<br>')}
+          <div class="msg-meta"><span>${new Date(r.created_at).toLocaleTimeString()}</span></div>
+        </div>
+        <div class="msg-bubble msg-bot">
+          <div style="font-size:0.5rem;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.05em;">AuraOS Bot</div>
+          ${(r.respuesta || '—').replace(/\n/g,'<br>')}
+          <div class="msg-meta">
+            <span style="color:var(--purple);">${r.modelo?.split('-').slice(-2).join('-') || 'AI'}</span>
+            <span>${new Date(r.created_at).toLocaleTimeString()}</span>
+          </div>
+        </div>
+      `).join('');
+      chatView.scrollTop = chatView.scrollHeight;
+    }
+    return;
+  }
+
+  // MODO TABLA NORMAL
+  if(tableWrap) tableWrap.style.display='block';
+  if(chatView) chatView.style.display='none';
 
   tbody.innerHTML = rows.map(r => {
     const shop = (_shops||[]).find(s => s.id === r.shop_id);
     const shopNombre = shop ? shop.nombre : (r.shop_id||'').slice(0,8)+'…';
     const fecha = r.created_at ? new Date(r.created_at).toLocaleString('es-DO',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
     const modelo = (r.modelo||'—').split('-').slice(-2).join('-');
-    const promptShort = (r.prompt||'').slice(0,60).replace(/</g,'&lt;') + ((r.prompt||'').length>60?'…':'');
     const tokens = r.tokens ? `<span style="color:var(--gold)">${r.tokens.toLocaleString()}</span>` : '<span style="color:var(--muted)">—</span>';
-    return `<tr>
+    
+    const isWarning = !r.respuesta || r.respuesta.length < 10;
+    const warnClass = isWarning ? 'row-warning' : '';
+
+    return `<tr class="${warnClass}">
       <td style="font-size:0.58rem;white-space:nowrap">${fecha}</td>
       <td style="font-size:0.62rem;font-weight:600">${shopNombre}</td>
       <td style="font-size:0.55rem;color:var(--gold);font-family:'DM Mono',monospace;cursor:pointer;text-decoration:underline;" onclick="verHistorialChat('${r.chat_id}')" title="Ver historial completo">${(r.chat_id||'').slice(0,14)}</td>
