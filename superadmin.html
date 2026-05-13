@@ -763,6 +763,14 @@ tr:hover td{background:rgba(255,255,255,0.016);}
           <option value="">Todos los modelos</option>
         </select>
         <input class="filter-input" id="auditoriaSearch" placeholder="Buscar en prompts..." style="flex:1;" oninput="renderAuditoriaTable()">
+        <div style="display:flex;align-items:center;gap:6px;background:var(--surface);padding:0 8px;border:1px solid var(--border);">
+          <span style="font-size:0.45rem;color:var(--muted);text-transform:uppercase;">Desde</span>
+          <input type="date" class="filter-input" id="auditoriaDateFrom" style="border:none;padding:8px 4px;" onchange="renderAuditoriaTable()">
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;background:var(--surface);padding:0 8px;border:1px solid var(--border);">
+          <span style="font-size:0.45rem;color:var(--muted);text-transform:uppercase;">Hasta</span>
+          <input type="date" class="filter-input" id="auditoriaDateTo" style="border:none;padding:8px 4px;" onchange="renderAuditoriaTable()">
+        </div>
         <button class="btn btn-ghost" id="clearChatFilter" style="display:none;white-space:nowrap;color:var(--gold);" onclick="clearChatIdFilter()">✕ CERRAR HISTORIAL</button>
       </div>
 
@@ -4315,6 +4323,8 @@ function renderAuditoriaTable() {
   const shopFilter  = document.getElementById('auditoriaShopFilter').value;
   const modelFilter = document.getElementById('auditoriaModelFilter').value;
   const search      = (document.getElementById('auditoriaSearch').value||'').toLowerCase();
+  const dateFrom    = document.getElementById('auditoriaDateFrom').value;
+  const dateTo      = document.getElementById('auditoriaDateTo').value;
   const clearBtn    = document.getElementById('clearChatFilter');
 
   let rows = _auditoriaRows;
@@ -4341,6 +4351,15 @@ function renderAuditoriaTable() {
   if (shopFilter)  rows = rows.filter(r => r.shop_id === shopFilter);
   if (modelFilter) rows = rows.filter(r => r.modelo === modelFilter);
   if (search)      rows = rows.filter(r => (r.prompt||'').toLowerCase().includes(search) || (r.respuesta||'').toLowerCase().includes(search) || (r.chat_id||'').toLowerCase().includes(search));
+  
+  if (dateFrom) {
+    const fromTs = new Date(dateFrom + 'T00:00:00').getTime();
+    rows = rows.filter(r => new Date(r.created_at).getTime() >= fromTs);
+  }
+  if (dateTo) {
+    const toTs = new Date(dateTo + 'T23:59:59').getTime();
+    rows = rows.filter(r => new Date(r.created_at).getTime() <= toTs);
+  }
 
   const empty = document.getElementById('auditoria-empty');
   const tbody = document.getElementById('auditoriaTable');
