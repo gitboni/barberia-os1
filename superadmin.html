@@ -1047,7 +1047,18 @@ tr:hover td{background:rgba(255,255,255,0.016);}
       <div class="table-wrap"><table><thead><tr><th>Barbería</th><th>Número WhatsApp</th><th class="col-hide-xs">Webhook URL</th><th>Estado</th><th class="col-hide-xs">Últ. conversación</th><th class="col-hide-xs">Mensajes</th></tr></thead><tbody id="webhooksTable"></tbody></table></div>
       <div style="margin-top:20px;">
         <div class="section-header"><div class="section-title">Conversaciones Recientes</div></div>
-        <div class="table-wrap"><table><thead><tr><th>Barbería</th><th>Teléfono</th><th>Estado Conv.</th><th>Últ. mensaje</th><th>Actualizado</th></tr></thead><tbody id="convsTable"></tbody></table></div>
+        <div class="table-wrap"><table><thead><tr><th>Barbería</th><th>Teléfono</th><th>Estado Conv.</th><th>Últ. mensaje</th><th>Actualizado</th><th>Acción</th></tr></thead><tbody id="convsTable"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- MODAL CHAT RÁPIDO (WhatsApp Monitor) -->
+    <div class="modal-overlay" id="modalChatConversacion" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:9000;align-items:center;justify-content:center;backdrop-filter:blur(6px);">
+      <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:22px;max-width:600px;width:92%;max-height:85vh;display:flex;flex-direction:column;position:relative;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <div id="modalChatTitle" style="font-size:0.75rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:0.1em;">Historial de Chat</div>
+          <button onclick="closeModal('modalChatConversacion')" style="background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;">✕</button>
+        </div>
+        <div id="modalChatBubbles" class="chat-history-container" style="flex:1;overflow-y:auto;margin-top:0;"></div>
       </div>
     </div>
 
@@ -3469,13 +3480,66 @@ async function loadWebhooks() {
   document.getElementById('convsTable').innerHTML=convs.slice(0,20).map(c=>`
     <tr>
       <td style="color:var(--text)">${shopMap[c.shop_id]||'—'}</td>
-      <td style="color:var(--muted)">${c.telefono||'—'}</td>
-      <!-- ✅ FIX: campo correcto es "estado_conversacion" -->
-      <td style="color:var(--gold)">${c.estado_conversacion||'—'}</td>
-      <td style="color:var(--muted);font-size:0.58rem;">${c.ultimo_mensaje||'—'}</td>
-      <!-- ✅ FIX: campo correcto es "ultima_actualizacion" -->
+      <td style="color:var(--muted);font-family:'DM Mono',monospace;">${c.chat_id.replace('whatsapp:','')}</td>
+      <td>${_renderStatusBadge(c.estado_conversacion)}</td>
+      <td style="color:var(--muted);font-size:0.58rem;">${(c.ultimo_mensaje||'—').slice(0,35)}${(c.ultimo_mensaje||'').length>35?'...':''}</td>
       <td style="color:var(--muted)">${c.ultima_actualizacion?new Date(c.ultima_actualizacion).toLocaleString('es'):'—'}</td>
-    </tr>`).join('')||'<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:22px;">Sin conversaciones</td></tr>';
+      <td><button class="action-btn" onclick="verChatConversacion('${c.chat_id}')" style="font-size:0.5rem;padding:2px 6px;">Ver Chat</button></td>
+    </tr>`).join('')||'<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:22px;">Sin conversaciones</td></tr>';
+}
+
+function _renderStatusBadge(status) {
+  if (!status) return '—';
+  let badgeColor = 'var(--muted)';
+  let badgeBg = 'rgba(255,255,255,0.05)';
+  const st = status.toLowerCase();
+  
+  if(st.includes('confirmada')) { badgeColor = 'var(--green)'; badgeBg = 'rgba(62,207,142,0.1)'; }
+  else if(st.includes('error') || st.includes('fallo')) { badgeColor = 'var(--red)'; badgeBg = 'rgba(231,76,60,0.1)'; }
+  else if(st.includes('esperando') || st.includes('proceso')) { badgeColor = 'var(--blue)'; badgeBg = 'rgba(52,152,219,0.1)'; }
+
+  return `<span style="font-size:0.48rem;padding:2px 8px;border-radius:20px;background:${badgeBg};color:${badgeColor};border:1px solid ${badgeColor}44;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;display:inline-block;white-space:nowrap;">${status.replace(/_/g,' ')}</span>`;
+}
+
+async function verChatConversacion(chatId) {
+  const modal = document.getElementById('modalChatConversacion');
+  const container = document.getElementById('modalChatBubbles');
+  if(!modal || !container) return;
+  
+  document.getElementById('modalChatTitle').textContent = 'Chat: ' + chatId.replace('whatsapp:','');
+  container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted);font-size:0.6rem;">Cargando historial...</div>';
+  modal.style.display = 'flex';
+
+  try {
+    const cleanTarget = chatId.replace(/\D/g, '');
+    const rows = await sbGet('auditoria_ia', `order=created_at.desc&limit=100`);
+    const history = rows.filter(r => {
+      const cleanRowId = (r.chat_id || '').replace(/\D/g, '');
+      return cleanRowId.endsWith(cleanTarget.slice(-10));
+    }).sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
+
+    if(!history.length) {
+      container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted);font-size:0.6rem;">No se encontró historial en auditoría.</div>';
+      return;
+    }
+
+    container.innerHTML = history.map(r => `
+      <div class="msg-bubble msg-client">
+        <div style="font-size:0.45rem;color:var(--gold);margin-bottom:3px;text-transform:uppercase;">Cliente</div>
+        ${(r.prompt || '—').replace(/\n/g,'<br>')}
+        <div class="msg-meta"><span>${new Date(r.created_at).toLocaleTimeString()}</span></div>
+      </div>
+      <div class="msg-bubble msg-bot">
+        <div style="font-size:0.45rem;color:var(--muted);margin-bottom:3px;text-transform:uppercase;">Bot</div>
+        ${(r.respuesta || '—').replace(/\n/g,'<br>')}
+        <div class="msg-meta">
+          <span style="color:var(--purple);">${r.modelo?.split('-').slice(-2).join('-') || 'AI'}</span>
+          <span>${new Date(r.created_at).toLocaleTimeString()}</span>
+        </div>
+      </div>
+    `).join('');
+    container.scrollTop = container.scrollHeight;
+  } catch(e) { container.innerHTML = '<div style="color:var(--red);padding:20px;">Error al cargar.</div>'; }
 }
 document.getElementById('refreshWebhooksBtn').addEventListener('click',loadWebhooks);
 
