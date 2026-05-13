@@ -4257,8 +4257,12 @@ function renderAuditoriaTable() {
   
   // Si hay un Chat ID activo, filtramos y ordenamos ASC (cronológico)
   if (_activeChatId) {
-    const target = _activeChatId.trim();
-    rows = rows.filter(r => (r.chat_id||'').trim() === target);
+    const cleanTarget = _activeChatId.replace(/\D/g, ''); // Solo números del target
+    rows = rows.filter(r => {
+      const cleanRowId = (r.chat_id || '').replace(/\D/g, ''); // Solo números de la fila
+      // Coincidencia si los últimos 10 dígitos son iguales (para ignorar prefijos/países)
+      return cleanRowId.endsWith(cleanTarget.slice(-10));
+    });
     rows.sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
     if (clearBtn) {
       clearBtn.style.display = 'block';
