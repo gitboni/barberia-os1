@@ -413,6 +413,8 @@ tr:hover td{background:rgba(255,255,255,0.016);}
   .msg-bubble { max-width:80%; padding:12px 16px; border-radius:14px; font-size:0.65rem; line-height:1.5; position:relative; }
   .msg-client { align-self:flex-start; background:var(--bg2); color:var(--text); border-bottom-left-radius:2px; border:1px solid var(--border); }
   .msg-bot { align-self:flex-end; background:rgba(62,207,142,0.1); color:var(--green); border-bottom-right-radius:2px; border:1px solid rgba(62,207,142,0.2); }
+  .row-stuck { background:rgba(230,126,34,0.05) !important; border-left:3px solid var(--orange) !important; animation: pulse-stuck 2s infinite; }
+  @keyframes pulse-stuck { 0%, 100% { background:rgba(230,126,34,0.05); } 50% { background:rgba(230,126,34,0.12); } }
 </style>
 </head>
 <body>
@@ -1066,7 +1068,7 @@ tr:hover td{background:rgba(255,255,255,0.016);}
             <input type="date" class="filter-input" id="convsDateTo" style="border:none;padding:8px 4px;" onchange="renderConvsTable()">
           </div>
         </div>
-        <div class="table-wrap"><table><thead><tr><th>Barbería</th><th>Teléfono</th><th>Estado Conv.</th><th>Últ. mensaje</th><th>Actualizado</th><th>Acción</th></tr></thead><tbody id="convsTable"></tbody></table></div>
+        <div class="table-wrap"><table><thead><tr><th>Barbería</th><th>Tipo</th><th>Teléfono</th><th>Estado Conv.</th><th>Últ. mensaje</th><th>Actualizado</th><th>Acción</th></tr></thead><tbody id="convsTable"></tbody></table></div>
       </div>
     </div>
 
@@ -3517,14 +3519,32 @@ function renderConvsTable() {
   }
 
   document.getElementById('convsTable').innerHTML=filtered.slice(0,30).map(c=>`
-    <tr>
+    <tr class="${_isStuck(c) ? 'row-stuck' : ''}">
       <td style="color:var(--text)">${shopMap[c.shop_id]||'—'}</td>
+      <td>${_renderClientType(c)}</td>
       <td style="color:var(--muted);font-family:'DM Mono',monospace;">${c.chat_id.replace('whatsapp:','')}</td>
-      <td>${_renderStatusBadge(c.estado_conversacion)}</td>
+      <td>${_renderStatusBadge(c.estado_conversacion)} ${_isStuck(c) ? '<span style="font-size:0.4rem;color:var(--orange);margin-left:4px;font-weight:700;">⚠ ESTANCADO</span>' : ''}</td>
       <td style="color:var(--muted);font-size:0.58rem;">${(c.ultimo_mensaje||'—').slice(0,35)}${(c.ultimo_mensaje||'').length>35?'...':''}</td>
       <td style="color:var(--muted)">${c.ultima_actualizacion?new Date(c.ultima_actualizacion).toLocaleString('es'):'—'}</td>
       <td><button class="action-btn" onclick="verChatConversacion('${c.chat_id}')" style="font-size:0.5rem;padding:2px 6px;">Ver Chat</button></td>
-    </tr>`).join('')||'<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:22px;">Sin conversaciones</td></tr>';
+    </tr>`).join('')||'<tr><td colspan="7" style="color:var(--muted);text-align:center;padding:22px;">Sin conversaciones</td></tr>';
+}
+
+function _isStuck(c) {
+  if (!c.ultima_actualizacion) return false;
+  const last = new Date(c.ultima_actualizacion).getTime();
+  const diff = (Date.now() - last) / 60000; // minutos
+  const active = c.estado_conversacion && !c.estado_conversacion.includes('confirmada') && !c.estado_conversacion.includes('error');
+  return active && diff > 15 && diff < 1440; // entre 15 min y 24h
+}
+
+function _renderClientType(c) {
+  // Si tiene nombre o cliente_id es recurrente
+  const isRecurrent = c.nombre_cliente || c.cliente_id || (c.contexto && c.contexto.includes('cliente_existente'));
+  const color = isRecurrent ? 'var(--blue)' : 'var(--muted)';
+  const label = isRecurrent ? 'RECURRENTE' : 'NUEVO';
+  const bg = isRecurrent ? 'rgba(52,152,219,0.1)' : 'rgba(255,255,255,0.05)';
+  return `<span style="font-size:0.42rem;padding:2px 6px;border-radius:4px;background:${bg};color:${color};border:1px solid ${color}33;font-weight:700;">${label}</span>`;
 }
 
 function _renderStatusBadge(status) {
