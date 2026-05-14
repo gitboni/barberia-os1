@@ -445,6 +445,7 @@ tr:last-child td{border-bottom:none;}
     <button class="nav-item" id="nav-btn-barberos" onclick="setPage('barberos',this)"><i data-lucide="scissors" class="nav-icon"></i>Barberos</button>
     <button class="nav-item" id="nav-btn-reportes" onclick="setPage('reportes',this)"><i data-lucide="bar-chart-3" class="nav-icon"></i>Reportes</button>
     <button class="nav-item" id="nav-btn-gastos" onclick="setPage('gastos',this)"><i data-lucide="wallet" class="nav-icon"></i>Gastos</button>
+    <button class="nav-item" id="nav-btn-inventario" onclick="setPage('inventario',this)"><i data-lucide="package" class="nav-icon"></i>Inventario<span class="nav-badge" id="nb-stock-alerta" style="background:rgba(248,113,113,0.12);color:#f87171;display:none">!</span></button>
     <button class="nav-item" id="nav-btn-bot" onclick="setPage('bot',this)"><i data-lucide="message-square" class="nav-icon"></i>Bot WhatsApp<span class="nav-badge" style="background:rgba(62,207,142,0.12);color:var(--green)">ON</span></button>
     <div class="nav-section">Marketing</div>
     <button class="nav-item" id="nav-btn-marketplace" onclick="setPage('marketplace',this)"><i data-lucide="store" class="nav-icon"></i>Perfil Marketplace</button>
@@ -582,6 +583,65 @@ tr:last-child td{border-bottom:none;}
     <div class="modal-actions">
       <button class="btn-full btn-gold" onclick="saveGasto()">Guardar Gasto</button>
       <button class="btn-full btn-cancel" onclick="closeModal('gasto')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PRODUCTO -->
+<div class="modal-overlay" id="modal-producto">
+  <div class="modal">
+    <h3 id="modal-producto-title">Nuevo Producto</h3>
+    <input type="hidden" id="mp-id">
+    <div class="fg"><label>Nombre del producto</label><input type="text" id="mp-nombre" placeholder="Ej: Pomada Matte, Navaja Gillette…"></div>
+    <div class="fg-row">
+      <div class="fg"><label>Categoría</label>
+        <select id="mp-categoria">
+          <option value="Insumo">🔧 Insumo (uso interno)</option>
+          <option value="Venta">💈 Producto de venta</option>
+          <option value="Herramienta">✂️ Herramienta</option>
+        </select>
+      </div>
+      <div class="fg"><label>Unidad de medida</label><input type="text" id="mp-unidad" value="unidades" placeholder="unidades, ml, g…"></div>
+    </div>
+    <div class="fg-row">
+      <div class="fg"><label>Stock actual</label><input type="number" id="mp-stock" value="0" min="0" step="0.1"></div>
+      <div class="fg"><label>Stock mínimo (alerta)</label><input type="number" id="mp-minimo" value="5" min="0" step="0.1"></div>
+    </div>
+    <div class="fg-row">
+      <div class="fg"><label>Precio de costo (RD$)</label><input type="number" id="mp-costo" value="0" min="0" step="0.01"></div>
+      <div class="fg"><label>Precio de venta (RD$)</label><input type="number" id="mp-pventa" value="0" min="0" step="0.01"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-full btn-gold" onclick="saveProducto()">Guardar Producto</button>
+      <button class="btn-full btn-cancel" onclick="closeModal('producto')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MOVIMIENTO -->
+<div class="modal-overlay" id="modal-movimiento">
+  <div class="modal">
+    <h3 id="modal-mov-title">Registrar Movimiento</h3>
+    <div class="fg"><label>Producto</label><select id="mm-producto"></select></div>
+    <div class="fg-row">
+      <div class="fg"><label>Tipo</label>
+        <select id="mm-tipo" onchange="onMovTipoChange()">
+          <option value="entrada">📦 Entrada (compra/reposición)</option>
+          <option value="salida">🔧 Salida (uso en servicio)</option>
+          <option value="venta">💰 Venta directa a cliente</option>
+          <option value="ajuste">⚖️ Ajuste de inventario</option>
+        </select>
+      </div>
+      <div class="fg"><label>Cantidad</label><input type="number" id="mm-cantidad" value="1" min="0.1" step="0.1"></div>
+    </div>
+    <div class="fg-row">
+      <div class="fg"><label>Precio unitario (RD$)</label><input type="number" id="mm-precio" value="0" min="0" step="0.01"></div>
+      <div class="fg"><label>Fecha</label><input type="date" id="mm-fecha"></div>
+    </div>
+    <div class="fg"><label>Motivo / Notas</label><input type="text" id="mm-motivo" placeholder="Compra proveedor, usado en corte de Lucas…"></div>
+    <div class="modal-actions">
+      <button class="btn-full btn-gold" onclick="saveMovimiento()">Registrar</button>
+      <button class="btn-full btn-cancel" onclick="closeModal('movimiento')">Cancelar</button>
     </div>
   </div>
 </div>
@@ -745,7 +805,7 @@ async function sbPost(t,d){const r=await fetch(SUPABASE_URL+'/rest/v1/'+t,{metho
 async function sbPatch(t,q,d){const r=await fetch(SUPABASE_URL+'/rest/v1/'+t+'?'+q,{method:'PATCH',headers:{...H,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(d)});if(!r.ok)throw new Error(await r.text());return true;}
 async function sbDelete(t,q){const r=await fetch(SUPABASE_URL+'/rest/v1/'+t+'?'+q,{method:'DELETE',headers:H});if(!r.ok)throw new Error(await r.text());return true;}
 
-let S={shopId:null,shopData:null,barberos:[],citas:[],clientes:[],activity:[],gastos:[]};
+let S={shopId:null,shopData:null,barberos:[],citas:[],clientes:[],activity:[],gastos:[],productos:[],movimientos:[]};
 
 function toast(msg,type='success'){
   const el=document.getElementById('toast');
@@ -858,6 +918,9 @@ async function loadAll(){
       S.gastos = gastosDB || [];
     } catch(e) { S.gastos = []; }
 
+    // Cargar inventario si el plan lo permite
+    if(getFeatures().inventario) await loadInventario().catch(()=>{});
+
     renderPage();
   }catch(e){console.warn(e);toast('Error: '+e.message,'error');}
 }
@@ -890,14 +953,15 @@ function renderPage(){
   else if(currentPage==='marketplace'){el.innerHTML=renderMarketplace();setTimeout(initMarketplacePage,100);}
   else if(currentPage==='reseñas'){el.innerHTML='<div style="padding:20px;color:var(--muted);font-size:0.75rem;">Cargando reseñas…</div>';loadReseñas();}
   else if(currentPage==='caja'){el.innerHTML=renderCaja();}
+  else if(currentPage==='inventario'){el.innerHTML=renderInventario();}
   renderSidebar();updateBarberoSelect();
   if(window.lucide) lucide.createIcons();
 }
 // ── Features por plan + overrides manuales del superadmin ──
 const PLAN_FEATURES = {
-  free:  {reportes:true,  config:true, servicios:true, bot:true, barberos:true, clientes:true, walkin:true, marketplace:true, reseñas:true, caja:true,  festivos:false, pwa:true},
-  pro:   {reportes:true,  config:true, servicios:true, bot:true, barberos:true, clientes:true, walkin:true, marketplace:true, reseñas:true, caja:true,  festivos:true,  pwa:true},
-  elite: {reportes:true,  config:true, servicios:true, bot:true, barberos:true, clientes:true, walkin:true, marketplace:true, reseñas:true, caja:true,  festivos:true,  pwa:true},
+  free:  {reportes:true,  config:true, servicios:true, bot:true, barberos:true, clientes:true, walkin:true, marketplace:true, reseñas:true, caja:true,  festivos:false, inventario:false, pwa:true},
+  pro:   {reportes:true,  config:true, servicios:true, bot:true, barberos:true, clientes:true, walkin:true, marketplace:true, reseñas:true, caja:true,  festivos:true,  inventario:true,  pwa:true},
+  elite: {reportes:true,  config:true, servicios:true, bot:true, barberos:true, clientes:true, walkin:true, marketplace:true, reseñas:true, caja:true,  festivos:true,  inventario:true,  pwa:true},
 };
 
 function getFeatures(){
@@ -917,13 +981,14 @@ function getFeatures(){
     reseñas:     s.feature_reseñas     !==null&&s.feature_reseñas     !==undefined ? s.feature_reseñas     : base.reseñas,
     caja:        s.feature_caja        !==null&&s.feature_caja        !==undefined ? s.feature_caja        : base.caja,
     festivos:    s.feature_festivos    !==null&&s.feature_festivos    !==undefined ? s.feature_festivos    : base.festivos,
+    inventario:  s.feature_inventario  !==null&&s.feature_inventario  !==undefined ? s.feature_inventario  : base.inventario,
     pwa:         s.feature_pwa         !==null&&s.feature_pwa         !==undefined ? s.feature_pwa         : base.pwa,
   };
 }
 function renderSidebar(){
   document.getElementById('barbers-sidebar').innerHTML=S.barberos.map(b=>'<div class="barber-mini-item"><div class="barber-mini-dot" style="background:'+(b.activo?'var(--green)':'var(--muted)')+'"></div><div class="barber-mini-name">'+b.nombre+'</div><div class="barber-mini-status" style="color:'+(b.activo?'var(--green)':'var(--muted)')+';">'+b.citas_hoy+' citas</div></div>').join('');
   const f=getFeatures();
-  const navMap={'nav-btn-reportes':'reportes','nav-btn-config':'config','nav-btn-bot':'bot','nav-btn-clientes':'clientes','nav-btn-barberos':'barberos','nav-btn-gastos':'reportes','nav-btn-marketplace':'marketplace','nav-btn-reseñas':'reseñas','nav-btn-caja':'caja'};
+  const navMap={'nav-btn-reportes':'reportes','nav-btn-config':'config','nav-btn-bot':'bot','nav-btn-clientes':'clientes','nav-btn-barberos':'barberos','nav-btn-gastos':'reportes','nav-btn-marketplace':'marketplace','nav-btn-reseñas':'reseñas','nav-btn-caja':'caja','nav-btn-inventario':'inventario'};
   Object.entries(navMap).forEach(function(kv){var el=document.getElementById(kv[0]);if(el)el.style.display=f[kv[1]]?'':'none';});
   var wf=document.getElementById('walkin-fab-btn');if(wf)wf.style.display=f.walkin?'':'none';
 }
@@ -3260,6 +3325,7 @@ function openModal(type, reset = false){
     if(type==='barbero'){document.getElementById('modal-barbero-title').textContent='Nuevo Barbero';document.getElementById('mb-id').value='';document.getElementById('mb-nombre').value='';document.getElementById('mb-orden').value=S.barberos.length+1;document.getElementById('mb-activo').checked=true;renderBarberoCategories([]);}
     if(type==='cliente'){document.getElementById('modal-cliente-title').textContent='Nuevo Cliente';document.getElementById('mc-id').value='';document.getElementById('mc-nombre').value='';document.getElementById('mc-tel').value='';document.getElementById('mc-notas').value='';}
     if(type==='config'){const s=S.shopData||{};document.getElementById('cfg-nombre').value=s.nombre||'';document.getElementById('cfg-whatsapp').value=s.whatsapp_dueño||'';document.getElementById('cfg-duracion').value=s.duracion_turno||45;document.getElementById('cfg-timezone').value=s.timezone||'America/Santo_Domingo';buildHpdGrid('cfg',s.dias_atencion,s.horarios_por_dia,s.hora_inicio||9,s.hora_fin||21);}
+    if(type==='producto'){document.getElementById('modal-producto-title').textContent='Nuevo Producto';document.getElementById('mp-id').value='';document.getElementById('mp-nombre').value='';document.getElementById('mp-categoria').value='Insumo';document.getElementById('mp-unidad').value='unidades';document.getElementById('mp-stock').value=0;document.getElementById('mp-minimo').value=5;document.getElementById('mp-costo').value=0;document.getElementById('mp-pventa').value=0;}
   }
   document.getElementById('modal-'+type).classList.add('open');
 }
@@ -3357,6 +3423,277 @@ async function deleteGasto(id){
     S.gastos = S.gastos.filter(x => String(x.id) !== String(id));
     toast('Gasto eliminado'); renderPage();
   } catch(e){ toast('Error','error'); }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ── INVENTARIO & PRODUCTOS ────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+
+async function loadInventario(){
+  try {
+    const [prods, movs] = await Promise.all([
+      sbGet('productos','shop_id=eq.'+S.shopId+'&activo=eq.true&order=nombre.asc'),
+      sbGet('inventario_movimientos','shop_id=eq.'+S.shopId+'&order=created_at.desc&limit=200')
+    ]);
+    S.productos  = prods  || [];
+    S.movimientos = movs  || [];
+    // Actualizar badge de alertas en sidebar
+    const alertas = S.productos.filter(p => parseFloat(p.stock_actual) <= parseFloat(p.stock_minimo)).length;
+    const nb = document.getElementById('nb-stock-alerta');
+    if(nb){ nb.style.display = alertas > 0 ? '' : 'none'; nb.textContent = alertas > 0 ? alertas : ''; }
+  } catch(e){ S.productos=[]; S.movimientos=[]; }
+}
+
+function calcValorInventario(){
+  return S.productos.reduce((a,p) => a + (parseFloat(p.stock_actual)||0) * (parseFloat(p.precio_costo)||0), 0);
+}
+
+function calcVentasProductosMes(){
+  const hace30 = new Date(); hace30.setDate(hace30.getDate()-30);
+  const corte = hace30.toISOString().split('T')[0];
+  return S.movimientos.filter(m => m.tipo==='venta' && m.fecha >= corte)
+                      .reduce((a,m) => a + parseFloat(m.total||0), 0);
+}
+
+function renderInventario(){
+  const alertas = S.productos.filter(p => parseFloat(p.stock_actual) <= parseFloat(p.stock_minimo));
+  const valorInv = calcValorInventario();
+  const ventasMes = calcVentasProductosMes();
+
+  const statsHtml = `<div class="stats-row" style="grid-template-columns:repeat(4,1fr);">
+    <div class="stat-card c-gold">
+      <div class="stat-val gold">${S.productos.length}</div>
+      <div class="stat-lbl">Productos activos</div>
+    </div>
+    <div class="stat-card c-red">
+      <div class="stat-val red">${alertas.length}</div>
+      <div class="stat-lbl">Bajo stock</div>
+    </div>
+    <div class="stat-card c-blue">
+      <div class="stat-val blue">$${valorInv.toLocaleString('es-DO',{maximumFractionDigits:0})}</div>
+      <div class="stat-lbl">Valor inventario</div>
+    </div>
+    <div class="stat-card c-green">
+      <div class="stat-val green">$${ventasMes.toLocaleString('es-DO',{maximumFractionDigits:0})}</div>
+      <div class="stat-lbl">Ventas productos (30d)</div>
+    </div>
+  </div>`;
+
+  const alertasHtml = alertas.length ? `<div style="background:rgba(248,113,113,0.07);border:1px solid rgba(248,113,113,0.2);border-radius:12px;padding:14px 20px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+    <span style="font-size:0.75rem;font-weight:700;color:var(--red);">⚠️ Stock bajo:</span>
+    ${alertas.map(p=>`<span style="font-family:'DM Mono',monospace;font-size:0.6rem;background:rgba(248,113,113,0.12);color:var(--red);padding:4px 10px;border-radius:8px;">${p.nombre} (${p.stock_actual} ${p.unidad})</span>`).join('')}
+  </div>` : '';
+
+  const productoRows = S.productos.length ? S.productos.map(p => {
+    const bajo = parseFloat(p.stock_actual) <= parseFloat(p.stock_minimo);
+    const catColor = p.categoria==='Venta' ? 'var(--green)' : p.categoria==='Herramienta' ? 'var(--blue)' : 'var(--muted)';
+    return `<tr>
+      <td style="font-weight:600;">${p.nombre}</td>
+      <td><span style="font-size:0.65rem;color:${catColor};background:rgba(255,255,255,0.04);padding:3px 8px;border-radius:6px;">${p.categoria}</span></td>
+      <td style="font-family:'DM Mono',monospace;font-size:0.8rem;color:${bajo?'var(--red)':'var(--text)'};font-weight:700;">${p.stock_actual} <span style="font-size:0.6rem;color:var(--muted);">${p.unidad}</span></td>
+      <td style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);">${p.stock_minimo} ${p.unidad}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--muted);">$${parseFloat(p.precio_costo||0).toLocaleString()}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--green);">$${parseFloat(p.precio_venta||0).toLocaleString()}</td>
+      <td><div class="row-actions">
+        <button class="ra-btn" onclick="openModalMovimiento(null,'${p.id}')">+Mov</button>
+        <button class="ra-btn" onclick="editProducto('${p.id}')">✏️</button>
+        <button class="ra-btn danger" onclick="deleteProducto('${p.id}')">✕</button>
+      </div></td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--muted);font-family:\'DM Mono\',monospace;font-size:0.6rem;">Sin productos. Agrega uno con el botón + Nuevo Producto.</td></tr>';
+
+  const movRows = S.movimientos.slice(0,50).map(m => {
+    const prod = S.productos.find(p=>p.id===m.producto_id);
+    const tipoColor = {entrada:'var(--blue)',salida:'var(--muted)',venta:'var(--green)',ajuste:'var(--gold)'}[m.tipo]||'var(--muted)';
+    const tipoLabel = {entrada:'📦 Entrada',salida:'🔧 Salida',venta:'💰 Venta',ajuste:'⚖️ Ajuste'}[m.tipo]||m.tipo;
+    return `<tr>
+      <td style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);">${m.fecha}</td>
+      <td style="font-weight:600;">${prod?prod.nombre:'Producto eliminado'}</td>
+      <td><span style="font-size:0.65rem;color:${tipoColor};">${tipoLabel}</span></td>
+      <td style="font-family:'DM Mono',monospace;text-align:right;">${m.cantidad}</td>
+      <td style="font-family:'DM Mono',monospace;color:var(--green);text-align:right;">$${parseFloat(m.total||0).toLocaleString()}</td>
+      <td style="font-size:0.75rem;color:var(--muted);">${m.motivo||'—'}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--muted);font-family:\'DM Mono\',monospace;font-size:0.6rem;">Sin movimientos registrados aún.</td></tr>';
+
+  return `
+  ${statsHtml}
+  ${alertasHtml}
+  <div class="card" style="flex:1;display:flex;flex-direction:column;min-height:0;">
+    <div class="card-header">
+      <div>
+        <div class="card-title">📦 Productos e Inventario</div>
+        <div style="font-size:0.6rem;color:var(--muted);margin-top:2px;">Gestiona stock, costos y ventas de productos</div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <input type="text" id="inv-search" placeholder="🔍 Buscar producto…" oninput="filterProductos(this.value)"
+          style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:10px;font-size:0.75rem;width:180px;">
+        <button class="btn-sm btn-dark" onclick="openModalMovimiento()">+ Movimiento</button>
+        <button class="btn-sm btn-gold" onclick="openModal('producto',true)">+ Nuevo Producto</button>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr>
+          <th>Producto</th><th>Categoría</th><th>Stock</th><th>Mínimo</th>
+          <th>Costo</th><th>P. Venta</th><th>Acciones</th>
+        </tr></thead>
+        <tbody id="inv-productos-body">${productoRows}</tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card" style="flex:1;display:flex;flex-direction:column;min-height:220px;">
+    <div class="card-header">
+      <div class="card-title">🔄 Últimos movimientos</div>
+      <span class="card-meta">Últimos 50</span>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr><th>Fecha</th><th>Producto</th><th>Tipo</th><th style="text-align:right;">Cant.</th><th style="text-align:right;">Total</th><th>Motivo</th></tr></thead>
+        <tbody>${movRows}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function filterProductos(q){
+  const rows = document.querySelectorAll('#inv-productos-body tr');
+  const term = (q||'').toLowerCase();
+  rows.forEach(r => {
+    const txt = r.textContent.toLowerCase();
+    r.style.display = (!term || txt.includes(term)) ? '' : 'none';
+  });
+}
+
+function editProducto(id){
+  const p = S.productos.find(x => x.id === id);
+  if(!p) return;
+  document.getElementById('modal-producto-title').textContent = 'Editar Producto';
+  document.getElementById('mp-id').value = p.id;
+  document.getElementById('mp-nombre').value = p.nombre;
+  document.getElementById('mp-categoria').value = p.categoria;
+  document.getElementById('mp-unidad').value = p.unidad;
+  document.getElementById('mp-stock').value = p.stock_actual;
+  document.getElementById('mp-minimo').value = p.stock_minimo;
+  document.getElementById('mp-costo').value = p.precio_costo;
+  document.getElementById('mp-pventa').value = p.precio_venta;
+  openModal('producto');
+}
+
+async function saveProducto(){
+  const id = document.getElementById('mp-id').value;
+  const nombre = document.getElementById('mp-nombre').value.trim();
+  if(!nombre){ toast('El nombre del producto es requerido','error'); return; }
+  const p = {
+    shop_id:      S.shopId,
+    nombre,
+    categoria:    document.getElementById('mp-categoria').value,
+    unidad:       document.getElementById('mp-unidad').value.trim() || 'unidades',
+    stock_actual: parseFloat(document.getElementById('mp-stock').value) || 0,
+    stock_minimo: parseFloat(document.getElementById('mp-minimo').value) || 5,
+    precio_costo: parseFloat(document.getElementById('mp-costo').value) || 0,
+    precio_venta: parseFloat(document.getElementById('mp-pventa').value) || 0,
+    activo:       true,
+  };
+  try {
+    if(id){
+      await sbPatch('productos','id=eq.'+id, {...p, updated_at: new Date().toISOString()});
+      const idx = S.productos.findIndex(x => x.id === id);
+      if(idx>=0) Object.assign(S.productos[idx], p);
+      toast('Producto actualizado ✓');
+    } else {
+      const res = await sbPost('productos', p);
+      if(res && res[0]) S.productos.push(res[0]);
+      toast('Producto agregado ✓');
+    }
+    closeModal('producto'); renderPage();
+  } catch(e){ toast('Error: '+e.message,'error'); }
+}
+
+async function deleteProducto(id){
+  if(!confirm('¿Archivar este producto? No se eliminará del historial de movimientos.')) return;
+  try {
+    await sbPatch('productos','id=eq.'+id,{activo:false, updated_at:new Date().toISOString()});
+    S.productos = S.productos.filter(x => x.id !== id);
+    toast('Producto archivado ✓'); renderPage();
+  } catch(e){ toast('Error','error'); }
+}
+
+function openModalMovimiento(tipo, productoId){
+  // Poblar selector de productos
+  const sel = document.getElementById('mm-producto');
+  sel.innerHTML = S.productos.map(p =>
+    `<option value="${p.id}" ${p.id===productoId?'selected':''}>${p.nombre} (${p.stock_actual} ${p.unidad})</option>`
+  ).join('');
+  if(!S.productos.length){ toast('Primero agrega un producto','error'); return; }
+  if(tipo) document.getElementById('mm-tipo').value = tipo;
+  document.getElementById('mm-cantidad').value = 1;
+  document.getElementById('mm-precio').value = 0;
+  document.getElementById('mm-motivo').value = '';
+  document.getElementById('mm-fecha').value = getHoyRD();
+  document.getElementById('modal-mov-title').textContent = 'Registrar Movimiento';
+  onMovTipoChange();
+  openModal('movimiento');
+}
+
+function onMovTipoChange(){
+  const tipo = document.getElementById('mm-tipo').value;
+  const prodId = document.getElementById('mm-producto').value;
+  const prod = S.productos.find(p=>p.id===prodId);
+  if(!prod) return;
+  // Auto-sugerir precio según tipo
+  if(tipo==='venta'){
+    document.getElementById('mm-precio').value = prod.precio_venta || 0;
+  } else if(tipo==='entrada'){
+    document.getElementById('mm-precio').value = prod.precio_costo || 0;
+  } else {
+    document.getElementById('mm-precio').value = 0;
+  }
+}
+
+async function saveMovimiento(){
+  const productoId = document.getElementById('mm-producto').value;
+  const tipo       = document.getElementById('mm-tipo').value;
+  const cantidad   = parseFloat(document.getElementById('mm-cantidad').value) || 0;
+  const precio     = parseFloat(document.getElementById('mm-precio').value)   || 0;
+  const motivo     = document.getElementById('mm-motivo').value.trim();
+  const fecha      = document.getElementById('mm-fecha').value || getHoyRD();
+  if(!productoId){ toast('Selecciona un producto','error'); return; }
+  if(cantidad <= 0){ toast('La cantidad debe ser mayor a 0','error'); return; }
+
+  const mov = {
+    shop_id:       S.shopId,
+    producto_id:   productoId,
+    tipo,
+    cantidad,
+    precio_unitario: precio,
+    motivo:        motivo || null,
+    fecha,
+  };
+  try {
+    const res = await sbPost('inventario_movimientos', mov);
+    if(res && res[0]) S.movimientos.unshift(res[0]);
+
+    // Actualizar stock_actual en productos
+    const prod = S.productos.find(p=>p.id===productoId);
+    if(prod){
+      let nuevoStock = parseFloat(prod.stock_actual) || 0;
+      if(tipo==='entrada') nuevoStock += cantidad;
+      else if(tipo==='salida'||tipo==='venta') nuevoStock -= cantidad;
+      else if(tipo==='ajuste') nuevoStock = cantidad; // ajuste = valor absoluto
+      nuevoStock = Math.max(0, nuevoStock);
+      await sbPatch('productos','id=eq.'+productoId,{stock_actual:nuevoStock, updated_at:new Date().toISOString()});
+      prod.stock_actual = nuevoStock;
+    }
+
+    // Si es venta, registrar también como gasto (costo) y como ingreso
+    if(tipo==='venta' && precio > 0){
+      // Opcional: agregar registro en gastos con el costo del producto
+    }
+
+    toast('Movimiento registrado ✓');
+    closeModal('movimiento'); renderPage();
+  } catch(e){ toast('Error: '+e.message,'error'); }
 }
 
 // ── HORARIO POR DÍA ──────────────────────────────────────────────────────────
