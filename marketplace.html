@@ -3705,7 +3705,7 @@
           <div class="hero-stat-lbl">Negocios activos</div>
         </div>
         <div>
-          <div class="hero-stat-val" id="statCitasSemana">276</div>
+          <div class="hero-stat-val" id="statCitasSemana">0</div>
           <div class="hero-stat-lbl">Citas esta semana</div>
         </div>
         <div>
@@ -3936,28 +3936,28 @@
         <div class="footer-col-title">Clientes</div>
         <div class="footer-links">
           <a href="app.html">App móvil</a>
-          <a href="#" onclick="return false">Cómo funciona</a>
-          <a href="#" onclick="return false">Preguntas frecuentes</a>
-          <a href="#" onclick="return false">Contacto</a>
+          <a href="#" onclick="document.querySelector('.hero').scrollIntoView({behavior:'smooth'});return false">Cómo funciona</a>
+          <a href="#" onclick="showToast('📋 Próximamente — sección de preguntas frecuentes');return false">Preguntas frecuentes</a>
+          <a href="#" onclick="window.open('https://wa.me/18494398374?text='+encodeURIComponent('Hola AuraOS, necesito ayuda.'),'_blank');return false">Contacto</a>
         </div>
       </div>
       <div>
         <div class="footer-col-title">Negocios</div>
         <div class="footer-links">
           <a href="#planSection"
-            onclick="document.getElementById('planSection').scrollIntoView({behavior:'smooth'});return false">Registra
+            onclick="document.getElementById('planSection')?.scrollIntoView({behavior:'smooth'});return false">Registra
             tu negocio</a>
           <a href="panel-barbero.html">Panel profesional</a>
-          <a href="#" onclick="return false">Planes y precios</a>
-          <a href="#" onclick="return false">Casos de éxito</a>
+          <a href="#" onclick="document.getElementById('planSection')?.scrollIntoView({behavior:'smooth'});return false">Planes y precios</a>
+          <a href="#" onclick="showToast('🌟 Próximamente — casos de éxito');return false">Casos de éxito</a>
         </div>
       </div>
       <div>
         <div class="footer-col-title">Legal</div>
         <div class="footer-links">
-          <a href="#" onclick="return false">Términos de uso</a>
-          <a href="#" onclick="return false">Privacidad</a>
-          <a href="#" onclick="return false">Cookies</a>
+          <a href="#" onclick="showToast('📄 Términos de uso — próximamente');return false">Términos de uso</a>
+          <a href="#" onclick="showToast('🔒 Política de privacidad — próximamente');return false">Privacidad</a>
+          <a href="#" onclick="showToast('🍪 Política de cookies — próximamente');return false">Cookies</a>
         </div>
       </div>
     </div>
@@ -4093,9 +4093,14 @@
           <input class="modal-input" id="bookingPhone" type="tel" placeholder="Tu WhatsApp" style="font-size:16px">
         </div>
       </div>
+      <!-- Fecha -->
+      <div class="modal-section">
+        <div class="modal-section-title">4. ¿Para qué día?</div>
+        <input class="modal-input" id="bookingDate" type="date" style="font-size:15px" onchange="onBookingDateChange()">
+      </div>
       <!-- Horario -->
       <div class="modal-section">
-        <div class="modal-section-title">4. Selecciona tu horario</div>
+        <div class="modal-section-title">5. Selecciona tu horario</div>
         <div class="slots-grid" id="bookingSlots"></div>
       </div>
       <!-- Confirmar -->
@@ -4160,6 +4165,16 @@
       <input type="range" class="fp-range" id="fPrice" min="0" max="5000" step="100" value="5000"
         oninput="updatePriceLabel()">
     </div>
+    <div class="fp-section">
+      <div class="fp-section-label">Tipo de servicio</div>
+      <div class="star-opts" id="fpSvcTypes">
+        <div class="star-opt active" onclick="setFpSvcType('',this)">Todos</div>
+        <div class="star-opt" onclick="setFpSvcType('barberia',this)">✂️ Barbería</div>
+        <div class="star-opt" onclick="setFpSvcType('hair',this)">💇 Salón</div>
+        <div class="star-opt" onclick="setFpSvcType('spa',this)">💆 Spa</div>
+        <div class="star-opt" onclick="setFpSvcType('nails',this)">💅 Nails</div>
+      </div>
+    </div>
     <div class="fp-actions">
       <button class="btn-apply" onclick="applyFilters()">Aplicar filtros</button>
       <button class="btn-reset" onclick="resetFilters()">Limpiar todo</button>
@@ -4178,7 +4193,7 @@
     let allShops = [], filteredShops = [], currentPage = 0;
     let userCoords = null, map = null, markers = [];
     let activeFilter = 'all', activeSort = 'default';
-    let minRating = 0, maxWait = 999, fOpen = false, fPrem = false, maxDist = Infinity, maxPrice = Infinity;
+    let minRating = 0, maxWait = 999, fOpen = false, fPrem = false, maxDist = Infinity, maxPrice = Infinity, fpSvcType = '';
     let currentBookingShop = null, currentBookingBarber = null, currentBookingService = null, currentBookingSlot = null;
     let shopBarberos = [], shopCitasHoy = [];
 
@@ -4295,8 +4310,8 @@
         const semanaIni = new Date(); semanaIni.setDate(semanaIni.getDate() - 7);
         const semanaIniStr = new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(semanaIni);
         const [shopsRes, ratingsRes, waitRes, weekRes] = await Promise.all([
-          sb.from('shops').select('*, servicios(*), staff:barberos(*), horarios_por_dia, feature_marketplace, feature_reseñas').eq('activo', true),
-          sb.from('calificaciones').select('shop_id,puntuacion,comentario,created_at').order('created_at', { ascending: false }),
+          sb.from('shops').select('id,nombre,slug,activo,plan,tipo_negocio,descripcion,foto_url,galeria,ciudad,direccion,lat,lng,instagram,tiktok,facebook,whatsapp,telefono,hora_inicio,hora_fin,duracion_turno,horarios_por_dia,feature_marketplace,feature_reseñas,tiempo_espera,icono,promociones,servicios(id,nombre,precio,duracion_min,categoria,activo),staff:barberos(id,nombre,foto_url,activo,orden,especialidad,categorias)').eq('activo', true),
+          sb.from('calificaciones').select('shop_id,puntuacion,comentario,created_at').order('created_at', { ascending: false }).gte('created_at', new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString()),
           sb.from('citas').select('shop_id,hora,barbero_id,estado,servicio').eq('fecha', getFechaHoy()).in('estado', ['Confirmada', 'En curso']).order('hora'),
           sb.from('citas').select('id', { count: 'exact', head: true }).gte('fecha', semanaIniStr).neq('estado', 'Cancelada'),
         ]);
@@ -4321,8 +4336,11 @@
           const wait = wMap[s.id] ? Math.min(wMap[s.id].length * (s.duracion_turno || 25), 120) : 0;
           const minP = s.servicios?.length ? Math.min(...s.servicios.map(sv => Number(sv.precio || 0))) : 500;
 
-          // Aura Score Algorithm: High rating + Low wait + Reasonable price
-          const auraScore = ((rating || 3) * 15) - (wait * 0.3) - (minP / 200);
+          // Aura Score: rating (0-75) + review count bonus (0-10) + photo bonus (5) - wait penalty - price hint
+          const reviewCount = rMap[s.id]?.n || 0;
+          const reviewBonus = Math.min(reviewCount * 0.5, 10); // up to +10 for 20+ reviews
+          const photoBonus = s.foto_url ? 5 : 0;
+          const auraScore = ((rating || 3) * 15) + reviewBonus + photoBonus - (wait * 0.3) - (minP / 200);
 
           // Mapear tipo_negocio del superadmin → categoria de filtro del marketplace
           const catMap = { barberia: 'barberia', salon: 'hair', spa: 'spa', estetica: 'spa', nails: 'nails' };
@@ -4356,9 +4374,12 @@
 
         filteredShops = [...allShops];
 
-        // Stats hero desde DB
-        document.getElementById('statNegocios').textContent = allShops.length;
-        if (weekRes.count) document.getElementById('statCitasSemana').textContent = weekRes.count.toLocaleString();
+        // Poblar allCitasHoy desde waitRes (evita una segunda query select('*') a citas)
+        allCitasHoy = waitRes.data || [];
+
+        // Stats hero desde DB (animate to real values)
+        animateCounter('statNegocios', allShops.length);
+        if (weekRes.count) animateCounter('statCitasSemana', weekRes.count);
         const allRatings = Object.values(rMap);
         if (allRatings.length) {
           const avg = allRatings.reduce((s, r) => s + r.sum / r.n, 0) / allRatings.length;
@@ -4582,7 +4603,14 @@
       if (maxWait < 999) r = r.filter(s => s.tiempo_espera != null && s.tiempo_espera <= maxWait);
       if (maxDist < Infinity && userCoords) r = r.filter(s => s.lat && s.lng && distanceTo(s.lat, s.lng) <= maxDist);
       if (maxPrice < Infinity) r = r.filter(s => !s.servicios?.length || s.servicios.some(sv => Number(sv.precio || 0) <= maxPrice));
+      if (fpSvcType) r = r.filter(s => s.categoria === fpSvcType);
       return r;
+    }
+
+    function setFpSvcType(type, el) {
+      fpSvcType = type;
+      document.querySelectorAll('#fpSvcTypes .star-opt').forEach(o => o.classList.remove('active'));
+      el.classList.add('active');
     }
 
     function applySortTo(arr) {
@@ -4625,12 +4653,12 @@
     function setMaxWait(v, el) { document.querySelectorAll('[onclick*="setMaxWait"]').forEach(o => o.classList.remove('active')); el.classList.add('active'); maxWait = v }
     function applyFilters() { fOpen = document.getElementById('fOpen').checked; fPrem = document.getElementById('fPrem').checked; filteredShops = applyActiveFilters(allShops); applySortTo(filteredShops); renderShops(true); addMarkers(filteredShops); closeFilterPanel() }
     function resetFilters() {
-      fOpen = fPrem = false; minRating = 0; maxWait = 999; maxDist = Infinity; maxPrice = Infinity;
+      fOpen = fPrem = false; minRating = 0; maxWait = 999; maxDist = Infinity; maxPrice = Infinity; fpSvcType = '';
       document.getElementById('fOpen').checked = false;
       document.getElementById('fPrem').checked = false;
       document.getElementById('fDist').value = 50; updateDistLabel();
       document.getElementById('fPrice').value = 5000; updatePriceLabel();
-      document.querySelectorAll('.fp-section .star-opt').forEach((o, i) => o.classList.toggle('active', i === 0));
+      document.querySelectorAll('.fp-section .star-opt').forEach(o => o.classList.toggle('active', o.textContent.trim() === 'Todas' || o.textContent.trim() === 'Cualquiera' || o.textContent.trim() === 'Todos'));
     }
 
     // ── Share ──
@@ -4856,16 +4884,33 @@
       if (saved.name) document.getElementById('bookingName').value = saved.name;
       if (saved.phone) document.getElementById('bookingPhone').value = saved.phone;
 
+      // Date input: today as default, min=today, max=30 days ahead
+      const dateInput = document.getElementById('bookingDate');
+      const todayStr = getFechaHoy();
+      const maxDate = new Date(); maxDate.setDate(maxDate.getDate() + 30);
+      const maxStr = new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(maxDate);
+      dateInput.min = todayStr; dateInput.max = maxStr; dateInput.value = todayStr;
+
       shopBarberos = s.staff || []; renderBookingBarbers(); renderBookingServices();
       if (shopBarberos.length > 0) selectBarber(shopBarberos[0].id);
 
-      // Load today's citas
-      sb.from('citas').select('hora,barbero_id,estado,servicio').eq('shop_id', s.id).eq('fecha', getFechaHoy()).in('estado', ['Confirmada', 'En curso'])
-        .then(({ data }) => {
-          const svcMap = {}; (s.servicios || []).forEach(sv => { svcMap[sv.nombre?.toLowerCase().trim()] = sv.duracion_min });
-          shopCitasHoy = (data || []).map(c => ({ ...c, duracion_min: svcMap[c.servicio?.toLowerCase().trim()] || s.duracion_turno || 25 }));
-          calcSlots();
-        });
+      // Load citas for selected date
+      loadCitasForDate(getFechaHoy());
+    }
+
+    async function loadCitasForDate(fecha) {
+      if (!currentBookingShop) return;
+      const { data } = await sb.from('citas').select('hora,barbero_id,estado,servicio')
+        .eq('shop_id', currentBookingShop.id).eq('fecha', fecha).in('estado', ['Confirmada', 'En curso']);
+      const svcMap = {}; (currentBookingShop.servicios || []).forEach(sv => { svcMap[sv.nombre?.toLowerCase().trim()] = sv.duracion_min });
+      shopCitasHoy = (data || []).map(c => ({ ...c, duracion_min: svcMap[c.servicio?.toLowerCase().trim()] || currentBookingShop.duracion_turno || 25 }));
+      calcSlots();
+    }
+
+    function onBookingDateChange() {
+      const fecha = document.getElementById('bookingDate')?.value || getFechaHoy();
+      currentBookingSlot = null; document.getElementById('btnConfirm').disabled = true;
+      loadCitasForDate(fecha);
     }
 
     function closeBooking() { document.getElementById('bookingModal').classList.remove('active'); document.getElementById('overlay').classList.remove('active') }
@@ -4893,24 +4938,31 @@
       }).join('');
     }
 
-    function selectService(name) { currentBookingService = currentBookingShop.servicios.find(s => s.nombre === name); renderBookingServices(); calcSlots(); navigator.vibrate?.([8]) }
+    function selectService(name) { currentBookingService = currentBookingShop.servicios.find(s => s.nombre === name); currentBookingSlot = null; document.getElementById('btnConfirm').disabled = true; renderBookingServices(); calcSlots(); navigator.vibrate?.([8]) }
 
     function calcSlots() {
       const container = document.getElementById('bookingSlots');
       if (!currentBookingBarber || !currentBookingShop) { container.innerHTML = '<span style="color:var(--dim);font-size:.82rem">Elige un barbero primero</span>'; return }
-      const hHoy = (currentBookingShop.horario || []).find(h => h.dia === todayName);
+      const selectedDate = document.getElementById('bookingDate')?.value || getFechaHoy();
+      const isToday = selectedDate === getFechaHoy();
+      // Get day-of-week name for selected date
+      const selDateObj = new Date(selectedDate + 'T12:00:00');
+      const selDayName = DAYS[selDateObj.getDay()];
+      const hDia = (currentBookingShop.horario || []).find(h => h.dia === selDayName);
+      if (hDia && hDia.cerrado) { container.innerHTML = `<span style="color:var(--dim);font-size:.82rem">Cerrado el ${selDayName}</span>`; return }
       let ini = (currentBookingShop.hora_inicio || 9) * 60, fin = (currentBookingShop.hora_fin || 20) * 60;
-      if (hHoy && !hHoy.cerrado) { const [ah, am] = (hHoy.apertura || '09:00').split(':').map(Number); const [ch, cm] = (hHoy.cierre || '20:00').split(':').map(Number); ini = ah * 60 + am; fin = ch * 60 + cm }
+      if (hDia && !hDia.cerrado) { const [ah, am] = (hDia.apertura || '09:00').split(':').map(Number); const [ch, cm] = (hDia.cierre || '20:00').split(':').map(Number); ini = ah * 60 + am; fin = ch * 60 + cm }
       const dur = currentBookingService?.duracion_min || currentBookingShop?.duracion_turno || 25;
       const now = getAhoraMin();
+      const startMin = isToday ? Math.max(ini, now + 10) : ini;
       const activas = (shopCitasHoy || []).filter(c => !['Cancelada', 'Completada', 'No-Show'].includes(c.estado));
       const slots = [];
-      for (let m = Math.max(ini, now + 10); m + dur <= fin; m += dur) {
+      for (let m = startMin; m + dur <= fin; m += dur) {
         const t = `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
         const taken = activas.some(c => { if (String(c.barbero_id) !== String(currentBookingBarber.id)) return false; const [ch, cm2] = (c.hora || '').split(':').map(Number); const ci = ch * 60 + cm2; return m < ci + (c.duracion_min || dur) && m + dur > ci });
         slots.push({ t, taken });
       }
-      if (!slots.length) { container.innerHTML = '<span style="color:var(--dim);font-size:.82rem">Sin horarios disponibles hoy</span>'; return }
+      if (!slots.length) { container.innerHTML = `<span style="color:var(--dim);font-size:.82rem">Sin horarios disponibles${isToday ? ' hoy' : ` el ${selDayName}`}</span>`; return }
       container.innerHTML = slots.map(s => `<div class="slot${s.taken ? ' taken' : ' free'}${currentBookingSlot === s.t ? ' selected' : ''}" onclick="${s.taken ? '' : `selectSlot('${s.t}')`}">${fmt12(s.t)}</div>`).join('');
     }
 
@@ -4920,7 +4972,7 @@
       const name = document.getElementById('bookingName').value.trim();
       const phone = document.getElementById('bookingPhone').value.trim().replace(/\D/g, '');
       if (!name) { showToast('Ingresa tu nombre'); return }
-      if (!phone) { showToast('Ingresa tu WhatsApp'); return }
+      if (!phone || phone.length < 10 || phone.length > 12) { showToast('Ingresa un número WhatsApp válido (10-12 dígitos)'); return }
       if (!currentBookingBarber) { showToast('Elige un barbero'); return }
       if (!currentBookingService) { showToast('Elige un servicio'); return }
       if (!currentBookingSlot) { showToast('Elige un horario'); return }
@@ -4931,11 +4983,12 @@
       navigator.vibrate?.([15, 80, 30]);
 
       try {
+        const fechaReserva = document.getElementById('bookingDate')?.value || getFechaHoy();
         const { error } = await sb.from('citas').insert({
           shop_id: currentBookingShop.id,
           barbero_id: currentBookingBarber.id,
           barbero: currentBookingBarber.nombre,
-          fecha: getFechaHoy(),
+          fecha: fechaReserva,
           hora: currentBookingSlot + ':00',
           servicio: currentBookingService.nombre,
           nombre: name,
@@ -4951,7 +5004,8 @@
         // WhatsApp al negocio
         const wa = currentBookingShop.whatsapp || currentBookingShop.telefono;
         if (wa) {
-          const msg = encodeURIComponent(`Hola! Reservé para *${name}* el día de hoy a las *${fmt12(currentBookingSlot)}* con *${currentBookingBarber.nombre}* — Servicio: ${currentBookingService.nombre}`);
+          const fechaWA = document.getElementById('bookingDate')?.value || getFechaHoy();
+          const msg = encodeURIComponent(`Hola! Reservé para *${name}* el *${fechaWA}* a las *${fmt12(currentBookingSlot)}* con *${currentBookingBarber.nombre}* — Servicio: ${currentBookingService.nombre}`);
           setTimeout(() => window.open(`https://wa.me/${wa.replace(/\D/g, '')}?text=${msg}`, '_blank'), 1200);
         }
         // ICS calendar
@@ -4979,18 +5033,29 @@
 
     // ── ICS download ──
     function downloadICS(shop, slot) {
-      const today = getFechaHoy();
+      const today = (document.getElementById('bookingDate')?.value || getFechaHoy()).replace(/-/g, '');
       const [h, m] = slot.split(':').map(Number);
       const pad = n => String(n).padStart(2, '0');
       const dur = currentBookingService?.duracion_min || shop.duracion_turno || 25;
       const endH = Math.floor((h * 60 + m + dur) / 60), endM = (h * 60 + m + dur) % 60;
-      const dtStr = d => today.replace(/-/g, '') + `T${pad(d[0])}${pad(d[1])}00`;
+      // RD is UTC-4, no DST — use TZID so calendars show the correct local time
+      const dtStr = (hh, mm) => `${today}T${pad(hh)}${pad(mm)}00`;
       const ics = [
         'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//AuraOS//Marketplace//ES',
+        'CALSCALE:GREGORIAN',
+        'BEGIN:VTIMEZONE',
+        'TZID:America/Santo_Domingo',
+        'BEGIN:STANDARD',
+        'TZOFFSETFROM:-0400',
+        'TZOFFSETTO:-0400',
+        'TZNAME:AST',
+        'DTSTART:19700101T000000',
+        'END:STANDARD',
+        'END:VTIMEZONE',
         'BEGIN:VEVENT',
         `SUMMARY:Cita en ${shop.nombre}`,
-        `DTSTART:${dtStr([h, m])}`,
-        `DTEND:${dtStr([endH, endM])}`,
+        `DTSTART;TZID=America/Santo_Domingo:${dtStr(h, m)}`,
+        `DTEND;TZID=America/Santo_Domingo:${dtStr(endH, endM)}`,
         `LOCATION:${shop.direccion || ''}`,
         `DESCRIPTION:Barbero: ${currentBookingBarber?.nombre || ''} · Servicio: ${currentBookingService?.nombre || ''}`,
         'END:VEVENT', 'END:VCALENDAR'
@@ -5168,8 +5233,8 @@
           localStorage.setItem('aura_notify', JSON.stringify(subs));
           btn.classList.add('on');
           btn.textContent = '🔕 Cancelar aviso';
-          new Notification(`AuraOS — ${shopName}`, { body: 'Te avisaremos cuando haya turnos disponibles.', icon: '/icon.png' });
-          showToast('✅ Te avisaremos cuando haya turno');
+          new Notification(`AuraOS — ${shopName}`, { body: '✅ Activado en este dispositivo. Te avisaremos si hay turnos disponibles mientras tienes la app abierta.', icon: '/icon.png' });
+          showToast('✅ Aviso activado (solo este dispositivo)');
         } else {
           showToast('Activa los permisos de notificación en el navegador');
         }
@@ -5240,12 +5305,19 @@
     }
     async function submitReview() {
       if (!reviewRating) { showToast('Selecciona una calificación'); return; }
+      // Anti-spam: allow 1 review per shop per 24h per device
+      const spamKey = `aura_review_${reviewShopId}`;
+      const lastReview = parseInt(localStorage.getItem(spamKey) || '0');
+      if (Date.now() - lastReview < 24 * 60 * 60 * 1000) {
+        showToast('Ya publicaste una reseña en este negocio recientemente. Espera 24 h.'); return;
+      }
       const texto = document.getElementById('reviewText').value.trim();
       const autor = document.getElementById('reviewAuthor').value.trim() || 'Anónimo';
       const btn = document.querySelector('.btn-submit-review');
       btn.disabled = true; btn.textContent = 'Publicando…';
       const { error } = await sb.from('calificaciones').insert({ shop_id: reviewShopId, puntuacion: reviewRating, comentario: texto || null, autor });
       if (error) { showToast('Error al publicar. Intenta de nuevo.'); btn.disabled = false; btn.textContent = 'Publicar reseña'; return; }
+      localStorage.setItem(spamKey, Date.now().toString());
       showToast('¡Reseña publicada! ⭐');
       document.querySelector('.review-form').innerHTML = '<p style="color:var(--dim);font-size:.85rem;padding:10px 0">✅ Gracias por tu reseña.</p>';
     }
@@ -5435,9 +5507,11 @@
     function updateJsonLd(shop) {
       const el = document.getElementById('jsonLd');
       if (!el) return;
+      const typeMap = { barberia: 'BarberShop', hair: 'HairSalon', spa: 'DaySpa', nails: 'NailSalon' };
+      const schemaType = typeMap[shop.categoria] || 'HealthAndBeautyBusiness';
       const ld = {
         '@context': 'https://schema.org',
-        '@type': 'HairSalon',
+        '@type': schemaType,
         'name': shop.nombre,
         'description': shop.descripcion || `Barbería ${shop.nombre} en ${shop.direccion || 'República Dominicana'}`,
         'address': { '@type': 'PostalAddress', 'addressLocality': shop.ciudad || shop.direccion || 'República Dominicana', 'addressCountry': 'DO' },
@@ -5523,17 +5597,13 @@
     }
 
     function initHeroCounters() {
-      // Small delay to ensure smooth start
+      // Counters are driven by real DB data in loadShops().
+      // Just fade-in the rating badge smoothly.
+      document.getElementById('statRating').style.opacity = '0';
       setTimeout(() => {
-        animateCounter('statNegocios', 25); // Estimated real number
-        animateCounter('statCitasSemana', 1420);
-        // For rating, we use a simple set since it's decimal
-        document.getElementById('statRating').style.opacity = '0';
-        setTimeout(() => {
-          document.getElementById('statRating').style.transition = 'opacity 1s';
-          document.getElementById('statRating').style.opacity = '1';
-        }, 500);
-      }, 800);
+        document.getElementById('statRating').style.transition = 'opacity 1s';
+        document.getElementById('statRating').style.opacity = '1';
+      }, 1200);
     }
 
     function initHeroParallax() {
@@ -5837,9 +5907,7 @@
     loadShops = async function () {
       await originalLoadShopsFinal();
 
-      // 1. Fetch real-time citations for tooltips
-      const { data } = await sb.from('citas').select('*').eq('fecha', getFechaHoy()).in('estado', ['Confirmada', 'En curso']);
-      allCitasHoy = data || [];
+      // 1. allCitasHoy ya se pobló desde waitRes.data en loadShops — no hay query adicional
 
       // 2. Initialize Social Proof
       initSocialProof();
