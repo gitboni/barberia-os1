@@ -45,7 +45,10 @@
   <script src="https://unpkg.com/dompurify@3.1.6/dist/purify.min.js"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
   <style>
     /* ── Variables ── */
     :root {
@@ -2685,6 +2688,12 @@
       background: var(--green) !important;
     }
 
+    @keyframes busyPulse {
+      0% { box-shadow: 0 0 0 0 rgba(255,71,87,.5) }
+      70% { box-shadow: 0 0 0 8px rgba(255,71,87,0) }
+      100% { box-shadow: 0 0 0 0 rgba(255,71,87,0) }
+    }
+
     /* ── ICS / Notify ── */
     .btn-ics {
       background: rgba(255, 255, 255, .05);
@@ -4266,10 +4275,32 @@
     }
     function showToast(msg, ms = 2500) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.getElementById('toast-wrap').appendChild(t); setTimeout(() => t.remove(), ms) }
     function syncSearch(el, targetId) { const t = document.getElementById(targetId); if (t) t.value = el.value }
-    function getFavs() { try { return JSON.parse(localStorage.getItem('aura_favs') || '[]') } catch { return [] } }
+    function _getFavsKey() { const u = JSON.parse(localStorage.getItem('aura_user') || '{}'); return u.phone ? `aura_favs_${u.phone.replace(/\D/g, '')}` : 'aura_favs'; }
+    function getFavs() { try { return JSON.parse(localStorage.getItem(_getFavsKey()) || '[]') } catch { return [] } }
     function isFav(id) { return getFavs().includes(String(id)) }
-    function toggleFav(id, e) { e?.stopPropagation(); const f = getFavs(); const i = f.indexOf(String(id)); if (i === -1) { f.push(String(id)); showToast('❤️ Guardado'); navigator.vibrate?.([10]) } else { f.splice(i, 1); showToast('Eliminado de guardados') } localStorage.setItem('aura_favs', JSON.stringify(f)); document.querySelectorAll(`.btn-icon[data-id="${id}"]`).forEach(b => { b.classList.toggle('faved', i === -1) }) }
+    function toggleFav(id, e) {
+      e?.stopPropagation();
+      const f = getFavs(); const i = f.indexOf(String(id));
+      if (i === -1) { f.push(String(id)); showToast('❤️ Guardado'); navigator.vibrate?.([10]) } else { f.splice(i, 1); showToast('Eliminado de guardados') }
+      localStorage.setItem(_getFavsKey(), JSON.stringify(f));
+      document.querySelectorAll(`.btn-icon[data-id="${id}"]`).forEach(b => b.classList.toggle('faved', i === -1));
+      // Sync silencioso a DB (si clientes tiene columna favoritos)
+      const u = JSON.parse(localStorage.getItem('aura_user') || '{}');
+      if (u.phone) { const tel = u.phone.replace(/\D/g,''); sb.from('clientes').update({ favoritos: f }).eq('telefono', tel.length === 10 ? '1'+tel : tel).then(() => {}); }
+    }
     function openFavs() { filterCat('favorites', document.querySelector('[data-filter="favorites"]')) }
+    // Carga favoritos desde DB al tener teléfono (cross-device sync)
+    async function syncFavsFromDB() {
+      const u = JSON.parse(localStorage.getItem('aura_user') || '{}');
+      if (!u.phone) return;
+      const tel = u.phone.replace(/\D/g,'');
+      const { data } = await sb.from('clientes').select('favoritos').eq('telefono', tel.length === 10 ? '1'+tel : tel).maybeSingle();
+      if (data?.favoritos?.length) {
+        const merged = [...new Set([...getFavs(), ...data.favoritos.map(String)])];
+        localStorage.setItem(_getFavsKey(), JSON.stringify(merged));
+        document.querySelectorAll('.btn-icon[data-id]').forEach(b => b.classList.toggle('faved', merged.includes(b.dataset.id)));
+      }
+    }
 
     // ── Map ──
     function initMap() {
@@ -4277,22 +4308,34 @@
       map = L.map('leafletMap', { zoomControl: true, scrollWheelZoom: true }).setView([18.4861, -69.9312], 12);
       L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '©AuraOS', maxZoom: 19 }).addTo(map);
     }
+    let _clusterGroup = null;
     function addMarkers(filtered) {
-      markers.forEach(m => m.remove()); markers = [];
+      // Limpia cluster anterior
+      if (_clusterGroup) { map.removeLayer(_clusterGroup); _clusterGroup = null; }
+      markers = [];
+      _clusterGroup = L.markerClusterGroup({
+        showCoverageOnHover: false,
+        maxClusterRadius: 70,
+        iconCreateFunction: cluster => L.divIcon({
+          html: `<div style="width:38px;height:38px;border-radius:50%;background:#D4AF37;color:#000;font-weight:900;font-size:.82rem;display:flex;align-items:center;justify-content:center;border:2px solid #000;box-shadow:0 2px 10px rgba(0,0,0,.5)">${cluster.getChildCount()}</div>`,
+          className: '', iconSize: [38, 38], iconAnchor: [19, 19]
+        })
+      });
       filtered.forEach(s => {
         if (!s.lat || !s.lng) return;
         const isReady = s.tiempo_espera === 0;
-        const icon = L.divIcon({ 
-          className: '', 
-          html: `<div class="${isReady ? 'marker-pulse' : ''}" style="width:30px;height:30px;border-radius:50% 50% 50% 0;background:${s.plan === 'premium' ? '#D4AF37' : '#555'};border:2px solid #000;transform:rotate(-45deg);box-shadow:0 0 10px rgba(0,0,0,.5)"></div>`, 
-          iconSize: [30, 38], 
-          iconAnchor: [15, 38] 
+        const icon = L.divIcon({
+          className: '',
+          html: `<div class="${isReady ? 'marker-pulse' : ''}" style="width:30px;height:30px;border-radius:50% 50% 50% 0;background:${s.plan === 'premium' ? '#D4AF37' : '#555'};border:2px solid #000;transform:rotate(-45deg);box-shadow:0 0 10px rgba(0,0,0,.5)"></div>`,
+          iconSize: [30, 38], iconAnchor: [15, 38]
         });
-        const m = L.marker([s.lat, s.lng], { icon }).addTo(map);
-        m.bindPopup(`<div style="background:#111;color:#fff;border-radius:8px;padding:8px 12px;font-family:Inter,sans-serif"><strong>${s.nombre}</strong><br><small style="color:rgba(255,255,255,.6)">${s.rating ? `<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="vertical-align:middle;margin-top:-2px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> ${s.rating} · ` : ''}${s.tiempo_espera === 0 ? 'Disponible ya' : `<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-top:-2px;margin-right:2px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>~${s.tiempo_espera}min espera`}</small><br><button onclick="document.getElementById('detailModal') && openDetail('${s.id}')" style="margin-top:6px;background:#D4AF37;color:#000;border:none;padding:4px 10px;border-radius:6px;font-size:.75rem;cursor:pointer;font-weight:700">Ver detalles</button></div>`, { className: 'leaflet-popup-dark' });
+        const m = L.marker([s.lat, s.lng], { icon });
+        m.bindPopup(`<div style="background:#111;color:#fff;border-radius:8px;padding:8px 12px;font-family:Inter,sans-serif"><strong>${s.nombre}</strong><br><small style="color:rgba(255,255,255,.6)">${s.rating ? `⭐ ${s.rating} · ` : ''}${isReady ? '⚡ Disponible ya' : `⏱ ~${s.tiempo_espera}min espera`}</small><br><button onclick="openDetail('${s.id}')" style="margin-top:6px;background:#D4AF37;color:#000;border:none;padding:4px 10px;border-radius:6px;font-size:.75rem;cursor:pointer;font-weight:700">Ver detalles</button></div>`, { className: 'leaflet-popup-dark' });
         m.on('click', () => openDetail(s.id));
+        _clusterGroup.addLayer(m);
         markers.push(m);
       });
+      map.addLayer(_clusterGroup);
     }
     function toggleMap() {
       const col = document.getElementById('mapCol');
@@ -4388,6 +4431,7 @@
 
         renderShops(true);
         addMarkers(filteredShops);
+        syncFavsFromDB();
         renderHistory();
 
         // Open from URL
@@ -4537,6 +4581,11 @@
           ${(s.staff || []).length > 4 ? `<span style="font-size:0.65rem;color:var(--dim);align-self:center">+${s.staff.length - 4}</span>` : ''}
         </div>
 
+        ${hasPromo ? `<div style="margin:6px 0 2px;padding:5px 10px;background:linear-gradient(135deg,rgba(212,175,55,.15),rgba(212,175,55,.05));border:1px solid rgba(212,175,55,.3);border-radius:8px;font-size:.72rem;color:var(--gold);display:flex;align-items:center;gap:6px;overflow:hidden">
+          <span style="flex-shrink:0">🏷</span>
+          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600">${esc(s.promociones[0].titulo || s.promociones[0].descripcion || 'Oferta especial')}</span>
+          ${s.promociones[0].descuento ? `<span style="flex-shrink:0;font-weight:900;background:var(--gold);color:#000;border-radius:4px;padding:1px 5px">${s.promociones[0].descuento}%</span>` : ''}
+        </div>` : ''}
         <div class="card-footer">
           ${minPrice ? `<span class="card-min-price">desde RD$${Number(minPrice).toLocaleString()}</span>` : ''}
           <div class="card-svc-preview">
@@ -5262,10 +5311,24 @@
           if (!shop) return;
           shop._slotsBooked = (shop._slotsBooked || 0) + 1;
           shop.tiempo_espera = Math.min((shop._slotsBooked) * (shop.duracion_turno || 25), 120);
+          // Actualizar badge con clase CSS correcta (verde = libre, default = espera)
           const card = document.querySelector(`.shop-card[data-id="${sid}"]`);
           if (card) {
             const tag = card.querySelector('.card-tag');
-            if (tag) tag.textContent = shop.tiempo_espera === 0 ? '⚡ Disponible ya' : `⏱ ~${shop.tiempo_espera} min`;
+            if (tag) {
+              if (shop.tiempo_espera === 0) {
+                tag.className = 'card-tag green';
+                tag.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="margin-right:3px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Disponible ya`;
+              } else {
+                tag.className = 'card-tag';
+                tag.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:3px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>~${shop.tiempo_espera} min`;
+              }
+            }
+            // Indicador pulsante "🔴 Ocupado ahora" cuando hay espera alta
+            let busyDot = card.querySelector('.busy-dot');
+            if (shop.tiempo_espera >= 30) {
+              if (!busyDot) { busyDot = document.createElement('span'); busyDot.className = 'busy-dot'; busyDot.style.cssText = 'position:absolute;top:8px;left:8px;width:8px;height:8px;border-radius:50%;background:#FF4757;box-shadow:0 0 0 0 rgba(255,71,87,.4);animation:busyPulse 1.5s infinite;z-index:10'; card.style.position = 'relative'; card.appendChild(busyDot); }
+            } else if (busyDot) { busyDot.remove(); }
           }
           // Disparar notificación si estaba suscrito y ahora hay turno libre
           const subs = JSON.parse(localStorage.getItem('aura_notify') || '[]');
@@ -5280,14 +5343,18 @@
     let reviewShopId = null, reviewRating = 0;
     function renderReviewForm(shopId) {
       reviewShopId = shopId; reviewRating = 0;
+      // Pre-fill phone if saved
+      const _rv = JSON.parse(localStorage.getItem('aura_user') || '{}');
       return `
     <div class="review-form">
       <div style="font-weight:700;margin-bottom:4px">Deja tu reseña</div>
+      <div style="font-size:.75rem;color:var(--dim);margin-bottom:8px">✅ Solo clientes con cita completada pueden reseñar</div>
       <div class="star-picker" id="starPicker">
         ${[1, 2, 3, 4, 5].map(i => `<span onclick="setReviewRating(${i});navigator.vibrate?.([8])" data-star="${i}">☆</span>`).join('')}
       </div>
       <textarea class="review-textarea" id="reviewText" rows="3" placeholder="Cuéntanos tu experiencia…"></textarea>
-      <input class="modal-input" id="reviewAuthor" type="text" placeholder="Tu nombre" style="margin-top:8px">
+      <input class="modal-input" id="reviewAuthor" type="text" placeholder="Tu nombre" style="margin-top:8px" value="${_rv.name || ''}">
+      <input class="modal-input" id="reviewPhone" type="tel" placeholder="Tu WhatsApp (verificación)" style="margin-top:8px;font-size:16px" value="${_rv.phone || ''}">
       <label class="review-photo-label" for="reviewPhotoInput">
         📷 Añadir foto de tu corte (opcional)
       </label>
@@ -5313,13 +5380,26 @@
       }
       const texto = document.getElementById('reviewText').value.trim();
       const autor = document.getElementById('reviewAuthor').value.trim() || 'Anónimo';
+      const rawPhone = document.getElementById('reviewPhone').value.trim().replace(/\D/g, '');
+      if (!rawPhone || rawPhone.length < 10) { showToast('Ingresa tu WhatsApp para verificar tu visita'); return; }
+      const phone = rawPhone.length === 10 ? '1' + rawPhone : rawPhone;
       const btn = document.querySelector('.btn-submit-review');
-      btn.disabled = true; btn.textContent = 'Publicando…';
+      btn.disabled = true; btn.textContent = 'Verificando…';
+      // Verificar cita completada en este shop
+      const { data: visitData } = await sb.from('citas').select('id').eq('shop_id', reviewShopId).eq('telefono', phone).eq('estado', 'Completada').limit(1);
+      if (!visitData?.length) {
+        showToast('⚠️ Solo puedes reseñar negocios donde hayas completado una cita');
+        btn.disabled = false; btn.textContent = 'Publicar reseña'; return;
+      }
+      btn.textContent = 'Publicando…';
       const { error } = await sb.from('calificaciones').insert({ shop_id: reviewShopId, puntuacion: reviewRating, comentario: texto || null, autor });
       if (error) { showToast('Error al publicar. Intenta de nuevo.'); btn.disabled = false; btn.textContent = 'Publicar reseña'; return; }
       localStorage.setItem(spamKey, Date.now().toString());
+      // Guardar nombre+teléfono para futuras reseñas
+      const saved = JSON.parse(localStorage.getItem('aura_user') || '{}');
+      localStorage.setItem('aura_user', JSON.stringify({ ...saved, name: autor, phone: rawPhone }));
       showToast('¡Reseña publicada! ⭐');
-      document.querySelector('.review-form').innerHTML = '<p style="color:var(--dim);font-size:.85rem;padding:10px 0">✅ Gracias por tu reseña.</p>';
+      document.querySelector('.review-form').innerHTML = '<p style="color:var(--dim);font-size:.85rem;padding:10px 0">✅ Gracias por tu reseña verificada.</p>';
     }
 
     // ── Registro ──
