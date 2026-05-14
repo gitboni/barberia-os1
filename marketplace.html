@@ -4310,7 +4310,7 @@
         const semanaIni = new Date(); semanaIni.setDate(semanaIni.getDate() - 7);
         const semanaIniStr = new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(semanaIni);
         const [shopsRes, ratingsRes, waitRes, weekRes] = await Promise.all([
-          sb.from('shops').select('id,nombre,slug,activo,plan,tipo_negocio,descripcion,foto_url,galeria,ciudad,direccion,lat,lng,instagram,tiktok,facebook,whatsapp,telefono,hora_inicio,hora_fin,duracion_turno,horarios_por_dia,feature_marketplace,feature_reseñas,tiempo_espera,icono,promociones,servicios(id,nombre,precio,duracion_min,categoria,activo),staff:barberos(id,nombre,foto_url,activo,orden,especialidad,categorias)').eq('activo', true),
+          sb.from('shops').select('*, servicios(*), staff:barberos(*)').eq('activo', true),
           sb.from('calificaciones').select('shop_id,puntuacion,comentario,created_at').order('created_at', { ascending: false }).gte('created_at', new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString()),
           sb.from('citas').select('shop_id,hora,barbero_id,estado,servicio').eq('fecha', getFechaHoy()).in('estado', ['Confirmada', 'En curso']).order('hora'),
           sb.from('citas').select('id', { count: 'exact', head: true }).gte('fecha', semanaIniStr).neq('estado', 'Cancelada'),
