@@ -2842,44 +2842,48 @@ async function saveMarketplace(){
   const btn = document.querySelector('[onclick="saveMarketplace()"]');
   if(btn){ btn.textContent='Guardando…'; btn.disabled=true; }
 
-  // Campos core (siempre existen en shops)
-  const corePatch = {
-    foto_url:     document.getElementById('mp-foto')?.value?.trim()||null,
-    descripcion:  document.getElementById('mp-desc')?.value?.trim()||null,
-    lat:          parseFloat(document.getElementById('mp-lat')?.value)||null,
-    lng:          parseFloat(document.getElementById('mp-lng')?.value)||null,
-    galeria:      _mpGaleria.length ? _mpGaleria : null,
-    promociones:  _mpPromos.length ? _mpPromos : null,
-    activo:       document.getElementById('mp-activo')?.checked ?? true,
+  const payload = {
+    p_shop_id:    S.shopId,
+    p_foto_url:   document.getElementById('mp-foto')?.value?.trim()||null,
+    p_descripcion:document.getElementById('mp-desc')?.value?.trim()||null,
+    p_lat:        parseFloat(document.getElementById('mp-lat')?.value)||null,
+    p_lng:        parseFloat(document.getElementById('mp-lng')?.value)||null,
+    p_galeria:    _mpGaleria.length ? _mpGaleria : null,
+    p_promociones:_mpPromos.length  ? _mpPromos  : null,
+    p_activo:     document.getElementById('mp-activo')?.checked ?? true,
+    p_ciudad:     document.getElementById('mp-ciudad')?.value?.trim()||null,
+    p_direccion:  document.getElementById('mp-direccion')?.value?.trim()||null,
+    p_instagram:  document.getElementById('mp-instagram')?.value?.trim().replace('@','')||null,
+    p_tiktok:     document.getElementById('mp-tiktok')?.value?.trim().replace('@','')||null,
+    p_facebook:   document.getElementById('mp-facebook')?.value?.trim()||null,
   };
 
-  // Campos extendidos (requieren migración SQL — pueden no existir aún)
-  const extPatch = {
-    ciudad:       document.getElementById('mp-ciudad')?.value?.trim()||null,
-    direccion:    document.getElementById('mp-direccion')?.value?.trim()||null,
-    instagram:    document.getElementById('mp-instagram')?.value?.trim().replace('@','')||null,
-    tiktok:       document.getElementById('mp-tiktok')?.value?.trim().replace('@','')||null,
-    facebook:     document.getElementById('mp-facebook')?.value?.trim()||null,
-  };
-
-  // Intentar guardar todo; si falla por columnas faltantes, guardar solo core
   try{
-    await sbPatch('shops','id=eq.'+S.shopId, {...corePatch, ...extPatch});
-    Object.assign(S.shopData, corePatch, extPatch);
+    const r = await fetch(SUPABASE_URL+'/rest/v1/rpc/update_marketplace_profile', {
+      method:'POST',
+      headers:{...H,'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const res = await r.json();
+    if(!r.ok || res.error) throw new Error(res.error || r.status);
+    // Actualizar caché local
+    Object.assign(S.shopData, {
+      foto_url:    payload.p_foto_url,
+      descripcion: payload.p_descripcion,
+      lat:         payload.p_lat,
+      lng:         payload.p_lng,
+      galeria:     payload.p_galeria,
+      promociones: payload.p_promociones,
+      activo:      payload.p_activo,
+      ciudad:      payload.p_ciudad,
+      direccion:   payload.p_direccion,
+      instagram:   payload.p_instagram,
+      tiktok:      payload.p_tiktok,
+      facebook:    payload.p_facebook,
+    });
     toast('Perfil del marketplace guardado ✓');
   }catch(e){
-    if(e.message && (e.message.includes('PGRST204') || e.message.includes('column') || e.message.includes('schema'))) {
-      // Columnas extendidas no existen — guardar solo core
-      try{
-        await sbPatch('shops','id=eq.'+S.shopId, corePatch);
-        Object.assign(S.shopData, corePatch);
-        toast('⚠ Guardado parcial — ejecuta la migración SQL para habilitar ciudad, redes sociales, etc.','warn');
-      }catch(e2){
-        toast('Error al guardar: '+e2.message,'error');
-      }
-    } else {
-      toast('Error al guardar: '+e.message,'error');
-    }
+    toast('Error al guardar: '+e.message,'error');
   }finally{
     if(btn){ btn.innerHTML='<i data-lucide="save" style="width:16px;height:16px;"></i> Guardar todos los cambios'; btn.disabled=false; if(window.lucide)lucide.createIcons(); }
   }
