@@ -54,6 +54,15 @@ main{display:flex;flex-direction:column;overflow:hidden;height:100vh;background-
 .btn-gold:hover{background:var(--gold2);box-shadow:0 8px 25px rgba(201,168,76,0.4);}
 .btn-red{background:rgba(248,113,113,0.12);color:var(--red);border:1px solid rgba(248,113,113,0.25)!important;}
 .btn-green{background:rgba(62,207,142,0.12);color:var(--green);border:1px solid rgba(62,207,142,0.25)!important;}
+/* ── Sucursal Switcher ─────────────────────────────── */
+.suc-switcher-btn{display:flex;align-items:center;gap:8px;padding:7px 14px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.22);border-radius:10px;color:var(--gold);font-size:0.75rem;font-weight:700;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+.suc-switcher-btn:hover{background:rgba(201,168,76,0.15);border-color:rgba(201,168,76,0.4);}
+.suc-item{display:flex;align-items:center;gap:10px;padding:11px 16px;cursor:pointer;transition:background 0.15s;font-size:0.8rem;font-weight:600;}
+.suc-item:hover{background:rgba(255,255,255,0.05);}
+.suc-active{background:rgba(201,168,76,0.08);}
+.suc-icon{font-size:1.1rem;flex-shrink:0;}
+.suc-label{flex:1;color:var(--text);}
+.suc-check{color:var(--green);font-size:0.7rem;font-weight:700;margin-left:auto;}
 .status-live{display:flex;align-items:center;gap:6px;padding:5px 12px;border:1px solid rgba(62,207,142,0.2);background:rgba(62,207,142,0.04);font-family:'DM Mono',monospace;font-size:0.54rem;color:rgba(62,207,142,0.65);letter-spacing:0.14em;text-transform:uppercase;}
 .live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 1.8s ease-in-out infinite;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
@@ -471,8 +480,16 @@ tr:last-child td{border-bottom:none;}
           </div>
           <div id="gs-results"></div>
         </div>
+        <!-- Switcher multi-sucursal: visible solo si el shop pertenece a un grupo -->
+        <div id="sucursal-switcher" style="display:none;position:relative;">
+          <button onclick="toggleSucursalMenu(event)" class="suc-switcher-btn">
+            <span id="sucursal-nombre-label">📍 Sucursal</span>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div id="sucursal-menu" style="display:none;position:absolute;right:0;top:calc(100% + 8px);min-width:220px;background:var(--bg2);border:1px solid var(--glass-border);border-radius:14px;overflow:hidden;box-shadow:0 16px 40px rgba(0,0,0,0.6);z-index:999;"></div>
+        </div>
         <div class="status-live"><span class="live-dot"></span>ACTIVO</div>
-        <button class="btn-sm btn-dark" onclick="window.open('/sala/'+SHOP_SLUG,'_blank')" title="Sala de espera" style="display:flex;align-items:center;gap:8px;"><i data-lucide="tv" style="width:14px;height:14px;"></i> Sala</button>
+        <button class="btn-sm btn-dark" onclick="window.open('/sala/'+_activeSucursalSlug,'_blank')" title="Sala de espera" style="display:flex;align-items:center;gap:8px;"><i data-lucide="tv" style="width:14px;height:14px;"></i> Sala</button>
         <button class="btn-sm btn-gold" onclick="openModal('cita', true)"><i data-lucide="plus-circle" style="width:14px;height:14px;"></i> Nueva Cita</button>
       </div>
     </div>
@@ -799,6 +816,10 @@ const SUPABASE_URL='https://mmokunpuslcfphalrwot.supabase.co';
 const SUPABASE_KEY='sb_publishable_aETz_9ECH5RcBMjmRhUnfw_g71zRdwT';
 const pathParts=location.pathname.split('/').filter(Boolean);
 const SHOP_SLUG=new URLSearchParams(location.search).get('shop')||pathParts[pathParts.length-1]||'elite-cuts';
+// ── Multi-sucursal: slug activo puede cambiar al hacer switch ──
+let _activeSucursalSlug = SHOP_SLUG;
+let _grupoNombre = null;
+let _grupoSucursales = [];
 const H={'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY};
 async function sbGet(t,q=''){const r=await fetch(SUPABASE_URL+'/rest/v1/'+t+'?'+q,{headers:H});if(!r.ok)throw new Error(await r.text());return r.json();}
 async function sbPost(t,d){const r=await fetch(SUPABASE_URL+'/rest/v1/'+t,{method:'POST',headers:{...H,'Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify(d)});if(!r.ok)throw new Error(await r.text());return r.json();}
@@ -822,12 +843,12 @@ async function loadAll(){
   try{
     // Si aún no tenemos shopId, cargamos el shop primero
     if(!S.shopId){
-      const shops=await sbGet('shops','slug=eq.'+SHOP_SLUG+'&select=*');
+      const shops=await sbGet('shops','slug=eq.'+_activeSucursalSlug+'&select=*');
       if(shops&&shops.length){
         const shop=shops[0];
         // ── GUARDIA DE ACCESO ─────────────────────────────
         if(shop.activo===false){
-          showShopSuspended(shop.nombre||SHOP_SLUG);
+          showShopSuspended(shop.nombre||_activeSucursalSlug);
           return;
         }
         S.shopId=shop.id;S.shopData=shop;
@@ -4118,7 +4139,7 @@ function pinClear(){_pin='';updateDots();document.getElementById('login-error').
 async function verifyPin(){
   if(!_pinHash){pinErrorAnim();return;}
   const h=await sha256(_pin);
-  if(h===_pinHash){saveSession();showApp();loadAll();}
+  if(h===_pinHash){saveSession();showApp();loadGrupoSucursales().then(()=>loadAll());}
   else{
     _attempts++;pinErrorAnim();
     const err=document.getElementById('login-error');
@@ -4131,11 +4152,15 @@ async function verifyPin(){
 
 async function initLogin(){
   try{
-    const r=await fetch(SUPABASE_URL+'/rest/v1/shops?slug=eq.'+SHOP_SLUG+'&select=nombre,admin_pin_hash',{headers:H});
+    const r=await fetch(SUPABASE_URL+'/rest/v1/shops?slug=eq.'+SHOP_SLUG+'&select=nombre,admin_pin_hash,grupo_nombre',{headers:H});
     const [shop]=await r.json();
-    if(shop){_pinHash=shop.admin_pin_hash;document.getElementById('login-shop-name').textContent=shop.nombre||SHOP_SLUG;}
+    if(shop){
+      _pinHash=shop.admin_pin_hash;
+      _grupoNombre=shop.grupo_nombre||null;
+      document.getElementById('login-shop-name').textContent=shop.nombre||SHOP_SLUG;
+    }
   }catch(_){}
-  if(checkSession()){showApp();loadAll();}else{showLogin();}
+  if(checkSession()){showApp();loadGrupoSucursales().then(()=>loadAll());}else{showLogin();}
 }
 
 async function cambiarPin(){
@@ -4152,6 +4177,69 @@ document.addEventListener('keydown',e=>{
   if(e.key>='0'&&e.key<='9')pinPress(parseInt(e.key));
   if(e.key==='Backspace')pinDel();
   if(e.key==='Escape')pinClear();
+});
+
+// ═══════════════════════════════════════════════════════
+// ── MULTI-SUCURSAL ─────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+async function loadGrupoSucursales(){
+  if(!_grupoNombre){ renderSucursalSwitcher(); return; }
+  try{
+    const sucursales=await sbGet('shops','grupo_nombre=eq.'+encodeURIComponent(_grupoNombre)+'&activo=eq.true&select=id,nombre,slug,icono&order=nombre.asc');
+    _grupoSucursales=sucursales||[];
+  }catch(_){ _grupoSucursales=[]; }
+  renderSucursalSwitcher();
+}
+
+function renderSucursalSwitcher(){
+  const sw=document.getElementById('sucursal-switcher');
+  if(!sw) return;
+  if(_grupoSucursales.length<2){ sw.style.display='none'; return; }
+  const actual=_grupoSucursales.find(s=>s.slug===_activeSucursalSlug);
+  const label=(actual?(actual.icono||'📍')+' '+actual.nombre:'📍 Sucursal');
+  document.getElementById('sucursal-nombre-label').textContent=label;
+  sw.style.display='';
+}
+
+function toggleSucursalMenu(e){
+  if(e) e.stopPropagation();
+  const m=document.getElementById('sucursal-menu');
+  if(!m) return;
+  if(m.style.display!=='none'){ m.style.display='none'; return; }
+  m.innerHTML=_grupoSucursales.map(s=>{
+    const act=s.slug===_activeSucursalSlug;
+    return `<div class="suc-item${act?' suc-active':''}" onclick="switchSucursal('${s.slug}')">
+      <span class="suc-icon">${s.icono||'✂️'}</span>
+      <span class="suc-label">${s.nombre}</span>
+      ${act?'<span class="suc-check">✓</span>':''}
+    </div>`;
+  }).join('');
+  m.style.display='block';
+}
+
+async function switchSucursal(slug){
+  document.getElementById('sucursal-menu').style.display='none';
+  if(slug===_activeSucursalSlug) return;
+  const target=_grupoSucursales.find(s=>s.slug===slug);
+  toast('Cambiando a '+(target?.nombre||slug)+' …');
+  _activeSucursalSlug=slug;
+  // Reset estado completo para el nuevo shop
+  S={shopId:null,shopData:null,barberos:[],citas:[],clientes:[],activity:[],gastos:[],productos:[],movimientos:[]};
+  currentPage='dashboard';
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  const firstNav=document.querySelector('.nav-item');
+  if(firstNav) firstNav.classList.add('active');
+  renderSucursalSwitcher();
+  await loadAll();
+}
+
+// Cerrar menú al hacer click fuera
+document.addEventListener('click',function(e){
+  const sw=document.getElementById('sucursal-switcher');
+  if(sw&&!sw.contains(e.target)){
+    const m=document.getElementById('sucursal-menu');
+    if(m) m.style.display='none';
+  }
 });
 
 initLogin();
