@@ -3581,8 +3581,17 @@ async function loadReseñas(){
 
 async function deleteReseña(id){
   if(!confirm('¿Eliminar esta reseña?')) return;
-  try{await sbDelete('calificaciones','id=eq.'+id);toast('Reseña eliminada');loadReseñas();}
-  catch(e){toast('Error: '+e.message,'error');}
+  try{
+    const r=await fetch(SUPABASE_URL+'/rest/v1/rpc/delete_calificacion',{
+      method:'POST',
+      headers:{...H,'Content-Type':'application/json'},
+      body:JSON.stringify({p_id:id, p_shop_id:S.shopId})
+    });
+    const res=await r.json();
+    if(!r.ok||res.error) throw new Error(res.error||r.status);
+    toast('Reseña eliminada');
+    loadReseñas();
+  }catch(e){toast('Error: '+e.message,'error');}
 }
 
 function exportCSV_reseñas(){
