@@ -866,7 +866,19 @@ async function cargarDatos(){
 function startPolling(){clearInterval(pollingInterval);pollingInterval=setInterval(()=>{if(barbero)cargarDatos()},8000);}
 function startRealtimeHoy(){
   if(!barbero)return;
-  sb.channel('barbero-panel').on('postgres_changes',{event:'*',schema:'public',table:'citas',filter:`shop_id=eq.${barbero.shop_id}`},()=>cargarDatos()).subscribe();
+  let prevCitasCount=null;
+  sb.channel('barbero-panel').on('postgres_changes',{event:'INSERT',schema:'public',table:'citas',filter:`shop_id=eq.${barbero.shop_id}`},(payload)=>{
+    if(payload.new?.barbero_id===barbero.id){
+      // Vibración + notificación browser al recibir cita nueva
+      if(navigator.vibrate)navigator.vibrate([200,100,200]);
+      if(Notification.permission==='granted'){
+        new Notification('✂️ Nueva reserva',{body:`${payload.new.nombre} · ${payload.new.servicio} · ${(payload.new.hora||'').substring(0,5)}`,icon:'/favicon.ico'});
+      }
+    }
+    cargarDatos();
+  }).on('postgres_changes',{event:'UPDATE',schema:'public',table:'citas',filter:`shop_id=eq.${barbero.shop_id}`},()=>cargarDatos()).subscribe();
+  // Pedir permiso de notificaciones browser
+  if(Notification.permission==='default')Notification.requestPermission();
 }
 
 function updateHeaderUI(){
