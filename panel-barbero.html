@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -943,9 +944,8 @@ function renderHome(){
   document.getElementById('tabManN').textContent=citasManana.filter(c=>c.estado==='Confirmada').length;
   document.getElementById('colaHint').style.display=pendientes.length>1?'block':'none';
   renderCola(lista);
-  const bloqHoy=bloqueos.filter(b=>b.fecha===hoyStr());
   document.getElementById('bloqueosBadge').textContent=`(${bloqueos.length})`;
-  renderBloqueos(bloqHoy);
+  renderBloqueos(bloqueos);
   if(completadas.length>0){
     document.getElementById('completadasSection').style.display='block';
     document.getElementById('compCount').textContent=completadas.length;
@@ -1010,7 +1010,16 @@ function renderCola(lista){
 
 function renderBloqueos(lista){
   const el=document.getElementById('bloqueosList');if(!lista.length){el.innerHTML='';return;}
-  el.innerHTML=lista.map(b=>`<div class="bloqueo-row"><div style="flex:1"><span style="font-weight:700;color:var(--red);">${b.hora_inicio.substring(0,5)} – ${b.hora_fin.substring(0,5)}</span>${b.motivo?` <span style="font-size:.72rem;color:var(--dim);">· ${DOMPurify.sanitize(b.motivo)}</span>`:''}</div><div onclick="eliminarBloqueo(${b.id})" class="action-btn btn-x">✕</div></div>`).join('');
+  const hoy=hoyStr();
+  const manana=new Date();manana.setDate(manana.getDate()+1);
+  const mananaStr=manana.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
+  const diasSemana=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  function labelFecha(f){
+    if(f===hoy)return'Hoy';
+    if(f===mananaStr)return'Mañana';
+    const d=new Date(f+'T12:00:00');return`${diasSemana[d.getDay()]} ${d.getDate()}/${d.getMonth()+1}`;
+  }
+  el.innerHTML=lista.map(b=>`<div class="bloqueo-row"><div style="flex:1"><span style="font-size:.68rem;color:var(--dim);margin-right:6px;">${labelFecha(b.fecha)}</span><span style="font-weight:700;color:var(--red);">${b.hora_inicio.substring(0,5)} – ${b.hora_fin.substring(0,5)}</span>${b.motivo?` <span style="font-size:.72rem;color:var(--dim);">· ${DOMPurify.sanitize(b.motivo)}</span>`:''}</div><div onclick="eliminarBloqueo(${b.id})" class="action-btn btn-x">✕</div></div>`).join('');
 }
 
 function addSwipe(id,cita){
