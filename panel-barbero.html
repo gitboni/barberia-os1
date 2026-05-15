@@ -770,6 +770,7 @@ let citas=[],citasManana=[],bloqueos=[];
 let maxTurnos=5,vistaFecha='hoy';
 let currentCitaCompletar=null,currentCitaReagendar=null;
 let pollingInterval=null,monitorInterval=null;
+let _citasKnownIds=new Set(); // IDs de citas ya conocidas (para detección polling)
 let ncFecha='hoy',ncServicioSel=null,ncHoraSel=null;
 let blqFechaVal='hoy';
 let vipEditando=null,vipDiaSel=1,vipHoraSel='09:00',vipSvcSel='';
@@ -852,7 +853,7 @@ function showScreen(id,el=null){
   document.getElementById(id).scrollTop=0;
 }
 
-async function cargarDatos(){
+async function cargarDatos(origenPoll=false){
   if(!barbero)return;
   const hoy=hoyStr();
   const[citasRes,citasManRes,bloqRes]=await Promise.all([
@@ -860,14 +861,40 @@ async function cargarDatos(){
     sb.from('citas').select('*').eq('fecha',mananaStr()).or(`barbero_id.eq.${barbero.id},and(barbero_id.is.null,barbero.ilike.${barbero.nombre})`).order('hora'),
     sb.from('horarios_bloqueados').select('*').eq('barbero_id',barbero.id).gte('fecha',hoy).order('fecha').order('hora_inicio')
   ]);
-  citas=citasRes.data||[];citasManana=citasManRes.data||[];bloqueos=bloqRes.data||[];
+  const nuevasCitas=citasRes.data||[];
+
+  // ── Detección de citas nuevas via polling (fallback si Realtime cayó) ────────
+  if(_citasKnownIds.size>0){
+    const nuevasConfirmadas=nuevasCitas.filter(c=>
+      c.estado==='Confirmada'&&
+      !_citasKnownIds.has(c.id)
+    );
+    if(nuevasConfirmadas.length>0){
+      nuevasConfirmadas.forEach(c=>{
+        if(navigator.vibrate)navigator.vibrate([200,100,200]);
+        playAlertSound();
+        flashTitle('🔔 Nueva cita!');
+        mostrarBannerNuevaCita(c.nombre,c.servicio,(c.hora||'').substring(0,5));
+        if(typeof Notification!=='undefined'&&Notification.permission==='granted'){
+          try{new Notification('✂️ Nueva reserva',{body:`${c.nombre} · ${c.servicio} · ${(c.hora||'').substring(0,5)}`,icon:'/favicon.ico'});}catch(e){}
+        }
+      });
+    }
+  }
+  // Actualizar el set de IDs conocidos
+  nuevasCitas.forEach(c=>{if(c.id>0)_citasKnownIds.add(c.id);});
+
+  citas=nuevasCitas;citasManana=citasManRes.data||[];bloqueos=bloqRes.data||[];
   const{data:prefs}=await sb.from('clientes_preferenciales').select('*').eq('barbero_id',barbero.id);
   const diaHoy=new Date().getDay();
   const virtuals=(prefs||[]).filter(p=>p.dia_semana===diaHoy&&p.activo!==false&&!citas.some(c=>c.hora.substring(0,5)===p.hora.substring(0,5))).map(p=>({id:-1,shop_id:p.shop_id,barbero_id:p.barbero_id,nombre:p.nombre+' ⭐',telefono:p.telefono,fecha:hoy,hora:p.hora.length===5?p.hora+':00':p.hora,servicio:p.servicio,barbero:barbero.nombre,estado:'Confirmada',nota:'Cliente Preferencial',virtual:true}));
   citas=[...citas,...virtuals].sort((a,b)=>a.hora.localeCompare(b.hora));
   renderHome();
 }
-function startPolling(){clearInterval(pollingInterval);pollingInterval=setInterval(()=>{if(barbero)cargarDatos()},8000);}
+function startPolling(){
+  clearInterval(pollingInterval);
+  pollingInterval=setInterval(()=>{if(barbero)cargarDatos(true);},8000);
+}
 // ── Sonido de alerta vía Web Audio (sin archivos externos) ───────────────────
 function playAlertSound(){
   try{
@@ -964,6 +991,24 @@ function startRealtimeHoy(){
 
   // Mostrar estado inicial del botón de notificación
   if(typeof Notification!=='undefined')updateNotifBtn(Notification.permission);
+
+  // Reconectar Realtime si la página vuelve al primer plano (phone screen on, tab focus)
+  document.removeEventListener('visibilitychange',_onVisibility);
+  document.addEventListener('visibilitychange',_onVisibility);
+}
+
+function _onVisibility(){
+  if(document.visibilityState==='visible'&&barbero){
+    // Forzar recarga de datos inmediata (detectará citas perdidas vía polling fallback)
+    cargarDatos(true);
+    // Reconectar canal si está caído
+    const dot=document.getElementById('realtimeDot');
+    const status=_realtimeChannel?.state||'';
+    if(status!=='joined'){
+      console.log('[Realtime] reconectando tras visibilitychange...');
+      startRealtimeHoy();
+    }
+  }
 }
 
 function updateHeaderUI(){
