@@ -6,6 +6,7 @@
 <title>AuraOS — Panel Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Syne:wght@700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -821,6 +822,10 @@ let _activeSucursalSlug = SHOP_SLUG;
 let _grupoNombre = null;
 let _grupoSucursales = [];
 const H={'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY};
+function normalizarTel(raw){let t=(raw||'').replace(/\D/g,'');if(t.length===10&&(t.startsWith('8')||t.startsWith('9')))t='1'+t;return t;}
+// Sanitiza cualquier string antes de insertarlo en innerHTML (previene XSS)
+function esc(v){return typeof DOMPurify!=='undefined'?DOMPurify.sanitize(String(v??''),{ALLOWED_TAGS:[],ALLOWED_ATTR:[]}):String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
 async function sbGet(t,q=''){const r=await fetch(SUPABASE_URL+'/rest/v1/'+t+'?'+q,{headers:H});if(!r.ok)throw new Error(await r.text());return r.json();}
 async function sbPost(t,d){const r=await fetch(SUPABASE_URL+'/rest/v1/'+t,{method:'POST',headers:{...H,'Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify(d)});if(!r.ok)throw new Error(await r.text());return r.json();}
 async function sbPatch(t,q,d){const r=await fetch(SUPABASE_URL+'/rest/v1/'+t+'?'+q,{method:'PATCH',headers:{...H,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(d)});if(!r.ok)throw new Error(await r.text());return true;}
@@ -1244,10 +1249,10 @@ function renderCitasRows(citas){
   return citas.map((c,i)=>`<tr>
     <td style="font-family:'DM Mono',monospace;color:var(--muted);font-size:0.68rem;">${String(i+1).padStart(2,'0')}</td>
     <td style="font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--gold);font-weight:500;">${fmt12rpt(c.hora)}</td>
-    <td style="font-weight:700;">${c.nombre}</td>
-    <td style="font-family:'DM Mono',monospace;font-size:0.66rem;color:var(--muted);">${c.tel||'—'}</td>
-    <td style="font-size:0.78rem;color:var(--muted);">${c.servicio}</td>
-    <td style="font-size:0.78rem;">${c.barbero}</td>
+    <td style="font-weight:700;">${esc(c.nombre)}</td>
+    <td style="font-family:'DM Mono',monospace;font-size:0.66rem;color:var(--muted);">${esc(c.tel||'—')}</td>
+    <td style="font-size:0.78rem;color:var(--muted);">${esc(c.servicio)}</td>
+    <td style="font-size:0.78rem;">${esc(c.barbero)}</td>
     <td><span class="badge ${bc(c.estado)}"><span class="badge-dot"></span>${c.estado}</span></td>
     <td><div class="row-actions">
       <button class="ra-btn" onclick="editCita(${c.id})" title="Editar">✏</button>
@@ -1325,7 +1330,7 @@ async function notificarBarberoAdmin(barberoId, titulo, cuerpo, tipo='nueva_cita
 }
 async function saveCita(){
   const id=document.getElementById('m-cita-id').value;
-  const p={nombre:document.getElementById('m-nombre').value.trim(),telefono:document.getElementById('m-tel').value.trim(),fecha:document.getElementById('m-fecha').value,hora:document.getElementById('m-hora').value,servicio:document.getElementById('m-servicio').value,barbero:document.getElementById('m-barbero').value,estado:document.getElementById('m-estado').value,shop_id:S.shopId};
+  const p={nombre:document.getElementById('m-nombre').value.trim(),telefono:normalizarTel(document.getElementById('m-tel').value.trim()),fecha:document.getElementById('m-fecha').value,hora:document.getElementById('m-hora').value,servicio:document.getElementById('m-servicio').value,barbero:document.getElementById('m-barbero').value,estado:document.getElementById('m-estado').value,shop_id:S.shopId};
   if(!p.nombre||!p.hora){toast('Nombre y hora requeridos','error');return;}
   try{
     if(id){await sbPatch('citas','id=eq.'+id,p);const i=S.citas.findIndex(x=>x.id==id);if(i>=0)S.citas[i]={...S.citas[i],...p,id:parseInt(id),tel:p.telefono};else if(S._citasOtraFecha){const j=S._citasOtraFecha.findIndex(x=>x.id==id);if(j>=0)S._citasOtraFecha[j]={...S._citasOtraFecha[j],...p,id:parseInt(id),tel:p.telefono};}toast('Cita actualizada');}
@@ -1390,16 +1395,16 @@ function renderClientesRows(lista){
 
     return `<tr>
       <td style="font-family:'DM Mono',monospace;color:var(--muted);font-size:0.68rem;">${String(i+1).padStart(2,'0')}</td>
-      <td style="font-weight:700;">${etBadge}${appBadge}${c.nombre}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--gold);">${c.telefono}</td>
+      <td style="font-weight:700;">${etBadge}${appBadge}${esc(c.nombre)}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--gold);">${esc(c.telefono)}</td>
       <td><span class="badge ${visitas>5?'badge-green':visitas>0?'badge-blue':'badge-gray'}">${visitas} v.</span></td>
       <td style="font-family:'DM Mono',monospace;font-size:0.66rem;color:var(--muted);">${ult}</td>
       <td><div class="row-actions">
-        <button class="ra-btn" onclick="openHistorialCliente('${c.nombre.replace(/'/g,"\\'")}','${c.telefono}')">📋</button>
-        <button class="ra-btn success" onclick="citarCliente('${c.nombre.replace(/'/g,"\\'")}','${c.telefono}')">📅</button>
-        <button class="ra-btn" onclick="sendWA('${c.telefono}')">💬</button>
-        <button class="ra-btn" onclick="resetPasswordAdmin('cliente',null,'${c.nombre.replace(/'/g,"\\'")}','${c.telefono}')">🔑</button>
-        <button class="ra-btn" onclick="editarCliente('${c.id||''}','${c.nombre.replace(/'/g,"\\'")}','${c.telefono}','${(c.notas||'').replace(/'/g,"\\'")}', '${c.etiqueta||''}')">✏️</button>
+        <button class="ra-btn" onclick="openHistorialCliente(${JSON.stringify(c.nombre)},${JSON.stringify(c.telefono)})">📋</button>
+        <button class="ra-btn success" onclick="citarCliente(${JSON.stringify(c.nombre)},${JSON.stringify(c.telefono)})">📅</button>
+        <button class="ra-btn" onclick="sendWA(${JSON.stringify(c.telefono)})">💬</button>
+        <button class="ra-btn" onclick="resetPasswordAdmin('cliente',null,${JSON.stringify(c.nombre)},${JSON.stringify(c.telefono)})">🔑</button>
+        <button class="ra-btn" onclick="editarCliente(${JSON.stringify(c.id||'')},${JSON.stringify(c.nombre)},${JSON.stringify(c.telefono)},${JSON.stringify(c.notas||'')},${JSON.stringify(c.etiqueta||'')})">✏️</button>
       </div></td>
     </tr>`;
   }).join('');
@@ -1420,7 +1425,7 @@ function editarCliente(id,nombre,tel,notas,etiqueta){
 }
 async function saveCliente(){
   const nombre=document.getElementById('mc-nombre').value.trim();
-  const tel=document.getElementById('mc-tel').value.trim();
+  const tel=normalizarTel(document.getElementById('mc-tel').value.trim());
   const notas=document.getElementById('mc-notas').value.trim();
   const etiqueta=document.getElementById('mc-etiqueta').value;
   const mcId=document.getElementById('mc-id')?.value||'';
@@ -1927,10 +1932,10 @@ const hoyStr = hoy.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'}
             <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--muted);margin-bottom:12px;letter-spacing:0.15em;text-transform:uppercase;">EN ATENCIÓN AHORA</div>
             ${enCurso.length ? enCurso.map(c => `
               <div style="display:flex;align-items:center;gap:15px;padding:14px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:12px;margin-bottom:10px; transition: all 0.3s var(--bez);">
-                <div class="barber-avatar" style="width:38px; height:38px; border-radius:10px; font-size:1rem; border-color:var(--green); color:var(--green); background:rgba(62,207,142,0.05);">${c.nombre[0]}</div>
+                <div class="barber-avatar" style="width:38px; height:38px; border-radius:10px; font-size:1rem; border-color:var(--green); color:var(--green); background:rgba(62,207,142,0.05);">${esc(c.nombre[0])}</div>
                 <div style="flex:1;">
-                  <div style="font-weight:700;font-size:0.9rem; color:var(--text);">${c.nombre}</div>
-                  <div style="font-size:0.7rem;color:var(--muted);">${c.servicio} <span style="color:var(--border); margin:0 4px;">•</span> ${c.barbero}</div>
+                  <div style="font-weight:700;font-size:0.9rem; color:var(--text);">${esc(c.nombre)}</div>
+                  <div style="font-size:0.7rem;color:var(--muted);">${esc(c.servicio)} <span style="color:var(--border); margin:0 4px;">•</span> ${esc(c.barbero)}</div>
                 </div>
                 <div style="text-align:right;">
                   <div style="font-family:'DM Mono',monospace;font-size:0.85rem;color:var(--green);font-weight:700;">${fmt12rpt(c.hora)}</div>
@@ -1951,8 +1956,8 @@ const hoyStr = hoy.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'}
                 <div style="display:flex;align-items:center;gap:10px;padding:12px;background:rgba(255,255,255,0.01);border:1px solid var(--border);border-radius:12px;">
                   <div style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--gold);font-weight:700; width:45px;">${fmt12rpt(c.hora).split(' ')[0]}</div>
                   <div style="flex:1; overflow:hidden;">
-                    <div style="font-weight:600;font-size:0.75rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${c.nombre}</div>
-                    <div style="font-size:0.6rem;color:var(--muted);">${c.barbero}</div>
+                    <div style="font-weight:600;font-size:0.75rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(c.nombre)}</div>
+                    <div style="font-size:0.6rem;color:var(--muted);">${esc(c.barbero)}</div>
                   </div>
                 </div>
               `).join('') : '<div style="grid-column: span 2; color:var(--muted); font-size:0.7rem; text-align:center;">Sin más turnos programados</div>'}
@@ -2382,8 +2387,8 @@ async function exportarPDF(){
   <table>
     <thead><tr class="tr-head"><th>Nombre</th><th>Teléfono</th><th>Últ. Visita</th><th>Visitas</th><th>Estatus</th></tr></thead>
     <tbody>${S.clientes.slice(0,12).map(c=>`<tr>
-      <td style="font-weight:600;">${c.nombre}</td>
-      <td style="font-family:'DM+Mono',monospace;">${c.telefono}</td>
+      <td style="font-weight:600;">${esc(c.nombre)}</td>
+      <td style="font-family:'DM+Mono',monospace;">${esc(c.telefono)}</td>
       <td>${c.ultima_visita?(c.ultima_visita+'').substring(0,10):'—'}</td>
       <td>${c.visitas||0}</td>
       <td><span style="font-size:0.65rem;padding:2px 8px;background:#eee;border-radius:4px;">${c.visitas>5?'VIP':c.visitas>1?'Recurrente':'Nuevo'}</span></td>
@@ -3552,15 +3557,15 @@ function renderInventario(){
 
   const alertasHtml = alertas.length ? `<div style="background:rgba(248,113,113,0.07);border:1px solid rgba(248,113,113,0.2);border-radius:12px;padding:14px 20px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
     <span style="font-size:0.75rem;font-weight:700;color:var(--red);">⚠️ Stock bajo:</span>
-    ${alertas.map(p=>`<span style="font-family:'DM Mono',monospace;font-size:0.6rem;background:rgba(248,113,113,0.12);color:var(--red);padding:4px 10px;border-radius:8px;">${p.nombre} (${p.stock_actual} ${p.unidad})</span>`).join('')}
+    ${alertas.map(p=>`<span style="font-family:'DM Mono',monospace;font-size:0.6rem;background:rgba(248,113,113,0.12);color:var(--red);padding:4px 10px;border-radius:8px;">${esc(p.nombre)} (${esc(p.stock_actual)} ${esc(p.unidad)})</span>`).join('')}
   </div>` : '';
 
   const productoRows = S.productos.length ? S.productos.map(p => {
     const bajo = parseFloat(p.stock_actual) <= parseFloat(p.stock_minimo);
     const catColor = p.categoria==='Venta' ? 'var(--green)' : p.categoria==='Herramienta' ? 'var(--blue)' : 'var(--muted)';
     return `<tr>
-      <td style="font-weight:600;">${p.nombre}</td>
-      <td><span style="font-size:0.65rem;color:${catColor};background:rgba(255,255,255,0.04);padding:3px 8px;border-radius:6px;">${p.categoria}</span></td>
+      <td style="font-weight:600;">${esc(p.nombre)}</td>
+      <td><span style="font-size:0.65rem;color:${catColor};background:rgba(255,255,255,0.04);padding:3px 8px;border-radius:6px;">${esc(p.categoria)}</span></td>
       <td style="font-family:'DM Mono',monospace;font-size:0.8rem;color:${bajo?'var(--red)':'var(--text)'};font-weight:700;">${p.stock_actual} <span style="font-size:0.6rem;color:var(--muted);">${p.unidad}</span></td>
       <td style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);">${p.stock_minimo} ${p.unidad}</td>
       <td style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--muted);">$${parseFloat(p.precio_costo||0).toLocaleString()}</td>
@@ -4051,8 +4056,8 @@ function renderCaja(){
         <div style="padding:16px;">
           ${citasHoy.map(c=>`
             <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border2);font-size:.8rem;">
-              <div><span style="color:var(--gold);font-family:'DM Mono',monospace;font-size:.7rem;">${c.hora}</span> · ${c.nombre}</div>
-              <div style="color:var(--muted);font-size:.72rem;">${c.servicio}</div>
+              <div><span style="color:var(--gold);font-family:'DM Mono',monospace;font-size:.7rem;">${esc(c.hora)}</span> · ${esc(c.nombre)}</div>
+              <div style="color:var(--muted);font-size:.72rem;">${esc(c.servicio)}</div>
             </div>`).join('')||'<div style="color:var(--muted);font-size:.72rem;text-align:center;padding:20px;">Sin servicios hoy</div>'}
         </div>
       </div>
