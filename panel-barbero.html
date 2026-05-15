@@ -874,9 +874,25 @@ function startRealtimeHoy(){
     if(payload.new?.barbero_id===barbero.id){
       // Vibración + notificación browser al recibir cita nueva
       if(navigator.vibrate)navigator.vibrate([200,100,200]);
+      const nBody=`${payload.new.nombre} · ${payload.new.servicio} · ${(payload.new.hora||'').substring(0,5)}`;
+      const nTitle='✂️ Nueva reserva';
+      let browserOk=false;
       if(Notification.permission==='granted'){
-        new Notification('✂️ Nueva reserva',{body:`${payload.new.nombre} · ${payload.new.servicio} · ${(payload.new.hora||'').substring(0,5)}`,icon:'/favicon.ico'});
+        new Notification(nTitle,{body:nBody,icon:'/favicon.ico'});
+        browserOk=true;
       }
+      // Registrar en push_notificaciones para auditoría
+      sb.from('push_notificaciones').insert({
+        usuario_id: usuario?.id||null,
+        shop_id:    barbero.shop_id,
+        titulo:     nTitle,
+        cuerpo:     nBody,
+        tipo:       'nueva_cita',
+        data:       {cita_id:payload.new.id,fecha:payload.new.fecha,hora:payload.new.hora},
+        enviada:    browserOk,
+        leida:      false,
+        enviada_at: new Date().toISOString(),
+      }).then(()=>{});
     }
     cargarDatos();
   }).on('postgres_changes',{event:'UPDATE',schema:'public',table:'citas',filter:`shop_id=eq.${barbero.shop_id}`},()=>cargarDatos()).subscribe();
