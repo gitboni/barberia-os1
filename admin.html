@@ -943,11 +943,11 @@ async function loadAll(){
     }catch(_){S._todasCitas=S.citas;}
     // Precargar servicios para que estén listos en reportes
     try{const svcs=await sbGet('servicios','shop_id=eq.'+S.shopId+'&activo=eq.true&order=orden.asc');S.servicios=svcs||[];}catch(_){S.servicios=[];}
-    // Cargar estados de notificación push (v87)
+    // Cargar tokens push de barberos (para notificar desde admin)
     try {
       const usersApp = await sbGet('usuarios_app', 'shop_id=eq.'+S.shopId+'&push_activo=eq.true&select=barbero_id,push_token');
       S.pushTokens = {};
-      (usersApp || []).forEach(u => { if(u.barbero_id) S.pushTokens[u.barbero_id] = true; });
+      (usersApp || []).forEach(u => { if(u.barbero_id && u.push_token) S.pushTokens[u.barbero_id] = u.push_token; });
     } catch(e) { S.pushTokens = {}; }
 
     // Cargar gastos (últimos 90 días)
@@ -1296,13 +1296,27 @@ async function editCita(id){
   document.getElementById('m-barbero').value=c.barbero;
   openModal('cita');
 }
+async function notificarBarberoAdmin(barberoId, titulo, cuerpo) {
+  try {
+    const token = S.pushTokens && S.pushTokens[barberoId];
+    if (!token) return;
+    await fetch('https://exp.host/--/api/v2/push/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ to: token, title: titulo, body: cuerpo, sound: 'default' }),
+    });
+  } catch(e) { console.warn('push admin:', e); }
+}
 async function saveCita(){
   const id=document.getElementById('m-cita-id').value;
   const p={nombre:document.getElementById('m-nombre').value.trim(),telefono:document.getElementById('m-tel').value.trim(),fecha:document.getElementById('m-fecha').value,hora:document.getElementById('m-hora').value,servicio:document.getElementById('m-servicio').value,barbero:document.getElementById('m-barbero').value,estado:document.getElementById('m-estado').value,shop_id:S.shopId};
   if(!p.nombre||!p.hora){toast('Nombre y hora requeridos','error');return;}
   try{
     if(id){await sbPatch('citas','id=eq.'+id,p);const i=S.citas.findIndex(x=>x.id==id);if(i>=0)S.citas[i]={...S.citas[i],...p,id:parseInt(id),tel:p.telefono};else if(S._citasOtraFecha){const j=S._citasOtraFecha.findIndex(x=>x.id==id);if(j>=0)S._citasOtraFecha[j]={...S._citasOtraFecha[j],...p,id:parseInt(id),tel:p.telefono};}toast('Cita actualizada');}
-    else{const [n]=await sbPost('citas',p);S.citas.push({id:n.id,nombre:p.nombre,hora:p.hora,servicio:p.servicio,barbero:p.barbero,estado:p.estado,tel:p.telefono,fecha:p.fecha});document.getElementById('nb-citas').textContent=S.citas.length;toast('Cita creada');}
+    else{const [n]=await sbPost('citas',p);S.citas.push({id:n.id,nombre:p.nombre,hora:p.hora,servicio:p.servicio,barbero:p.barbero,estado:p.estado,tel:p.telefono,fecha:p.fecha});document.getElementById('nb-citas').textContent=S.citas.length;toast('Cita creada');
+      const bData=S.barberos.find(b=>b.nombre===p.barbero);
+      if(bData?.id)notificarBarberoAdmin(bData.id,'✂️ Nueva reserva',`${p.nombre} · ${p.servicio} · ${p.hora.substring(0,5)}`);
+    }
     closeModal('cita');renderPage();
   }catch(e){toast('Error: '+e.message,'error');}
 }
