@@ -23,8 +23,15 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Falta webhook_url' });
   }
 
-  // Validar que sea un webhook de n8n (seguridad básica)
-  if (!webhook_url.includes('n8n.cloud') && !webhook_url.includes('localhost')) {
+  // Validar que sea un webhook de n8n — whitelist exacta de hostnames (previene SSRF)
+  let parsedUrl;
+  try { parsedUrl = new URL(webhook_url); } catch(_) {
+    return res.status(400).json({ error: 'URL inválida' });
+  }
+  const ALLOWED_HOSTS = ['app.n8n.cloud', 'n8n.cloud'];
+  const hostOk = ALLOWED_HOSTS.some(h => parsedUrl.hostname === h || parsedUrl.hostname.endsWith('.' + h));
+  const devOk  = process.env.NODE_ENV !== 'production' && parsedUrl.hostname === 'localhost';
+  if (!hostOk && !devOk) {
     return res.status(400).json({ error: 'URL no permitida' });
   }
 
