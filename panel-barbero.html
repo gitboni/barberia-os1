@@ -654,10 +654,13 @@ input:checked+.slider:before{transform:translateX(22px)}
   </div>
 </div>
 
-<div id="modalNuevaCita" class="modal-overlay hidden">
-  <div class="modal-box">
+<div id="modalNuevaCita" class="modal-overlay hidden" onclick="closeModal('modalNuevaCita')">
+  <div class="modal-box" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
-    <div style="font-size:1rem;font-weight:900;font-family:Outfit,sans-serif;margin-bottom:14px;">Nueva cita</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <div style="font-size:1rem;font-weight:900;font-family:Outfit,sans-serif;">Nueva cita</div>
+      <div onclick="closeModal('modalNuevaCita')" style="cursor:pointer;color:var(--accent);font-size:1.1rem;padding:4px 8px;">✕</div>
+    </div>
     <label class="label">Fecha</label>
     <div class="chip-row" id="ncFechaChips">
       <div class="chip on" onclick="ncSelFecha(this,'hoy')" style="flex:1;text-align:center;">Hoy</div>
