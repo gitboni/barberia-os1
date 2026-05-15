@@ -915,6 +915,25 @@ async function loadAll(){
         S.activity=convs.map(c=>({color:c.estado_conversacion==='completado'?'var(--green)':c.estado_conversacion==='esperando_confirmacion'?'var(--gold)':'var(--blue)',text:(c.nombre_parcial||c.chat_id)+' — '+(c.estado_conversacion||'').replace(/_/g,' ')+' · '+(c.servicio_parcial||''),time:c.ultima_actualizacion?calcAgo(new Date(c.ultima_actualizacion)):'—'}));
       }catch(e){S.activity=[];}
     }
+    // Merge clientes de la app (usuarios_app via cliente_shops)
+    try {
+      const csLinks=await sbGet('cliente_shops','shop_id=eq.'+S.shopId+'&select=usuario_id').catch(()=>[]);
+      const uids=(csLinks||[]).map(l=>l.usuario_id).filter(Boolean);
+      if(uids.length>0){
+        const appU=await sbGet('usuarios_app','id=in.('+uids.join(',')+')'+'&rol=eq.cliente&select=id,nombre,telefono,activo,created_at&order=created_at.desc').catch(()=>[]);
+        const tels=new Set(S.clientes.map(c=>c.telefono));
+        (appU||[]).forEach(u=>{
+          if(!u.telefono)return;
+          if(tels.has(u.telefono)){
+            const ex=S.clientes.find(c=>c.telefono===u.telefono);
+            if(ex)ex._app=true;
+          }else{
+            S.clientes.push({nombre:u.nombre||'Cliente App',telefono:u.telefono,visitas:0,ultima_visita:u.created_at,notas:'',etiqueta:'',_app:true});
+            tels.add(u.telefono);
+          }
+        });
+      }
+    }catch(e){console.warn('merge app clients:',e);}
     // Cargar historial completo de citas para reportes (últimos 90 días)
     try{
       const hace90=new Date();hace90.setDate(hace90.getDate()-90);
@@ -1337,10 +1356,11 @@ function renderClientesRows(lista){
     const etiqueta = c.etiqueta || '';
     const etColors = { 'VIP': '#C9A84C', 'Frecuente': '#60A5FA', 'Nuevo': '#3ECF8E', 'Inactivo': '#F87171' };
     const etBadge = etiqueta ? `<span style="font-size:0.5rem; background:${etColors[etiqueta]}22; color:${etColors[etiqueta]}; border:1px solid ${etColors[etiqueta]}44; padding:2px 6px; border-radius:4px; margin-right:6px;">${etiqueta}</span>` : '';
-    
+    const appBadge = c._app ? `<span style="font-size:0.5rem; background:#8B5CF622; color:#8B5CF6; border:1px solid #8B5CF644; padding:2px 6px; border-radius:4px; margin-right:6px;">📱 App</span>` : '';
+
     return `<tr>
       <td style="font-family:'DM Mono',monospace;color:var(--muted);font-size:0.68rem;">${String(i+1).padStart(2,'0')}</td>
-      <td style="font-weight:700;">${etBadge}${c.nombre}</td>
+      <td style="font-weight:700;">${etBadge}${appBadge}${c.nombre}</td>
       <td style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--gold);">${c.telefono}</td>
       <td><span class="badge ${visitas>5?'badge-green':visitas>0?'badge-blue':'badge-gray'}">${visitas} v.</span></td>
       <td style="font-family:'DM Mono',monospace;font-size:0.66rem;color:var(--muted);">${ult}</td>
