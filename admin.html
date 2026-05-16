@@ -3165,8 +3165,8 @@ async function cargarLogsRecordatorios(){
       el.innerHTML=`<div style="text-align:center;color:var(--muted);font-size:0.72rem;padding:20px;">No hay registros aún.${hint}</div>`;
       return;
     }
-    const tipoLabel={'rec_1h_antes':'1h antes','rec_20min_antes':'20min antes','turno_proximo':'Turno próximo'};
-    const tipoColor={'rec_1h_antes':'var(--gold)','rec_20min_antes':'#f0a500','turno_proximo':'var(--green)'};
+    const tipoLabel={'rec_1h_antes':'1h antes','rec_20min_antes':'20min antes','turno_proximo':'~20 min antes'};
+    const tipoColor={'rec_1h_antes':'var(--gold)','rec_20min_antes':'#f0a500','turno_proximo':'#f0a500'};
     el.innerHTML=`
       <div style="overflow-x:auto;">
         <table style="width:100%;border-collapse:collapse;font-size:0.68rem;">
