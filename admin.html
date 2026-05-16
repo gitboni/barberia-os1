@@ -1400,11 +1400,11 @@ function renderClientesRows(lista){
       <td><span class="badge ${visitas>5?'badge-green':visitas>0?'badge-blue':'badge-gray'}">${visitas} v.</span></td>
       <td style="font-family:'DM Mono',monospace;font-size:0.66rem;color:var(--muted);">${ult}</td>
       <td><div class="row-actions">
-        <button class="ra-btn" onclick="openHistorialCliente(${JSON.stringify(c.nombre)},${JSON.stringify(c.telefono)})">📋</button>
-        <button class="ra-btn success" onclick="citarCliente(${JSON.stringify(c.nombre)},${JSON.stringify(c.telefono)})">📅</button>
-        <button class="ra-btn" onclick="sendWA(${JSON.stringify(c.telefono)})">💬</button>
-        <button class="ra-btn" onclick="resetPasswordAdmin('cliente',null,${JSON.stringify(c.nombre)},${JSON.stringify(c.telefono)})">🔑</button>
-        <button class="ra-btn" onclick="editarCliente(${JSON.stringify(c.id||'')},${JSON.stringify(c.nombre)},${JSON.stringify(c.telefono)},${JSON.stringify(c.notas||'')},${JSON.stringify(c.etiqueta||'')})">✏️</button>
+        <button class="ra-btn" onclick="openHistorialCliente(${esc(JSON.stringify(c.nombre))},${esc(JSON.stringify(c.telefono))})">📋</button>
+        <button class="ra-btn success" onclick="citarCliente(${esc(JSON.stringify(c.nombre))},${esc(JSON.stringify(c.telefono))})">📅</button>
+        <button class="ra-btn" onclick="sendWA(${esc(JSON.stringify(c.telefono))})">💬</button>
+        <button class="ra-btn" onclick="resetPasswordAdmin('cliente',null,${esc(JSON.stringify(c.nombre))},${esc(JSON.stringify(c.telefono))})">🔑</button>
+        <button class="ra-btn" onclick="editarCliente(${esc(JSON.stringify(c.id||''))},${esc(JSON.stringify(c.nombre))},${esc(JSON.stringify(c.telefono))},${esc(JSON.stringify(c.notas||''))},${esc(JSON.stringify(c.etiqueta||''))})">✏️</button>
       </div></td>
     </tr>`;
   }).join('');
@@ -1490,7 +1490,7 @@ function sendWA(tel){window.open('https://wa.me/'+tel.replace(/\D/g,'')+'?text=H
 
 function openHistorialCliente(nombre,tel){
   const todas=S._todasCitas||S.citas;
-  const hist=todas.filter(c=>c.tel===tel||c.nombre===nombre).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const hist=todas.filter(c=>c.tel===tel||c.telefono===tel||c.nombre===nombre).sort((a,b)=>b.fecha.localeCompare(a.fecha));
   const clienteInfo=S.clientes.find(c=>c.telefono===tel)||{};
   const svcCount={};const barbCount={};
   hist.forEach(c=>{svcCount[c.servicio]=(svcCount[c.servicio]||0)+1;barbCount[c.barbero]=(barbCount[c.barbero]||0)+1;});
