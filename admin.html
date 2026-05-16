@@ -1384,6 +1384,7 @@ function renderClientes(){
   </div>`;
 }
 function renderClientesRows(lista){
+  window._clVis = lista; // global ref for onclick handlers
   if(!lista.length)return `<tr><td colspan="7" style="text-align:center;padding:32px;font-family:'DM Mono',monospace;font-size:0.62rem;color:var(--muted);">Sin clientes coincidentes.</td></tr>`;
   return lista.map((c,i)=>{
     const ult=c.ultima_visita?new Date(c.ultima_visita).toLocaleDateString('es-DO'):c.ultima?new Date(c.ultima).toLocaleDateString('es-DO'):'—';
@@ -1400,14 +1401,23 @@ function renderClientesRows(lista){
       <td><span class="badge ${visitas>5?'badge-green':visitas>0?'badge-blue':'badge-gray'}">${visitas} v.</span></td>
       <td style="font-family:'DM Mono',monospace;font-size:0.66rem;color:var(--muted);">${ult}</td>
       <td><div class="row-actions">
-        <button class="ra-btn" onclick="openHistorialCliente(${esc(JSON.stringify(c.nombre))},${esc(JSON.stringify(c.telefono))})">📋</button>
-        <button class="ra-btn success" onclick="citarCliente(${esc(JSON.stringify(c.nombre))},${esc(JSON.stringify(c.telefono))})">📅</button>
-        <button class="ra-btn" onclick="sendWA(${esc(JSON.stringify(c.telefono))})">💬</button>
-        <button class="ra-btn" onclick="resetPasswordAdmin('cliente',null,${esc(JSON.stringify(c.nombre))},${esc(JSON.stringify(c.telefono))})">🔑</button>
-        <button class="ra-btn" onclick="editarCliente(${esc(JSON.stringify(c.id||''))},${esc(JSON.stringify(c.nombre))},${esc(JSON.stringify(c.telefono))},${esc(JSON.stringify(c.notas||''))},${esc(JSON.stringify(c.etiqueta||''))})">✏️</button>
+        <button class="ra-btn" onclick="_clAcc(${i},'hist')">📋</button>
+        <button class="ra-btn success" onclick="_clAcc(${i},'cita')">📅</button>
+        <button class="ra-btn" onclick="_clAcc(${i},'wa')">💬</button>
+        <button class="ra-btn" onclick="_clAcc(${i},'reset')">🔑</button>
+        <button class="ra-btn" onclick="_clAcc(${i},'edit')">✏️</button>
       </div></td>
     </tr>`;
   }).join('');
+}
+function _clAcc(i, accion){
+  const c = window._clVis && window._clVis[i];
+  if(!c) return;
+  if(accion==='hist')  openHistorialCliente(c.nombre, c.telefono);
+  if(accion==='cita')  citarCliente(c.nombre, c.telefono);
+  if(accion==='wa')    sendWA(c.telefono);
+  if(accion==='reset') resetPasswordAdmin('cliente', null, c.nombre, c.telefono);
+  if(accion==='edit')  editarCliente(c.id||'', c.nombre, c.telefono, c.notas||'', c.etiqueta||'');
 }
 function filterClientes(){
   const q=(document.getElementById('search-clientes').value||'').toLowerCase();
