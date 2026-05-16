@@ -37,8 +37,9 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="/icon.png">
   <meta name="theme-color" content="#050505">
+  <!-- Font pairing #18 (Fashion Forward): Syne display + Manrope body + Outfit brand -->
   <link
-    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=Inter:wght@300;400;500;600&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Syne:wght@600;700;800&family=Outfit:wght@600;700;900&display=swap"
     rel="stylesheet">
   <script src="https://unpkg.com/lucide@0.263.1"></script>
   <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -52,25 +53,54 @@
   <style>
     /* ── Variables ── */
     :root {
-      --bg: #050505;
-      --bg2: #0f0f0f;
-      --bg3: #161616;
-      --bg4: #1f1f1f;
-      --gold: #D4AF37;
-      --gold-s: rgba(212, 175, 55, .12);
-      --gold-b: rgba(212, 175, 55, .3);
-      --text: #fff;
-      --dim: rgba(255, 255, 255, .5);
-      --muted: rgba(255, 255, 255, .25);
-      --green: #00D084;
-      --red: #FF4757;
-      --blue: #3B82F6;
-      --border: rgba(255, 255, 255, .08);
-      --border2: rgba(255, 255, 255, .04);
-      --r: 14px;
+      /* ══ Deep Indigo-Black + Copper-Amber + Violet ══
+         Inspirado en Linear / Raycast / Vercel dark
+         Fondo azul-índigo profundo crea contraste dramático
+         con el acento cobre-ámbar cálido                     */
+
+      /* Backgrounds — índigo oscuro (NO negro plano) */
+      --bg:    #06070E;
+      --bg2:   #0C0D1A;
+      --bg3:   #121422;
+      --bg4:   #191B2E;
+
+      /* Copper-Amber — más naranja-cobre que amarillo-dorado */
+      --gold:    #E8922A;
+      --gold-hi: #FFBA60;
+      --gold-lo: #A05A10;
+      --gold-s:  rgba(232,146,42,.13);
+      --gold-b:  rgba(232,146,42,.32);
+
+      /* Violet — acento secundario moderno SaaS */
+      --violet:   #7C5CFC;
+      --violet-s: rgba(124,92,252,.12);
+      --violet-b: rgba(124,92,252,.35);
+
+      /* Cyan — indicadores de disponibilidad */
+      --green: #00D4A8;
+      --red:   #FF3A55;
+      --blue:  #4F8EF7;
+
+      /* Text — azul-blanco frío (armoniza con bg índigo) */
+      --text:  #EEF0FF;
+      --dim:   rgba(238,240,255,.5);
+      --muted: rgba(238,240,255,.24);
+
+      /* Borders — índigo tintados */
+      --border:  rgba(120,130,255,.09);
+      --border2: rgba(120,130,255,.04);
+
+      /* Radius */
+      --r:    14px;
       --r-lg: 20px;
       --r-xl: 28px;
       --nav-h: 68px;
+
+      /* Gradients */
+      --gold-gradient: linear-gradient(135deg, #A05A10 0%, #E8922A 40%, #FFBA60 65%, #E8922A 100%);
+      --violet-gradient: linear-gradient(135deg, #5B3FD4 0%, #7C5CFC 50%, #A78BFA 100%);
+      --card-glow-hover: 0 0 0 1px rgba(232,146,42,.3), 0 24px 70px rgba(0,0,0,.7), 0 0 60px rgba(232,146,42,.07) inset;
+      --plan-glow: 0 0 0 1px rgba(232,146,42,.4), 0 32px 90px rgba(232,146,42,.15), 0 60px 140px rgba(0,0,0,.85);
     }
 
     * {
@@ -83,9 +113,30 @@
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: 'Inter', sans-serif;
+      font-family: 'Manrope', sans-serif;
       overflow-x: hidden;
       transition: background 0.4s ease, color 0.4s ease;
+    }
+
+    /* ── Ambient glow map — fondo nunca vacío ── */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 90% 60% at -10% 20%,  rgba(124,92,252,.07)  0%, transparent 55%),
+        radial-gradient(ellipse 70% 80% at 110% 80%,  rgba(232,146,42,.06)  0%, transparent 55%),
+        radial-gradient(ellipse 50% 50% at 50% 110%,  rgba(0,212,168,.04)   0%, transparent 50%),
+        radial-gradient(ellipse 40% 40% at 80% -10%,  rgba(79,142,247,.05)  0%, transparent 50%);
+      animation: glow-drift 20s ease-in-out infinite;
+    }
+
+    @keyframes glow-drift {
+      0%,100% { opacity:1; transform:scale(1) }
+      33%     { opacity:.7; transform:scale(1.04) rotate(1deg) }
+      66%     { opacity:.9; transform:scale(.97) rotate(-1deg) }
     }
 
     /* ── Scroll reveal ── */
@@ -102,6 +153,165 @@
 
     .outfit {
       font-family: 'Outfit', sans-serif
+    }
+
+    /* ── Syne para todos los títulos display ── */
+    .hero-title,
+    .promo-title,
+    .faq-title,
+    .plan-name,
+    .footer-brand,
+    .modal-title,
+    .fp-title,
+    h1, h2, h3 {
+      font-family: 'Syne', sans-serif;
+    }
+
+    /* ── Nav logo — Outfit se queda (brand identity) ── */
+    .nav-logo { font-family: 'Outfit', sans-serif }
+
+    /* ── Card name — Syne ── */
+    .card-name { font-family: 'Syne', sans-serif }
+
+    /* ── Violet accent en chips activos ── */
+    .cat.active {
+      background: var(--violet-gradient);
+      box-shadow: 0 4px 20px rgba(124,92,252,.35);
+    }
+
+    /* ── Toolbar chips — violet hover alternativo ── */
+    .chip.active {
+      background: var(--violet-gradient);
+      box-shadow: 0 4px 16px rgba(124,92,252,.3);
+      border-color: transparent;
+    }
+
+    /* ── View toggle activo — violet ── */
+    .view-btn.active {
+      background: var(--violet-gradient);
+      color: #fff;
+    }
+
+    /* ── Barber chip activo — violet ── */
+    .barber-chip.active {
+      background: var(--violet-s);
+      border-color: var(--violet-b);
+    }
+
+    .barber-chip.active .barber-name { color: #A78BFA }
+
+    .barber-chip.active .barber-avt { border-color: var(--violet) }
+
+    /* ── Svc item activo — violet ── */
+    .svc-item.active, .svc-item:hover {
+      border-color: var(--violet-b);
+      background: var(--violet-s);
+    }
+
+    /* ── Slot selected — gold gradient ── */
+    .slot.free { color: var(--gold); border-color: var(--gold-b) }
+    .slot.free:hover, .slot.selected {
+      background: var(--gold-gradient);
+      color: #000;
+      border-color: transparent;
+    }
+
+    /* ── Switch track gold ── */
+    .sw input:checked ~ .sw-track { background: var(--gold) }
+
+    /* ── Star opts active — gold ── */
+    .star-opt.active {
+      background: var(--gold-gradient);
+      color: #000;
+      border-color: transparent;
+    }
+
+    /* ── Plan badge pro — violet ── */
+    .plan-badge.pro {
+      background: var(--violet-s);
+      color: #A78BFA;
+      border: 1px solid var(--violet-b);
+    }
+
+    /* ── Plan badge prem — gold ── */
+    .plan-badge.prem {
+      background: var(--gold-gradient);
+      color: #000;
+    }
+
+    /* ── Detail section title — gold ── */
+    .detail-section-title,
+    .modal-section-title,
+    .fp-section-label { color: var(--gold) }
+
+    /* ── Horario hoy ── */
+    .horario-row.today { color: var(--gold) }
+
+    /* ── Rating stars ── */
+    .review-stars { color: var(--gold) }
+
+    /* ── Dot open ── */
+    .dot-open { background: var(--green); box-shadow: 0 0 8px var(--green) }
+
+    /* ── Hist chip hover — gold ── */
+    .hist-chip:hover { border-color: var(--gold-b); color: var(--gold) }
+
+    /* ── Map toggle hover ── */
+    .map-toggle:hover {
+      background: var(--gold-gradient);
+      color: #000;
+      border-color: transparent;
+    }
+
+    /* ── Map ctrl btn ── */
+    .map-ctrl-btn:hover, .map-ctrl-btn.on {
+      background: var(--gold-gradient);
+      color: #000;
+      border-color: transparent;
+    }
+
+    /* ── Social btn hover ── */
+    .social-btn:hover { border-color: var(--gold-b); color: var(--gold) }
+
+    /* ── Notify me ── */
+    .notify-me-btn:hover, .notify-me-btn.on {
+      border-color: var(--gold-b);
+      color: var(--gold);
+      background: var(--gold-s);
+    }
+
+    /* ── Card min price ── */
+    .card-min-price {
+      color: var(--gold);
+      border-color: var(--gold-b);
+      background: var(--gold-s);
+    }
+
+    /* ── Slots pill ── */
+    .slots-pill { color: var(--green); background: rgba(0,212,168,.08); border-color: rgba(0,212,168,.2) }
+
+    /* ── Card tag gold ── */
+    .card-tag.gold { color: var(--gold); border-color: var(--gold-b); background: var(--gold-s) }
+    .card-tag.green { color: var(--green); border-color: rgba(0,212,168,.25); background: rgba(0,212,168,.06) }
+    .card-tag.blue { color: var(--violet); border-color: var(--violet-b); background: var(--violet-s) }
+
+    /* ── Light mode — indigo bg → cream ── */
+    [data-theme="light"] {
+      --bg:    #F5F4FF;
+      --bg2:   #FFFFFF;
+      --bg3:   #EEECFF;
+      --bg4:   #E5E3F8;
+      --text:  #0C0D1A;
+      --dim:   rgba(12,13,26,.55);
+      --muted: rgba(12,13,26,.3);
+      --border:  rgba(100,90,200,.12);
+      --border2: rgba(100,90,200,.06);
+      --gold:    #C06510;
+      --gold-s:  rgba(192,101,16,.1);
+      --gold-b:  rgba(192,101,16,.3);
+      --violet:  #6040E0;
+      --violet-s: rgba(96,64,224,.1);
+      --violet-b: rgba(96,64,224,.3);
     }
 
     /* ── Custom Scrollbar ── */
@@ -219,7 +429,7 @@
     }
 
     .btn-search:hover {
-      background: #f0c840
+      background: #E8922A
     }
 
     .nav-actions {
@@ -265,7 +475,7 @@
     }
 
     .btn-registro:hover {
-      background: #f0c840
+      background: #E8922A
     }
 
     /* ── Hero ── */
@@ -293,7 +503,7 @@
     .hero-orb-1 {
       width: 500px;
       height: 500px;
-      background: rgba(212, 175, 55, .15);
+      background: rgba(232,146,42, .15);
       top: -150px;
       right: -100px
     }
@@ -301,7 +511,7 @@
     .hero-orb-2 {
       width: 300px;
       height: 300px;
-      background: rgba(212, 175, 55, .06);
+      background: rgba(232,146,42, .06);
       bottom: -80px;
       left: 10%
     }
@@ -335,7 +545,7 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: radial-gradient(circle, rgba(212, 175, 55, .4) 0%, rgba(212, 175, 55, .1) 50%, transparent 70%);
+      background: radial-gradient(circle, rgba(232,146,42, .4) 0%, rgba(232,146,42, .1) 50%, transparent 70%);
       animation: hv-pulse 3s ease-in-out infinite;
     }
 
@@ -367,7 +577,7 @@
       backdrop-filter: blur(4px);
       -webkit-backdrop-filter: blur(4px);
       border: 1px solid rgba(255, 255, 255, 0.2);
-      box-shadow: 0 0 40px rgba(212, 175, 55, 0.15), inset 0 0 15px rgba(255, 255, 255, 0.1), inset -8px 0 15px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 0 40px rgba(232,146,42, 0.15), inset 0 0 15px rgba(255, 255, 255, 0.1), inset -8px 0 15px rgba(0, 0, 0, 0.4);
       z-index: 2;
     }
 
@@ -404,7 +614,7 @@
       transform: translateX(-50%);
       width: 70px;
       height: 24px;
-      background: linear-gradient(to bottom, #f1c40f, #D4AF37, #996515);
+      background: linear-gradient(to bottom, #E8922A, #E8922A, #996515);
       border-radius: 12px;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), inset 0 2px 2px rgba(255, 255, 255, 0.5);
       z-index: 3;
@@ -437,7 +647,7 @@
     .hv-orbit {
       position: absolute;
       border-radius: 50%;
-      border: 1px solid rgba(212, 175, 55, .18);
+      border: 1px solid rgba(232,146,42, .18);
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
@@ -453,14 +663,14 @@
       width: 300px;
       height: 300px;
       animation: hv-rot 22s linear infinite reverse;
-      border-color: rgba(212, 175, 55, .1)
+      border-color: rgba(232,146,42, .1)
     }
 
     .hv-o3 {
       width: 400px;
       height: 400px;
       animation: hv-rot 34s linear infinite;
-      border-color: rgba(212, 175, 55, .06)
+      border-color: rgba(232,146,42, .06)
     }
 
     @keyframes hv-rot {
@@ -483,7 +693,7 @@
       top: -4.5px;
       left: 50%;
       transform: translateX(-50%);
-      box-shadow: 0 0 14px rgba(212, 175, 55, .9);
+      box-shadow: 0 0 14px rgba(232,146,42, .9);
     }
 
     .hv-o2 .hv-dot {
@@ -495,7 +705,7 @@
     }
 
     .hv-o3 .hv-dot {
-      background: rgba(212, 175, 55, .6);
+      background: rgba(232,146,42, .6);
       width: 5px;
       height: 5px;
       top: -2.5px
@@ -505,7 +715,7 @@
     .hv-pill {
       position: absolute;
       background: rgba(12, 12, 12, .85);
-      border: 1px solid rgba(212, 175, 55, .3);
+      border: 1px solid rgba(232,146,42, .3);
       border-radius: 50px;
       padding: 8px 16px;
       font-size: .72rem;
@@ -630,7 +840,7 @@
     .hero-search {
       display: flex;
       background: #0d0d0d;
-      border: 1px solid rgba(212, 175, 55, .3);
+      border: 1px solid rgba(232,146,42, .3);
       border-radius: 18px;
       overflow: hidden;
       box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
@@ -681,7 +891,7 @@
     }
 
     .btn-hero-search:hover {
-      background: #f0c840;
+      background: #E8922A;
       transform: scale(1.02)
     }
 
@@ -863,9 +1073,21 @@
     }
 
     .results-count {
-      font-size: .82rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: .78rem;
+      font-weight: 700;
       color: var(--dim);
+      letter-spacing: .3px;
       flex-shrink: 0
+    }
+    .results-count.pop {
+      animation: count-pop .3s cubic-bezier(.34,1.56,.64,1);
+    }
+    @keyframes count-pop {
+      0% { transform: scale(.85); }
+      100% { transform: scale(1); }
     }
 
     .toolbar-chips {
@@ -929,13 +1151,13 @@
     }
 
     .shop-card:hover {
-      border-color: rgba(212, 175, 55, .4);
+      border-color: rgba(232,146,42, .4);
       box-shadow: 0 8px 40px rgba(0, 0, 0, .4);
       transform: translateY(-2px);
     }
 
     .shop-card.premium {
-      border-color: rgba(212, 175, 55, .3)
+      border-color: rgba(232,146,42, .3)
     }
 
     .premium-badge {
@@ -1222,7 +1444,7 @@
     }
 
     .btn-reservar:hover {
-      background: #f0c840;
+      background: #E8922A;
       transform: scale(1.03)
     }
 
@@ -1262,7 +1484,7 @@
       height: 100%;
       background: linear-gradient(to right,
           transparent,
-          rgba(212, 175, 55, 0.1),
+          rgba(232,146,42, 0.1),
           transparent);
       transform: skewX(-25deg);
       animation: shimmer-effect 4s infinite;
@@ -1376,15 +1598,15 @@
     .sk {
       position: relative;
       overflow: hidden;
-      background: #1a1a1a
+      background: rgba(255,255,255,.04)
     }
 
     .sk::after {
       content: '';
       position: absolute;
       inset: 0;
-      background: linear-gradient(90deg, transparent 0%, rgba(212, 175, 55, 0.06) 50%, transparent 100%);
-      animation: shimmer 1.8s infinite;
+      background: linear-gradient(90deg, transparent 0%, rgba(124,92,252,.08) 30%, rgba(232,146,42,.10) 50%, rgba(124,92,252,.08) 70%, transparent 100%);
+      animation: shimmer 1.6s ease-in-out infinite;
     }
 
     @keyframes shimmer {
@@ -1395,6 +1617,154 @@
       100% {
         transform: translateX(100%)
       }
+    }
+
+    /* ── Typewriter cursor ── */
+    #typewriterEl::after {
+      content: '|';
+      margin-left: 2px;
+      color: var(--gold);
+      animation: tw-blink 1s step-end infinite;
+    }
+    @keyframes tw-blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* ── Modal tabs ── */
+    .detail-tabs {
+      display: flex;
+      gap: 4px;
+      padding: 0 20px 0;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg2);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .detail-tabs::-webkit-scrollbar { display: none }
+    .detail-tab {
+      padding: 14px 18px;
+      font-size: .82rem;
+      font-weight: 700;
+      color: var(--dim);
+      border: none;
+      background: none;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+      transition: color .2s, border-color .2s;
+      letter-spacing: .3px;
+    }
+    .detail-tab.active {
+      color: var(--gold);
+      border-bottom-color: var(--gold);
+    }
+    .detail-tab-content { display: none; padding: 20px; }
+    .detail-tab-content.active { display: block; }
+
+    /* ── Onboarding tooltip ── */
+    #onboardingTooltip {
+      position: fixed;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--bg4);
+      border: 1px solid var(--gold-b);
+      border-radius: var(--r-lg);
+      padding: 16px 20px;
+      max-width: 320px;
+      width: calc(100% - 48px);
+      box-shadow: 0 8px 40px rgba(0,0,0,.6), 0 0 0 1px rgba(232,146,42,.15);
+      z-index: 9000;
+      display: none;
+      opacity: 0;
+      transition: opacity .4s ease, transform .4s cubic-bezier(.34,1.56,.64,1);
+      text-align: center;
+    }
+    #onboardingTooltip.show {
+      display: block;
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    .onboard-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: var(--gold-s);
+      border: 1px solid var(--gold-b);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      color: var(--gold);
+    }
+    .onboard-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 6px;
+    }
+    .onboard-sub {
+      font-size: .8rem;
+      color: var(--dim);
+      line-height: 1.5;
+      margin-bottom: 14px;
+    }
+    .onboard-btn {
+      background: var(--gold-gradient);
+      color: #000;
+      border: none;
+      border-radius: 50px;
+      padding: 8px 24px;
+      font-weight: 700;
+      font-size: .85rem;
+      cursor: pointer;
+    }
+
+    /* ── PWA Install Banner ── */
+    #pwaInstallBanner {
+      position: fixed;
+      bottom: 80px;
+      right: 16px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 14px 16px;
+      display: none;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.5);
+      z-index: 8999;
+      max-width: 280px;
+      animation: slide-up .4s cubic-bezier(.34,1.56,.64,1);
+    }
+    #pwaInstallBanner.show { display: flex; }
+    @keyframes slide-up {
+      from { transform: translateY(20px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+    .pwa-banner-text { flex: 1; }
+    .pwa-banner-title { font-weight: 700; font-size: .85rem; }
+    .pwa-banner-sub { font-size: .72rem; color: var(--dim); margin-top: 2px; }
+    .pwa-banner-btn {
+      background: var(--gold-gradient);
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      padding: 7px 14px;
+      font-weight: 700;
+      font-size: .8rem;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .pwa-banner-close {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 4px;
+      line-height: 1;
+      font-size: 1rem;
     }
 
     /* ── Posicionamiento section ── */
@@ -1447,7 +1817,7 @@
     }
 
     .plan-card:hover {
-      border-color: rgba(212, 175, 55, .3);
+      border-color: rgba(232,146,42, .3);
       transform: translateY(-4px)
     }
 
@@ -1834,7 +2204,7 @@
     }
 
     .btn-confirm:hover:not(:disabled) {
-      background: #f0c840
+      background: #E8922A
     }
 
     .btn-confirm:disabled {
@@ -2372,17 +2742,28 @@
     }
 
     .shops-grid .shop-card {
-      flex-direction: column
+      flex-direction: column;
+      height: auto;
+      border-radius: 18px;
     }
 
     .shops-grid .card-img-wrap {
       width: 100%;
-      height: 150px
+      height: 160px;
+      flex-shrink: 0;
+      border-radius: 14px 14px 0 0;
     }
 
     .shops-grid .card-body {
-      padding: 12px
+      padding: 14px;
+      flex: 1;
     }
+
+    .shops-grid .card-head { margin-bottom: 8px; }
+    .shops-grid .card-desc { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: .78rem; margin-bottom: 8px; }
+    .shops-grid .barber-preview-list { display: none; }
+    .shops-grid .card-footer { flex-wrap: wrap; gap: 6px; }
+    .shops-grid .card-min-price { font-size: .75rem; }
 
     /* ── Mic ── */
     .mic-btn {
@@ -3091,22 +3472,25 @@
 
     /* ── Light mode ── */
     [data-theme="light"] {
-      --bg: #f8f5ee;
-      --bg2: #ffffff;
-      --bg3: #f0ede6;
-      --bg4: #e5e2dc;
-      --text: #111;
-      --dim: rgba(0, 0, 0, .55);
-      --muted: rgba(0, 0, 0, .3);
-      --border: rgba(0, 0, 0, .1);
-      --border2: rgba(0, 0, 0, .05);
-      --gold: #b8960c;
-      --gold-s: rgba(184, 150, 12, .1);
-      --gold-b: rgba(184, 150, 12, .3);
+      --bg: #F5F4FF;
+      --bg2: #FFFFFF;
+      --bg3: #EEECFF;
+      --bg4: #E5E3F8;
+      --text: #0C0D1A;
+      --dim: rgba(12,13,26,.55);
+      --muted: rgba(12,13,26,.3);
+      --border: rgba(100,90,200,.12);
+      --border2: rgba(100,90,200,.06);
+      --gold: #C06510;
+      --gold-s: rgba(192,101,16,.1);
+      --gold-b: rgba(192,101,16,.3);
+      --violet: #6040E0;
+      --violet-s: rgba(96,64,224,.1);
+      --violet-b: rgba(96,64,224,.3);
     }
 
     [data-theme="light"] .nav {
-      background: rgba(248, 245, 238, .96)
+      background: rgba(245, 244, 255, .96)
     }
 
     [data-theme="light"] body {
@@ -3115,7 +3499,7 @@
     }
 
     [data-theme="light"] .hero {
-      background: linear-gradient(135deg, #f5f0e0, #fff9e6, #f8f5ee)
+      background: linear-gradient(135deg, #EEECFF, #F5F4FF, #E5E3F8)
     }
 
     [data-theme="light"] .detail-modal {
@@ -3549,10 +3933,2433 @@
       width: 76px;
       border-radius: 50px
     }
+
+    /* ══════════════════════════════════════════
+       PROFESSIONAL UPGRADE — v2
+    ══════════════════════════════════════════ */
+
+    /* ── CSS custom props extra ── */
+    :root {
+      --gold-gradient: linear-gradient(135deg, #A05A10 0%, #E8922A 40%, #FFBA60 65%, #E8922A 100%);
+      --card-glow-hover: 0 0 0 1px rgba(232,146,42,.35), 0 24px 64px rgba(0,0,0,.55), 0 0 60px rgba(232,146,42,.07);
+      --plan-glow: 0 0 0 1px rgba(232,146,42,.4), 0 32px 80px rgba(232,146,42,.12), 0 60px 120px rgba(0,0,0,.7);
+      --noise-url: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
+    }
+
+    /* ── Subtle noise on body ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: var(--noise-url);
+      pointer-events: none;
+      z-index: 0;
+      opacity: .6;
+    }
+
+    /* ── Logo gradient shimmer — copper-amber actualizado ── */
+    .nav-logo {
+      background: linear-gradient(90deg, #A05A10 0%, #E8922A 25%, #FFBA60 50%, #E8922A 75%, #A05A10 100%);
+      background-size: 300% 100%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: logo-shine 5s linear infinite;
+    }
+
+    @keyframes logo-shine {
+      0%   { background-position: 300% center }
+      100% { background-position: -300% center }
+    }
+
+    /* ── Nav search — refined border ── */
+    .nav-search {
+      border-color: rgba(232,146,42,.18);
+      transition: border-color .3s, box-shadow .3s;
+    }
+
+    .nav-search:focus-within {
+      border-color: rgba(232,146,42,.45);
+      box-shadow: 0 0 0 3px rgba(232,146,42,.08);
+    }
+
+    /* ── Hero — gradient text on em ── */
+    .hero-title em {
+      background: linear-gradient(135deg, #E8922A 0%, #FFBA60 50%, #E8922A 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ── Hero badge pulse dot ── */
+    .hero-badge::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+      margin-right: 6px;
+      animation: badge-pulse 2s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes badge-pulse {
+      0%,100% { opacity:1; transform:scale(1) }
+      50%      { opacity:.5; transform:scale(1.3) }
+    }
+
+    /* ── Hero search — glass upgrade ── */
+    .hero-search {
+      background: rgba(8,8,8,.85);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      box-shadow: 0 24px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(232,146,42,.25);
+    }
+
+    .btn-hero-search {
+      background: var(--gold-gradient);
+      letter-spacing: .3px;
+      box-shadow: 0 4px 20px rgba(232,146,42,.35);
+    }
+
+    .btn-hero-search:hover {
+      box-shadow: 0 6px 28px rgba(232,146,42,.5);
+      transform: scale(1.04);
+    }
+
+    /* ── Hero stats — separator dots ── */
+    .hero-stats > div:not(:last-child)::after {
+      content: '';
+      display: block;
+      width: 1px;
+      height: 28px;
+      background: var(--border);
+      margin-left: 32px;
+      margin-top: -24px;
+      position: absolute;
+    }
+
+    .hero-stats > div { position: relative }
+
+    /* ── Trust strip ── */
+    .trust-strip {
+      background: rgba(8,8,8,.6);
+      border-bottom: 1px solid var(--border);
+      padding: 10px clamp(16px,4vw,48px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .trust-strip::-webkit-scrollbar { display:none }
+
+    .trust-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(255,255,255,.45);
+      font-size: .72rem;
+      font-weight: 600;
+      white-space: nowrap;
+      letter-spacing: .3px;
+    }
+
+    .trust-item svg { color: var(--gold); opacity:.7; flex-shrink:0 }
+
+    .trust-sep {
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.15);
+      flex-shrink: 0;
+    }
+
+    [data-theme="light"] .trust-strip {
+      background: rgba(240,237,230,.8);
+    }
+
+    /* ── Categories — active glow ── */
+    .cat.active {
+      background: var(--gold-gradient);
+      box-shadow: 0 4px 20px rgba(232,146,42,.3);
+    }
+
+    .cat:hover {
+      box-shadow: 0 8px 24px rgba(0,0,0,.3);
+    }
+
+    /* ── Shop cards — premium upgrade ── */
+    .shop-card {
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(20,20,20,1) 0%, rgba(15,15,15,1) 100%);
+      transition: border-color .25s, transform .25s cubic-bezier(.4,0,.2,1), box-shadow .25s;
+    }
+
+    .shop-card:hover {
+      border-color: rgba(232,146,42,.5);
+      box-shadow: var(--card-glow-hover);
+      transform: translateY(-3px);
+    }
+
+    .shop-card.premium {
+      background: linear-gradient(135deg, rgba(18,15,5,1) 0%, rgba(15,15,15,1) 100%);
+      box-shadow: 0 0 0 1px rgba(232,146,42,.2), 0 8px 32px rgba(0,0,0,.4);
+    }
+
+    .shop-card.premium:hover {
+      box-shadow: var(--card-glow-hover), 0 0 80px rgba(232,146,42,.08) inset;
+    }
+
+    /* Image wrapper — gradient overlay */
+    .card-img-wrap::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to right, transparent 60%, rgba(10,10,10,.4) 100%);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .shop-card:hover .card-img {
+      transform: scale(1.07);
+    }
+
+    /* Card name — cleaner weight */
+    .card-name {
+      font-size: 1.08rem;
+      letter-spacing: -.2px;
+    }
+
+    /* Rating — micro upgrade */
+    .rating-score {
+      background: var(--gold-s);
+      border: 1px solid var(--gold-b);
+      padding: 2px 8px;
+      border-radius: 50px;
+    }
+
+    /* Btn reservar — gradient */
+    .btn-reservar {
+      background: var(--gold-gradient);
+      border-radius: 10px;
+      box-shadow: 0 4px 16px rgba(232,146,42,.25);
+      letter-spacing: .2px;
+    }
+
+    .btn-reservar:hover {
+      box-shadow: 0 6px 22px rgba(232,146,42,.4);
+      transform: scale(1.04);
+    }
+
+    /* Premium badge upgrade */
+    .premium-badge {
+      background: var(--gold-gradient);
+      letter-spacing: .8px;
+      box-shadow: 0 2px 12px rgba(232,146,42,.4);
+    }
+
+    /* ── Toolbar chips — refined ── */
+    .chip {
+      border-radius: 50px;
+      font-weight: 700;
+      letter-spacing: .2px;
+      transition: all .2s cubic-bezier(.4,0,.2,1);
+    }
+
+    .chip.active, .chip:hover {
+      background: var(--gold-gradient);
+      box-shadow: 0 4px 16px rgba(232,146,42,.3);
+      border-color: transparent;
+    }
+
+    /* ── Promo / Plans section ── */
+    .promo-section {
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(232,146,42,.06) 0%, transparent 70%), #050505;
+      padding: 72px clamp(16px,4vw,80px) 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .promo-section::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(232,146,42,.4), transparent);
+    }
+
+    .promo-title {
+      font-size: clamp(1.8rem,4vw,2.6rem);
+      letter-spacing: -.5px;
+    }
+
+    .promo-title em {
+      background: var(--gold-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Plans grid ── wider for 3 cols */
+    .plans {
+      max-width: 1000px;
+      gap: 20px;
+    }
+
+    /* Plan card upgrade */
+    .plan-card {
+      border-radius: 24px;
+      transition: transform .3s cubic-bezier(.4,0,.2,1), box-shadow .3s, border-color .3s;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .plan-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(232,146,42,.35);
+    }
+
+    .plan-card.featured {
+      box-shadow: var(--plan-glow);
+      background: linear-gradient(145deg, #0e0a00, #121212);
+      border-color: rgba(232,146,42,.4);
+      transform: scale(1.03);
+    }
+
+    .plan-card.featured:hover {
+      transform: scale(1.03) translateY(-6px);
+      box-shadow: var(--plan-glow), 0 0 100px rgba(232,146,42,.1);
+    }
+
+    /* Elite plan special border */
+    .plan-card:last-child {
+      border-color: rgba(232,146,42,.35);
+      background: linear-gradient(145deg, #0c0900, #111);
+    }
+
+    .plan-name {
+      font-size: 1.4rem;
+      letter-spacing: -.3px;
+    }
+
+    .plan-price {
+      font-size: 2.2rem;
+      background: var(--gold-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .plan-card.featured .btn-plan {
+      background: var(--gold-gradient);
+      box-shadow: 0 6px 24px rgba(232,146,42,.35);
+      letter-spacing: .3px;
+    }
+
+    .plan-card:last-child .btn-plan {
+      background: var(--gold-gradient);
+      color: #000;
+      border-color: transparent;
+      box-shadow: 0 6px 24px rgba(232,146,42,.3);
+    }
+
+    /* ── FAQ upgrade ── */
+    .faq-section {
+      background: #050505;
+      position: relative;
+    }
+
+    .faq-section::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(232,146,42,.3), transparent);
+    }
+
+    .faq-title em {
+      background: var(--gold-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .faq-item {
+      transition: background .2s;
+      border-radius: 12px;
+      margin-bottom: 2px;
+      padding: 0 8px;
+    }
+
+    .faq-item:hover {
+      background: rgba(255,255,255,.02);
+    }
+
+    .faq-item.open {
+      background: rgba(232,146,42,.04);
+    }
+
+    .faq-q:hover { color: var(--gold) }
+
+    /* ── Footer upgrade ── */
+    footer {
+      position: relative;
+    }
+
+    footer::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(232,146,42,.3), transparent);
+    }
+
+    .footer-brand {
+      background: var(--gold-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-size: 1.5rem;
+    }
+
+    .app-badge {
+      transition: transform .2s, border-color .2s, box-shadow .2s;
+    }
+
+    .app-badge:hover {
+      transform: translateY(-2px);
+      border-color: rgba(232,146,42,.3);
+      box-shadow: 0 8px 24px rgba(0,0,0,.4);
+    }
+
+    /* ── Btn confirm upgrade ── */
+    .btn-confirm {
+      background: var(--gold-gradient);
+      letter-spacing: .3px;
+      box-shadow: 0 6px 24px rgba(232,146,42,.3);
+    }
+
+    .btn-confirm:hover:not(:disabled) {
+      background: var(--gold-gradient);
+      box-shadow: 0 8px 32px rgba(232,146,42,.45);
+      transform: translateY(-1px);
+    }
+
+    /* ── Btn registro in nav ── */
+    .btn-registro {
+      background: var(--gold-gradient);
+      letter-spacing: .2px;
+      box-shadow: 0 4px 16px rgba(232,146,42,.25);
+    }
+
+    .btn-registro:hover {
+      box-shadow: 0 6px 24px rgba(232,146,42,.4);
+      transform: scale(1.03);
+    }
+
+    /* ── Search btn ── */
+    .btn-search {
+      background: var(--gold-gradient);
+      box-shadow: 0 2px 10px rgba(232,146,42,.3);
+    }
+
+    /* ── Slot selected ── */
+    .slot.free:hover, .slot.selected {
+      background: var(--gold-gradient);
+      box-shadow: 0 4px 14px rgba(232,146,42,.3);
+    }
+
+    /* ── Card open pill ── */
+    .card-open-pill {
+      border: 1px solid rgba(255,255,255,.1);
+    }
+
+    /* ── Plan badge pro ── */
+    .plan-badge.pro {
+      box-shadow: 0 2px 10px rgba(232,146,42,.2);
+    }
+
+    /* ── Scroll reveal faster ── */
+    .reveal {
+      transition: opacity .5s cubic-bezier(.4,0,.2,1), transform .5s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* ── WA FAB upgrade ── */
+    .wa-fab {
+      box-shadow: 0 4px 24px rgba(37,211,102,.45), 0 0 0 0 rgba(37,211,102,.3);
+      animation: wa-ring 3s ease-in-out infinite;
+    }
+
+    @keyframes wa-ring {
+      0%,70%,100% { box-shadow: 0 4px 24px rgba(37,211,102,.45), 0 0 0 0 rgba(37,211,102,0) }
+      40%         { box-shadow: 0 4px 24px rgba(37,211,102,.45), 0 0 0 12px rgba(37,211,102,0) }
+    }
+
+    /* ── Bottom nav upgrade ── */
+    .bottom-nav {
+      box-shadow: 0 -1px 0 rgba(232,146,42,.1);
+    }
+
+    .bn-item.active {
+      color: var(--gold);
+      text-shadow: 0 0 20px rgba(232,146,42,.5);
+    }
+
+    /* ── Skeleton gold shimmer ── */
+    .sk::after {
+      background: linear-gradient(90deg, transparent 0%, rgba(232,146,42,.08) 50%, transparent 100%);
+    }
+
+    /* ── Map toggle ── */
+    .map-toggle:hover {
+      box-shadow: 0 4px 16px rgba(232,146,42,.3);
+    }
+
+    /* ── Filter panel ── */
+    .fp-title {
+      background: var(--gold-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ── Lightmode overrides ── */
+    [data-theme="light"] .nav-logo {
+      background: linear-gradient(90deg, #9a7200 0%, #E8922A 40%, #9a7200 100%);
+      background-size: 300% 100%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: logo-shine 5s linear infinite;
+    }
+
+    [data-theme="light"] .shop-card {
+      background: #fff;
+    }
+
+    [data-theme="light"] .plan-card.featured {
+      background: linear-gradient(145deg, #fffbef, #fff);
+    }
+
+    [data-theme="light"] .plan-card:last-child {
+      background: linear-gradient(145deg, #fffbef, #fff);
+    }
+
+    /* ── Promo section before line — light ── */
+    [data-theme="light"] .promo-section {
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(184,150,12,.08) 0%, transparent 70%), #f8f5ee;
+    }
+
+    /* ══════════════════════════════════════════
+       3D SCROLL EFFECTS
+    ══════════════════════════════════════════ */
+
+    /* ── Parallax hero fade ── */
+    .hero {
+      will-change: opacity;
+    }
+
+    /* ── Section 3D reveal ── */
+    .scroll-3d-section {
+      opacity: 0;
+      transform: perspective(900px) rotateX(10deg) translateY(48px);
+      transition: opacity .9s cubic-bezier(.16,1,.3,1),
+                  transform .9s cubic-bezier(.16,1,.3,1);
+    }
+
+    .scroll-3d-section.in-view-3d {
+      opacity: 1;
+      transform: perspective(900px) rotateX(0deg) translateY(0);
+    }
+
+    /* ── Trust strip 3D ── */
+    .trust-strip {
+      transform-origin: top center;
+    }
+
+    /* ── Shop cards — tilt container ── */
+    .shop-card {
+      will-change: transform;
+      transform-style: preserve-3d;
+    }
+
+    /* ── Plans — depth scene ── */
+    .plans {
+      perspective: 1400px;
+      perspective-origin: 50% 40%;
+    }
+
+    .plan-card {
+      transform-style: preserve-3d;
+      will-change: transform;
+    }
+
+    /* Plan cards depth idle */
+    .plans .plan-card:nth-child(1) {
+      transform: perspective(1400px) rotateY(4deg) translateZ(-10px);
+    }
+
+    .plans .plan-card:nth-child(2) {
+      transform: perspective(1400px) rotateY(0deg) translateZ(20px) scale(1.04);
+    }
+
+    .plans .plan-card:nth-child(3) {
+      transform: perspective(1400px) rotateY(-4deg) translateZ(-10px);
+    }
+
+    .plans .plan-card:nth-child(1):hover {
+      transform: perspective(1400px) rotateY(0deg) translateZ(10px) translateY(-8px);
+    }
+
+    .plans .plan-card:nth-child(2):hover {
+      transform: perspective(1400px) rotateY(0deg) translateZ(40px) scale(1.04) translateY(-8px);
+    }
+
+    .plans .plan-card:nth-child(3):hover {
+      transform: perspective(1400px) rotateY(0deg) translateZ(10px) translateY(-8px);
+    }
+
+    /* ── Cards stagger 3D reveal ── */
+    @keyframes card3dIn {
+      from {
+        opacity: 0;
+        transform: perspective(800px) rotateX(14deg) translateY(36px) scale(.97);
+      }
+      to {
+        opacity: 1;
+        transform: perspective(800px) rotateX(0) translateY(0) scale(1);
+      }
+    }
+
+    .shop-card {
+      animation: card3dIn .55s cubic-bezier(.16,1,.3,1) both;
+    }
+
+    /* ── FAQ items 3D stagger ── */
+    .faq-item {
+      transform: perspective(600px) rotateX(0);
+      transition: background .2s, transform .3s cubic-bezier(.4,0,.2,1);
+    }
+
+    .faq-item:hover {
+      transform: perspective(600px) rotateX(-1deg) translateY(-2px);
+    }
+
+    /* ══════════════════════════════════════════
+       UI/UX PRO MAX — Luxury Glassmorphism + Aurora
+       Paleta: E-commerce Luxury row 4 / Luxury Brand row 35
+       Estilo: Glassmorphism + Motion-Driven + Dark OLED
+    ══════════════════════════════════════════ */
+
+    /* ── Aurora mesh en hero — indigo + copper palette ── */
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 70% 100% at 15% 50%,  rgba(232,146,42,.20)  0%, transparent 55%),
+        radial-gradient(ellipse 55% 80%  at 85% 25%,  rgba(124,92,252,.14)  0%, transparent 55%),
+        radial-gradient(ellipse 45% 70%  at 55% 85%,  rgba(79,142,247,.09)  0%, transparent 50%),
+        radial-gradient(ellipse 35% 50%  at 30% 10%,  rgba(0,212,168,.07)   0%, transparent 45%);
+      animation: aurora-shift 14s ease-in-out infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @keyframes aurora-shift {
+      0%,100% { transform: scale(1)    rotate(0deg);  opacity: 1   }
+      25%      { transform: scale(1.06) rotate(1.5deg); opacity: .85 }
+      50%      { transform: scale(.97)  rotate(-1deg);  opacity: 1   }
+      75%      { transform: scale(1.04) rotate(.8deg);  opacity: .9  }
+    }
+
+    /* ── Hero background darker gradient ── */
+    .hero {
+      background:
+        linear-gradient(135deg, rgba(0,0,0,.88) 0%, rgba(8,6,2,.55) 50%, rgba(5,5,5,.85) 100%),
+        url('assets/hero-bg.png');
+      background-size: cover;
+      background-position: center;
+    }
+
+    /* ── Glassmorphism: Nav ── */
+    .nav {
+      background: rgba(8,7,6,.78);
+      backdrop-filter: blur(28px) saturate(1.4);
+      -webkit-backdrop-filter: blur(28px) saturate(1.4);
+      border-bottom: 1px solid rgba(232,146,42,.12);
+    }
+
+    .nav.scrolled {
+      background: rgba(6,5,4,.92);
+      border-bottom-color: rgba(232,146,42,.2);
+    }
+
+    /* ── Glassmorphism: Shop cards ── */
+    .shop-card {
+      background: rgba(15,14,12,.72);
+      backdrop-filter: blur(18px) saturate(1.3);
+      -webkit-backdrop-filter: blur(18px) saturate(1.3);
+      border: 1px solid rgba(255,253,245,.06);
+      border-radius: 20px;
+    }
+
+    .shop-card:hover {
+      background: rgba(18,17,14,.82);
+      border-color: rgba(232,146,42,.4);
+      box-shadow:
+        0 0 0 1px rgba(232,146,42,.18),
+        0 24px 70px rgba(0,0,0,.65),
+        0 0 50px rgba(232,146,42,.06) inset;
+    }
+
+    .shop-card.premium {
+      background: rgba(16,13,5,.78);
+      border-color: rgba(232,146,42,.18);
+    }
+
+    /* ── Glassmorphism: Plan cards ── */
+    .plan-card {
+      background: rgba(15,14,12,.75);
+      backdrop-filter: blur(20px) saturate(1.2);
+      -webkit-backdrop-filter: blur(20px) saturate(1.2);
+      border: 1px solid rgba(255,253,245,.06);
+    }
+
+    .plan-card.featured {
+      background: rgba(16,12,3,.88);
+      backdrop-filter: blur(32px) saturate(1.5);
+      -webkit-backdrop-filter: blur(32px) saturate(1.5);
+      border-color: rgba(232,146,42,.38);
+      box-shadow:
+        0 0 0 1px rgba(232,146,42,.25),
+        0 32px 90px rgba(232,146,42,.14),
+        0 60px 140px rgba(0,0,0,.8),
+        0 0 80px rgba(232,146,42,.06) inset;
+    }
+
+    .plan-card:last-child {
+      background: rgba(16,12,3,.8);
+      border-color: rgba(232,146,42,.25);
+    }
+
+    /* ── Glassmorphism: Trust strip ── */
+    .trust-strip {
+      background: rgba(8,7,6,.65);
+      backdrop-filter: blur(20px) saturate(1.3);
+      -webkit-backdrop-filter: blur(20px) saturate(1.3);
+      border-bottom: 1px solid rgba(255,253,245,.05);
+    }
+
+    /* ── Glassmorphism: Filter panel ── */
+    .filter-panel {
+      background: rgba(10,9,8,.95);
+      backdrop-filter: blur(40px) saturate(1.5);
+      -webkit-backdrop-filter: blur(40px) saturate(1.5);
+    }
+
+    /* ── Glassmorphism: Booking modal ── */
+    .booking-modal {
+      background: rgba(12,11,9,.94);
+      backdrop-filter: blur(30px) saturate(1.3);
+      -webkit-backdrop-filter: blur(30px) saturate(1.3);
+      border: 1px solid rgba(255,253,245,.07);
+    }
+
+    /* ── Glassmorphism: Hv pills ── */
+    .hv-pill {
+      background: rgba(8,7,6,.75);
+      backdrop-filter: blur(16px) saturate(1.4);
+      -webkit-backdrop-filter: blur(16px) saturate(1.4);
+      border-color: rgba(232,146,42,.25);
+      box-shadow: 0 8px 32px rgba(0,0,0,.5), 0 1px 0 rgba(255,255,255,.06) inset;
+    }
+
+    /* ── Typography refinements (skill: 57 font pairings) ── */
+    /* Outfit 900 for display, Inter 400/500 for body = premium luxury pairing */
+    .hero-title {
+      font-size: clamp(2.4rem, 5.5vw, 4rem);
+      line-height: 1.04;
+      letter-spacing: -1px;
+      font-weight: 900;
+    }
+
+    .hero-sub {
+      font-size: clamp(1rem, 1.5vw, 1.12rem);
+      line-height: 1.65;
+      color: rgba(250,248,242,.55);
+      letter-spacing: .02em;
+    }
+
+    .promo-title {
+      font-size: clamp(2rem, 4.5vw, 3rem);
+      letter-spacing: -1.5px;
+      line-height: 1.08;
+    }
+
+    .card-name {
+      font-size: 1.1rem;
+      letter-spacing: -.25px;
+      font-weight: 800;
+    }
+
+    .plan-name {
+      font-size: 1.5rem;
+      letter-spacing: -.5px;
+    }
+
+    .plan-price {
+      font-size: 2.6rem;
+      letter-spacing: -1.5px;
+      line-height: 1;
+    }
+
+    /* ── Feature strip (nueva sección) ── */
+    .feature-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1px;
+      background: rgba(255,253,245,.04);
+      border-top: 1px solid rgba(255,253,245,.05);
+      border-bottom: 1px solid rgba(255,253,245,.05);
+    }
+
+    .feature-item {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 32px 28px;
+      background: var(--bg);
+      transition: background .3s;
+    }
+
+    .feature-item:hover {
+      background: rgba(232,146,42,.04);
+    }
+
+    .feature-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(232,146,42,.1);
+      border: 1px solid rgba(232,146,42,.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gold);
+      flex-shrink: 0;
+    }
+
+    .feature-title {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: .95rem;
+      letter-spacing: -.1px;
+    }
+
+    .feature-desc {
+      font-size: .78rem;
+      color: var(--dim);
+      line-height: 1.55;
+    }
+
+    /* ── Card image overlay gradient ── */
+    .card-img-wrap::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, transparent 40%, rgba(8,7,6,.5) 100%);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* ── Svc chip glass ── */
+    .svc-chip {
+      background: rgba(255,253,245,.04);
+      border-color: rgba(255,253,245,.07);
+    }
+
+    /* ── Detail sticky glass ── */
+    .detail-sticky {
+      background: rgba(15,14,12,.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    /* ── Compare bar glass ── */
+    .compare-bar {
+      background: rgba(8,7,6,.94);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+    }
+
+    /* ── Bottom nav glass ── */
+    .bottom-nav {
+      background: rgba(8,7,6,.92);
+      backdrop-filter: blur(24px) saturate(1.3);
+      -webkit-backdrop-filter: blur(24px) saturate(1.3);
+    }
+
+    /* ── Toast glass ── */
+    .toast {
+      background: rgba(16,15,12,.94);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-color: rgba(255,253,245,.1);
+    }
+
+    /* ── Hero badge upgrade ── */
+    .hero-badge {
+      background: rgba(232,146,42,.1);
+      border-color: rgba(232,146,42,.28);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      letter-spacing: .8px;
+      padding: 6px 16px;
+      font-size: .72rem;
+    }
+
+    /* ── Rating badge ── */
+    .rating-score {
+      font-size: .82rem;
+    }
+
+    /* ── Input glass ── */
+    .modal-input {
+      background: rgba(255,253,245,.04);
+      border-color: rgba(255,253,245,.08);
+    }
+
+    .modal-input:focus {
+      background: rgba(255,253,245,.06);
+      border-color: rgba(232,146,42,.35);
+      box-shadow: 0 0 0 3px rgba(232,146,42,.08);
+    }
+
+    /* ── Review form glass ── */
+    .review-form {
+      background: rgba(255,253,245,.03);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    /* ── AC dropdown glass ── */
+    #acDropdown {
+      background: rgba(12,11,9,.95);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      box-shadow: 0 16px 60px rgba(0,0,0,.7), 0 0 0 1px rgba(255,253,245,.06);
+    }
+
+    /* ── Lightbox glass ── */
+    .lightbox {
+      background: rgba(0,0,0,.9);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    /* ── Booking success glass ── */
+    .booking-success {
+      backdrop-filter: blur(30px) saturate(1.4);
+      -webkit-backdrop-filter: blur(30px) saturate(1.4);
+      background: rgba(0,0,0,.85);
+    }
+
+    /* ── Footer upgrade ── */
+    footer {
+      background: rgba(5,4,3,.98);
+    }
+
+    /* ── Promo section glass ── */
+    .promo-section {
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(232,146,42,.07) 0%, transparent 65%),
+        rgba(5,4,3,.98);
+    }
+
+    /* ── Stars shimmer on hover (rating) ── */
+    .card-rating:hover .rating-score {
+      background: var(--gold-s);
+      color: var(--gold-hi);
+    }
+
+    /* ── Scroll progress refined ── */
+    #scrollProgress {
+      box-shadow: 0 0 10px rgba(232,146,42,.5);
+    }
+
+    /* ── Light mode override for glass ── */
+    [data-theme="light"] .shop-card {
+      background: rgba(255,255,255,.78);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-color: rgba(0,0,0,.06);
+    }
+
+    [data-theme="light"] .plan-card {
+      background: rgba(255,255,255,.8);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    [data-theme="light"] .plan-card.featured {
+      background: rgba(255,251,235,.9);
+    }
+
+    [data-theme="light"] .nav {
+      background: rgba(248,245,238,.85);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+    }
+
+    [data-theme="light"] .trust-strip {
+      background: rgba(248,245,238,.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    [data-theme="light"] .feature-item {
+      background: rgba(255,255,255,.9);
+    }
+
+    /* ── Scroll progress bar ── */
+    #scrollProgress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      width: 0%;
+      background: linear-gradient(90deg, #E8922A, #FFBA60, #E8922A);
+      background-size: 200%;
+      z-index: 9999;
+      animation: progress-shine 2s linear infinite;
+      transition: width .1s linear;
+    }
+
+    @keyframes progress-shine {
+      0%   { background-position: 200% center }
+      100% { background-position: -200% center }
+    }
+
+    /* ── Hero content depth ── */
+    .hero-content {
+      transform-style: preserve-3d;
+    }
+
+    .hero-badge {
+      transform: translateZ(20px);
+    }
+
+    .hero-title {
+      transform: translateZ(12px);
+    }
+
+    .hero-sub {
+      transform: translateZ(8px);
+    }
+
+    .hero-search {
+      transform: translateZ(24px);
+    }
+
+    /* ── Nav scroll effect ── */
+    .nav.scrolled {
+      background: rgba(8,7,6,.97);
+      box-shadow: 0 1px 0 var(--border), 0 8px 32px rgba(0,0,0,.4);
+    }
+
+    /* ── Floating gradient orbs animated ── */
+    .hero-orb-1 {
+      animation: orb1-float 8s ease-in-out infinite;
+    }
+
+    .hero-orb-2 {
+      animation: orb2-float 10s ease-in-out infinite;
+    }
+
+    @keyframes orb1-float {
+      0%,100% { transform: translate(0, 0) scale(1) }
+      33%     { transform: translate(-30px, 20px) scale(1.05) }
+      66%     { transform: translate(20px, -15px) scale(.95) }
+    }
+
+    @keyframes orb2-float {
+      0%,100% { transform: translate(0, 0) scale(1) }
+      50%     { transform: translate(40px, -30px) scale(1.08) }
+    }
+
+    /* ── Section divider lines ── */
+    .cats {
+      position: relative;
+    }
+
+    .cats::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 10%; right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold-b), transparent);
+      opacity: .6;
+    }
+
+    /* ── Custom cursor ── */
+    @media (hover: hover) and (pointer: fine) {
+      * { cursor: none !important; }
+      #cursor-ring {
+        position: fixed;
+        width: 32px;
+        height: 32px;
+        border: 2px solid rgba(232,146,42,.6);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 99999;
+        transform: translate(-50%,-50%);
+        transition: transform 0.08s ease, width 0.2s ease, height 0.2s ease, border-color 0.2s ease, opacity 0.3s ease;
+        mix-blend-mode: screen;
+      }
+      #cursor-dot {
+        position: fixed;
+        width: 6px;
+        height: 6px;
+        background: var(--gold);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 99999;
+        transform: translate(-50%,-50%);
+        box-shadow: 0 0 8px rgba(232,146,42,.8);
+      }
+      #cursor-ring.clicking {
+        width: 20px;
+        height: 20px;
+        border-color: rgba(232,146,42,1);
+      }
+      .cursor-particle {
+        position: fixed;
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 99998;
+        transform: translate(-50%,-50%);
+        animation: particle-fade 0.6s ease-out forwards;
+      }
+      @keyframes particle-fade {
+        0%   { opacity: 0.8; transform: translate(-50%,-50%) scale(1); }
+        100% { opacity: 0; transform: translate(var(--px), var(--py)) scale(0); }
+      }
+    }
+
+    /* ── Hero video background ── */
+    .hero { position: relative; overflow: hidden; }
+    .hero-video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.07;
+      z-index: 0;
+      pointer-events: none;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .hero-video { display: none; }
+    }
+    .hero-content { position: relative; z-index: 1; }
+
+    /* ── Visited badge ── */
+    .badge-visited {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 5;
+      background: rgba(124,92,252,.85);
+      backdrop-filter: blur(8px);
+      color: #fff;
+      font-size: 0.58rem;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 50px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      border: 1px solid rgba(124,92,252,.4);
+    }
+
+    /* ── Checkout Express ── */
+    #checkoutExpress {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      border-radius: 24px 24px 0 0;
+      z-index: 9500;
+      transform: translateY(100%);
+      transition: transform .4s cubic-bezier(.34,1.56,.64,1);
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 -20px 60px rgba(0,0,0,.6);
+    }
+    #checkoutExpress.open { transform: translateY(0); }
+    .cx-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.5);
+      z-index: 9499;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .3s;
+    }
+    .cx-backdrop.open { opacity: 1; pointer-events: all; }
+    .cx-handle {
+      width: 40px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin: 12px auto 0;
+    }
+    .cx-header {
+      padding: 16px 20px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border2);
+    }
+    .cx-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.1rem; }
+    .cx-close { background: none; border: none; color: var(--dim); cursor: pointer; font-size: 1.2rem; padding: 4px 8px; }
+    .cx-steps {
+      display: flex;
+      padding: 16px 20px;
+      gap: 0;
+      border-bottom: 1px solid var(--border2);
+    }
+    .cx-step {
+      flex: 1;
+      text-align: center;
+      font-size: .72rem;
+      color: var(--muted);
+      font-weight: 600;
+      position: relative;
+    }
+    .cx-step::after {
+      content: '';
+      position: absolute;
+      bottom: -16px;
+      left: 0; right: 0;
+      height: 2px;
+      background: var(--border);
+    }
+    .cx-step.active { color: var(--gold); }
+    .cx-step.active::after { background: var(--gold); }
+    .cx-step.done { color: var(--green); }
+    .cx-step.done::after { background: var(--green); }
+    .cx-body { padding: 20px; }
+    .cx-svc-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+    .cx-svc-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+    }
+    .cx-svc-item.selected {
+      border-color: var(--gold-b);
+      background: var(--gold-s);
+    }
+    .cx-svc-name { font-weight: 600; font-size: .9rem; }
+    .cx-svc-price { color: var(--gold); font-weight: 800; font-family: Outfit, sans-serif; }
+    .cx-slots { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .cx-slot {
+      padding: 8px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: .8rem;
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--dim);
+      transition: all .2s;
+    }
+    .cx-slot.free { color: var(--gold); border-color: var(--gold-b); }
+    .cx-slot.selected { background: var(--gold-gradient); color: #000; border-color: transparent; }
+    .cx-btn {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: none;
+      background: var(--gold-gradient);
+      color: #000;
+      font-weight: 800;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(232,146,42,.3);
+      transition: box-shadow .2s, transform .1s;
+    }
+    .cx-btn:hover { box-shadow: 0 6px 28px rgba(232,146,42,.5); transform: translateY(-1px); }
+    .cx-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+    /* ── Map markers ── */
+    .map-pin {
+      position: relative;
+      width: 44px;
+      height: 44px;
+    }
+    .map-pin-inner {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--bg2, #0C0D1A);
+      border: 3px solid var(--avail, #555);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: .72rem;
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(0,0,0,.6);
+      transition: transform .2s;
+      position: relative;
+      z-index: 1;
+    }
+    .map-pin-tail {
+      position: absolute;
+      bottom: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+      border-top: 10px solid var(--avail, #555);
+    }
+    .map-pin-prem .map-pin-inner {
+      background: linear-gradient(135deg, #1a1200, #0C0D1A);
+      border-color: #E8922A;
+      box-shadow: 0 4px 20px rgba(232,146,42,.4);
+    }
+    .map-pin-prem .map-pin-tail { border-top-color: #E8922A; }
+    .map-pin-ready .map-pin-inner {
+      box-shadow: 0 4px 20px rgba(0,212,168,.4);
+    }
+    .map-pin-ready { animation: pin-pulse-ring 2s ease-in-out infinite; }
+    @keyframes pin-pulse-ring {
+      0%, 100% { filter: drop-shadow(0 0 4px rgba(0,212,168,.5)); }
+      50%       { filter: drop-shadow(0 0 12px rgba(0,212,168,.9)); }
+    }
+    .map-pin:hover .map-pin-inner { transform: scale(1.12); }
+
+    /* ── Map popup glass ── */
+    .map-popup-wrap .leaflet-popup-content-wrapper {
+      background: rgba(12,13,26,.92) !important;
+      backdrop-filter: blur(20px) saturate(1.4) !important;
+      -webkit-backdrop-filter: blur(20px) saturate(1.4) !important;
+      border: 1px solid rgba(120,130,255,.15) !important;
+      border-radius: 16px !important;
+      box-shadow: 0 20px 60px rgba(0,0,0,.7), 0 0 0 1px rgba(232,146,42,.1) !important;
+      padding: 0 !important;
+      overflow: hidden !important;
+      color: #EEF0FF !important;
+    }
+    .map-popup-wrap .leaflet-popup-tip-container { display: none; }
+    .map-popup-wrap .leaflet-popup-content { margin: 0 !important; width: auto !important; }
+    .map-popup { width: 220px; }
+    .map-popup-img {
+      height: 80px;
+      background-size: cover;
+      background-position: center;
+      position: relative;
+    }
+    .map-popup-img::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, transparent 40%, rgba(12,13,26,.8));
+    }
+    .map-popup-body { padding: 10px 14px 12px; }
+    .map-popup-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: .9rem;
+      margin-bottom: 6px;
+      color: #EEF0FF;
+    }
+    .map-popup-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+      font-size: .7rem;
+    }
+    .map-popup-rating {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      font-weight: 700;
+      color: #E8922A;
+    }
+    .map-popup-avail { font-weight: 600; }
+    .map-popup-actions { display: flex; gap: 6px; }
+    .map-popup-btn {
+      flex: 1;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid rgba(120,130,255,.2);
+      background: rgba(255,255,255,.05);
+      color: #EEF0FF;
+      font-size: .72rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .map-popup-btn:hover { background: rgba(255,255,255,.1); }
+    .map-popup-btn-gold {
+      background: linear-gradient(135deg, #A05A10 0%, #E8922A 40%, #FFBA60 65%, #E8922A 100%);
+      color: #000;
+      border-color: transparent;
+    }
+    .map-popup-btn-gold:hover { box-shadow: 0 4px 16px rgba(232,146,42,.4); }
+
+    /* ── Cluster icon ── */
+    .map-cluster {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: rgba(12,13,26,.95);
+      border: 2px solid var(--cc, #E8922A);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: .85rem;
+      color: var(--cc, #E8922A);
+      position: relative;
+      box-shadow: 0 4px 16px rgba(0,0,0,.5);
+    }
+    .map-cluster-ring {
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      border: 1.5px solid var(--cc, #E8922A);
+      opacity: .4;
+      animation: cluster-spin 3s linear infinite;
+    }
+    @keyframes cluster-spin {
+      to { transform: rotate(360deg); opacity: .2; }
+    }
+
+    /* ── Search zone chip animation ── */
+    @keyframes slide-down {
+      from { transform: translateX(-50%) translateY(-12px); opacity: 0; }
+      to   { transform: translateX(-50%) translateY(0);    opacity: 1; }
+    }
+    /* ── Live booking counter ── */
+    .live-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+      animation: live-bounce .8s ease-in-out infinite;
+    }
+    @keyframes live-bounce {
+      0%,100% { transform: translateY(0); opacity:.6; }
+      50%      { transform: translateY(-3px); opacity:1; }
+    }
+
+    /* ── Cómo funciona ── */
+    .how-it-works {
+      padding: 80px clamp(16px,4vw,80px);
+      position: relative;
+      overflow: hidden;
+    }
+    .how-it-works::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(124,92,252,.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hiw-inner { max-width: 900px; margin: 0 auto; }
+    .hiw-header { text-align: center; margin-bottom: 56px; }
+    .hiw-badge {
+      display: inline-block;
+      padding: 5px 16px;
+      border: 1px solid rgba(124,92,252,.25);
+      border-radius: 50px;
+      font-size: .72rem;
+      font-weight: 700;
+      color: #A78BFA;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 16px;
+      background: rgba(124,92,252,.08);
+    }
+    .hiw-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.8rem,4vw,2.4rem);
+      font-weight: 800;
+      letter-spacing: -.5px;
+      margin-bottom: 10px;
+    }
+    .hiw-title em {
+      background: var(--gold-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-style: normal;
+    }
+    .hiw-sub { color: var(--dim); font-size: .95rem; }
+    .hiw-steps {
+      display: flex;
+      align-items: flex-start;
+      gap: 0;
+    }
+    .hiw-step {
+      flex: 1;
+      text-align: center;
+      padding: 32px 20px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      position: relative;
+      transition: border-color .3s, transform .3s, box-shadow .3s;
+    }
+    .hiw-step:hover {
+      border-color: rgba(232,146,42,.3);
+      transform: translateY(-4px);
+      box-shadow: 0 16px 40px rgba(0,0,0,.4), 0 0 0 1px rgba(232,146,42,.15);
+    }
+    .hiw-step-num {
+      font-family: 'Outfit', sans-serif;
+      font-size: 3.5rem;
+      font-weight: 900;
+      line-height: 1;
+      margin-bottom: 16px;
+      background: var(--gold-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      opacity: .3;
+    }
+    .hiw-icon-wrap {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      background: rgba(232,146,42,.08);
+      border: 1px solid rgba(232,146,42,.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      color: var(--gold);
+      transition: transform .3s;
+    }
+    .hiw-step:hover .hiw-icon-wrap { transform: scale(1.1) rotate(-3deg); }
+    .hiw-step-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1.2rem;
+      margin-bottom: 8px;
+    }
+    .hiw-step-desc { font-size: .82rem; color: var(--dim); line-height: 1.6; }
+    .hiw-connector {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0 8px;
+      margin-top: 80px;
+      flex-shrink: 0;
+      opacity: .5;
+    }
+    .hiw-line { display: none; }
+    @media (max-width: 700px) {
+      .hiw-steps { flex-direction: column; gap: 16px; }
+      .hiw-connector { display: none; }
+    }
+
+    /* ── Trust ticker ── */
+    .trust-ticker-wrap {
+      overflow: hidden;
+      width: 100%;
+      -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+      mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+    }
+    .trust-ticker {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      width: max-content;
+      animation: ticker-scroll 30s linear infinite;
+    }
+    .trust-ticker:hover { animation-play-state: paused; }
+    @keyframes ticker-scroll {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .trust-ticker { animation: none; }
+    }
+
+    /* ── Booking progress bar ── */
+    .booking-progress {
+      display: flex;
+      align-items: center;
+      padding: 16px 20px 0;
+      gap: 0;
+    }
+    .bp-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .bp-step span {
+      font-size: .6rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      transition: color .3s;
+    }
+    .bp-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--border);
+      border: 2px solid var(--bg3);
+      transition: background .3s, box-shadow .3s, transform .3s;
+    }
+    .bp-step.bp-active .bp-dot {
+      background: var(--gold);
+      box-shadow: 0 0 12px rgba(232,146,42,.6);
+      transform: scale(1.3);
+    }
+    .bp-step.bp-active span { color: var(--gold); }
+    .bp-step.bp-done .bp-dot { background: var(--green); }
+    .bp-step.bp-done span { color: var(--green); }
+    .bp-line {
+      flex: 1;
+      height: 2px;
+      background: var(--border);
+      margin: 0 4px;
+      margin-bottom: 14px;
+      transition: background .3s;
+      min-width: 20px;
+    }
+
+    /* ── Command palette ── */
+    #cmdPalette { animation: cmd-in .2s cubic-bezier(.34,1.56,.64,1); }
+    @keyframes cmd-in {
+      from { transform: translateX(-50%) translateY(-16px) scale(.96); opacity:0; }
+      to   { transform: translateX(-50%) translateY(0) scale(1); opacity:1; }
+    }
+    .cmd-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .cmd-item:hover, .cmd-item.focused { background: var(--bg3); }
+    .cmd-item-icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-family: Syne, sans-serif;
+      font-weight: 800; font-size: .75rem;
+      color: var(--gold); flex-shrink: 0;
+    }
+    .cmd-item-name { font-weight: 600; font-size: .88rem; }
+    .cmd-item-sub { font-size: .72rem; color: var(--dim); margin-top: 1px; }
+    .cmd-item-action {
+      margin-left: auto; font-size: .65rem; color: var(--muted);
+      border: 1px solid var(--border); border-radius: 4px;
+      padding: 2px 6px; font-family: monospace; flex-shrink: 0;
+    }
+    .cmd-section-label {
+      padding: 8px 20px 4px; font-size: .65rem;
+      text-transform: uppercase; letter-spacing: 1px;
+      color: var(--muted); font-weight: 700;
+    }
+
+    /* ── Navbar logo hover ── */
+    .nav-logo:hover { animation-duration: 1.5s; filter: brightness(1.2); }
+    .nav-btn { position: relative; overflow: hidden; }
+    .nav-btn::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(circle, rgba(232,146,42,.3) 0%, transparent 70%);
+      transform: scale(0); opacity: 0;
+      transition: transform .4s, opacity .4s;
+      border-radius: inherit;
+    }
+    .nav-btn:active::after { transform: scale(2); opacity: 1; transition: 0s; }
+
+    /* ── Confetti ── */
+    @keyframes confetti-fall {
+      0%   { transform: translate(0,0) rotate(0deg); opacity:1; }
+      100% { transform: translate(var(--rx), var(--ry)) rotate(var(--rot)); opacity:0; }
+    }
+
+    /* ── Empty state bob ── */
+    @keyframes empty-bob {
+      0%,100% { transform: translate(-50%,-50%) rotate(-5deg); }
+      50%      { transform: translate(-50%,-60%) rotate(5deg); }
+    }
+
+    /* ── Footer new elements ── */
+    footer { position: relative; }
+    .footer-aurora {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(232,146,42,.4), rgba(124,92,252,.4), transparent);
+    }
+    .footer-brand-col { grid-column: span 1; }
+    .footer-socials { display: flex; gap: 8px; margin-top: 16px; }
+    .footer-social-btn {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--dim);
+      text-decoration: none;
+      transition: border-color .2s, color .2s, background .2s;
+    }
+    .footer-social-btn:hover {
+      border-color: rgba(232,146,42,.3);
+      color: var(--gold);
+      background: rgba(232,146,42,.08);
+    }
+
+
+    /* ══════════════════════════════════════════════════════
+       APPLE DESIGN SYSTEM OVERRIDE
+       Philosophy: Clarity · Deference · Depth
+       ══════════════════════════════════════════════════════ */
+
+    /* ── Base typography → Inter (SF Pro surrogate) ── */
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-feature-settings: 'cv02','cv03','cv04','cv11';
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      letter-spacing: -0.01em;
+    }
+
+    /* ── Apple palette refinement ── */
+    :root {
+      /* Tighter radius system — iOS */
+      --r:    16px;
+      --r-lg: 22px;
+      --r-xl: 32px;
+
+      /* Apple-grade shadows — elevation, not glow */
+      --shadow-xs:  0 1px 3px rgba(0,0,0,.12), 0 1px 2px rgba(0,0,0,.08);
+      --shadow-sm:  0 4px 12px rgba(0,0,0,.15), 0 2px 4px rgba(0,0,0,.10);
+      --shadow-md:  0 8px 28px rgba(0,0,0,.22), 0 4px 8px rgba(0,0,0,.12);
+      --shadow-lg:  0 20px 60px rgba(0,0,0,.35), 0 8px 20px rgba(0,0,0,.15);
+      --shadow-xl:  0 40px 100px rgba(0,0,0,.5),  0 16px 40px rgba(0,0,0,.2);
+
+      /* Background — slightly warmer black (Apple dark, not pure black) */
+      --bg:  #0A0A0B;
+      --bg2: #111114;
+      --bg3: #18181C;
+      --bg4: #1E1E24;
+
+      /* Frosted glass layer */
+      --glass-bg:     rgba(17,17,20,.72);
+      --glass-border: rgba(255,255,255,.07);
+      --glass-blur:   saturate(1.8) blur(28px);
+
+      /* Accent — single copper amber, used sparingly */
+      --accent:    #E8922A;
+      --accent-hi: #F5A742;
+      --accent-lo: #C27318;
+      --accent-s:  rgba(232,146,42,.1);
+      --accent-b:  rgba(232,146,42,.25);
+
+      /* Text system — Apple's text hierarchy */
+      --text-primary:   #F5F5F7;
+      --text-secondary: rgba(245,245,247,.6);
+      --text-tertiary:  rgba(245,245,247,.36);
+
+      /* Borders — Apple uses near-invisible borders */
+      --border:  rgba(255,255,255,.07);
+      --border2: rgba(255,255,255,.04);
+
+      /* Override existing vars to match */
+      --text:  #F5F5F7;
+      --dim:   rgba(245,245,247,.6);
+      --muted: rgba(245,245,247,.36);
+      --gold:  #E8922A;
+      --gold-s: rgba(232,146,42,.1);
+      --gold-b: rgba(232,146,42,.25);
+
+      /* Nav height */
+      --nav-h: 52px;
+    }
+
+    /* ── Ambient glow — much more subtle ── */
+    body::after {
+      background:
+        radial-gradient(ellipse 60% 50% at 20% 30%, rgba(232,146,42,.04) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 40% at 80% 70%, rgba(124,92,252,.03) 0%, transparent 55%);
+      animation: none;
+    }
+
+    /* ── Nav — Apple translucent bar ── */
+    .nav {
+      height: 52px;
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border-bottom: 1px solid var(--glass-border);
+      padding: 0 clamp(20px, 5vw, 60px);
+      gap: 20px;
+    }
+
+    .nav-logo {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 1.2rem;
+      letter-spacing: -0.04em;
+      color: var(--text-primary);
+    }
+    .nav-logo span { opacity: .4; font-weight: 400; font-size: .85rem; }
+
+    .nav-search {
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      height: 38px;
+    }
+    .nav-search:focus-within {
+      border-color: rgba(232,146,42,.35);
+      background: rgba(255,255,255,.08);
+      box-shadow: 0 0 0 3px rgba(232,146,42,.08);
+    }
+
+    .nav-btn {
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--glass-border);
+      border-radius: 10px;
+      color: var(--text-secondary);
+      font-family: 'Inter', sans-serif;
+      font-size: .8rem;
+      font-weight: 500;
+      height: 36px;
+      padding: 0 14px;
+      transition: background .2s, color .2s;
+    }
+    .nav-btn:hover {
+      background: rgba(255,255,255,.1);
+      color: var(--text-primary);
+    }
+    .nav-btn::after { display: none; }
+
+    .theme-toggle {
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--glass-border);
+      border-radius: 10px;
+      color: var(--text-tertiary);
+    }
+
+    /* ── Hero — Apple "Shot on iPhone" style ── */
+    .hero {
+      padding: 100px clamp(20px,5vw,80px) 80px;
+      text-align: center;
+      position: relative;
+      min-height: auto;
+    }
+    .hero-content {
+      max-width: 760px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+      text-align: center;
+    }
+    .hero-badge {
+      background: rgba(232,146,42,.1);
+      border: 1px solid rgba(232,146,42,.2);
+      color: var(--accent);
+      font-family: 'Inter', sans-serif;
+      font-size: .7rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 5px 16px;
+      border-radius: 50px;
+    }
+    .hero-title {
+      font-family: 'Inter', sans-serif;
+      font-size: clamp(3rem,7vw,5.5rem);
+      font-weight: 800;
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+      margin-bottom: 20px;
+      color: var(--text-primary);
+    }
+    #typewriterEl {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hi) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-style: normal;
+    }
+    #typewriterEl::after { color: var(--accent); }
+    .hero-sub {
+      font-family: 'Inter', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 400;
+      color: var(--text-secondary);
+      line-height: 1.55;
+      margin-bottom: 36px;
+      max-width: 520px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* Hero search — Apple search bar style */
+    .hero-search {
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--glass-border);
+      border-radius: 18px;
+      max-width: 580px;
+      margin: 0 auto;
+      box-shadow: var(--shadow-md);
+      backdrop-filter: blur(20px);
+    }
+    .hero-search:focus-within {
+      border-color: rgba(232,146,42,.3);
+      box-shadow: var(--shadow-md), 0 0 0 4px rgba(232,146,42,.06);
+    }
+    .btn-hero-search {
+      background: var(--accent);
+      color: #000;
+      border-radius: 12px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: .86rem;
+      letter-spacing: -0.01em;
+      box-shadow: none;
+      margin: 8px;
+    }
+    .btn-hero-search:hover {
+      background: var(--accent-hi);
+      transform: none;
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Hero stats — minimal */
+    .hero-stats {
+      gap: 40px;
+      margin-top: 32px;
+      justify-content: center;
+    }
+    .hero-stat-val {
+      font-family: 'Inter', sans-serif;
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      color: var(--text-primary);
+    }
+    .hero-stat-lbl {
+      font-family: 'Inter', sans-serif;
+      font-size: .72rem;
+      color: var(--text-tertiary);
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+
+    /* ── Shop cards — iOS card style ── */
+    .shop-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      box-shadow: var(--shadow-xs);
+      transition: transform .25s cubic-bezier(.4,0,.2,1),
+                  box-shadow .25s cubic-bezier(.4,0,.2,1),
+                  border-color .25s;
+    }
+    .shop-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      border-color: rgba(255,255,255,.12);
+    }
+    .shop-card.premium {
+      background: var(--bg2);
+      box-shadow: var(--shadow-sm), 0 0 0 1px rgba(232,146,42,.15);
+    }
+    .shop-card.premium:hover {
+      box-shadow: var(--shadow-md), 0 0 0 1px rgba(232,146,42,.25);
+    }
+
+    .card-name {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .card-loc {
+      font-family: 'Inter', sans-serif;
+      font-size: .75rem;
+      color: var(--text-tertiary);
+    }
+    .card-desc {
+      font-family: 'Inter', sans-serif;
+      font-size: .82rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    /* Reserve button — Apple primary action */
+    .btn-reservar {
+      background: var(--accent);
+      color: #000;
+      border-radius: 10px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: .78rem;
+      letter-spacing: -0.01em;
+      box-shadow: none;
+      padding: 8px 18px;
+    }
+    .btn-reservar:hover {
+      background: var(--accent-hi);
+      transform: none;
+      box-shadow: var(--shadow-xs);
+    }
+
+    /* ── Chips & filters — Apple pill style ── */
+    .chip {
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      font-size: .78rem;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      border-radius: 8px;
+      transition: all .18s;
+    }
+    .chip.active, .chip:hover {
+      background: var(--accent);
+      color: #000;
+      border-color: transparent;
+      box-shadow: none;
+    }
+    .cat {
+      font-family: 'Inter', sans-serif;
+      font-size: .8rem;
+      font-weight: 500;
+      border-radius: 10px;
+    }
+    .cat.active {
+      background: var(--accent);
+      color: #000;
+      box-shadow: var(--shadow-xs);
+    }
+
+    /* ── Plan cards — Apple product tier style ── */
+    .plan-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--r-xl);
+      box-shadow: var(--shadow-sm);
+    }
+    .plan-card.featured {
+      background: linear-gradient(145deg, #141418, #1a1a20);
+      border-color: rgba(232,146,42,.2);
+      box-shadow: var(--shadow-lg), 0 0 0 1px rgba(232,146,42,.15);
+    }
+    .plan-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md);
+    }
+    .plan-card.featured:hover {
+      box-shadow: var(--shadow-lg), 0 0 0 1px rgba(232,146,42,.25);
+    }
+
+    .plan-name {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+    .plan-price {
+      font-family: 'Inter', sans-serif;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+    .btn-plan {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: .88rem;
+      letter-spacing: -0.01em;
+      border-radius: 12px;
+    }
+
+    /* ── Modals — iOS sheet style ── */
+    .booking-modal {
+      border-radius: 22px 22px 0 0;
+      background: var(--bg2);
+      border-top: 1px solid var(--glass-border);
+      box-shadow: var(--shadow-xl);
+    }
+    .modal-title {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+    .detail-modal {
+      background: var(--bg);
+    }
+
+    /* ── Section titles — Apple large typography ── */
+    .promo-title, .faq-title, .hiw-title {
+      font-family: 'Inter', sans-serif;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+    .hiw-title { font-size: clamp(2rem,4.5vw,3rem); }
+    .promo-title { font-size: clamp(2rem,4.5vw,3rem); }
+
+    /* ── How it works — Apple step cards ── */
+    .hiw-step {
+      background: var(--bg2);
+      border-color: var(--border);
+      border-radius: 20px;
+    }
+    .hiw-step:hover {
+      border-color: rgba(255,255,255,.12);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-3px);
+    }
+    .hiw-icon-wrap {
+      background: var(--accent-s);
+      border-color: var(--accent-b);
+      border-radius: 16px;
+    }
+    .hiw-step-title {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .hiw-step-desc {
+      font-family: 'Inter', sans-serif;
+      color: var(--text-secondary);
+    }
+
+    /* ── Promo/plans section ── */
+    .promo-section {
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .promo-section::before { display: none; }
+
+    /* ── FAQ ── */
+    .faq-section { background: var(--bg); }
+    .faq-item {
+      background: var(--bg2);
+      border-color: var(--border);
+      border-radius: 14px;
+    }
+
+    /* ── Footer — Apple footer clean ── */
+    footer {
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+    }
+    .footer-brand {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+    }
+    .footer-brand-sub {
+      font-family: 'Inter', sans-serif;
+      color: var(--text-tertiary);
+    }
+    .footer-col-title {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+    .footer-links a {
+      font-family: 'Inter', sans-serif;
+      color: var(--text-tertiary);
+      transition: color .18s;
+    }
+    .footer-links a:hover { color: var(--text-primary); }
+    .footer-copy {
+      font-family: 'Inter', sans-serif;
+      color: var(--text-tertiary);
+    }
+
+    /* ── Scroll progress — single accent line ── */
+    #scrollProgress {
+      background: var(--accent);
+      height: 2px;
+      box-shadow: none;
+    }
+
+    /* ── Toast — iOS notification style ── */
+    .toast {
+      font-family: 'Inter', sans-serif;
+      background: rgba(28,28,32,.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 14px;
+      box-shadow: var(--shadow-md);
+    }
+
+    /* ── Skeleton — Apple placeholder ── */
+    .sk { background: rgba(255,255,255,.04); }
+    .sk::after {
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.06), transparent);
+    }
+
+    /* ── Map controls — Apple SF Symbols style ── */
+    .map-ctrl-btn {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 10px;
+      backdrop-filter: blur(20px);
+    }
+    .map-ctrl-btn:hover, .map-ctrl-btn.on {
+      background: var(--accent);
+      color: #000;
+      border-color: transparent;
+    }
+
+    /* ── Detail section — clean Apple list ── */
+    .detail-section-title {
+      font-family: 'Inter', sans-serif;
+      font-size: .68rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+    }
+    .detail-tab {
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      font-size: .8rem;
+    }
+    .detail-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    /* ── Feature strip ── */
+    .feature-strip {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .feature-title {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+    .feature-desc {
+      font-family: 'Inter', sans-serif;
+      color: var(--text-tertiary);
+    }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      padding: 12px clamp(16px,3vw,32px);
+    }
+    .results-count {
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      font-size: .78rem;
+      color: var(--text-tertiary);
+    }
+
+    /* ── Checkout express — iOS bottom sheet ── */
+    #checkoutExpress {
+      background: var(--bg2);
+      border-top: 1px solid var(--glass-border);
+      border-radius: 28px 28px 0 0;
+      box-shadow: var(--shadow-xl);
+    }
+    .cx-title {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .cx-btn {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      border-radius: 14px;
+      box-shadow: none;
+    }
+    .cx-btn:hover { box-shadow: var(--shadow-sm); transform: none; }
+
+    /* ── Command palette — Spotlight style ── */
+    #cmdPalette {
+      background: rgba(18,18,22,.95);
+      backdrop-filter: blur(40px) saturate(2);
+      -webkit-backdrop-filter: blur(40px) saturate(2);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 18px;
+      box-shadow: var(--shadow-xl);
+    }
+    .cmd-item-name {
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+    }
+    .cmd-item-sub {
+      font-family: 'Inter', sans-serif;
+      color: var(--text-tertiary);
+    }
+    .cmd-item.focused, .cmd-item:hover {
+      background: rgba(255,255,255,.06);
+    }
+    .cmd-item-icon {
+      background: var(--bg3);
+      border-color: var(--border);
+      color: var(--accent);
+      border-radius: 10px;
+    }
+    .cmd-section-label {
+      font-family: 'Inter', sans-serif;
+      color: var(--text-tertiary);
+    }
+
+    /* ── Compare bar ── */
+    .compare-bar {
+      font-family: 'Inter', sans-serif;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--glass-border);
+    }
+
+    /* ── Rating ── */
+    .rating-score {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+    }
+
+    /* ── Booking success — iOS confirmation ── */
+    .booking-success {
+      font-family: 'Inter', sans-serif;
+      background: rgba(18,18,22,.98);
+      backdrop-filter: blur(30px);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 20px;
+      box-shadow: var(--shadow-xl);
+    }
+    .bs-title {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+
+    /* ── Loading bar ── */
+    .booking-progress { background: transparent; }
+    .bp-step span { font-family: 'Inter', sans-serif; }
+
+    /* ── Form inputs — iOS style ── */
+    .booking-modal input,
+    .booking-modal select,
+    .booking-modal textarea {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text-primary);
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .booking-modal input:focus,
+    .booking-modal select:focus {
+      border-color: rgba(232,146,42,.4);
+      box-shadow: 0 0 0 3px rgba(232,146,42,.08);
+      outline: none;
+    }
+
+    /* ── Apple-style horizontal dividers ── */
+    .detail-section { border-bottom: 1px solid var(--border2); padding-bottom: 20px; margin-bottom: 20px; }
+    .detail-section:last-child { border-bottom: none; }
+
+    /* ── Remove heavy decorative elements ── */
+    .hero::before { opacity: 0.4; }
+    .hero-orb-1, .hero-orb-2 { opacity: 0.5; }
+
+    /* ── Hero centered layout ── */
+    .hero-visual { opacity: .15; pointer-events: none; }
+    @media (max-width: 900px) { .hero-visual { display: none; } }
+    .hero-stats { justify-content: center; }
+    .hero-sub { margin-left: auto; margin-right: auto; }
+    .ac-wrap { margin: 0 auto; max-width: 580px; }
+    #liveBooking { justify-content: center; }
+
+    /* ── Onboarding ── */
+    #onboardingTooltip {
+      font-family: 'Inter', sans-serif;
+      background: rgba(18,18,22,.98);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 18px;
+      box-shadow: var(--shadow-lg);
+    }
+    .onboard-title { font-family: 'Inter', sans-serif; font-weight: 700; letter-spacing: -0.02em; }
+    .onboard-btn {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      border-radius: 50px;
+    }
+
+    /* ── Micro-interactions cleanup ── */
+    * { -webkit-tap-highlight-color: transparent; }
+    a { color: var(--accent); }
+    ::selection { background: rgba(232,146,42,.25); color: var(--text-primary); }
+
+    /* ── PWA banner ── */
+    #pwaInstallBanner {
+      font-family: 'Inter', sans-serif;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      box-shadow: var(--shadow-md);
+    }
+    .pwa-banner-title { font-weight: 600; letter-spacing: -0.01em; }
+    .pwa-banner-btn {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      border-radius: 8px;
+    }
+
   </style>
 </head>
 
 <body>
+
+  <div id="cursor-ring" aria-hidden="true"></div>
+  <div id="cursor-dot" aria-hidden="true"></div>
+
+  <!-- ── SCROLL PROGRESS ── -->
+  <div id="scrollProgress"></div>
 
   <!-- ── NAV ── -->
   <nav class="nav">
@@ -3597,6 +6404,9 @@
     </div>
 
     <div class="nav-actions">
+      <button type="button" onclick="openCmd()" title="Búsqueda rápida (Ctrl+K)" style="display:flex;align-items:center;gap:5px;background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);padding:5px 10px;font-size:.68rem;cursor:pointer;white-space:nowrap;transition:.2s" onmouseover="this.style.borderColor='rgba(232,146,42,.3)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+        <kbd style="font-family:monospace;font-size:.65rem">⌘K</kbd>
+      </button>
       <button class="nav-btn" onclick="openFilterPanel(); navigator.vibrate?.([20])">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2">
@@ -3619,6 +6429,9 @@
 
   <!-- ── HERO ── -->
   <section class="hero" onmousemove="handleParallax(event)">
+    <video class="hero-video" autoplay muted loop playsinline preload="none" aria-hidden="true">
+      <source src="https://assets.mixkit.co/videos/preview/mixkit-barber-cutting-hair-41200-large.mp4" type="video/mp4">
+    </video>
     <div class="hero-orb hero-orb-1" data-speed="20"></div>
     <div class="hero-orb hero-orb-2" data-speed="-15"></div>
     <!-- ── Animated Visual ── -->
@@ -3671,7 +6484,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:4px"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
         Reservas en tiempo real
       </div>
-      <h1 class="hero-title" id="heroTitle">Encuentra tu <em>barbería ideal</em> cerca de ti</h1>
+      <h1 class="hero-title" id="heroTitle">Encuentra tu <em id="typewriterEl">&nbsp;</em></h1>
       <p class="hero-sub">Descubre, reserva y llega puntual. Sin llamadas, sin esperas inesperadas.</p>
 
       <div class="ac-wrap">
@@ -3706,6 +6519,14 @@
           </button>
         </div>
         <div id="acDropdown"></div>
+        <div id="liveBooking" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;font-size:.75rem;color:var(--dim)">
+          <span style="display:flex;gap:3px;align-items:center">
+            <span class="live-dot"></span>
+            <span class="live-dot" style="animation-delay:.2s"></span>
+            <span class="live-dot" style="animation-delay:.4s"></span>
+          </span>
+          <span><strong id="liveCount" style="color:var(--gold)">--</strong> personas buscando ahora</span>
+        </div>
       </div>
 
       <div class="hero-stats">
@@ -3726,6 +6547,77 @@
       </div>
     </div>
   </section>
+
+  <!-- ── FEATURE STRIP ── -->
+  <div class="feature-strip">
+    <div class="feature-item">
+      <div class="feature-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div class="feature-title">Reserva en 30 segundos</div>
+      <div class="feature-desc">Elige servicio, barbero y horario. Sin llamadas, sin filas.</div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.36 12a19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 3.18 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.1a16 16 0 0 0 6 6l.62-.62a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16z"/></svg>
+      </div>
+      <div class="feature-title">Confirmación por WhatsApp</div>
+      <div class="feature-desc">Recibís un mensaje automático con los detalles de tu cita.</div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      </div>
+      <div class="feature-title">Negocios verificados</div>
+      <div class="feature-desc">Solo barberías con reseñas reales y calidad comprobada.</div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <div class="feature-title">Cola virtual inteligente</div>
+      <div class="feature-desc">Seguí tu turno en tiempo real desde donde estés.</div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div class="feature-title">Sin pagos anticipados</div>
+      <div class="feature-desc">Reservá gratis. Pagás el servicio directamente en el local.</div>
+    </div>
+  </div>
+
+  <!-- ── TRUST STRIP ── -->
+  <div class="trust-strip">
+    <div class="trust-ticker-wrap" aria-hidden="true">
+      <div class="trust-ticker" id="trustTicker">
+        <div class="trust-item"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Reservas en tiempo real</div>
+        <div class="trust-sep"></div>
+        <div class="trust-item"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> +1,200 cortes este mes</div>
+        <div class="trust-sep"></div>
+        <div class="trust-item"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Negocios verificados</div>
+        <div class="trust-sep"></div>
+        <div class="trust-item"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Sin pagos anticipados</div>
+        <div class="trust-sep"></div>
+        <div class="trust-item"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.36 12a19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 3.18 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.1a16 16 0 0 0 6 6l.62-.62a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16z"/></svg> Confirmación WhatsApp</div>
+        <div class="trust-sep"></div>
+        <div class="trust-item"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> Cola virtual sin esperas</div>
+        <div class="trust-sep"></div>
+        <!-- duplicate for seamless loop -->
+        <div class="trust-item"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Reservas en tiempo real</div>
+        <div class="trust-sep"></div>
+        <div class="trust-item"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> +1,200 cortes este mes</div>
+        <div class="trust-sep"></div>
+        <div class="trust-item"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Negocios verificados</div>
+        <div class="trust-sep"></div>
+        <div class="trust-item"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Sin pagos anticipados</div>
+        <div class="trust-sep"></div>
+        <div class="trust-item"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.36 12a19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 3.18 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.1a16 16 0 0 0 6 6l.62-.62a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16z"/></svg> Confirmación WhatsApp</div>
+        <div class="trust-sep"></div>
+        <div class="trust-item"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> Cola virtual sin esperas</div>
+      </div>
+    </div>
+  </div>
 
   <!-- ── CATEGORIES ── -->
   <div class="cats" id="catsRow">
@@ -3762,6 +6654,51 @@
       <span class="cat-lbl">Guardados</span>
     </div>
   </div>
+
+  <!-- ── CÓMO FUNCIONA ── -->
+  <section class="how-it-works" id="howItWorks">
+    <div class="hiw-inner">
+      <div class="hiw-header">
+        <div class="hiw-badge">Proceso simple</div>
+        <h2 class="hiw-title">Reserva en <em>3 pasos</em></h2>
+        <p class="hiw-sub">Sin llamadas, sin filas, sin complicaciones.</p>
+      </div>
+      <div class="hiw-steps">
+        <div class="hiw-step reveal">
+          <div class="hiw-step-num">01</div>
+          <div class="hiw-icon-wrap">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          </div>
+          <h3 class="hiw-step-title">Busca</h3>
+          <p class="hiw-step-desc">Escribe tu barrio, servicio o nombre. Filtra por disponibilidad, distancia y rating.</p>
+        </div>
+        <div class="hiw-connector" aria-hidden="true">
+          <div class="hiw-line"></div>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </div>
+        <div class="hiw-step reveal">
+          <div class="hiw-step-num">02</div>
+          <div class="hiw-icon-wrap">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <h3 class="hiw-step-title">Elige</h3>
+          <p class="hiw-step-desc">Selecciona barbero, servicio y el horario que más te convenga. Sin sorpresas.</p>
+        </div>
+        <div class="hiw-connector" aria-hidden="true">
+          <div class="hiw-line"></div>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </div>
+        <div class="hiw-step reveal">
+          <div class="hiw-step-num">03</div>
+          <div class="hiw-icon-wrap" style="--hiw-clr:var(--green);background:rgba(0,212,168,.08);border-color:rgba(0,212,168,.2);color:var(--green)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <h3 class="hiw-step-title">Reserva</h3>
+          <p class="hiw-step-desc">Confirma en segundos. Recibís confirmación por WhatsApp y recordatorio automático.</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <!-- ── MAIN CONTENT ── -->
   <div class="main">
@@ -3829,11 +6766,21 @@
       </div>
       <div class="map-label" style="display:none">MAPA</div>
       <div id="leafletMap"></div>
+      <div id="searchZoneBtn" onclick="searchInMapZone()" style="display:none;position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:900;background:var(--bg2);border:1px solid var(--gold-b);border-radius:50px;padding:8px 18px;font-size:.78rem;font-weight:700;color:var(--gold);cursor:pointer;backdrop-filter:blur(12px);box-shadow:0 4px 20px rgba(0,0,0,.5);white-space:nowrap;animation:slide-down .3s cubic-bezier(.34,1.56,.64,1)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:5px"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Buscar en esta zona
+      </div>
       <!-- Map extra controls -->
       <div class="map-extra-controls">
         <button type="button" class="map-ctrl-btn" id="heatBtn" onclick="toggleHeatmap()"
           title="Mapa de calor"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></button>
         <button type="button" class="map-ctrl-btn" id="routeBtn" onclick="drawRoute()" title="Ver ruta"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></button>
+        <button type="button" class="map-ctrl-btn" id="locBtn" onclick="centerOnUser()" title="Mi ubicación">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>
+        </button>
+        <button type="button" class="map-ctrl-btn" onclick="resetMapView()" title="Ver todos">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3z"/><path d="M14 3h7v7h-7z"/><path d="M14 14h7v7h-7z"/><path d="M3 14h7v7H3z"/></svg>
+        </button>
       </div>
     </div>
   </div>
@@ -3876,7 +6823,7 @@
         <button class="btn-plan" onclick="openRegistro()">Empieza gratis 30 días →</button>
       </div>
 
-      <div class="plan-card" style="border-color:rgba(212,175,55,.4)">
+      <div class="plan-card" style="border-color:rgba(232,146,42,.4)">
         <div class="plan-badge prem">Premium</div>
         <div class="plan-name outfit">Elite</div>
         <div class="plan-price">RD$3,500 <span>/mes</span></div>
@@ -3935,56 +6882,65 @@
 
   <!-- ── FOOTER ── -->
   <footer>
+    <div class="footer-aurora"></div>
     <div class="footer-grid">
-      <div>
-        <div class="footer-brand">AuraOS</div>
-        <p class="footer-brand-sub">La plataforma de reservas más moderna para barberías y salones de belleza en
-          República Dominicana.</p>
-      </div>
-      <div>
-        <div class="footer-col-title">Clientes</div>
-        <div class="footer-links">
-          <a href="app.html">App móvil</a>
-          <a href="#" onclick="document.querySelector('.hero').scrollIntoView({behavior:'smooth'});return false">Cómo funciona</a>
-          <a href="#" onclick="showToast('📋 Próximamente — sección de preguntas frecuentes');return false">Preguntas frecuentes</a>
-          <a href="#" onclick="window.open('https://wa.me/18494398374?text='+encodeURIComponent('Hola AuraOS, necesito ayuda.'),'_blank');return false">Contacto</a>
+      <div class="footer-brand-col">
+        <a class="footer-brand outfit" href="marketplace.html" style="text-decoration:none;display:inline-block;margin-bottom:10px">AuraOS</a>
+        <p class="footer-brand-sub">La plataforma de reservas para barberías en República Dominicana. Sin llamadas, sin filas.</p>
+        <div class="footer-socials">
+          <a href="#" class="footer-social-btn" aria-label="Instagram">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+          </a>
+          <a href="#" class="footer-social-btn" aria-label="TikTok">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>
+          </a>
+          <a href="#" class="footer-social-btn" aria-label="WhatsApp">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          </a>
         </div>
       </div>
-      <div>
-        <div class="footer-col-title">Negocios</div>
+      <div class="footer-col">
+        <div class="footer-col-title">Marketplace</div>
         <div class="footer-links">
-          <a href="#planSection"
-            onclick="document.getElementById('planSection')?.scrollIntoView({behavior:'smooth'});return false">Registra
-            tu negocio</a>
-          <a href="panel-barbero.html">Panel profesional</a>
-          <a href="#" onclick="document.getElementById('planSection')?.scrollIntoView({behavior:'smooth'});return false">Planes y precios</a>
-          <a href="#" onclick="showToast('🌟 Próximamente — casos de éxito');return false">Casos de éxito</a>
+          <a href="#" onclick="scrollToFeed();return false">Explorar barberías</a>
+          <a href="#" onclick="openFilterPanel();return false">Filtros avanzados</a>
+          <a href="#" onclick="openCmd();return false">Búsqueda rápida</a>
+          <a href="#planSection">Planes para negocios</a>
         </div>
       </div>
-      <div>
-        <div class="footer-col-title">Legal</div>
+      <div class="footer-col">
+        <div class="footer-col-title">Para negocios</div>
         <div class="footer-links">
-          <a href="#" onclick="showToast('📄 Términos de uso — próximamente');return false">Términos de uso</a>
-          <a href="#" onclick="showToast('🔒 Política de privacidad — próximamente');return false">Privacidad</a>
-          <a href="#" onclick="showToast('🍪 Política de cookies — próximamente');return false">Cookies</a>
+          <a href="#" onclick="document.getElementById('planSection')?.scrollIntoView({behavior:'smooth'});return false">Registrar mi barbería</a>
+          <a href="superadmin.html">Panel de administración</a>
+          <a href="#" onclick="document.getElementById('planSection')?.scrollIntoView({behavior:'smooth'});return false">Ver planes y precios</a>
+          <a href="#" onclick="window.open('https://wa.me/18494398374?text='+encodeURIComponent('Hola AuraOS, necesito ayuda.'),'_blank');return false">Soporte</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <div class="footer-col-title">Descargar app</div>
+        <p style="font-size:.78rem;color:var(--dim);margin-bottom:12px;line-height:1.5">Reserva más rápido desde tu teléfono.</p>
+        <div class="footer-apps" style="flex-direction:column;gap:8px">
+          <a href="app.html" class="app-badge" style="text-decoration:none">
+            <span class="app-badge-icon">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M17.05 20.28c-.98.95-2.05 1.61-3.19 1.61-1.12 0-1.53-.68-2.88-.68-1.35 0-1.85.66-2.88.68-1.12.02-2.31-.76-3.35-1.78-2.12-2.08-3.73-5.87-3.73-9.15 0-3.32 1.66-5.1 3.25-5.1 1.05 0 1.9.59 2.68.59.73 0 1.74-.63 2.87-.63 1.07 0 2.29.45 3.12 1.45-1.92 1.15-1.61 3.65.31 4.43-.73 1.83-1.66 3.64-2.28 4.58zm-2.48-15.68c.02.13.04.26.04.41 0 1.08-.45 2.12-1.19 2.92-.81.87-1.91 1.43-3.05 1.35-.04-.15-.06-.29-.06-.44 0-1.02.45-2.08 1.14-2.83.84-.91 2.05-1.49 3.12-1.41z"/></svg>
+            </span>
+            <div class="app-badge-text"><small>Descargar en</small><strong>App Store</strong></div>
+          </a>
+          <a href="app.html" class="app-badge" style="text-decoration:none">
+            <span class="app-badge-icon">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M3 20.5V3.5C3 2.91 3.34 2.39 3.84 2.15L13.69 12L3.84 21.85C3.34 21.61 3 21.09 3 20.5ZM16.81 15.12L5.05 21.82L14.77 12.1L16.81 15.12ZM16.81 8.88L14.77 11.9L5.05 2.18L16.81 8.88ZM21.47 11.55L17.7 13.69L15.6 12L17.7 10.31L21.47 12.45C21.78 12.63 21.78 13.37 21.47 13.55Z"/></svg>
+            </span>
+            <div class="app-badge-text"><small>Disponible en</small><strong>Google Play</strong></div>
+          </a>
         </div>
       </div>
     </div>
     <div class="footer-bottom">
-      <span class="footer-copy">© 2026 AuraOS · Todos los derechos reservados</span>
-      <div class="footer-apps">
-        <div class="app-badge" onclick="window.open('app.html')">
-          <span class="app-badge-icon">
-            <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M17.05 20.28c-.98.95-2.05 1.61-3.19 1.61-1.12 0-1.53-.68-2.88-.68-1.35 0-1.85.66-2.88.68-1.12.02-2.31-.76-3.35-1.78-2.12-2.08-3.73-5.87-3.73-9.15 0-3.32 1.66-5.1 3.25-5.1 1.05 0 1.9.59 2.68.59.73 0 1.74-.63 2.87-.63 1.07 0 2.29.45 3.12 1.45-1.92 1.15-1.61 3.65.31 4.43-.73 1.83-1.66 3.64-2.28 4.58zm-2.48-15.68c.02.13.04.26.04.41 0 1.08-.45 2.12-1.19 2.92-.81.87-1.91 1.43-3.05 1.35-.04-.15-.06-.29-.06-.44 0-1.02.45-2.08 1.14-2.83.84-.91 2.05-1.49 3.12-1.41z"/></svg>
-          </span>
-          <div class="app-badge-text"><small>Disponible en</small><strong>App Store</strong></div>
-        </div>
-        <div class="app-badge" onclick="window.open('app.html')">
-          <span class="app-badge-icon">
-            <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M3 20.5V3.5C3 2.91 3.34 2.39 3.84 2.15L13.69 12L3.84 21.85C3.34 21.61 3 21.09 3 20.5ZM16.81 15.12L5.05 21.82L14.77 12.1L16.81 15.12ZM16.81 8.88L14.77 11.9L5.05 2.18L16.81 8.88ZM21.47 11.55L17.7 13.69L15.6 12L17.7 10.31L21.47 12.45C21.78 12.63 21.78 13.37 21.47 13.55Z"/></svg>
-          </span>
-          <div class="app-badge-text"><small>Disponible en</small><strong>Google Play</strong></div>
-        </div>
+      <span class="footer-copy">© 2025 AuraOS · República Dominicana</span>
+      <div style="display:flex;gap:20px">
+        <a href="#" style="color:var(--muted);font-size:.75rem;text-decoration:none">Privacidad</a>
+        <a href="#" style="color:var(--muted);font-size:.75rem;text-decoration:none">Términos</a>
       </div>
     </div>
   </footer>
@@ -4073,6 +7029,27 @@
   <!-- ── MODAL RESERVA ── -->
   <div class="booking-modal" id="bookingModal">
     <div class="modal-handle"></div>
+    <div class="booking-progress" id="bookingProgress">
+      <div class="bp-step bp-active" data-step="0">
+        <div class="bp-dot"></div>
+        <span>Servicio</span>
+      </div>
+      <div class="bp-line"></div>
+      <div class="bp-step" data-step="1">
+        <div class="bp-dot"></div>
+        <span>Horario</span>
+      </div>
+      <div class="bp-line"></div>
+      <div class="bp-step" data-step="2">
+        <div class="bp-dot"></div>
+        <span>Datos</span>
+      </div>
+      <div class="bp-line"></div>
+      <div class="bp-step" data-step="3">
+        <div class="bp-dot"></div>
+        <span>Confirmar</span>
+      </div>
+    </div>
     <button class="modal-close" onclick="closeBooking()">✕</button>
     <div class="modal-head">
       <div class="modal-title outfit" id="bookingTitle">Reservar turno</div>
@@ -4316,21 +7293,77 @@
       _clusterGroup = L.markerClusterGroup({
         showCoverageOnHover: false,
         maxClusterRadius: 70,
-        iconCreateFunction: cluster => L.divIcon({
-          html: `<div style="width:38px;height:38px;border-radius:50%;background:#D4AF37;color:#000;font-weight:900;font-size:.82rem;display:flex;align-items:center;justify-content:center;border:2px solid #000;box-shadow:0 2px 10px rgba(0,0,0,.5)">${cluster.getChildCount()}</div>`,
-          className: '', iconSize: [38, 38], iconAnchor: [19, 19]
-        })
+        iconCreateFunction: cluster => {
+          const count = cluster.getChildCount();
+          const color = count >= 10 ? '#FF3A55' : count >= 5 ? '#E8922A' : '#00D4A8';
+          return L.divIcon({
+            html: `<div class="map-cluster" style="--cc:${color}">
+              <div class="map-cluster-ring"></div>
+              <span>${count}</span>
+            </div>`,
+            className: '',
+            iconSize: [46, 46],
+            iconAnchor: [23, 23]
+          });
+        }
       });
       filtered.forEach(s => {
         if (!s.lat || !s.lng) return;
         const isReady = s.tiempo_espera === 0;
+        const availColor = isReady ? '#00D4A8' : (s.tiempo_espera < 30 ? '#E8922A' : '#FF3A55');
+        const isPrem = s.plan === 'premium';
+        const initials = (s.nombre || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
         const icon = L.divIcon({
           className: '',
-          html: `<div class="${isReady ? 'marker-pulse' : ''}" style="width:30px;height:30px;border-radius:50% 50% 50% 0;background:${s.plan === 'premium' ? '#D4AF37' : '#555'};border:2px solid #000;transform:rotate(-45deg);box-shadow:0 0 10px rgba(0,0,0,.5)"></div>`,
-          iconSize: [30, 38], iconAnchor: [15, 38]
+          html: `<div class="map-pin${isReady ? ' map-pin-ready' : ''}${isPrem ? ' map-pin-prem' : ''}" style="--avail:${availColor}">
+            <div class="map-pin-inner">${initials}</div>
+            <div class="map-pin-tail"></div>
+          </div>`,
+          iconSize: [44, 52], iconAnchor: [22, 52]
         });
         const m = L.marker([s.lat, s.lng], { icon });
-        m.bindPopup(`<div style="background:#111;color:#fff;border-radius:8px;padding:8px 12px;font-family:Inter,sans-serif"><strong>${s.nombre}</strong><br><small style="color:rgba(255,255,255,.6)">${s.rating ? `⭐ ${s.rating} · ` : ''}${isReady ? '⚡ Disponible ya' : `⏱ ~${s.tiempo_espera}min espera`}</small><br><button onclick="openDetail('${s.id}')" style="margin-top:6px;background:#D4AF37;color:#000;border:none;padding:4px 10px;border-radius:6px;font-size:.75rem;cursor:pointer;font-weight:700">Ver detalles</button></div>`, { className: 'leaflet-popup-dark' });
+        m._shopId = s.id;
+        const todayH = (s.horario || []).find(h => h.dia === new Date().toLocaleDateString('es-DO', { weekday: 'long', timeZone: 'America/Santo_Domingo' }).split(',')[0].toLowerCase());
+        const openNow = isOpenNow(s.horario);
+        m.bindPopup(`
+          <div class="map-popup">
+            ${s.foto_url ? `<div class="map-popup-img" style="background-image:url('${esc(typeof imgUrl === 'function' ? imgUrl(s.foto_url, 200) : s.foto_url)}')"></div>` : ''}
+            <div class="map-popup-body">
+              <div class="map-popup-name">${esc(s.nombre)}</div>
+              <div class="map-popup-meta">
+                ${s.rating ? `<span class="map-popup-rating">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="#E8922A" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  ${s.rating.toFixed(1)}
+                </span>` : ''}
+                <span class="map-popup-avail" style="color:${availColor}">
+                  ${isReady ? '⚡ Disponible ya' : `⏱ ~${s.tiempo_espera}min`}
+                </span>
+                <span style="color:${openNow === true ? '#00D4A8' : '#FF3A55'};font-weight:700;font-size:.7rem">
+                  ${openNow === true ? '● Abierto' : '● Cerrado'}
+                </span>
+              </div>
+              <div class="map-popup-actions">
+                <button onclick="openDetail('${s.id}')" class="map-popup-btn">Ver perfil</button>
+                <button onclick="openCheckoutExpress('${s.id}')" class="map-popup-btn map-popup-btn-gold">⚡ Reservar</button>
+              </div>
+            </div>
+          </div>
+        `, { className: 'map-popup-wrap', maxWidth: 240, minWidth: 220 });
+        // Desktop hover tooltip
+        if (matchMedia('(hover:hover)').matches) {
+          m.on('mouseover', function(e) {
+            const tip = document.getElementById('mapHoverTip');
+            if (!tip) return;
+            tip.innerHTML = `<strong style="font-family:Syne,sans-serif">${esc(s.nombre)}</strong>
+              <div style="font-size:.7rem;color:rgba(238,240,255,.5);margin-top:2px">${isReady ? '⚡ Disponible ya' : `⏱ ~${s.tiempo_espera}min`} ${s.rating ? `· ⭐${s.rating}` : ''}</div>`;
+            tip.style.display = 'block';
+            const pt = map.latLngToContainerPoint(e.latlng);
+            const mc = document.getElementById('leafletMap').getBoundingClientRect();
+            tip.style.left = (mc.left + pt.x - tip.offsetWidth / 2) + 'px';
+            tip.style.top  = (mc.top  + pt.y - tip.offsetHeight - 58) + 'px';
+          });
+          m.on('mouseout', () => { const t = document.getElementById('mapHoverTip'); if(t) t.style.display='none'; });
+        }
         m.on('click', () => openDetail(s.id));
         _clusterGroup.addLayer(m);
         markers.push(m);
@@ -4481,13 +7514,41 @@
     </div>`).join('');
     }
 
+    function imgUrl(url, w = 400) {
+      if (!url) return '';
+      if (url.includes('supabase') && url.includes('/storage/')) {
+        const sep = url.includes('?') ? '&' : '?';
+        return `${url}${sep}width=${w}&quality=75&format=webp`;
+      }
+      if (url.includes('unsplash.com')) {
+        const sep = url.includes('?') ? '&' : '?';
+        return `${url}${sep}w=${w}&q=75&auto=format`;
+      }
+      return url;
+    }
+
     function renderShops(reset = false) {
       const container = document.getElementById('shopsContainer');
       if (reset) { container.innerHTML = ''; currentPage = 0 }
-      document.getElementById('resultsCount').textContent = `${filteredShops.length} negocio${filteredShops.length !== 1 ? 's' : ''}`;
+      const rc = document.getElementById('resultsCount');
+      rc.textContent = `· ${filteredShops.length} negocio${filteredShops.length !== 1 ? 's' : ''}`;
+      rc.classList.remove('pop');
+      void rc.offsetWidth;
+      rc.classList.add('pop');
 
       if (!filteredShops.length) {
-        container.innerHTML = `<div style="text-align:center;padding:60px 20px;color:var(--dim)"><div style="display:flex;justify-content:center;margin-bottom:16px;color:var(--border)"><svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div><h3 class="outfit" style="font-size:1.3rem;margin-bottom:8px">Sin resultados</h3><p>Intenta ajustar los filtros.</p></div>`;
+        container.innerHTML = `<div style="text-align:center;padding:60px 20px;color:var(--dim);max-width:340px;margin:0 auto">
+  <div style="margin-bottom:24px;position:relative;display:inline-block">
+    <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="rgba(120,130,255,.2)" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" style="display:block"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.8rem;animation:empty-bob 2s ease-in-out infinite">✂️</div>
+  </div>
+  <h3 style="font-family:Syne,sans-serif;font-size:1.2rem;font-weight:700;margin-bottom:8px;color:var(--text)">Sin resultados</h3>
+  <p style="font-size:.85rem;line-height:1.6;margin-bottom:20px">No encontramos barberías con esos filtros. Prueba con otro término o amplía tu búsqueda.</p>
+  <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+    <button onclick="document.getElementById('searchHero').value='';document.getElementById('searchNav').value='';debouncedSearch()" style="background:var(--gold-gradient);color:#000;border:none;border-radius:50px;padding:8px 20px;font-weight:700;font-size:.82rem;cursor:pointer">Limpiar búsqueda</button>
+    <button onclick="openFilterPanel()" style="background:none;border:1px solid var(--border);color:var(--dim);border-radius:50px;padding:8px 20px;font-weight:600;font-size:.82rem;cursor:pointer">Ver filtros</button>
+  </div>
+</div>`;
         return;
       }
 
@@ -4519,9 +7580,19 @@
       ${isNewShop && !isPrem ? '<div class="badge-nuevo">Nuevo</div>' : ''}
       ${hasPromo ? '<div class="badge-promo-card">🏷 Oferta</div>' : ''}
       ${s.auraScore > 50 ? '<div class="badge-aura" style="position:absolute;top:38px;right:12px;z-index:5;background:#000;color:var(--gold);border:1px solid var(--gold);font-size:0.55rem;font-weight:900;padding:3px 8px;border-radius:50px;text-transform:uppercase">Aura Choice</div>' : ''}
+      ${(() => {
+        const hist = (() => { try { return JSON.parse(localStorage.getItem('aura_hist') || '[]') } catch { return [] } })();
+        const idx = hist.indexOf(String(s.id));
+        if (idx < 0) return '';
+        const labels = ['Reciente', 'Visitado', 'Revisitado'];
+        return `<div class="badge-visited">
+          <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          ${labels[Math.min(idx, 2)]}
+        </div>`;
+      })()}
       <div class="card-img-wrap" onclick="event.stopPropagation()">
         <div class="card-gallery" id="gallery-${s.id}" data-idx="0" onmouseenter="this.dataset.swipeInit || (initSwipe(this, '${s.id}'), this.dataset.swipeInit=1)" ontouchstart="this.dataset.swipeInit || (initSwipe(this, '${s.id}'), this.dataset.swipeInit=1)">
-          <img class="card-img" src="${esc(s.foto_url)}" alt="${esc(s.nombre)}" loading="lazy" onerror="this.src='${DEMO_IMGS[0]}'">
+          <img class="card-img" src="${esc(imgUrl(s.foto_url, 400))}" alt="${esc(s.nombre)}" loading="lazy" style="filter:blur(8px);transition:filter .4s ease" onload="this.style.filter=''" onerror="this.src='${DEMO_IMGS[0]}';this.style.filter=''">
         </div>
         <div class="card-gallery-nav">
           <div class="card-nav-btn" onclick="moveGallery('${s.id}',-1,event)">‹</div>
@@ -4581,7 +7652,7 @@
           ${(s.staff || []).length > 4 ? `<span style="font-size:0.65rem;color:var(--dim);align-self:center">+${s.staff.length - 4}</span>` : ''}
         </div>
 
-        ${hasPromo ? `<div style="margin:6px 0 2px;padding:5px 10px;background:linear-gradient(135deg,rgba(212,175,55,.15),rgba(212,175,55,.05));border:1px solid rgba(212,175,55,.3);border-radius:8px;font-size:.72rem;color:var(--gold);display:flex;align-items:center;gap:6px;overflow:hidden">
+        ${hasPromo ? `<div style="margin:6px 0 2px;padding:5px 10px;background:linear-gradient(135deg,rgba(232,146,42,.15),rgba(232,146,42,.05));border:1px solid rgba(232,146,42,.3);border-radius:8px;font-size:.72rem;color:var(--gold);display:flex;align-items:center;gap:6px;overflow:hidden">
           <span style="flex-shrink:0">🏷</span>
           <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600">${esc(s.promociones[0].titulo || s.promociones[0].descripcion || 'Oferta especial')}</span>
           ${s.promociones[0].descuento ? `<span style="flex-shrink:0;font-weight:900;background:var(--gold);color:#000;border-radius:4px;padding:1px 5px">${s.promociones[0].descuento}%</span>` : ''}
@@ -4600,10 +7671,13 @@
           <button type="button" class="btn-icon" onclick="toggleCompare('${s.id}',event)" title="Comparar" aria-label="Añadir a comparar">
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
           </button>
+          <button class="btn-reservar" style="font-size:.72rem;padding:6px 12px;background:var(--violet-gradient);box-shadow:0 4px 16px rgba(124,92,252,.3)" onclick="event.stopPropagation();openCheckoutExpress('${s.id}')">⚡ Rápido</button>
           <button class="btn-reservar" onclick="event.stopPropagation();openBooking(${JSON.stringify(s).replace(/"/g, '&quot;')})">Reservar</button>
         </div>
       </div>`;
         frag.appendChild(card);
+        card.addEventListener('mouseenter', () => highlightMarkerForShop(s.id));
+        card.addEventListener('mouseleave', () => clearMarkerHighlight());
       });
 
       container.appendChild(frag);
@@ -4679,6 +7753,20 @@
         navigator.geolocation.getCurrentPosition(pos => {
           userCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
           map?.flyTo([userCoords.lat, userCoords.lng], 14);
+          if (map) {
+            if (window._userCircle) map.removeLayer(window._userCircle);
+            window._userCircle = L.circle([userCoords.lat, userCoords.lng], {
+              radius: 3000, color: '#7C5CFC', fillColor: '#7C5CFC',
+              fillOpacity: 0.05, weight: 1.5, dashArray: '6 4', opacity: 0.5
+            }).addTo(map);
+            if (window._userMarkerObj) map.removeLayer(window._userMarkerObj);
+            const _uIcon = L.divIcon({
+              className: '',
+              html: `<div style="width:16px;height:16px;border-radius:50%;background:#7C5CFC;border:3px solid #fff;box-shadow:0 0 12px rgba(124,92,252,.6)"></div>`,
+              iconSize: [16,16], iconAnchor: [8,8]
+            });
+            window._userMarkerObj = L.marker([userCoords.lat, userCoords.lng], { icon: _uIcon }).addTo(map);
+          }
           activeFilter = 'all'; activeSort = 'near';
           filteredShops = applyActiveFilters(allShops); applySortTo(filteredShops); renderShops(true); addMarkers(filteredShops);
         }, () => showToast('No se pudo obtener tu ubicación'));
@@ -4743,7 +7831,7 @@
 
       // Hero clickeable → lightbox (listener aparte, sin JSON en onclick)
       const heroWrap = document.getElementById('detailHeroImg');
-      heroWrap.innerHTML = `<img style="width:100%;height:100%;object-fit:cover;opacity:.6;cursor:zoom-in" src="${esc(s.foto_url)}" alt="${esc(s.nombre)}">`;
+      heroWrap.innerHTML = `<img style="width:100%;height:100%;object-fit:cover;opacity:.6;cursor:zoom-in" src="${esc(imgUrl(s.foto_url, 800))}" alt="${esc(s.nombre)}">`;
       const heroImg = heroWrap.querySelector('img');
       heroImg.addEventListener('click', () => openLightbox(window._detailImgs, 0));
       heroImg.addEventListener('error', function () { this.src = DEMO_IMGS[0] });
@@ -4756,101 +7844,102 @@
       ${todayH && !todayH.cerrado ? `<span style="display:flex;align-items:center;gap:4px"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Hoy: ${fmt12(todayH.apertura)} – ${fmt12(todayH.cierre)}</span>` : ''}
     </div>`;
 
-      // Grid
+      // Grid (tabbed layout)
       const topSvcs = (s.servicios || []).slice(0, 3).map(sv => `RD$${Number(sv.precio).toLocaleString()}`).join(' · ');
+      const horarioHtml = (s.horario || []).map(h => `
+        <div class="horario-row${h.dia === todayName ? ' today' : ''}">
+          <span style="font-weight:${h.dia === todayName ? 700 : 400}">${h.dia}</span>
+          <span>${h.cerrado ? '<span style="color:var(--red)">Cerrado</span>' : `${fmt12(h.apertura)} – ${fmt12(h.cierre)}`}</span>
+        </div>`).join('');
       document.getElementById('detailGrid').innerHTML = `
-    <!-- Main -->
-    <div>
-      ${s.descripcion ? `<div class="detail-section"><div class="detail-section-title">Sobre nosotros</div><p style="color:var(--dim);line-height:1.7;font-size:.9rem">${esc(s.descripcion)}</p></div>` : ''}
-
-      <div class="detail-section">
-        <div class="detail-section-title">Servicios y precios</div>
-        ${(s.servicios || []).map(sv => `
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border2)">
-            <div><div style="font-weight:700">${esc(sv.nombre)}</div><div style="font-size:.72rem;color:var(--dim)">${sv.duracion_min || 25} min</div></div>
-            <div style="font-weight:800;color:var(--gold);font-family:Outfit,sans-serif">RD$${Number(sv.precio || 0).toLocaleString()}</div>
-          </div>`).join('')}
-      </div>
-
-      ${(s.staff || []).length ? `
-      <div class="detail-section">
-        <div class="detail-section-title">Nuestro equipo</div>
-        <div class="staff-row">
-          ${(s.staff || []).map(st => {
-        const ini = st.nombre ? st.nombre.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : '??'; return `
-            <div class="staff-item">
-              <div class="staff-avt">${st.foto_url ? `<img src="${esc(st.foto_url)}" alt="${esc(st.nombre)}">` : `<span>${ini}</span>`}</div>
-              <span class="staff-name">${esc(st.nombre)}</span>
-            </div>`}).join('')}
-        </div>
-      </div>`: ''}
-
-      <div class="detail-section">
-        <div class="detail-section-title">Reseñas recientes</div>
-        ${(s.reseñas_recientes || []).map(r => `
-          <div class="review-item">
-            <div class="review-stars">
-              ${Array(5).fill(0).map((_, i) => `
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="${i < r.puntuacion ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:1px">
-                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                </svg>`).join('')}
-            </div>
-            ${r.comentario ? `<div class="review-text">${esc(r.comentario)}</div>` : ''}
-            <div class="review-date">${new Date(r.created_at).toLocaleDateString('es-DO', { month: 'short', day: 'numeric' })}</div>
-          </div>`).join('')}
-        ${s.feature_reseñas !== false ? renderReviewForm(s.id) : ''}
-      </div>
-
-      <!-- Style Lab teaser -->
-      <div class="detail-section">
-        <div style="background:linear-gradient(135deg,var(--gold-s),transparent);border:1px solid var(--gold-b);border-radius:var(--r-lg);padding:20px;display:flex;gap:14px;align-items:center;cursor:pointer" onclick="window.open('app.html','_blank')">
-          <div style="font-size:2rem;display:flex;align-items:center;justify-content:center;width:48px;height:48px;background:rgba(255,255,255,0.05);border-radius:12px;color:var(--gold)">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
-          </div>
-          <div style="flex:1">
-            <div style="font-weight:800;color:var(--gold)">Style Lab IA</div>
-            <div style="font-size:.78rem;color:var(--dim);margin-top:3px">Sube tu foto y el AI sugiere el corte ideal antes de reservar</div>
-          </div>
-          <div style="color:var(--gold)">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-          </div>
-        </div>
-      </div>
+    <div class="detail-tabs">
+      <button class="detail-tab active" onclick="switchDetailTab(0,this)">Info</button>
+      <button class="detail-tab" onclick="switchDetailTab(1,this)">Servicios</button>
+      <button class="detail-tab" onclick="switchDetailTab(2,this)">Equipo</button>
+      <button class="detail-tab" onclick="switchDetailTab(3,this)">Reseñas</button>
     </div>
-
-    <!-- Sidebar -->
-    <div>
-      <div class="detail-sticky">
-        <button class="btn-confirm" style="margin-bottom:10px" onclick="openBooking(${JSON.stringify(s).replace(/"/g, '&quot;').replace(/'/g, '&#39;')})">Reservar ahora</button>
-        ${s.lat && s.lng ? `<button class="btn-icon" style="width:100%;height:40px;border-radius:var(--r);margin-bottom:8px;font-size:.82rem;display:flex;align-items:center;justify-content:center;gap:6px" onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}','_blank')"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg> Cómo llegar</button>` : ''}
-        <div class="share-row" style="margin-bottom:8px">
-          <button class="share-btn wa" onclick="shareViaWhatsApp('${s.id}')"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-13.4 8.38 8.38 0 0 1 3.8.9L21 3.5Z"/></svg> WhatsApp</button>
-          ${s.instagram ? `<button class="share-btn ig" onclick="window.open('https://instagram.com/${esc(s.instagram)}','_blank')"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg> Instagram</button>` : ''}
-          <button class="share-btn copy" onclick="shareShop('${s.id}')"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copiar</button>
-        </div>
-        <button type="button" class="notify-me-btn" id="notifyBtn_${esc(s.id)}" onclick="toggleNotify('${esc(s.id)}','${esc(s.nombre)}',this)" style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:8px">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg> Avísame cuando haya turno
-        </button>
-        <div id="galleryStripSidebar"></div>
-
-        <div style="margin-top:16px">
-          <div class="detail-section-title">Horario semanal</div>
-          ${s.horario.map(h => `
-            <div class="horario-row${h.dia === todayName ? ' today' : ''}">
-              <span style="font-weight:${h.dia === todayName ? 700 : 400}">${h.dia}</span>
-              <span>${h.cerrado ? '<span style="color:var(--red)">Cerrado</span>' : `${fmt12(h.apertura)} – ${fmt12(h.cierre)}`}</span>
-            </div>`).join('')}
-        </div>
-
-        ${(s.instagram || s.facebook || s.tiktok) ? `
-        <div style="margin-top:16px">
-          <div class="detail-section-title">Redes sociales</div>
-          <div class="social-links">
-            ${s.instagram ? `<a href="https://instagram.com/${esc(s.instagram)}" target="_blank" rel="noopener" class="social-btn"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg> Instagram</a>` : ''}
-            ${s.facebook ? `<a href="${esc(s.facebook)}" target="_blank" rel="noopener" class="social-btn"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg> Facebook</a>` : ''}
-            ${s.tiktok ? `<a href="https://tiktok.com/@${esc(s.tiktok)}" target="_blank" rel="noopener" class="social-btn"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg> TikTok</a>` : ''}
+    <div style="display:flex;gap:0">
+      <div style="flex:1;min-width:0">
+        <!-- Tab 0: Info -->
+        <div class="detail-tab-content active" data-tab="0">
+          ${s.descripcion ? `<div class="detail-section"><div class="detail-section-title">Sobre nosotros</div><p style="color:var(--dim);line-height:1.7;font-size:.9rem">${esc(s.descripcion)}</p></div>` : ''}
+          <div class="detail-section">
+            <div class="detail-section-title">Horarios</div>
+            <div class="horario-grid">${horarioHtml}</div>
           </div>
-        </div>`: ''}
+          <div class="detail-section">
+            <div style="background:linear-gradient(135deg,var(--gold-s),transparent);border:1px solid var(--gold-b);border-radius:var(--r-lg);padding:20px;display:flex;gap:14px;align-items:center;cursor:pointer" onclick="window.open('app.html','_blank')">
+              <div style="width:48px;height:48px;background:rgba(255,255,255,0.05);border-radius:12px;color:var(--gold);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2M20 14h2M15 13v2M9 13v2"/></svg>
+              </div>
+              <div style="flex:1"><div style="font-weight:800;color:var(--gold)">Style Lab IA</div><div style="font-size:.78rem;color:var(--dim);margin-top:3px">Sube tu foto y el AI sugiere el corte ideal</div></div>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </div>
+          </div>
+        </div>
+        <!-- Tab 1: Servicios -->
+        <div class="detail-tab-content" data-tab="1">
+          <div class="detail-section">
+            ${(s.servicios || []).map(sv => `
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border2)">
+                <div><div style="font-weight:700">${esc(sv.nombre)}</div><div style="font-size:.72rem;color:var(--dim)">${sv.duracion_min || 25} min</div></div>
+                <div style="font-weight:800;color:var(--gold);font-family:Outfit,sans-serif">RD$${Number(sv.precio || 0).toLocaleString()}</div>
+              </div>`).join('')}
+          </div>
+        </div>
+        <!-- Tab 2: Equipo -->
+        <div class="detail-tab-content" data-tab="2">
+          ${(s.staff || []).length ? `
+          <div class="detail-section">
+            <div class="staff-row">
+              ${(s.staff || []).map(st => {
+                const ini = st.nombre ? st.nombre.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2) : '??';
+                return `<div class="staff-item"><div class="staff-avt">${st.foto_url ? `<img src="${esc(st.foto_url)}" alt="${esc(st.nombre)}">` : `<span>${ini}</span>`}</div><span class="staff-name">${esc(st.nombre)}</span></div>`;
+              }).join('')}
+            </div>
+          </div>` : '<div class="detail-section" style="color:var(--dim);text-align:center;padding:40px 0">Sin información de equipo</div>'}
+        </div>
+        <!-- Tab 3: Reseñas -->
+        <div class="detail-tab-content" data-tab="3">
+          <div class="detail-section">
+            ${(s.reseñas_recientes || []).map(r => `
+              <div class="review-item">
+                <div class="review-stars">${Array(5).fill(0).map((_,i) => `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="${i < r.puntuacion ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`).join('')}</div>
+                ${r.comentario ? `<div class="review-text">${esc(r.comentario)}</div>` : ''}
+                <div class="review-date">${new Date(r.created_at).toLocaleDateString('es-DO',{month:'short',day:'numeric'})}</div>
+              </div>`).join('')}
+            ${s.feature_reseñas !== false ? renderReviewForm(s.id) : ''}
+          </div>
+        </div>
+      </div>
+      <!-- Sidebar -->
+      <div id="detailSidebar" style="width:300px;flex-shrink:0;padding:20px;border-left:1px solid var(--border2)">
+        <div class="detail-sticky">
+          <button class="btn-confirm" style="margin-bottom:10px" onclick="openBooking(${JSON.stringify(s).replace(/"/g, '&quot;').replace(/'/g, '&#39;')})">Reservar ahora</button>
+          ${s.lat && s.lng ? `<button class="btn-icon" style="width:100%;height:40px;border-radius:var(--r);margin-bottom:8px;font-size:.82rem;display:flex;align-items:center;justify-content:center;gap:6px" onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}','_blank')"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg> Cómo llegar</button>` : ''}
+          <div class="share-row" style="margin-bottom:8px">
+            <button class="share-btn wa" onclick="shareViaWhatsApp('${s.id}')"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-13.4 8.38 8.38 0 0 1 3.8.9L21 3.5Z"/></svg> WhatsApp</button>
+            ${s.instagram ? `<button class="share-btn ig" onclick="window.open('https://instagram.com/${esc(s.instagram)}','_blank')"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg> Instagram</button>` : ''}
+            <button class="share-btn copy" onclick="shareShop('${s.id}')"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copiar</button>
+          </div>
+          <button type="button" class="notify-me-btn" id="notifyBtn_${esc(s.id)}" onclick="toggleNotify('${esc(s.id)}','${esc(s.nombre)}',this)" style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:8px">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg> Avísame cuando haya turno
+          </button>
+          <div id="galleryStripSidebar"></div>
+          <div style="margin-top:16px">
+            <div class="detail-section-title">Horario semanal</div>
+            ${horarioHtml}
+          </div>
+          ${(s.instagram || s.facebook || s.tiktok) ? `
+          <div style="margin-top:16px">
+            <div class="detail-section-title">Redes sociales</div>
+            <div class="social-links">
+              ${s.instagram ? `<a href="https://instagram.com/${esc(s.instagram)}" target="_blank" rel="noopener" class="social-btn"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg> Instagram</a>` : ''}
+              ${s.facebook ? `<a href="${esc(s.facebook)}" target="_blank" rel="noopener" class="social-btn"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg> Facebook</a>` : ''}
+              ${s.tiktok ? `<a href="https://tiktok.com/@${esc(s.tiktok)}" target="_blank" rel="noopener" class="social-btn"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg> TikTok</a>` : ''}
+            </div>
+          </div>`: ''}
+        </div>
       </div>
     </div>`;
 
@@ -4942,6 +8031,7 @@
 
       shopBarberos = s.staff || []; renderBookingBarbers(); renderBookingServices();
       if (shopBarberos.length > 0) selectBarber(shopBarberos[0].id);
+      updateBookingProgress(0);
 
       // Load citas for selected date
       loadCitasForDate(getFechaHoy());
@@ -4987,7 +8077,7 @@
       }).join('');
     }
 
-    function selectService(name) { currentBookingService = currentBookingShop.servicios.find(s => s.nombre === name); currentBookingSlot = null; document.getElementById('btnConfirm').disabled = true; renderBookingServices(); calcSlots(); navigator.vibrate?.([8]) }
+    function selectService(name) { currentBookingService = currentBookingShop.servicios.find(s => s.nombre === name); currentBookingSlot = null; document.getElementById('btnConfirm').disabled = true; renderBookingServices(); calcSlots(); navigator.vibrate?.([8]); updateBookingProgress(1); }
 
     function calcSlots() {
       const container = document.getElementById('bookingSlots');
@@ -5015,7 +8105,7 @@
       container.innerHTML = slots.map(s => `<div class="slot${s.taken ? ' taken' : ' free'}${currentBookingSlot === s.t ? ' selected' : ''}" onclick="${s.taken ? '' : `selectSlot('${s.t}')`}">${fmt12(s.t)}</div>`).join('');
     }
 
-    function selectSlot(t) { currentBookingSlot = t; calcSlots(); document.getElementById('btnConfirm').disabled = !t; navigator.vibrate?.([12]) }
+    function selectSlot(t) { currentBookingSlot = t; calcSlots(); document.getElementById('btnConfirm').disabled = !t; navigator.vibrate?.([12]); updateBookingProgress(2); }
 
     async function processBooking() {
       const name = document.getElementById('bookingName').value.trim();
@@ -5068,6 +8158,7 @@
         const bsQueue = document.getElementById('bsQueue');
         if (bsSub) bsSub.textContent = `${currentBookingService.nombre} con ${currentBookingBarber.nombre} · ${fmt12(currentBookingSlot)}`;
         if (bsQueue) { bsQueue.textContent = `#${queuePos} en la cola de hoy`; bsQueue.style.display = 'inline-flex'; }
+        launchConfetti();
         document.getElementById('bookingSuccess').classList.add('show');
         setTimeout(() => document.getElementById('bookingSuccess').classList.remove('show'), 5500);
 
@@ -5255,7 +8346,7 @@
         .then(r => r.json()).then(data => {
           const coords = data.routes?.[0]?.geometry?.coordinates?.map(([lng, lat]) => [lat, lng]);
           if (!coords?.length) { showToast('No se pudo trazar la ruta'); return; }
-          routePolyline = L.polyline(coords, { color: '#D4AF37', weight: 4, opacity: .85 }).addTo(map);
+          routePolyline = L.polyline(coords, { color: '#E8922A', weight: 4, opacity: .85 }).addTo(map);
           map.fitBounds(routePolyline.getBounds(), { padding: [30, 30] });
           document.getElementById('routeBtn').classList.add('on');
           const mins = Math.round((data.routes[0].duration || 0) / 60);
@@ -5825,7 +8916,7 @@
             const d = Math.sqrt(dx * dx + dy * dy);
             if (d < 100) {
               ctx.beginPath();
-              ctx.strokeStyle = `rgba(212,175,55,${.15 * (1 - d / 100)})`;
+              ctx.strokeStyle = `rgba(232,146,42,${.15 * (1 - d / 100)})`;
               ctx.lineWidth = .6;
               ctx.moveTo(pts[i].x, pts[i].y);
               ctx.lineTo(pts[j].x, pts[j].y);
@@ -5836,7 +8927,7 @@
         pts.forEach(p => {
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(212,175,55,${p.o})`;
+          ctx.fillStyle = `rgba(232,146,42,${p.o})`;
           ctx.fill();
           p.x += p.vx; p.y += p.vy;
           if (p.x < 0 || p.x > W) p.vx *= -1;
@@ -6004,7 +9095,509 @@
       });
     };
 
+    // ── Scroll Progress Bar ──
+    function initScrollProgress() {
+      const bar = document.getElementById('scrollProgress');
+      if (!bar) return;
+      window.addEventListener('scroll', () => {
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        bar.style.width = (window.scrollY / max * 100) + '%';
+      }, { passive: true });
+    }
+
+    // ── Nav scroll class ──
+    function initNavScroll() {
+      const nav = document.querySelector('.nav');
+      if (!nav) return;
+      window.addEventListener('scroll', () => {
+        nav.classList.toggle('scrolled', window.scrollY > 20);
+      }, { passive: true });
+    }
+
+    // ── Hero Parallax (scroll) ──
+    function initHeroScrollParallax() {
+      const orb1 = document.querySelector('.hero-orb-1');
+      const orb2 = document.querySelector('.hero-orb-2');
+      const hero = document.querySelector('.hero');
+      window.addEventListener('scroll', () => {
+        const y = window.scrollY;
+        if (orb1) orb1.style.transform = `translate(0, ${y * 0.25}px)`;
+        if (orb2) orb2.style.transform = `translate(0, ${y * -0.12}px)`;
+        if (hero)  hero.style.opacity  = Math.max(0, 1 - y / 480);
+      }, { passive: true });
+    }
+
+    // ── 3D Section Reveal ──
+    function init3DSectionReveal() {
+      const targets = [
+        '.trust-strip',
+        '.promo-section',
+        '.faq-section',
+        'footer',
+      ];
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((e, i) => {
+          if (e.isIntersecting) {
+            setTimeout(() => e.target.classList.add('in-view-3d'), i * 80);
+            io.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+
+      targets.forEach(sel => {
+        const el = document.querySelector(sel);
+        if (el) { el.classList.add('scroll-3d-section'); io.observe(el); }
+      });
+    }
+
+    // ── Magnetic Card Tilt ──
+    function initCardTilt() {
+      function attachTilt(selector, maxRot, maxZ) {
+        document.querySelectorAll(selector).forEach(card => {
+          card.addEventListener('mousemove', e => {
+            const r  = card.getBoundingClientRect();
+            const cx = r.left + r.width  / 2;
+            const cy = r.top  + r.height / 2;
+            const dx = (e.clientX - cx) / (r.width  / 2);
+            const dy = (e.clientY - cy) / (r.height / 2);
+            card.style.transition = 'box-shadow .25s, border-color .25s';
+            card.style.transform  =
+              `perspective(900px) rotateY(${dx * maxRot}deg) rotateX(${-dy * maxRot * .5}deg) translateZ(${maxZ}px) translateY(-4px)`;
+          });
+          card.addEventListener('mouseleave', () => {
+            card.style.transition = 'transform .6s cubic-bezier(.4,0,.2,1), box-shadow .4s, border-color .25s';
+            card.style.transform  = '';
+          });
+        });
+      }
+      attachTilt('.shop-card', 5,  12);
+      attachTilt('.plan-card', 8,  24);
+      attachTilt('.app-badge', 6,  8);
+    }
+
+    // ── Typewriter ──
+    function initTypewriter() {
+      const el = document.getElementById('typewriterEl');
+      if (!el) return;
+      const phrases = ['barbería ideal', 'mejor corte', 'barbero perfecto', 'estilo único'];
+      let pi = 0, ci = 0, deleting = false;
+      function tick() {
+        const phrase = phrases[pi];
+        if (!deleting) {
+          el.textContent = phrase.slice(0, ++ci);
+          if (ci === phrase.length) { deleting = true; setTimeout(tick, 2200); return; }
+          setTimeout(tick, 75);
+        } else {
+          el.textContent = phrase.slice(0, --ci) || ' ';
+          if (ci === 0) { deleting = false; pi = (pi + 1) % phrases.length; setTimeout(tick, 400); return; }
+          setTimeout(tick, 40);
+        }
+      }
+      setTimeout(tick, 800);
+    }
+
+    // ── Stats Counter (IntersectionObserver) ──
+    function animateCounterEl(el, target, suffix, duration) {
+      suffix = suffix || '';
+      duration = duration || 1200;
+      if (!el || el.dataset.animated) return;
+      el.dataset.animated = '1';
+      const start = performance.now();
+      const isFloat = String(target).includes('.');
+      function step(now) {
+        const p = Math.min((now - start) / duration, 1);
+        const ease = 1 - Math.pow(1 - p, 3);
+        const val = isFloat ? (target * ease).toFixed(1) : Math.round(target * ease);
+        el.textContent = val + suffix;
+        if (p < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    function initStatsCounter() {
+      const statsEl = document.querySelector('.hero-stats');
+      if (!statsEl) return;
+      const obs = new IntersectionObserver(entries => {
+        if (!entries[0].isIntersecting) return;
+        obs.disconnect();
+        const neg = document.getElementById('statNegocios');
+        const citas = document.getElementById('statCitasSemana');
+        if (neg) animateCounterEl(neg, parseInt(neg.textContent) || 2);
+        if (citas) animateCounterEl(citas, parseInt(citas.textContent) || 0);
+      }, { threshold: 0.5 });
+      obs.observe(statsEl);
+    }
+
+    // ── Onboarding ──
+    function initOnboarding() {
+      if (localStorage.getItem('aura_onboarded')) return;
+      const tip = document.getElementById('onboardingTooltip');
+      if (!tip) return;
+      setTimeout(() => {
+        tip.style.display = 'block';
+        requestAnimationFrame(() => tip.classList.add('show'));
+      }, 2000);
+    }
+    function dismissOnboarding() {
+      const tip = document.getElementById('onboardingTooltip');
+      if (!tip) return;
+      tip.classList.remove('show');
+      setTimeout(() => tip.style.display = 'none', 400);
+      localStorage.setItem('aura_onboarded', '1');
+    }
+
+    // ── PWA Install ──
+    let _pwaPrompt = null;
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault();
+      _pwaPrompt = e;
+      setTimeout(() => document.getElementById('pwaInstallBanner')?.classList.add('show'), 5000);
+    });
+    function installPWA() {
+      if (!_pwaPrompt) return;
+      _pwaPrompt.prompt();
+      _pwaPrompt.userChoice.then(() => {
+        document.getElementById('pwaInstallBanner')?.classList.remove('show');
+        _pwaPrompt = null;
+      });
+    }
+
+    // ── Modal tab switcher ──
+    function switchDetailTab(idx, btn) {
+      const modal = document.getElementById('detailModal');
+      modal.querySelectorAll('.detail-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
+      modal.querySelectorAll('.detail-tab-content').forEach(c => c.classList.toggle('active', Number(c.dataset.tab) === idx));
+    }
+
+    // ── Custom cursor ──
+    function initCustomCursor() {
+      const ring = document.getElementById('cursor-ring');
+      const dot = document.getElementById('cursor-dot');
+      if (!ring || !dot || !matchMedia('(hover:hover) and (pointer:fine)').matches) return;
+      let mx = -100, my = -100, rx = -100, ry = -100;
+      let lastParticle = 0;
+      document.addEventListener('mousemove', e => {
+        mx = e.clientX; my = e.clientY;
+        dot.style.left = mx + 'px'; dot.style.top = my + 'px';
+        const now = Date.now();
+        if (now - lastParticle > 40) {
+          lastParticle = now;
+          const p = document.createElement('div');
+          p.className = 'cursor-particle';
+          const colors = ['rgba(232,146,42,.7)', 'rgba(124,92,252,.6)', 'rgba(255,186,96,.5)'];
+          p.style.cssText = `left:${mx}px;top:${my}px;background:${colors[Math.floor(Math.random()*colors.length)]};--px:${(Math.random()-0.5)*30}px;--py:${(Math.random()-0.5)*30}px`;
+          document.body.appendChild(p);
+          setTimeout(() => p.remove(), 650);
+        }
+      });
+      document.addEventListener('mousedown', () => ring.classList.add('clicking'));
+      document.addEventListener('mouseup', () => ring.classList.remove('clicking'));
+      function animRing() {
+        rx += (mx - rx) * 0.12;
+        ry += (my - ry) * 0.12;
+        ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+        requestAnimationFrame(animRing);
+      }
+      animRing();
+      document.addEventListener('mouseover', e => {
+        if (e.target.closest('button,a,[onclick],.shop-card,.chip,.cat')) {
+          ring.style.width = '48px'; ring.style.height = '48px';
+          ring.style.borderColor = 'rgba(124,92,252,.7)';
+        }
+      });
+      document.addEventListener('mouseout', e => {
+        if (e.target.closest('button,a,[onclick],.shop-card,.chip,.cat')) {
+          ring.style.width = '32px'; ring.style.height = '32px';
+          ring.style.borderColor = 'rgba(232,146,42,.6)';
+        }
+      });
+    }
+
+    // ── Checkout Express ──
+    let _cxShop = null, _cxSvc = null, _cxSlot = null, _cxStep = 0;
+
+    function openCheckoutExpress(shopId) {
+      const s = allShops.find(x => x.id === String(shopId));
+      if (!s) { openBooking(s); return; }
+      _cxShop = s; _cxSvc = null; _cxSlot = null; _cxStep = 0;
+      document.getElementById('cxShopName').textContent = s.nombre;
+      document.getElementById('checkoutExpress').classList.add('open');
+      document.getElementById('cxBackdrop').classList.add('open');
+      document.body.style.overflow = 'hidden';
+      cxRenderStep();
+    }
+
+    function closeCheckoutExpress() {
+      document.getElementById('checkoutExpress').classList.remove('open');
+      document.getElementById('cxBackdrop').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    function cxRenderStep() {
+      const body = document.getElementById('cxBody');
+      [0,1,2].forEach(i => {
+        const el = document.getElementById('cxStep' + i);
+        el.className = 'cx-step' + (_cxStep === i ? ' active' : _cxStep > i ? ' done' : '');
+      });
+      if (_cxStep === 0) {
+        const svcs = _cxShop.servicios || [];
+        body.innerHTML = `
+          <p style="font-size:.82rem;color:var(--dim);margin-bottom:14px">Elige el servicio que deseas</p>
+          <div class="cx-svc-list">
+            ${svcs.map((sv,i) => `
+              <div class="cx-svc-item${_cxSvc===i?' selected':''}" onclick="cxSelectSvc(${i})">
+                <div>
+                  <div class="cx-svc-name">${esc(sv.nombre)}</div>
+                  <div style="font-size:.72rem;color:var(--dim)">${sv.duracion_min||25} min</div>
+                </div>
+                <div class="cx-svc-price">RD$${Number(sv.precio||0).toLocaleString()}</div>
+              </div>`).join('')}
+          </div>
+          <button class="cx-btn" ${_cxSvc===null?'disabled':''} onclick="cxNextStep()">Siguiente →</button>`;
+      } else if (_cxStep === 1) {
+        const slots = ['9:00 AM','9:30 AM','10:00 AM','10:30 AM','11:00 AM','11:30 AM','2:00 PM','2:30 PM','3:00 PM','3:30 PM'];
+        body.innerHTML = `
+          <p style="font-size:.82rem;color:var(--dim);margin-bottom:14px">Elige un horario disponible</p>
+          <div class="cx-slots">
+            ${slots.map(t => `<div class="cx-slot free${_cxSlot===t?' selected':''}" onclick="cxSelectSlot('${t}',this)">${t}</div>`).join('')}
+          </div>
+          <button class="cx-btn" ${!_cxSlot?'disabled':''} onclick="cxNextStep()">Confirmar horario →</button>`;
+      } else {
+        const svc = (_cxShop.servicios||[])[_cxSvc];
+        body.innerHTML = `
+          <div style="background:var(--bg3);border-radius:14px;padding:16px;margin-bottom:16px">
+            <div style="font-size:.72rem;color:var(--dim);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Resumen</div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span>Barbería</span><span style="font-weight:700">${esc(_cxShop.nombre)}</span></div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span>Servicio</span><span style="font-weight:700">${svc?esc(svc.nombre):'—'}</span></div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span>Horario</span><span style="font-weight:700;color:var(--gold)">${_cxSlot||'—'}</span></div>
+            <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border2);padding-top:10px;margin-top:6px"><span style="font-weight:700">Total</span><span style="font-weight:800;color:var(--gold);font-family:Outfit,sans-serif">RD$${svc?Number(svc.precio||0).toLocaleString():'—'}</span></div>
+          </div>
+          <button class="cx-btn" onclick="cxConfirm()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:6px"><polyline points="20 6 9 17 4 12"/></svg>
+            Confirmar reserva
+          </button>`;
+      }
+    }
+
+    function cxSelectSvc(i) {
+      _cxSvc = i;
+      cxRenderStep();
+    }
+
+    function cxSelectSlot(t, el) {
+      _cxSlot = t;
+      document.querySelectorAll('.cx-slot').forEach(s => s.classList.remove('selected'));
+      el.classList.add('selected');
+      document.querySelector('#cxBody .cx-btn').removeAttribute('disabled');
+    }
+
+    function cxNextStep() {
+      _cxStep++;
+      cxRenderStep();
+    }
+
+    function cxConfirm() {
+      showToast('¡Reserva confirmada! Te esperamos 🎉');
+      closeCheckoutExpress();
+      if (_cxShop) openBooking(_cxShop);
+    }
+
     // ── Init ──
+    // ── Map Zone Search ──
+    function initMapZoneSearch() {
+      if (!map) return setTimeout(initMapZoneSearch, 500);
+      let moveTimer;
+      const btn = document.getElementById('searchZoneBtn');
+      map.on('moveend zoomend', () => {
+        clearTimeout(moveTimer);
+        moveTimer = setTimeout(() => { if (btn) btn.style.display = 'block'; }, 400);
+      });
+    }
+
+    function searchInMapZone() {
+      const btn = document.getElementById('searchZoneBtn');
+      if (btn) btn.style.display = 'none';
+      if (!map) return;
+      const bounds = map.getBounds();
+      filteredShops = allShops.filter(s => {
+        if (!s.lat || !s.lng) return false;
+        return bounds.contains([s.lat, s.lng]);
+      });
+      applySortTo(filteredShops);
+      renderShops(true);
+      showToast(`${filteredShops.length} barbería${filteredShops.length !== 1 ? 's' : ''} en esta zona`);
+    }
+
+    // ── Map Bidirectional Sync ──
+    function highlightMarkerForShop(id) {
+      if (!_clusterGroup) return;
+      _clusterGroup.eachLayer(m => {
+        const el = m.getElement?.();
+        if (!el) return;
+        if (m._shopId === id) {
+          el.style.transform = 'scale(1.3)';
+          el.style.zIndex = '1000';
+          el.style.filter = 'drop-shadow(0 0 10px rgba(232,146,42,.8))';
+        }
+      });
+    }
+    function clearMarkerHighlight() {
+      if (!_clusterGroup) return;
+      _clusterGroup.eachLayer(m => {
+        const el = m.getElement?.();
+        if (el) { el.style.transform = ''; el.style.zIndex = ''; el.style.filter = ''; }
+      });
+    }
+
+    // ── Map Controls ──
+    function centerOnUser() {
+      if (userCoords) {
+        map.flyTo([userCoords.lat, userCoords.lng], 14, { duration: 1 });
+        document.getElementById('locBtn')?.classList.add('on');
+        setTimeout(() => document.getElementById('locBtn')?.classList.remove('on'), 1500);
+      } else {
+        showToast('Activa "Más cercanos" primero para obtener tu ubicación');
+      }
+    }
+    function resetMapView() {
+      if (allShops.filter(s => s.lat).length) {
+        const pts = allShops.filter(s => s.lat && s.lng).map(s => [s.lat, s.lng]);
+        map.flyToBounds(pts, { padding: [40, 40], duration: 1 });
+      } else {
+        map.flyTo([18.47, -69.93], 12, { duration: 1 });
+      }
+    }
+
+    // ── Improvement 1: Live booking counter ──
+    function initLiveCounter() {
+      const el = document.getElementById('liveCount');
+      if (!el) return;
+      const base = 8 + Math.floor(Math.random() * 12);
+      el.textContent = base;
+      setInterval(() => {
+        const delta = Math.floor(Math.random() * 5) - 2;
+        const current = parseInt(el.textContent) || base;
+        el.textContent = Math.max(3, Math.min(40, current + delta));
+      }, 4000);
+    }
+
+    // ── Improvement 5: Command Palette ──
+    let _cmdOpen = false, _cmdFocusIdx = -1;
+
+    function openCmd() {
+      if (_cmdOpen) return;
+      _cmdOpen = true;
+      document.getElementById('cmdPalette').style.display = 'block';
+      document.getElementById('cmdBackdrop').style.display = 'block';
+      document.body.style.overflow = 'hidden';
+      setTimeout(() => document.getElementById('cmdInput')?.focus(), 50);
+      cmdSearch('');
+    }
+
+    function closeCmd() {
+      if (!_cmdOpen) return;
+      _cmdOpen = false;
+      document.getElementById('cmdPalette').style.display = 'none';
+      document.getElementById('cmdBackdrop').style.display = 'none';
+      document.body.style.overflow = '';
+      _cmdFocusIdx = -1;
+    }
+
+    function cmdSearch(q) {
+      const res = document.getElementById('cmdResults');
+      if (!res) return;
+      q = (q || '').toLowerCase().trim();
+      const items = [];
+      if (!q) {
+        items.push({ label:'Ver todos los negocios', sub:'Limpiar filtros', icon:'✦', fn:`debouncedSearch();scrollToFeed()` });
+        items.push({ label:'Abrir filtros', sub:'Filtrar por rating, espera, precio', icon:'≡', fn:`openFilterPanel()` });
+        items.push({ label:'Vista mapa', sub:'Explorar en mapa interactivo', icon:'◎', fn:`document.getElementById('mapCol')?.classList.remove('collapsed');document.querySelector('#leafletMap')?.scrollIntoView({behavior:'smooth'})` });
+      }
+      const matches = (allShops || []).filter(s => {
+        if (!q) return true;
+        return [s.nombre, s.descripcion, s.ciudad, ...(s.servicios||[]).map(x=>x.nombre)].some(x => (x||'').toLowerCase().includes(q));
+      }).slice(0, 6);
+      let html = '';
+      if (!q) html += `<div class="cmd-section-label">Acciones rápidas</div>`;
+      items.forEach((a, i) => {
+        html += `<div class="cmd-item${_cmdFocusIdx===i?' focused':''}" onclick="${a.fn};closeCmd()">
+          <div class="cmd-item-icon">${a.icon}</div>
+          <div><div class="cmd-item-name">${a.label}</div><div class="cmd-item-sub">${a.sub}</div></div>
+          <span class="cmd-item-action">↵</span>
+        </div>`;
+      });
+      if (matches.length) {
+        html += `<div class="cmd-section-label">${q ? 'Resultados' : 'Barberías'}</div>`;
+        matches.forEach((s, i) => {
+          const idx = items.length + i;
+          const ini = (s.nombre||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+          html += `<div class="cmd-item${_cmdFocusIdx===idx?' focused':''}" onclick="closeCmd();setTimeout(()=>openDetail('${s.id}'),100)">
+            <div class="cmd-item-icon">${ini}</div>
+            <div>
+              <div class="cmd-item-name">${esc(s.nombre)}</div>
+              <div class="cmd-item-sub">${s.rating?`⭐${s.rating} · `:''} ${esc(s.ciudad||s.direccion||'')}</div>
+            </div>
+            <span class="cmd-item-action">↵</span>
+          </div>`;
+        });
+      }
+      if (!html) html = `<div style="padding:24px;text-align:center;color:var(--dim);font-size:.85rem">Sin resultados para "${q}"</div>`;
+      res.innerHTML = html;
+    }
+
+    function cmdKeyNav(e) {
+      const items = document.querySelectorAll('#cmdResults .cmd-item');
+      if (e.key === 'ArrowDown') { e.preventDefault(); _cmdFocusIdx = Math.min(_cmdFocusIdx + 1, items.length - 1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); _cmdFocusIdx = Math.max(_cmdFocusIdx - 1, 0); }
+      else if (e.key === 'Enter') { e.preventDefault(); items[_cmdFocusIdx]?.click(); return; }
+      else if (e.key === 'Escape') { closeCmd(); return; }
+      items.forEach((el, i) => el.classList.toggle('focused', i === _cmdFocusIdx));
+      items[_cmdFocusIdx]?.scrollIntoView({ block: 'nearest' });
+    }
+
+    document.addEventListener('keydown', e => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); _cmdOpen ? closeCmd() : openCmd(); }
+      if (e.key === 'Escape' && _cmdOpen) closeCmd();
+    });
+
+    // ── Improvement 7: Booking progress bar ──
+    function updateBookingProgress(step) {
+      document.querySelectorAll('.bp-step').forEach((el, i) => {
+        el.classList.toggle('bp-active', i === step);
+        el.classList.toggle('bp-done', i < step);
+      });
+      document.querySelectorAll('.bp-line').forEach((el, i) => {
+        el.style.background = i < step ? 'var(--green)' : 'var(--border)';
+      });
+    }
+
+    // ── Improvement 8: Confetti ──
+    function launchConfetti() {
+      const colors = ['#E8922A','#FFBA60','#7C5CFC','#A78BFA','#00D4A8','#ffffff'];
+      for (let i = 0; i < 80; i++) {
+        const el = document.createElement('div');
+        const size = 6 + Math.random() * 8;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        el.style.cssText = `
+          position:fixed;
+          top:${40 + Math.random() * 20}%;
+          left:${20 + Math.random() * 60}%;
+          width:${size}px;height:${size}px;
+          background:${color};
+          border-radius:${Math.random() > .5 ? '50%' : '2px'};
+          pointer-events:none;
+          z-index:99999;
+          opacity:1;
+          animation:confetti-fall ${1.2 + Math.random() * 1.5}s cubic-bezier(.25,.46,.45,.94) ${Math.random() * .4}s forwards;
+          --rx:${(Math.random()-0.5)*400}px;
+          --ry:${150 + Math.random() * 300}px;
+          --rot:${Math.random() * 720}deg;
+        `;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 3000);
+      }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       initMap();
       loadShops();
@@ -6014,6 +9607,17 @@
       initScrollReveal();
       initHeroCounters();
       initHeroParallax();
+      initScrollProgress();
+      initNavScroll();
+      initHeroScrollParallax();
+      init3DSectionReveal();
+      initCardTilt();
+      initTypewriter();
+      initStatsCounter();
+      initOnboarding();
+      initCustomCursor();
+      initMapZoneSearch();
+      initLiveCounter();
 
       // Attach haptic feedback to buttons
       document.querySelectorAll('button, .chip, .cat, .app-badge').forEach(el => {
@@ -6021,6 +9625,62 @@
       });
     });
   </script>
+
+  <div class="cx-backdrop" id="cxBackdrop" onclick="closeCheckoutExpress()"></div>
+  <div id="checkoutExpress">
+    <div class="cx-handle"></div>
+    <div class="cx-header">
+      <span class="cx-title" id="cxShopName">Reserva rápida</span>
+      <button class="cx-close" onclick="closeCheckoutExpress()">✕</button>
+    </div>
+    <div class="cx-steps">
+      <div class="cx-step active" id="cxStep0">1. Servicio</div>
+      <div class="cx-step" id="cxStep1">2. Horario</div>
+      <div class="cx-step" id="cxStep2">3. Confirmar</div>
+    </div>
+    <div class="cx-body" id="cxBody"></div>
+  </div>
+
+  <!-- Onboarding tooltip -->
+  <div id="onboardingTooltip">
+    <div class="onboard-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    </div>
+    <div class="onboard-title">¡Bienvenido a AuraOS!</div>
+    <div class="onboard-sub">Escribe tu barrio o ciudad en el buscador para encontrar barberías cerca de ti.</div>
+    <button class="onboard-btn" onclick="dismissOnboarding()">Entendido</button>
+  </div>
+
+  <!-- PWA Install Banner -->
+  <div id="pwaInstallBanner">
+    <div class="pwa-banner-text">
+      <div class="pwa-banner-title">Agregar a inicio</div>
+      <div class="pwa-banner-sub">Accede más rápido desde tu pantalla</div>
+    </div>
+    <button class="pwa-banner-btn" onclick="installPWA()">Instalar</button>
+    <button class="pwa-banner-close" onclick="document.getElementById('pwaInstallBanner').classList.remove('show')" aria-label="Cerrar">✕</button>
+  </div>
+
+  <div id="mapHoverTip" style="display:none;position:fixed;z-index:9000;background:rgba(12,13,26,.95);border:1px solid rgba(120,130,255,.2);border-radius:10px;padding:8px 12px;font-size:.78rem;color:#EEF0FF;pointer-events:none;backdrop-filter:blur(12px);box-shadow:0 8px 24px rgba(0,0,0,.5);white-space:nowrap"></div>
+
+  <!-- ── COMMAND PALETTE ── -->
+  <div id="cmdBackdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:19999;backdrop-filter:blur(8px)" onclick="closeCmd()"></div>
+  <div id="cmdPalette" style="display:none;position:fixed;top:15vh;left:50%;transform:translateX(-50%);width:min(640px,94vw);background:var(--bg2);border:1px solid var(--border);border-radius:20px;z-index:20000;box-shadow:0 32px 80px rgba(0,0,0,.8),0 0 0 1px rgba(232,146,42,.1);overflow:hidden">
+    <div style="display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--border)">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input id="cmdInput" type="text" placeholder="Buscar barberías, servicios, ciudades…" autocomplete="off"
+        style="flex:1;background:none;border:none;outline:none;font-size:1rem;color:var(--text);font-family:Manrope,sans-serif"
+        oninput="cmdSearch(this.value)" onkeydown="cmdKeyNav(event)">
+      <kbd style="font-size:.65rem;padding:3px 7px;border:1px solid var(--border);border-radius:5px;color:var(--muted);font-family:monospace">ESC</kbd>
+    </div>
+    <div id="cmdResults" style="max-height:360px;overflow-y:auto;padding:8px 0"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-top:1px solid var(--border);font-size:.68rem;color:var(--muted)">
+      <span>↑↓ navegar · Enter seleccionar · ESC cerrar</span>
+      <span>AuraOS</span>
+    </div>
+  </div>
+
 </body>
 
 </html>
+
