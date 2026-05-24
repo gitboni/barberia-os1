@@ -2173,15 +2173,18 @@ async function loadAnalytics() {
     const fechaDesde = new Date(); fechaDesde.setDate(fechaDesde.getDate()-30);
     const desde = fechaDesde.toISOString().split('T')[0];
 
+    const fechaRetencion = new Date(); fechaRetencion.setMonth(fechaRetencion.getMonth()-12);
+    const desdeRetencion = fechaRetencion.toISOString().split('T')[0];
     const [citas30, clientes30] = await Promise.all([
       sbGet('citas', `fecha=gte.${desde}&estado=neq.null&select=id,fecha,hora,barbero,servicio,estado,shop_id,nombre${shopQ}&order=fecha.asc&limit=2000`),
-      sbGet('citas', `fecha=gte.2026-01-01&select=nombre,shop_id${shopQ}&limit=5000`)
+      sbGet('citas', `fecha=gte.${desdeRetencion}&select=nombre,shop_id${shopQ}&limit=5000`)
     ]);
 
     _analyticsData = { citas: citas30, todosCitas: clientes30, desde };
     renderAnalytics(_analyticsData);
   } catch(e) {
     console.error('Analytics error:', e);
+    showToast('Error cargando analytics: ' + e.message, 'error');
     renderAnalyticsDemo();
   } finally {
     if(el) el.style.display = 'none';
@@ -4442,6 +4445,20 @@ async function loadLogs(){
   addLog('OK',`Supabase: ${SUPABASE_URL}`);
   addLog(usingDemo?'WARN':'OK',usingDemo?'Modo demo activo':'Supabase conectado y activo');
   addLog(usingDemo?'WARN':'OK',_accessToken?'Token JWT activo':'Sin token (demo mode)');
+  // Cargar logs reales de la BD
+  if(!usingDemo) {
+    try {
+      const dbLogs = await sbGet('logs_sistema', 'order=created_at.desc&limit=50');
+      if(dbLogs && dbLogs.length) {
+        addLog('INFO',`— ${dbLogs.length} logs de Edge Functions cargados —`);
+        dbLogs.reverse().forEach(l => {
+          const lvl = l.level === 'ERROR' ? 'ERROR' : l.level === 'WARN' ? 'WARN' : 'INFO';
+          const ctx = l.shop_id ? l.shop_id.slice(0,8) : l.chat_id ? l.chat_id.slice(0,8) : '';
+          addLog(lvl, `[${l.origin||'edge'}] ${ctx ? ctx+' — ' : ''}${l.message}`);
+        });
+      }
+    } catch(e) { addLog('WARN','No se pudieron cargar logs de BD: '+e.message); }
+  }
   renderLogs();
 }
 document.getElementById('logLevelFilter').addEventListener('change',renderLogs);
