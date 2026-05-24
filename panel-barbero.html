@@ -609,6 +609,29 @@ input:checked+.slider:before{transform:translateX(22px)}
     <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:1.2rem;">⭐</span><div><div style="font-weight:800;font-size:.9rem;">Clientes Preferenciales</div><div style="font-size:.72rem;color:var(--dim);">Gestionar citas fijas semanales</div></div></div>
     <span style="color:var(--accent);">→</span>
   </div>
+  <div class="card" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;" id="waToggleRow" onclick="toggleWaForm()">
+    <span style="font-weight:800;font-size:.9rem;">💬 Mensaje WhatsApp</span><span style="color:var(--accent);" id="waToggleIcon">▼</span>
+  </div>
+  <div id="waForm" style="display:none;margin-bottom:10px;">
+    <div class="card">
+      <div style="font-size:.72rem;color:var(--dim);margin-bottom:6px;">Configura el mensaje que se enviará al cliente. Usa variables:</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;">
+        <span style="font-size:.68rem;font-weight:700;color:var(--accent);background:var(--accent-s);padding:3px 8px;border-radius:4px;">{nombre}</span>
+        <span style="font-size:.68rem;font-weight:700;color:var(--accent);background:var(--accent-s);padding:3px 8px;border-radius:4px;">{servicio}</span>
+        <span style="font-size:.68rem;font-weight:700;color:var(--accent);background:var(--accent-s);padding:3px 8px;border-radius:4px;">{hora}</span>
+        <span style="font-size:.68rem;font-weight:700;color:var(--accent);background:var(--accent-s);padding:3px 8px;border-radius:4px;">{fecha}</span>
+        <span style="font-size:.68rem;font-weight:700;color:var(--accent);background:var(--accent-s);padding:3px 8px;border-radius:4px;">{barbero}</span>
+        <span style="font-size:.68rem;font-weight:700;color:var(--accent);background:var(--accent-s);padding:3px 8px;border-radius:4px;">{negocio}</span>
+        <span style="font-size:.68rem;font-weight:700;color:var(--green);background:var(--green-s);padding:3px 8px;border-radius:4px;">{bot}</span>
+      </div>
+      <textarea id="waTemplateInput" class="input" rows="4" placeholder='Ej: Hola {nombre}, para confirmar tu cita de {servicio} a las {hora} escribe "mi cita" al {bot}. — {barbero}' style="resize:vertical;min-height:80px;font-size:.82rem;"></textarea>
+      <div id="waPreview" style="display:none;background:rgba(255,255,255,.03);border:1px solid var(--accent-b);border-radius:10px;padding:10px;margin-top:8px;">
+        <div style="font-size:.68rem;color:var(--accent);font-weight:700;margin-bottom:3px;">Vista previa:</div>
+        <div id="waPreviewText" style="font-size:.78rem;color:var(--text);line-height:1.5;"></div>
+      </div>
+      <button class="btn-gold" onclick="guardarWaTemplate()" style="margin-top:10px;">Guardar plantilla</button>
+    </div>
+  </div>
   <div class="card" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;" id="passToggleRow" onclick="togglePassForm()">
     <span style="font-weight:800;font-size:.9rem;">🔒 Cambiar contraseña</span><span style="color:var(--accent);" id="passToggleIcon">▼</span>
   </div>
@@ -1140,7 +1163,7 @@ function renderCola(lista){
           ${i>0?`<div class="action-btn" onclick="moverCola(${c.id},'up')">↑</div>`:''}
           ${i<lista.length-1?`<div class="action-btn" onclick="moverCola(${c.id},'down')">↓</div>`:''}
           <div class="action-btn btn-cal" onclick="openModalReagendar(${JSON.stringify(c).replace(/"/g,'&quot;')})">📅</div>
-          ${c.telefono&&c.telefono!=='walk-in'?`<div class="action-btn btn-wa" onclick="abrirWhatsApp('${c.telefono}')">💬</div>`:''}
+          ${c.telefono&&c.telefono!=='walk-in'?`<div class="action-btn btn-wa" onclick="abrirWhatsApp(${JSON.stringify(c).replace(/"/g,'&quot;')})">💬</div>`:''}
           <div class="action-btn btn-check" onclick="pedirNota(${JSON.stringify(c).replace(/"/g,'&quot;')})">✓</div>
           <div class="action-btn btn-x" onclick="cancelarCita(${c.id},'${DOMPurify.sanitize(c.nombre)}')">✕</div>
         </div>
@@ -1240,7 +1263,24 @@ async function cancelarCita(id,nombre){
 }
 function cancelarProximo(){const p=citas.filter(c=>c.estado==='Confirmada')[0];if(p)cancelarCita(p.id,p.nombre);}
 function noShowProximo(){cancelarProximo();}
-function abrirWhatsApp(tel){const t=tel.replace(/\D/g,'');window.open(`whatsapp://send?phone=${t.startsWith('1')?t:'1'+t}`,'_blank');}
+function abrirWhatsApp(cita){
+  const tel=typeof cita==='string'?cita:cita.telefono;
+  const t=tel.replace(/\D/g,'');
+  const phone=t.startsWith('1')?t:'1'+t;
+  let msg='';
+  if(barbero&&barbero.mensaje_whatsapp&&typeof cita==='object'){
+    msg=barbero.mensaje_whatsapp
+      .replace(/\{nombre\}/g,cita.nombre||'')
+      .replace(/\{servicio\}/g,cita.servicio||'')
+      .replace(/\{hora\}/g,fmt12(cita.hora))
+      .replace(/\{barbero\}/g,barbero.nombre||'')
+      .replace(/\{negocio\}/g,shop?.nombre||'')
+      .replace(/\{fecha\}/g,cita.fecha===hoyStr()?'hoy':cita.fecha||'')
+      .replace(/\{bot\}/g,shop?.whatsapp||'');
+  }
+  const textParam=msg?`?text=${encodeURIComponent(msg)}`:'';
+  window.open(`https://wa.me/${phone}${textParam}`,'_blank');
+}
 async function moverCola(id,dir){
   const pendientes=citas.filter(c=>c.estado==='Confirmada');const idx=pendientes.findIndex(c=>c.id===id);
   const target=dir==='up'?pendientes[idx-1]:pendientes[idx+1];if(!target)return;
@@ -1570,6 +1610,27 @@ async function renderPerfil(){
   const ingMes=(mesRes.data||[]).reduce((a,c)=>a+(svcMap[(c.servicio||'').toLowerCase().trim()]||0),0);
   document.getElementById('perfilKPIs').innerHTML=`<div class="kpi-box"><span class="kpi-val">${all.filter(c=>c.fecha===hoy).length}</span><span class="kpi-lbl">Hoy</span></div><div class="kpi-box"><span class="kpi-val" style="color:var(--green);">${all.filter(c=>c.estado==='Completada').length}</span><span class="kpi-lbl">Completadas</span></div><div class="kpi-box"><span class="kpi-val" style="color:var(--red);">${all.filter(c=>c.estado==='Cancelada').length}</span><span class="kpi-lbl">Canceladas</span></div>`;
   if(ingMes>0){document.getElementById('perfilIngCard').style.display='flex';document.getElementById('perfilIngMes').textContent=`$${ingMes.toLocaleString()}`;}
+}
+// ── WhatsApp template ──
+function toggleWaForm(){
+  const f=document.getElementById('waForm');const icon=document.getElementById('waToggleIcon');
+  const s=f.style.display!=='none';f.style.display=s?'none':'block';icon.textContent=s?'▼':'▲';
+  if(!s){document.getElementById('waTemplateInput').value=barbero.mensaje_whatsapp||'';updateWaPreview();}
+}
+function updateWaPreview(){
+  const val=document.getElementById('waTemplateInput').value.trim();
+  const prev=document.getElementById('waPreview');const prevTxt=document.getElementById('waPreviewText');
+  if(!val){prev.style.display='none';return;}
+  prev.style.display='block';
+  prevTxt.textContent=val.replace(/\{nombre\}/g,'Juan').replace(/\{servicio\}/g,'Corte').replace(/\{hora\}/g,'10:30 AM').replace(/\{barbero\}/g,barbero?.nombre||'Barbero').replace(/\{negocio\}/g,shop?.nombre||'').replace(/\{fecha\}/g,'hoy').replace(/\{bot\}/g,shop?.whatsapp||'(sin bot)');
+}
+document.addEventListener('input',e=>{if(e.target.id==='waTemplateInput')updateWaPreview();});
+async function guardarWaTemplate(){
+  const val=document.getElementById('waTemplateInput').value.trim();
+  const{error}=await sb.from('barberos').update({mensaje_whatsapp:val||null}).eq('id',barbero.id);
+  if(error){toast('Error al guardar','error');return;}
+  barbero.mensaje_whatsapp=val||null;
+  toast('✅ Plantilla WhatsApp guardada','success');
 }
 function togglePassForm(){const f=document.getElementById('passForm');const icon=document.getElementById('passToggleIcon');const s=f.style.display!=='none';f.style.display=s?'none':'block';icon.textContent=s?'▼':'▲';}
 async function guardarPass(){
