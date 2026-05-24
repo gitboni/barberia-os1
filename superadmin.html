@@ -460,6 +460,7 @@ tr:hover td{background:rgba(255,255,255,0.016);}
   <div class="nav-item" data-page="usuarios"><i data-lucide="users" class="icon"></i><span class="sidebar-text">Usuarios</span></div>
   <div class="nav-item" data-page="barberos"><i data-lucide="user-circle" class="icon"></i><span class="sidebar-text">Barberos</span></div>
   <div class="nav-item" data-page="clientes-app"><i data-lucide="smartphone" class="icon"></i><span class="sidebar-text">Clientes App</span></div>
+  <div class="nav-item" data-page="clientes-wa"><i data-lucide="message-circle" class="icon"></i><span class="sidebar-text">Clientes WhatsApp</span></div>
   <div class="nav-section sidebar-text">Finanzas</div>
   <div class="nav-item" data-page="pagos"><i data-lucide="dollar-sign" class="icon"></i><span class="sidebar-text">Pagos</span></div>
   <div class="nav-item" data-page="facturacion"><i data-lucide="file-text" class="icon"></i><span class="sidebar-text">Facturación</span></div>
@@ -958,9 +959,62 @@ tr:hover td{background:rgba(255,255,255,0.016);}
             <th>Barbería</th>
             <th>Registrado</th>
             <th>Estado</th>
+            <th>Acciones</th>
           </tr></thead>
           <tbody id="caTable"></tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- CLIENTES WHATSAPP -->
+    <div class="page" id="page-clientes-wa">
+      <div class="kpi-grid" style="margin-bottom:16px;">
+        <div class="kpi-card" style="--accent-color:var(--green)">
+          <div class="kpi-icon">💬</div>
+          <div class="kpi-label">Total clientes WA</div>
+          <div class="kpi-value" id="cw-total">—</div>
+          <div class="kpi-sub">Registrados por bot</div>
+        </div>
+        <div class="kpi-card" style="--accent-color:var(--gold)">
+          <div class="kpi-icon">📊</div>
+          <div class="kpi-label">Barberías con clientes</div>
+          <div class="kpi-value" id="cw-shops">—</div>
+          <div class="kpi-sub">Shops únicos</div>
+        </div>
+      </div>
+      <div class="section-header">
+        <div class="section-title">Clientes Registrados por WhatsApp</div>
+        <div class="btn-group">
+          <input class="filter-input" placeholder="Buscar nombre o teléfono..." id="cwSearch" style="width:220px;">
+          <select class="filter-select" id="cwShopFilter"><option value="">Todas las barberías</option></select>
+          <button class="btn btn-ghost" onclick="loadClientesWA()">↻</button>
+          <button class="btn btn-ghost" onclick="exportClientesWACSV()">⬇ CSV</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>#</th>
+            <th>Nombre</th>
+            <th>Teléfono</th>
+            <th>Barbería</th>
+            <th>Total Citas</th>
+            <th>Acciones</th>
+          </tr></thead>
+          <tbody id="cwTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- MODAL EDITAR CLIENTE -->
+    <div class="modal-overlay" id="modalEditCliente">
+      <div class="modal">
+        <div class="modal-title">Editar Cliente</div>
+        <input type="hidden" id="editClienteId">
+        <input type="hidden" id="editClienteTabla">
+        <div class="form-group"><label class="form-label">Nombre</label><input class="form-input" id="editClienteNombre" placeholder="Nombre del cliente"></div>
+        <div class="form-group"><label class="form-label">Teléfono</label><input class="form-input" id="editClienteTelefono" disabled style="opacity:0.5"></div>
+        <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modalEditCliente')">CANCELAR</button><button class="btn btn-primary" onclick="saveEditCliente()">GUARDAR</button></div>
       </div>
     </div>
 
@@ -1756,6 +1810,7 @@ const PAGE_TITLES = {
   landing:'Landing Page Editor', dashboard:'Dashboard Global', solicitudes:'Solicitudes de Registro', shops:'Gestión de Barberías',
   usuarios:'Usuarios & Accesos', barberos:'Gestión de Barberos', pagos:'Pagos & Suscripciones',
   'clientes-app':'Clientes en la App',
+  'clientes-wa':'Clientes WhatsApp',
   facturacion:'Facturación', citas:'Citas Global', simulador:'Simulador de Chat WhatsApp', whatsapp:'WhatsApp',
   leads:'Leads del Landing', reportes:'Reportes por Barbería', seguridad:'Centro de Seguridad', logs:'Logs del Sistema', config:'Configuración Global',
   estado:'Estado del Sistema', broadcast:'Broadcast WhatsApp', grupos:'Grupos Multi-Sucursal',
@@ -1780,6 +1835,7 @@ function showPage(id, el) {
   const loaders = {
     shops:loadShops, usuarios:loadUsers, barberos:loadBarberos,
     'clientes-app':loadClientesApp,
+    'clientes-wa':loadClientesWA,
     pagos:loadPayments, facturacion:loadFacturacion, whatsapp:loadWebhooks,
     logs:loadLogs, solicitudes:loadSolicitudes, seguridad:loadSeguridad,
     leads:loadLeads, reportes:loadReportesPage,
@@ -2940,7 +2996,7 @@ let _clientesApp = [];
 async function loadClientesApp() {
   const tbody = document.getElementById('caTable');
   if(!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:22px;">Cargando...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="7" style="color:var(--muted);text-align:center;padding:22px;">Cargando...</td></tr>';
 
   const shops = usingDemo ? _shops : await sbGet('shops','select=id,nombre').catch(()=>_shops);
 
@@ -2996,8 +3052,9 @@ async function loadClientesApp() {
       <td style="color:var(--muted)">${c.barberia}</td>
       <td style="color:var(--muted)">${c.created_at?new Date(c.created_at).toLocaleDateString('es-DO'):'—'}</td>
       <td class="${c.activo?'status-active':'status-inactive'}">${c.activo?'● Activo':'○ Inactivo'}</td>
+      <td><button class="btn btn-ghost" style="padding:3px 8px;font-size:0.5rem;" onclick="openEditCliente('${c.id}','${(c.nombre||'').replace(/'/g,"\\'")}','${c.telefono||''}','usuarios_app')">✏️ Editar</button></td>
     </tr>`).join('') ||
-    '<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:22px;">Sin clientes registrados</td></tr>';
+    '<tr><td colspan="7" style="color:var(--muted);text-align:center;padding:22px;">Sin clientes registrados</td></tr>';
 }
 function exportClientesAppCSV(){
   const rows=[['#','Nombre','Teléfono','Barbería','Registrado','Estado']];
@@ -3008,6 +3065,91 @@ function exportClientesAppCSV(){
 }
 document.getElementById('caSearch')?.addEventListener('input', loadClientesApp);
 document.getElementById('caShopFilter')?.addEventListener('change', loadClientesApp);
+
+// ── CLIENTES WHATSAPP (tabla "clientes") ──
+let _clientesWA = [];
+async function loadClientesWA() {
+  const tbody = document.getElementById('cwTable');
+  if(!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:22px;">Cargando...</td></tr>';
+
+  const shops = usingDemo ? _shops : await sbGet('shops','select=id,nombre').catch(()=>_shops);
+  const shopMap = Object.fromEntries(shops.map(s=>[s.id,s.nombre]));
+
+  let clientes = [];
+  if(!usingDemo) {
+    clientes = await sbGet('clientes','select=id,nombre,telefono,shop_id,total_citas&order=nombre.asc').catch(()=>[]);
+    clientes = clientes.map(c=>({...c, barberia: shopMap[c.shop_id]||'—'}));
+  } else {
+    clientes = [
+      {id:1,nombre:'Demo Cliente',telefono:'18091234567',shop_id:'1',total_citas:5,barberia:'King Cuts'},
+    ];
+  }
+  _clientesWA = clientes;
+
+  // KPIs
+  document.getElementById('cw-total').textContent = clientes.length;
+  const shopsUnicos = new Set(clientes.map(c=>c.shop_id)).size;
+  document.getElementById('cw-shops').textContent = shopsUnicos;
+
+  // Poblar filtro de barbería
+  const shopFilter = document.getElementById('cwShopFilter');
+  if(shopFilter && shopFilter.options.length <= 1) {
+    shops.forEach(s=>{ const o=document.createElement('option'); o.value=s.nombre; o.textContent=s.nombre; shopFilter.appendChild(o); });
+  }
+
+  // Filtros
+  const q = (document.getElementById('cwSearch')?.value||'').toLowerCase();
+  const sf = document.getElementById('cwShopFilter')?.value||'';
+  let filtrados = clientes;
+  if(q) filtrados = filtrados.filter(c=>(c.nombre||'').toLowerCase().includes(q)||(c.telefono||'').includes(q));
+  if(sf) filtrados = filtrados.filter(c=>c.barberia===sf);
+
+  tbody.innerHTML = filtrados.map((c,i)=>`
+    <tr>
+      <td style="color:var(--muted)">${String(i+1).padStart(2,'0')}</td>
+      <td style="color:var(--text);font-weight:600">${c.nombre||'—'}</td>
+      <td style="color:var(--muted)">${c.telefono||'—'}</td>
+      <td style="color:var(--muted)">${c.barberia}</td>
+      <td style="color:var(--muted)">${c.total_citas??'—'}</td>
+      <td><button class="btn btn-ghost" style="padding:3px 8px;font-size:0.5rem;" onclick="openEditCliente('${c.id}','${(c.nombre||'').replace(/'/g,"\\'")}','${c.telefono||''}','clientes')">✏️ Editar</button></td>
+    </tr>`).join('') ||
+    '<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:22px;">Sin clientes registrados</td></tr>';
+}
+function exportClientesWACSV(){
+  const rows=[['#','Nombre','Teléfono','Barbería','Total Citas']];
+  _clientesWA.forEach((c,i)=>rows.push([i+1,c.nombre||'',c.telefono||'',c.barberia,c.total_citas??0]));
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  downloadCSV(csv,'clientes_wa_'+new Date().toISOString().split('T')[0]+'.csv');
+  showToast('CSV exportado ✓','success');
+}
+document.getElementById('cwSearch')?.addEventListener('input', loadClientesWA);
+document.getElementById('cwShopFilter')?.addEventListener('change', loadClientesWA);
+
+// ── EDITAR CLIENTE (funciona para ambas tablas) ──
+function openEditCliente(id, nombre, telefono, tabla) {
+  document.getElementById('editClienteId').value = id;
+  document.getElementById('editClienteTabla').value = tabla;
+  document.getElementById('editClienteNombre').value = nombre;
+  document.getElementById('editClienteTelefono').value = telefono;
+  openModal('modalEditCliente');
+  setTimeout(()=>document.getElementById('editClienteNombre').focus(), 200);
+}
+async function saveEditCliente() {
+  const id = document.getElementById('editClienteId').value;
+  const tabla = document.getElementById('editClienteTabla').value;
+  const nombre = document.getElementById('editClienteNombre').value.trim();
+  if(!nombre) { showToast('El nombre no puede estar vacío','error'); return; }
+  try {
+    await sbPatch(tabla, `id=eq.${id}`, { nombre });
+    showToast('Cliente actualizado ✓','success');
+    closeModal('modalEditCliente');
+    if(tabla === 'clientes') loadClientesWA();
+    else loadClientesApp();
+  } catch(e) {
+    showToast('Error: '+e.message,'error');
+  }
+}
 
 document.getElementById('newBarberoBtn').addEventListener('click',()=>{ loadUsers(); openModal('modalNewBarbero'); });
 document.getElementById('refreshBarberosBtn').addEventListener('click',loadBarberos);
