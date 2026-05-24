@@ -998,7 +998,9 @@ tr:hover td{background:rgba(255,255,255,0.016);}
             <th>Nombre</th>
             <th>Teléfono</th>
             <th>Barbería</th>
-            <th>Total Citas</th>
+            <th>Servicio Fav.</th>
+            <th>Barbero Fav.</th>
+            <th>Última Visita</th>
             <th>Acciones</th>
           </tr></thead>
           <tbody id="cwTable"></tbody>
@@ -3071,18 +3073,18 @@ let _clientesWA = [];
 async function loadClientesWA() {
   const tbody = document.getElementById('cwTable');
   if(!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:22px;">Cargando...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="8" style="color:var(--muted);text-align:center;padding:22px;">Cargando...</td></tr>';
 
   const shops = usingDemo ? _shops : await sbGet('shops','select=id,nombre').catch(()=>_shops);
   const shopMap = Object.fromEntries(shops.map(s=>[s.id,s.nombre]));
 
   let clientes = [];
   if(!usingDemo) {
-    clientes = await sbGet('clientes','select=id,nombre,telefono,shop_id,total_citas&order=nombre.asc').catch(()=>[]);
+    clientes = await sbGet('clientes','select=id,nombre,telefono,shop_id,servicio_favorito,barbero_favorito,ultima_visita&order=nombre.asc').catch(()=>[]);
     clientes = clientes.map(c=>({...c, barberia: shopMap[c.shop_id]||'—'}));
   } else {
     clientes = [
-      {id:1,nombre:'Demo Cliente',telefono:'18091234567',shop_id:'1',total_citas:5,barberia:'King Cuts'},
+      {id:1,nombre:'Demo Cliente',telefono:'18091234567',shop_id:'1',servicio_favorito:'Corte',barbero_favorito:'Juan',ultima_visita:'2025-05-20',barberia:'King Cuts'},
     ];
   }
   _clientesWA = clientes;
@@ -3111,14 +3113,16 @@ async function loadClientesWA() {
       <td style="color:var(--text);font-weight:600">${c.nombre||'—'}</td>
       <td style="color:var(--muted)">${c.telefono||'—'}</td>
       <td style="color:var(--muted)">${c.barberia}</td>
-      <td style="color:var(--muted)">${c.total_citas??'—'}</td>
+      <td style="color:var(--muted)">${c.servicio_favorito||'—'}</td>
+      <td style="color:var(--muted)">${c.barbero_favorito||'—'}</td>
+      <td style="color:var(--muted)">${c.ultima_visita||'—'}</td>
       <td><button class="btn btn-ghost" style="padding:3px 8px;font-size:0.5rem;" onclick="openEditCliente('${c.id}','${(c.nombre||'').replace(/'/g,"\\'")}','${c.telefono||''}','clientes')">✏️ Editar</button></td>
     </tr>`).join('') ||
-    '<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:22px;">Sin clientes registrados</td></tr>';
+    '<tr><td colspan="8" style="color:var(--muted);text-align:center;padding:22px;">Sin clientes registrados</td></tr>';
 }
 function exportClientesWACSV(){
-  const rows=[['#','Nombre','Teléfono','Barbería','Total Citas']];
-  _clientesWA.forEach((c,i)=>rows.push([i+1,c.nombre||'',c.telefono||'',c.barberia,c.total_citas??0]));
+  const rows=[['#','Nombre','Teléfono','Barbería','Servicio Fav.','Barbero Fav.','Última Visita']];
+  _clientesWA.forEach((c,i)=>rows.push([i+1,c.nombre||'',c.telefono||'',c.barberia,c.servicio_favorito||'',c.barbero_favorito||'',c.ultima_visita||'']));
   const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
   downloadCSV(csv,'clientes_wa_'+new Date().toISOString().split('T')[0]+'.csv');
   showToast('CSV exportado ✓','success');
