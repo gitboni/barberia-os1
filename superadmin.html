@@ -3901,7 +3901,7 @@ async function loadReportesPage() {
 
 async function sbFetch(table, query='') {
   const r = await fetch(`https://mmokunpuslcfphalrwot.supabase.co/rest/v1/${table}?${query}`, {
-    headers: { 'apikey': SB_KEY_R, 'Authorization': `Bearer ${SB_KEY_R}` }
+    headers: { 'apikey': SB_KEY_R, 'Authorization': `Bearer ${_accessToken||SB_KEY_R}` }
   });
   if (!r.ok) throw new Error(`${table} ${r.status}`);
   return r.json();
