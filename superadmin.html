@@ -471,6 +471,7 @@ tr:hover td{background:rgba(255,255,255,0.016);}
   <div class="nav-item" data-page="leads"><i data-lucide="list-checks" class="icon"></i><span class="sidebar-text">Leads</span></div>
   <div class="nav-item" data-page="landing"><i data-lucide="globe" class="icon"></i><span class="sidebar-text">Landing Page</span></div>
   <div class="nav-item" data-page="analytics"><i data-lucide="line-chart" class="icon"></i><span class="sidebar-text">Analytics</span></div>
+  <div class="nav-item" data-page="bot-salud"><i data-lucide="heart-pulse" class="icon"></i><span class="sidebar-text">Salud del Bot</span></div>
   <div class="nav-item" data-page="reportes"><i data-lucide="bar-chart-3" class="icon"></i><span class="sidebar-text">Reportes</span></div>
   <div class="nav-item" data-page="seguridad"><i data-lucide="lock" class="icon"></i><span class="sidebar-text">Seguridad</span></div>
   <div class="nav-item" data-page="logs"><i data-lucide="terminal" class="icon"></i><span class="sidebar-text">Logs UI</span></div>
@@ -1160,6 +1161,71 @@ tr:hover td{background:rgba(255,255,255,0.016);}
       </div>
     </div>
 
+    <!-- ══ SALUD DEL BOT ══════════════════════════════════════════════ -->
+    <div class="page" id="page-bot-salud">
+      <div class="section-header" style="margin-bottom:16px;">
+        <div class="section-title">🤖 Salud del Bot — Métricas Diarias</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <select id="botSaludShopFilter" class="filter-select" style="font-size:0.58rem;" onchange="loadBotSalud()">
+            <option value="">Todas las barberías</option>
+          </select>
+          <select id="botSaludDays" class="filter-select" style="font-size:0.58rem;" onchange="loadBotSalud()">
+            <option value="7">Últimos 7 días</option>
+            <option value="14">Últimos 14 días</option>
+            <option value="30" selected>Últimos 30 días</option>
+          </select>
+          <button class="btn btn-ghost" onclick="loadBotSalud()">↻ Actualizar</button>
+        </div>
+      </div>
+
+      <!-- KPIs salud -->
+      <div class="kpi-grid" style="margin-bottom:16px;" id="botSaludKpis">
+        <div class="kpi-card" style="--accent-color:var(--gold)"><div class="kpi-icon">💬</div><div class="kpi-label">Mensajes</div><div class="kpi-value" id="bs-mensajes">—</div><div class="kpi-sub">Total período</div></div>
+        <div class="kpi-card" style="--accent-color:var(--green)"><div class="kpi-icon">📅</div><div class="kpi-label">Citas creadas</div><div class="kpi-value" id="bs-citas">—</div><div class="kpi-sub">Total período</div></div>
+        <div class="kpi-card" style="--accent-color:var(--blue)"><div class="kpi-icon">👤</div><div class="kpi-label">Clientes nuevos</div><div class="kpi-value" id="bs-clientes">—</div><div class="kpi-sub">Total período</div></div>
+        <div class="kpi-card" style="--accent-color:var(--red)"><div class="kpi-icon">⚠️</div><div class="kpi-label">Conv. incompletas</div><div class="kpi-value" id="bs-incompletas">—</div><div class="kpi-sub">Flujos no terminados</div></div>
+      </div>
+
+      <!-- Gráfica de barras -->
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px;">
+        <div class="chart-card">
+          <div class="chart-title">📊 Citas por día</div>
+          <div id="bs-bar-chart" style="display:flex;align-items:flex-end;gap:3px;height:110px;padding:0 4px;"></div>
+          <div id="bs-bar-labels" style="display:flex;gap:3px;margin-top:3px;padding:0 4px;"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">🔴 Alertas</div>
+          <div id="bs-alertas" style="display:flex;flex-direction:column;gap:6px;max-height:140px;overflow-y:auto;">
+            <div style="color:var(--muted);font-size:0.6rem;">Sin alertas</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla detalle -->
+      <div class="chart-card">
+        <div class="chart-title">📋 Detalle diario</div>
+        <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;font-size:0.62rem;font-family:'DM Mono',monospace;">
+            <thead>
+              <tr style="border-bottom:1px solid var(--border);color:var(--muted);text-align:left;">
+                <th style="padding:8px 6px;">Fecha</th>
+                <th style="padding:8px 6px;">💬 Mensajes</th>
+                <th style="padding:8px 6px;">📅 Creadas</th>
+                <th style="padding:8px 6px;">✅ Completadas</th>
+                <th style="padding:8px 6px;">❌ Canceladas</th>
+                <th style="padding:8px 6px;">👤 Nuevos</th>
+                <th style="padding:8px 6px;">⚠️ Incompletas</th>
+                <th style="padding:8px 6px;">Estado</th>
+              </tr>
+            </thead>
+            <tbody id="bs-tabla-body">
+              <tr><td colspan="8" style="padding:20px;text-align:center;color:var(--muted);">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <div class="page" id="page-seguridad">
       <!-- Mejora #6: Logs de acceso persistidos -->
       <div style="margin-bottom:20px;">
@@ -1816,7 +1882,8 @@ const PAGE_TITLES = {
   facturacion:'Facturación', citas:'Citas Global', simulador:'Simulador de Chat WhatsApp', whatsapp:'WhatsApp',
   leads:'Leads del Landing', reportes:'Reportes por Barbería', seguridad:'Centro de Seguridad', logs:'Logs del Sistema', config:'Configuración Global',
   estado:'Estado del Sistema', broadcast:'Broadcast WhatsApp', grupos:'Grupos Multi-Sucursal',
-  auditoria:'Auditoría IA — Uso del Bot'
+  auditoria:'Auditoría IA — Uso del Bot',
+  'bot-salud':'Salud del Bot — Métricas'
 };
 document.querySelectorAll('.nav-item[data-page]').forEach(el => {
   el.addEventListener('click', () => showPage(el.dataset.page, el));
@@ -1846,7 +1913,8 @@ function showPage(id, el) {
     broadcast:loadBroadcast,
     grupos:loadGrupos,
     auditoria:loadAuditoria,
-    'system-logs':loadSystemLogs
+    'system-logs':loadSystemLogs,
+    'bot-salud':() => { initBotSaludFilter(); loadBotSalud(); }
   };
   if(loaders[id]) loaders[id]();
   if(window.lucide) setTimeout(lucide.createIcons, 100);
@@ -2345,6 +2413,105 @@ function renderAnalyticsDemo() {
 function setText(id, val) {
   const el = document.getElementById(id);
   if(el) el.textContent = val;
+}
+
+/* ══ SALUD DEL BOT ══════════════════════════════════════════════════ */
+async function loadBotSalud() {
+  try {
+    const shopId = document.getElementById('botSaludShopFilter').value;
+    const days = document.getElementById('botSaludDays').value || 30;
+    let query = `select=fecha,shop_id,mensajes_procesados,citas_creadas,citas_completadas,citas_canceladas,clientes_nuevos,conv_incompletas&order=fecha.desc&limit=${days * 6}`;
+    if (shopId) query += `&shop_id=eq.${shopId}`;
+
+    const raw = await sbGet('bot_metricas', query);
+
+    // Agrupar por fecha (sumar todos los shops)
+    const byDate = {};
+    raw.forEach(r => {
+      if (!byDate[r.fecha]) byDate[r.fecha] = { fecha: r.fecha, mensajes: 0, creadas: 0, completadas: 0, canceladas: 0, nuevos: 0, incompletas: 0 };
+      byDate[r.fecha].mensajes += r.mensajes_procesados || 0;
+      byDate[r.fecha].creadas += r.citas_creadas || 0;
+      byDate[r.fecha].completadas += r.citas_completadas || 0;
+      byDate[r.fecha].canceladas += r.citas_canceladas || 0;
+      byDate[r.fecha].nuevos += r.clientes_nuevos || 0;
+      byDate[r.fecha].incompletas += r.conv_incompletas || 0;
+    });
+
+    const data = Object.values(byDate).sort((a,b) => a.fecha.localeCompare(b.fecha)).slice(-days);
+
+    // KPIs
+    const totMsgs = data.reduce((s,d) => s + d.mensajes, 0);
+    const totCitas = data.reduce((s,d) => s + d.creadas, 0);
+    const totNuevos = data.reduce((s,d) => s + d.nuevos, 0);
+    const totIncomp = data.reduce((s,d) => s + d.incompletas, 0);
+    setText('bs-mensajes', totMsgs.toLocaleString());
+    setText('bs-citas', totCitas.toLocaleString());
+    setText('bs-clientes', totNuevos.toLocaleString());
+    setText('bs-incompletas', totIncomp.toLocaleString());
+
+    // Gráfica de barras
+    const maxCitas = Math.max(...data.map(d => d.creadas), 1);
+    const barChart = document.getElementById('bs-bar-chart');
+    const barLabels = document.getElementById('bs-bar-labels');
+    barChart.innerHTML = data.map(d => {
+      const h = Math.max((d.creadas / maxCitas) * 100, 2);
+      const color = d.creadas === 0 ? 'var(--red)' : d.canceladas > d.completadas ? 'var(--orange)' : 'var(--green)';
+      return `<div style="flex:1;min-width:4px;height:${h}%;background:${color};border-radius:2px 2px 0 0;transition:height 0.3s;" title="${d.fecha}: ${d.creadas} citas"></div>`;
+    }).join('');
+    barLabels.innerHTML = data.map((d,i) => {
+      if (data.length > 14 && i % 3 !== 0) return `<div style="flex:1;"></div>`;
+      const dt = new Date(d.fecha + 'T12:00:00');
+      return `<div style="flex:1;font-size:0.42rem;color:var(--muted);text-align:center;min-width:4px;">${dt.getDate()}/${dt.getMonth()+1}</div>`;
+    }).join('');
+
+    // Alertas
+    const alertas = [];
+    data.slice(-7).forEach(d => {
+      if (d.creadas === 0 && d.mensajes === 0) alertas.push({ tipo: '🔴', msg: `${d.fecha} — Sin actividad (bot caído?)` });
+      else if (d.canceladas > d.completadas && d.creadas > 2) alertas.push({ tipo: '🟡', msg: `${d.fecha} — Más cancelaciones (${d.canceladas}) que completadas (${d.completadas})` });
+      else if (d.incompletas > 5) alertas.push({ tipo: '🟠', msg: `${d.fecha} — ${d.incompletas} conversaciones incompletas` });
+    });
+    const alertBox = document.getElementById('bs-alertas');
+    alertBox.innerHTML = alertas.length === 0
+      ? '<div style="color:var(--green);font-size:0.6rem;padding:8px;">✅ Todo normal — sin alertas</div>'
+      : alertas.map(a => `<div style="font-size:0.58rem;padding:6px 8px;background:rgba(255,255,255,0.03);border-left:2px solid ${a.tipo==='🔴'?'var(--red)':a.tipo==='🟡'?'var(--orange)':'var(--orange)'};border-radius:2px;">${a.tipo} ${a.msg}</div>`).join('');
+
+    // Tabla
+    const tbody = document.getElementById('bs-tabla-body');
+    tbody.innerHTML = data.slice().reverse().map(d => {
+      let estado = '🟢';
+      if (d.creadas === 0 && d.mensajes === 0) estado = '🔴 Sin actividad';
+      else if (d.canceladas > d.completadas && d.creadas > 2) estado = '🟡 Cancelaciones altas';
+      else if (d.incompletas > 5) estado = '🟠 Conv. incompletas';
+      else estado = '🟢 Normal';
+      return `<tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:6px;">${d.fecha}</td>
+        <td style="padding:6px;">${d.mensajes}</td>
+        <td style="padding:6px;">${d.creadas}</td>
+        <td style="padding:6px;color:var(--green);">${d.completadas}</td>
+        <td style="padding:6px;color:${d.canceladas>0?'var(--red)':'inherit'};">${d.canceladas}</td>
+        <td style="padding:6px;color:var(--blue);">${d.nuevos}</td>
+        <td style="padding:6px;color:${d.incompletas>0?'var(--orange)':'inherit'};">${d.incompletas}</td>
+        <td style="padding:6px;font-size:0.52rem;">${estado}</td>
+      </tr>`;
+    }).join('');
+
+  } catch(e) {
+    console.error('loadBotSalud error:', e);
+    document.getElementById('bs-tabla-body').innerHTML = `<tr><td colspan="8" style="padding:20px;text-align:center;color:var(--red);">Error: ${e.message}</td></tr>`;
+  }
+}
+
+function initBotSaludFilter() {
+  const sel = document.getElementById('botSaludShopFilter');
+  if (!sel || sel.options.length > 1) return;
+  if (window._allShops) {
+    window._allShops.forEach(s => {
+      const o = document.createElement('option');
+      o.value = s.id; o.textContent = s.nombre;
+      sel.appendChild(o);
+    });
+  }
 }
 
 async function loadSolicitudes() {
