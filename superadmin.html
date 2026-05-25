@@ -1499,7 +1499,7 @@ tr:hover td{background:rgba(255,255,255,0.016);}
 // ═══════════════════════════════════════════════════════════════
 
 let SUPABASE_URL = 'https://mmokunpuslcfphalrwot.supabase.co';
-let SUPABASE_KEY = 'sb_publishable_aETz_9ECH5RcBMjmRhUnfw_g71zRdwT';
+let SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tb2t1bnB1c2xjZnBoYWxyd290Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3NTQ1OTQsImV4cCI6MjA4ODMzMDU5NH0.yKALMgKeUzU1ouRPhuGhZ2JCJs1yRt2Gf78igzkSY14';
 let PLAN_PRICES  = { free: 0, pro: 29, elite: 79 };
 let AUTO_REFRESH_SECS = 300;
 let refreshTimer = null;
@@ -3874,7 +3874,7 @@ function showLandingSection(seccion) {
 //  REPORTES — Vista y envío de reportes por barbería
 // ════════════════════════════════════════════════════════════════════════
 const SB_FUNC_URL = 'https://mmokunpuslcfphalrwot.supabase.co/functions/v1';
-const SB_KEY_R = 'sb_publishable_aETz_9ECH5RcBMjmRhUnfw_g71zRdwT';
+const SB_KEY_R = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tb2t1bnB1c2xjZnBoYWxyd290Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3NTQ1OTQsImV4cCI6MjA4ODMzMDU5NH0.yKALMgKeUzU1ouRPhuGhZ2JCJs1yRt2Gf78igzkSY14';
 
 let _reportesShops = [];
 let _reportesProgramados = {};
@@ -5296,6 +5296,7 @@ const FEATURES_DEF = [
   { key:'feature_festivos',     label:'🎄 Días Festivos',       desc:'Bloquear días festivos globales para todo el negocio' },
   { key:'feature_pwa',          label:'📱 App Móvil (PWA)',     desc:'Acceso a la app móvil del barbero — desactiva para bloquear el ingreso' },
   { key:'feature_stats_barbero',label:'📊 Ventas del Barbero',  desc:'La pestaña de Ventas/Estadísticas es visible para el barbero en la app' },
+  { key:'feature_monitor_pwa', label:'👁 Monitor PWA',          desc:'El barbero puede ver el Monitor en vivo desde la web/PWA' },
 ];
 var _featShopId = null;
 var _featShopData = {};
@@ -5304,7 +5305,7 @@ async function openFeaturesModal(shopId, shopNombre) {
   _featShopId = shopId;
   document.getElementById('features-shop-name').textContent = shopNombre;
   try {
-    var rows = await sbGet('shops','id=eq.'+shopId+'&select=id,feature_reportes,feature_config,feature_servicios,feature_bot_whatsapp,feature_barberos,feature_clientes,feature_walkin,feature_monitor,feature_marketplace,feature_reseñas,feature_caja,feature_festivos,feature_pwa,feature_stats_barbero');
+    var rows = await sbGet('shops','id=eq.'+shopId+'&select=id,feature_reportes,feature_config,feature_servicios,feature_bot_whatsapp,feature_barberos,feature_clientes,feature_walkin,feature_monitor,feature_marketplace,feature_reseñas,feature_caja,feature_festivos,feature_pwa,feature_stats_barbero,feature_monitor_pwa');
     _featShopData = rows[0] || {};
   } catch(e) { _featShopData = {}; }
 
@@ -5350,7 +5351,7 @@ function featToggle(key) {
 // Columnas originales (siempre existen en la BD)
 const FEATURES_ORIGINAL = ['feature_reportes','feature_config','feature_servicios','feature_bot_whatsapp','feature_barberos','feature_clientes','feature_walkin','feature_monitor'];
 // Columnas nuevas (pueden no existir — requieren migración SQL)
-const FEATURES_NEW = ['feature_marketplace','feature_reseñas','feature_caja','feature_festivos','feature_pwa','feature_stats_barbero'];
+const FEATURES_NEW = ['feature_marketplace','feature_reseñas','feature_caja','feature_festivos','feature_pwa','feature_stats_barbero','feature_monitor_pwa'];
 
 async function saveFeatures(){
   if(!_featShopId) return;
