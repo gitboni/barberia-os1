@@ -378,8 +378,8 @@ input:checked+.slider:before{transform:translateX(22px)}
     </div>
     <div class="barb-header-btns">
       <div class="icon-btn" id="notifBtn" onclick="pedirPermisoNotif()" title="Activar notificaciones" style="position:relative;">🔔<span id="realtimeDot" style="position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:#F87171;border:1px solid #000;"></span></div>
-      <div class="icon-btn" onclick="showScreen('monitorScreen')">👁</div>
-      <div class="icon-btn" onclick="showScreen('statsScreen')">📊</div>
+      <div class="icon-btn" id="headerMonitorBtn" onclick="showScreen('monitorScreen')">👁</div>
+      <div class="icon-btn" id="headerStatsBtn" onclick="showScreen('statsScreen')">📊</div>
     </div>
   </div>
   <div class="card toggle-row" id="toggleCard">
@@ -1042,6 +1042,13 @@ function updateHeaderUI(){
   document.getElementById('maxTurnosVal').textContent=maxTurnos;
   document.getElementById('activoSwitch').checked=barbero.activo;
   renderStatusText(barbero.activo);
+  // Feature-gate: Monitor PWA y Stats controlados por superadmin
+  const showMonitor=shop?.feature_monitor_pwa??false;
+  const showStats=shop?.feature_stats_barbero??false;
+  document.getElementById('headerMonitorBtn').style.display=showMonitor?'':'none';
+  document.getElementById('headerStatsBtn').style.display=showStats?'':'none';
+  document.getElementById('nav-monitor').style.display=showMonitor?'':'none';
+  document.getElementById('nav-stats').style.display=showStats?'':'none';
 }
 function renderStatusText(activo){
   const t=document.getElementById('statusTxt'),s=document.getElementById('statusSub');
