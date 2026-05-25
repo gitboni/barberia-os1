@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -8,10 +7,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="AuraOS Pro">
-<link rel="apple-touch-icon" href="/assets/icon.png">
-<link rel="icon" type="image/png" href="/assets/icon.png">
+<link rel="apple-touch-icon" href="/icon.png">
+<link rel="icon" type="image/png" href="/icon.png">
 <meta name="theme-color" content="#0a0a0a">
-<link rel="manifest" href="/manifest-barbero.json">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -231,9 +229,8 @@ input:checked+.slider:before{transform:translateX(21px)}
 /* Modal */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:600;display:flex;flex-direction:column;justify-content:flex-end}
 .modal-overlay.hidden{display:none}
-.modal-box{background:var(--bg2);border-radius:var(--r-xl) var(--r-xl) 0 0;padding:18px 18px calc(env(safe-area-inset-bottom,0px)+24px);max-height:92dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;will-change:transform}
-.modal-box.snapping{transition:transform .25s cubic-bezier(.2,.9,.3,1)}
-.modal-handle{width:34px;height:4px;background:rgba(255,255,255,.25);border-radius:2px;margin:0 auto 14px;cursor:grab;touch-action:none}
+.modal-box{background:var(--bg2);border-radius:var(--r-xl) var(--r-xl) 0 0;padding:18px 18px calc(env(safe-area-inset-bottom,0px)+24px);max-height:92dvh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.modal-handle{width:34px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 14px}
 .label{font-size:.68rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;display:block}
 /* Chips */
 .chip-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
@@ -379,9 +376,8 @@ input:checked+.slider:before{transform:translateX(22px)}
       </div>
     </div>
     <div class="barb-header-btns">
-      <div class="icon-btn" id="notifBtn" onclick="pedirPermisoNotif()" title="Activar notificaciones" style="position:relative;">🔔<span id="realtimeDot" style="position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:#F87171;border:1px solid #000;"></span></div>
-      <div class="icon-btn" id="headerMonitorBtn" onclick="showScreen('monitorScreen')">👁</div>
-      <div class="icon-btn" id="headerStatsBtn" onclick="showScreen('statsScreen')">📊</div>
+      <div class="icon-btn" onclick="showScreen('monitorScreen')">👁</div>
+      <div class="icon-btn" onclick="showScreen('statsScreen')">📊</div>
     </div>
   </div>
   <div class="card toggle-row" id="toggleCard">
@@ -611,29 +607,6 @@ input:checked+.slider:before{transform:translateX(22px)}
     <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:1.2rem;">⭐</span><div><div style="font-weight:800;font-size:.9rem;">Clientes Preferenciales</div><div style="font-size:.72rem;color:var(--dim);">Gestionar citas fijas semanales</div></div></div>
     <span style="color:var(--accent);">→</span>
   </div>
-  <div class="card" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;" id="waToggleRow" onclick="toggleWaForm()">
-    <span style="font-weight:800;font-size:.9rem;">💬 Mensaje WhatsApp</span><span style="color:var(--accent);" id="waToggleIcon">▼</span>
-  </div>
-  <div id="waForm" style="display:none;margin-bottom:10px;">
-    <div class="card">
-      <div style="font-size:.72rem;color:var(--dim);margin-bottom:6px;">Configura el mensaje que se enviará al cliente. Usa variables:</div>
-      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;">
-        <span style="font-size:.68rem;font-weight:700;color:var(--accent);background:var(--accent-s);padding:3px 8px;border-radius:4px;">{nombre}</span>
-        <span style="font-size:.68rem;font-weight:700;color:var(--accent);background:var(--accent-s);padding:3px 8px;border-radius:4px;">{servicio}</span>
-        <span style="font-size:.68rem;font-weight:700;color:var(--accent);background:var(--accent-s);padding:3px 8px;border-radius:4px;">{hora}</span>
-        <span style="font-size:.68rem;font-weight:700;color:var(--accent);background:var(--accent-s);padding:3px 8px;border-radius:4px;">{fecha}</span>
-        <span style="font-size:.68rem;font-weight:700;color:var(--accent);background:var(--accent-s);padding:3px 8px;border-radius:4px;">{barbero}</span>
-        <span style="font-size:.68rem;font-weight:700;color:var(--accent);background:var(--accent-s);padding:3px 8px;border-radius:4px;">{negocio}</span>
-        <span style="font-size:.68rem;font-weight:700;color:var(--green);background:var(--green-s);padding:3px 8px;border-radius:4px;">{bot}</span>
-      </div>
-      <textarea id="waTemplateInput" class="input" rows="4" placeholder='Ej: Hola {nombre}, para confirmar tu cita de {servicio} a las {hora} escribe "mi cita" al {bot}. — {barbero}' style="resize:vertical;min-height:80px;font-size:.82rem;"></textarea>
-      <div id="waPreview" style="display:none;background:rgba(255,255,255,.03);border:1px solid var(--accent-b);border-radius:10px;padding:10px;margin-top:8px;">
-        <div style="font-size:.68rem;color:var(--accent);font-weight:700;margin-bottom:3px;">Vista previa:</div>
-        <div id="waPreviewText" style="font-size:.78rem;color:var(--text);line-height:1.5;"></div>
-      </div>
-      <button class="btn-gold" onclick="guardarWaTemplate()" style="margin-top:10px;">Guardar plantilla</button>
-    </div>
-  </div>
   <div class="card" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;" id="passToggleRow" onclick="togglePassForm()">
     <span style="font-weight:800;font-size:.9rem;">🔒 Cambiar contraseña</span><span style="color:var(--accent);" id="passToggleIcon">▼</span>
   </div>
@@ -659,8 +632,8 @@ input:checked+.slider:before{transform:translateX(22px)}
 </div><!-- /app -->
 
 <!-- MODALS -->
-<div id="modalCompletar" class="modal-overlay hidden" onclick="closeModal('modalCompletar')">
-  <div class="modal-box" onclick="event.stopPropagation()">
+<div id="modalCompletar" class="modal-overlay hidden">
+  <div class="modal-box">
     <div class="modal-handle"></div>
     <div style="font-size:1rem;font-weight:900;font-family:Outfit,sans-serif;margin-bottom:4px;">Completar servicio</div>
     <div style="font-size:.78rem;color:var(--dim);margin-bottom:14px;" id="completarDetalle"></div>
@@ -680,13 +653,10 @@ input:checked+.slider:before{transform:translateX(22px)}
   </div>
 </div>
 
-<div id="modalNuevaCita" class="modal-overlay hidden" onclick="closeModal('modalNuevaCita')">
-  <div class="modal-box" onclick="event.stopPropagation()">
+<div id="modalNuevaCita" class="modal-overlay hidden">
+  <div class="modal-box">
     <div class="modal-handle"></div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-      <div style="font-size:1rem;font-weight:900;font-family:Outfit,sans-serif;">Nueva cita</div>
-      <div onclick="closeModal('modalNuevaCita')" style="cursor:pointer;color:var(--accent);font-size:1.1rem;padding:4px 8px;">✕</div>
-    </div>
+    <div style="font-size:1rem;font-weight:900;font-family:Outfit,sans-serif;margin-bottom:14px;">Nueva cita</div>
     <label class="label">Fecha</label>
     <div class="chip-row" id="ncFechaChips">
       <div class="chip on" onclick="ncSelFecha(this,'hoy')" style="flex:1;text-align:center;">Hoy</div>
@@ -705,8 +675,8 @@ input:checked+.slider:before{transform:translateX(22px)}
   </div>
 </div>
 
-<div id="modalHistorial" class="modal-overlay hidden" onclick="closeModal('modalHistorial')">
-  <div class="modal-box" onclick="event.stopPropagation()">
+<div id="modalHistorial" class="modal-overlay hidden">
+  <div class="modal-box">
     <div class="modal-handle"></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
       <div style="font-size:1rem;font-weight:900;font-family:Outfit,sans-serif;">Historial del cliente</div>
@@ -717,8 +687,8 @@ input:checked+.slider:before{transform:translateX(22px)}
   </div>
 </div>
 
-<div id="modalReagendar" class="modal-overlay hidden" onclick="closeModal('modalReagendar')">
-  <div class="modal-box" onclick="event.stopPropagation()">
+<div id="modalReagendar" class="modal-overlay hidden">
+  <div class="modal-box">
     <div class="modal-handle"></div>
     <div style="font-size:1rem;font-weight:900;font-family:Outfit,sans-serif;margin-bottom:4px;">📅 Reagendar cita</div>
     <div style="font-size:.76rem;color:var(--dim);margin-bottom:14px;" id="reagendarDetalle"></div>
@@ -734,8 +704,8 @@ input:checked+.slider:before{transform:translateX(22px)}
   </div>
 </div>
 
-<div id="modalBloqueo" class="modal-overlay hidden" onclick="closeModal('modalBloqueo')">
-  <div class="modal-box" onclick="event.stopPropagation()">
+<div id="modalBloqueo" class="modal-overlay hidden">
+  <div class="modal-box">
     <div class="modal-handle"></div>
     <div style="font-size:1rem;font-weight:900;font-family:Outfit,sans-serif;margin-bottom:14px;">Bloquear horario</div>
     <label class="label">Fecha</label>
@@ -762,8 +732,8 @@ input:checked+.slider:before{transform:translateX(22px)}
   </div>
 </div>
 
-<div id="modalVIP" class="modal-overlay hidden" onclick="closeModal('modalVIP')">
-  <div class="modal-box" onclick="event.stopPropagation()">
+<div id="modalVIP" class="modal-overlay hidden">
+  <div class="modal-box">
     <div class="modal-handle"></div>
     <div style="font-size:1rem;font-weight:900;font-family:Outfit,sans-serif;margin-bottom:14px;" id="vipModalTitle">Nueva Cita Fija</div>
     <label class="label">Nombre del cliente</label>
@@ -795,7 +765,6 @@ let citas=[],citasManana=[],bloqueos=[];
 let maxTurnos=5,vistaFecha='hoy';
 let currentCitaCompletar=null,currentCitaReagendar=null;
 let pollingInterval=null,monitorInterval=null;
-let _citasKnownIds=new Set(); // IDs de citas ya conocidas (para detección polling)
 let ncFecha='hoy',ncServicioSel=null,ncHoraSel=null;
 let blqFechaVal='hoy';
 let vipEditando=null,vipDiaSel=1,vipHoraSel='09:00',vipSvcSel='';
@@ -822,62 +791,7 @@ function mananaStr(){const d=new Date(hoyStr()+'T12:00:00');d.setDate(d.getDate(
 function minutosHasta(hora){const[h,m]=hora.split(':').map(Number);const ahora=new Date();const cita=new Date();cita.setHours(h,m,0,0);return Math.round((cita-ahora)/60000)}
 function tiempoHasta(hora){const d=minutosHasta(hora);if(d<-5)return'En curso';if(d<=0)return'¡Ahora!';if(d<60)return`En ${d}m`;return`En ${Math.floor(d/60)}h`}
 function normTel(t){return(t||'').replace(/\D/g,'').replace(/^1?(\d{10})$/,'$1')}
-function closeModal(id){
-  const el=document.getElementById(id);
-  const box=el?.querySelector('.modal-box');
-  if(box){
-    box.classList.add('snapping');
-    box.style.transform='translateY(100%)';
-    setTimeout(()=>{el.classList.add('hidden');box.style.transform='';box.classList.remove('snapping');},250);
-  }else{
-    el.classList.add('hidden');
-  }
-}
-
-// ── Swipe-to-close en modales ──────────────────────────────────────────────
-(function(){
-  let startY=0,currentY=0,dragging=false,activeBox=null,activeOverlay=null;
-
-  document.addEventListener('touchstart',function(e){
-    const handle=e.target.closest('.modal-handle');
-    if(!handle)return;
-    activeBox=handle.closest('.modal-box');
-    activeOverlay=handle.closest('.modal-overlay');
-    if(!activeBox||!activeOverlay)return;
-    dragging=true;startY=e.touches[0].clientY;currentY=0;
-    activeBox.classList.remove('snapping');
-  },{passive:true});
-
-  document.addEventListener('touchmove',function(e){
-    if(!dragging||!activeBox)return;
-    const dy=e.touches[0].clientY-startY;
-    currentY=Math.max(0,dy); // solo hacia abajo
-    activeBox.style.transform=`translateY(${currentY}px)`;
-    // Fade del overlay proporcional
-    const opacity=Math.max(0,1-currentY/300);
-    activeOverlay.style.background=`rgba(0,0,0,${0.75*opacity})`;
-  },{passive:true});
-
-  document.addEventListener('touchend',function(){
-    if(!dragging||!activeBox)return;
-    dragging=false;
-    if(currentY>100){
-      // Cerrar
-      activeBox.classList.add('snapping');
-      activeBox.style.transform='translateY(100%)';
-      const ov=activeOverlay;const bx=activeBox;
-      setTimeout(()=>{ov.classList.add('hidden');bx.style.transform='';bx.classList.remove('snapping');ov.style.background='';},250);
-    }else{
-      // Snap back
-      activeBox.classList.add('snapping');
-      activeBox.style.transform='translateY(0)';
-      activeOverlay.style.background='';
-      const bx=activeBox;
-      setTimeout(()=>{bx.classList.remove('snapping');},250);
-    }
-    activeBox=null;activeOverlay=null;currentY=0;
-  },{passive:true});
-})();
+function closeModal(id){document.getElementById(id).classList.add('hidden')}
 
 async function doLogin(){
   const tel=document.getElementById('loginTel').value.trim().replace(/\D/g,'');
@@ -933,7 +847,7 @@ function showScreen(id,el=null){
   document.getElementById(id).scrollTop=0;
 }
 
-async function cargarDatos(origenPoll=false){
+async function cargarDatos(){
   if(!barbero)return;
   const hoy=hoyStr();
   const[citasRes,citasManRes,bloqRes]=await Promise.all([
@@ -941,154 +855,17 @@ async function cargarDatos(origenPoll=false){
     sb.from('citas').select('*').eq('fecha',mananaStr()).or(`barbero_id.eq.${barbero.id},and(barbero_id.is.null,barbero.ilike.${barbero.nombre})`).order('hora'),
     sb.from('horarios_bloqueados').select('*').eq('barbero_id',barbero.id).gte('fecha',hoy).order('fecha').order('hora_inicio')
   ]);
-  const nuevasCitas=citasRes.data||[];
-
-  // ── Detección de citas nuevas via polling (fallback si Realtime cayó) ────────
-  if(_citasKnownIds.size>0){
-    const nuevasConfirmadas=nuevasCitas.filter(c=>
-      c.estado==='Confirmada'&&
-      !_citasKnownIds.has(c.id)
-    );
-    if(nuevasConfirmadas.length>0){
-      nuevasConfirmadas.forEach(c=>{
-        if(navigator.vibrate)navigator.vibrate([200,100,200]);
-        playAlertSound();
-        flashTitle('🔔 Nueva cita!');
-        mostrarBannerNuevaCita(c.nombre,c.servicio,(c.hora||'').substring(0,5));
-        if(typeof Notification!=='undefined'&&Notification.permission==='granted'){
-          try{new Notification('✂️ Nueva reserva',{body:`${c.nombre} · ${c.servicio} · ${(c.hora||'').substring(0,5)}`,icon:'/favicon.ico'});}catch(e){}
-        }
-      });
-    }
-  }
-  // Actualizar el set de IDs conocidos
-  nuevasCitas.forEach(c=>{if(c.id>0)_citasKnownIds.add(c.id);});
-
-  citas=nuevasCitas;citasManana=citasManRes.data||[];bloqueos=bloqRes.data||[];
+  citas=citasRes.data||[];citasManana=citasManRes.data||[];bloqueos=bloqRes.data||[];
   const{data:prefs}=await sb.from('clientes_preferenciales').select('*').eq('barbero_id',barbero.id);
   const diaHoy=new Date().getDay();
   const virtuals=(prefs||[]).filter(p=>p.dia_semana===diaHoy&&p.activo!==false&&!citas.some(c=>c.hora.substring(0,5)===p.hora.substring(0,5))).map(p=>({id:-1,shop_id:p.shop_id,barbero_id:p.barbero_id,nombre:p.nombre+' ⭐',telefono:p.telefono,fecha:hoy,hora:p.hora.length===5?p.hora+':00':p.hora,servicio:p.servicio,barbero:barbero.nombre,estado:'Confirmada',nota:'Cliente Preferencial',virtual:true}));
   citas=[...citas,...virtuals].sort((a,b)=>a.hora.localeCompare(b.hora));
   renderHome();
 }
-function startPolling(){
-  clearInterval(pollingInterval);
-  pollingInterval=setInterval(()=>{if(barbero)cargarDatos(true);},8000);
-}
-// ── Sonido de alerta vía Web Audio (sin archivos externos) ───────────────────
-function playAlertSound(){
-  try{
-    const ctx=new(window.AudioContext||window.webkitAudioContext)();
-    [[880,0,0.15],[660,0.18,0.15],[880,0.36,0.2]].forEach(([freq,start,dur])=>{
-      const osc=ctx.createOscillator(),gain=ctx.createGain();
-      osc.connect(gain);gain.connect(ctx.destination);
-      osc.type='sine';osc.frequency.value=freq;
-      gain.gain.setValueAtTime(0.25,ctx.currentTime+start);
-      gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+start+dur);
-      osc.start(ctx.currentTime+start);osc.stop(ctx.currentTime+start+dur+0.05);
-    });
-  }catch(e){}
-}
-
-// ── Flash del título de pestaña ───────────────────────────────────────────────
-let _titleFlash=null;
-function flashTitle(txt){
-  if(_titleFlash)return;
-  const orig=document.title;let on=true;
-  _titleFlash=setInterval(()=>{document.title=on?txt:orig;on=!on;},900);
-  setTimeout(()=>{clearInterval(_titleFlash);_titleFlash=null;document.title=orig;},12000);
-}
-
-// ── Banner en pantalla para nueva cita ───────────────────────────────────────
-function mostrarBannerNuevaCita(nombre,servicio,hora){
-  let b=document.getElementById('nuevaCitaBanner');
-  if(!b){
-    b=document.createElement('div');b.id='nuevaCitaBanner';
-    b.style.cssText='position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:9999;background:var(--accent);color:#000;font-weight:900;font-size:.85rem;padding:12px 20px;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,0.5);cursor:pointer;text-align:center;max-width:90vw;';
-    b.onclick=()=>{b.remove();};
-    document.body.appendChild(b);
-  }
-  b.textContent=`✂️ Nueva reserva · ${nombre} · ${servicio} · ${hora}`;
-  clearTimeout(b._t);b._t=setTimeout(()=>b.remove(),10000);
-}
-
-// ── Solicitar permiso de notificación (llamar desde clic de usuario) ──────────
-async function pedirPermisoNotif(){
-  if(!('Notification' in window))return;
-  if(Notification.permission==='default'){
-    const p=await Notification.requestPermission();
-    updateNotifBtn(p);
-  }
-}
-function updateNotifBtn(perm){
-  const btn=document.getElementById('notifBtn');if(!btn)return;
-  if(perm==='granted'){btn.textContent='🔔';btn.title='Notificaciones activas';}
-  else if(perm==='denied'){btn.textContent='🔕';btn.title='Notificaciones bloqueadas';}
-  else{btn.textContent='🔔';btn.title='Activar notificaciones';}
-}
-
-// ── Canal Realtime ────────────────────────────────────────────────────────────
-let _realtimeChannel=null;
+function startPolling(){clearInterval(pollingInterval);pollingInterval=setInterval(()=>{if(barbero)cargarDatos()},8000);}
 function startRealtimeHoy(){
   if(!barbero)return;
-  if(_realtimeChannel){sb.removeChannel(_realtimeChannel);_realtimeChannel=null;}
-
-  _realtimeChannel=sb.channel('barbero-panel-'+barbero.id)
-    .on('postgres_changes',{event:'INSERT',schema:'public',table:'citas',filter:`shop_id=eq.${barbero.shop_id}`},(payload)=>{
-      if(String(payload.new?.barbero_id)===String(barbero.id)){
-        const nBody=`${payload.new.nombre} · ${payload.new.servicio} · ${(payload.new.hora||'').substring(0,5)}`;
-        const nTitle='✂️ Nueva reserva';
-
-        // 1. Vibración
-        if(navigator.vibrate)navigator.vibrate([200,100,200]);
-        // 2. Sonido
-        playAlertSound();
-        // 3. Flash título pestaña
-        flashTitle('🔔 Nueva cita!');
-        // 4. Banner en pantalla (siempre funciona)
-        mostrarBannerNuevaCita(payload.new.nombre,payload.new.servicio,(payload.new.hora||'').substring(0,5));
-        // 5. Notificación browser (si tiene permiso)
-        let browserOk=false;
-        if(typeof Notification!=='undefined'&&Notification.permission==='granted'){
-          try{new Notification(nTitle,{body:nBody,icon:'/favicon.ico'});browserOk=true;}catch(e){}
-        }
-        // 6. Log auditoría
-        sb.from('push_notificaciones').insert({
-          usuario_id:usuario?.id||null,shop_id:barbero.shop_id,
-          titulo:nTitle,cuerpo:nBody,tipo:'nueva_cita',
-          data:{cita_id:payload.new.id,fecha:payload.new.fecha,hora:payload.new.hora},
-          enviada:browserOk,leida:false,enviada_at:new Date().toISOString(),
-        }).then(()=>{});
-      }
-      cargarDatos();
-    })
-    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'citas',filter:`shop_id=eq.${barbero.shop_id}`},()=>cargarDatos())
-    .subscribe((status)=>{
-      console.log('[Realtime]',status);
-      const dot=document.getElementById('realtimeDot');
-      if(dot)dot.style.background=status==='SUBSCRIBED'?'#3ECF8E':'#F87171';
-    });
-
-  // Mostrar estado inicial del botón de notificación
-  if(typeof Notification!=='undefined')updateNotifBtn(Notification.permission);
-
-  // Reconectar Realtime si la página vuelve al primer plano (phone screen on, tab focus)
-  document.removeEventListener('visibilitychange',_onVisibility);
-  document.addEventListener('visibilitychange',_onVisibility);
-}
-
-function _onVisibility(){
-  if(document.visibilityState==='visible'&&barbero){
-    // Forzar recarga de datos inmediata (detectará citas perdidas vía polling fallback)
-    cargarDatos(true);
-    // Reconectar canal si está caído
-    const dot=document.getElementById('realtimeDot');
-    const status=_realtimeChannel?.state||'';
-    if(status!=='joined'){
-      console.log('[Realtime] reconectando tras visibilitychange...');
-      startRealtimeHoy();
-    }
-  }
+  sb.channel('barbero-panel').on('postgres_changes',{event:'*',schema:'public',table:'citas',filter:`shop_id=eq.${barbero.shop_id}`},()=>cargarDatos()).subscribe();
 }
 
 function updateHeaderUI(){
@@ -1099,19 +876,6 @@ function updateHeaderUI(){
   document.getElementById('maxTurnosVal').textContent=maxTurnos;
   document.getElementById('activoSwitch').checked=barbero.activo;
   renderStatusText(barbero.activo);
-  // Feature-gate: Monitor PWA y Stats controlados por superadmin
-  const showMonitor=shop?.feature_monitor_pwa??false;
-  const showStats=shop?.feature_stats_barbero??false;
-  document.getElementById('headerMonitorBtn').style.display=showMonitor?'':'none';
-  document.getElementById('headerStatsBtn').style.display=showStats?'':'none';
-  document.getElementById('nav-monitor').style.display=showMonitor?'':'none';
-  document.getElementById('nav-stats').style.display=showStats?'':'none';
-  // Adaptar nav: centrar y compactar si hay pocos tabs
-  const nav=document.getElementById('bottomNav');
-  const visible=nav.querySelectorAll('.nav-btn:not([style*="display: none"]),.nav-btn:not([style*="display:none"])');
-  const count=[showMonitor,showStats].filter(Boolean).length+3;
-  nav.style.justifyContent=count<=3?'center':'';
-  nav.querySelectorAll('.nav-btn').forEach(b=>{b.style.maxWidth=count<=3?'90px':'';});
 }
 function renderStatusText(activo){
   const t=document.getElementById('statusTxt'),s=document.getElementById('statusSub');
@@ -1179,8 +943,9 @@ function renderHome(){
   document.getElementById('tabManN').textContent=citasManana.filter(c=>c.estado==='Confirmada').length;
   document.getElementById('colaHint').style.display=pendientes.length>1?'block':'none';
   renderCola(lista);
+  const bloqHoy=bloqueos.filter(b=>b.fecha===hoyStr());
   document.getElementById('bloqueosBadge').textContent=`(${bloqueos.length})`;
-  renderBloqueos(bloqueos);
+  renderBloqueos(bloqHoy);
   if(completadas.length>0){
     document.getElementById('completadasSection').style.display='block';
     document.getElementById('compCount').textContent=completadas.length;
@@ -1233,7 +998,7 @@ function renderCola(lista){
           ${i>0?`<div class="action-btn" onclick="moverCola(${c.id},'up')">↑</div>`:''}
           ${i<lista.length-1?`<div class="action-btn" onclick="moverCola(${c.id},'down')">↓</div>`:''}
           <div class="action-btn btn-cal" onclick="openModalReagendar(${JSON.stringify(c).replace(/"/g,'&quot;')})">📅</div>
-          ${c.telefono&&c.telefono!=='walk-in'?`<div class="action-btn btn-wa" onclick="abrirWhatsApp(${JSON.stringify(c).replace(/"/g,'&quot;')})">💬</div>`:''}
+          ${c.telefono&&c.telefono!=='walk-in'?`<div class="action-btn btn-wa" onclick="abrirWhatsApp('${c.telefono}')">💬</div>`:''}
           <div class="action-btn btn-check" onclick="pedirNota(${JSON.stringify(c).replace(/"/g,'&quot;')})">✓</div>
           <div class="action-btn btn-x" onclick="cancelarCita(${c.id},'${DOMPurify.sanitize(c.nombre)}')">✕</div>
         </div>
@@ -1245,16 +1010,7 @@ function renderCola(lista){
 
 function renderBloqueos(lista){
   const el=document.getElementById('bloqueosList');if(!lista.length){el.innerHTML='';return;}
-  const hoy=hoyStr();
-  const manana=new Date();manana.setDate(manana.getDate()+1);
-  const mananaStr=manana.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
-  const diasSemana=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-  function labelFecha(f){
-    if(f===hoy)return'Hoy';
-    if(f===mananaStr)return'Mañana';
-    const d=new Date(f+'T12:00:00');return`${diasSemana[d.getDay()]} ${d.getDate()}/${d.getMonth()+1}`;
-  }
-  el.innerHTML=lista.map(b=>`<div class="bloqueo-row"><div style="flex:1"><span style="font-size:.68rem;color:var(--dim);margin-right:6px;">${labelFecha(b.fecha)}</span><span style="font-weight:700;color:var(--red);">${b.hora_inicio.substring(0,5)} – ${b.hora_fin.substring(0,5)}</span>${b.motivo?` <span style="font-size:.72rem;color:var(--dim);">· ${DOMPurify.sanitize(b.motivo)}</span>`:''}</div><div onclick="eliminarBloqueo(${b.id})" class="action-btn btn-x">✕</div></div>`).join('');
+  el.innerHTML=lista.map(b=>`<div class="bloqueo-row"><div style="flex:1"><span style="font-weight:700;color:var(--red);">${b.hora_inicio.substring(0,5)} – ${b.hora_fin.substring(0,5)}</span>${b.motivo?` <span style="font-size:.72rem;color:var(--dim);">· ${DOMPurify.sanitize(b.motivo)}</span>`:''}</div><div onclick="eliminarBloqueo(${b.id})" class="action-btn btn-x">✕</div></div>`).join('');
 }
 
 function addSwipe(id,cita){
@@ -1333,24 +1089,7 @@ async function cancelarCita(id,nombre){
 }
 function cancelarProximo(){const p=citas.filter(c=>c.estado==='Confirmada')[0];if(p)cancelarCita(p.id,p.nombre);}
 function noShowProximo(){cancelarProximo();}
-function abrirWhatsApp(cita){
-  const tel=typeof cita==='string'?cita:cita.telefono;
-  const t=tel.replace(/\D/g,'');
-  const phone=t.startsWith('1')?t:'1'+t;
-  let msg='';
-  if(barbero&&barbero.mensaje_whatsapp&&typeof cita==='object'){
-    msg=barbero.mensaje_whatsapp
-      .replace(/\{nombre\}/g,cita.nombre||'')
-      .replace(/\{servicio\}/g,cita.servicio||'')
-      .replace(/\{hora\}/g,fmt12(cita.hora))
-      .replace(/\{barbero\}/g,barbero.nombre||'')
-      .replace(/\{negocio\}/g,shop?.nombre||'')
-      .replace(/\{fecha\}/g,cita.fecha===hoyStr()?'hoy':cita.fecha||'')
-      .replace(/\{bot\}/g,shop?.whatsapp||'');
-  }
-  const textParam=msg?`?text=${encodeURIComponent(msg)}`:'';
-  window.open(`https://wa.me/${phone}${textParam}`,'_blank');
-}
+function abrirWhatsApp(tel){const t=tel.replace(/\D/g,'');window.open(`whatsapp://send?phone=${t.startsWith('1')?t:'1'+t}`,'_blank');}
 async function moverCola(id,dir){
   const pendientes=citas.filter(c=>c.estado==='Confirmada');const idx=pendientes.findIndex(c=>c.id===id);
   const target=dir==='up'?pendientes[idx-1]:pendientes[idx+1];if(!target)return;
@@ -1681,27 +1420,6 @@ async function renderPerfil(){
   document.getElementById('perfilKPIs').innerHTML=`<div class="kpi-box"><span class="kpi-val">${all.filter(c=>c.fecha===hoy).length}</span><span class="kpi-lbl">Hoy</span></div><div class="kpi-box"><span class="kpi-val" style="color:var(--green);">${all.filter(c=>c.estado==='Completada').length}</span><span class="kpi-lbl">Completadas</span></div><div class="kpi-box"><span class="kpi-val" style="color:var(--red);">${all.filter(c=>c.estado==='Cancelada').length}</span><span class="kpi-lbl">Canceladas</span></div>`;
   if(ingMes>0){document.getElementById('perfilIngCard').style.display='flex';document.getElementById('perfilIngMes').textContent=`$${ingMes.toLocaleString()}`;}
 }
-// ── WhatsApp template ──
-function toggleWaForm(){
-  const f=document.getElementById('waForm');const icon=document.getElementById('waToggleIcon');
-  const s=f.style.display!=='none';f.style.display=s?'none':'block';icon.textContent=s?'▼':'▲';
-  if(!s){document.getElementById('waTemplateInput').value=barbero.mensaje_whatsapp||'';updateWaPreview();}
-}
-function updateWaPreview(){
-  const val=document.getElementById('waTemplateInput').value.trim();
-  const prev=document.getElementById('waPreview');const prevTxt=document.getElementById('waPreviewText');
-  if(!val){prev.style.display='none';return;}
-  prev.style.display='block';
-  prevTxt.textContent=val.replace(/\{nombre\}/g,'Juan').replace(/\{servicio\}/g,'Corte').replace(/\{hora\}/g,'10:30 AM').replace(/\{barbero\}/g,barbero?.nombre||'Barbero').replace(/\{negocio\}/g,shop?.nombre||'').replace(/\{fecha\}/g,'hoy').replace(/\{bot\}/g,shop?.whatsapp||'(sin bot)');
-}
-document.addEventListener('input',e=>{if(e.target.id==='waTemplateInput')updateWaPreview();});
-async function guardarWaTemplate(){
-  const val=document.getElementById('waTemplateInput').value.trim();
-  const{error}=await sb.from('barberos').update({mensaje_whatsapp:val||null}).eq('id',barbero.id);
-  if(error){toast('Error al guardar','error');return;}
-  barbero.mensaje_whatsapp=val||null;
-  toast('✅ Plantilla WhatsApp guardada','success');
-}
 function togglePassForm(){const f=document.getElementById('passForm');const icon=document.getElementById('passToggleIcon');const s=f.style.display!=='none';f.style.display=s?'none':'block';icon.textContent=s?'▼':'▲';}
 async function guardarPass(){
   const p1=document.getElementById('pass1').value;const p2=document.getElementById('pass2').value;
@@ -1727,64 +1445,7 @@ document.addEventListener('DOMContentLoaded',async()=>{
   if(session){document.getElementById('loginScreen').classList.add('hidden');document.getElementById('loginScreen').style.display='none';await initApp();}
   setInterval(()=>{const el=document.getElementById('monTime');if(el)el.textContent=`EN VIVO · ${new Date().toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit'})}`;},1000);
   setInterval(()=>{if(document.getElementById('homeScreen')?.classList.contains('active'))renderHome();},60000);
-
-  // ── PWA: Service Worker + Install Prompt ──
-  if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw-barbero.js').catch(()=>{});}
-
-  let deferredPrompt=null;
-  window.addEventListener('beforeinstallprompt',e=>{
-    e.preventDefault();deferredPrompt=e;
-    showInstallBanner();
-  });
-
-  function showInstallBanner(){
-    if(document.getElementById('pwa-install-banner'))return;
-    // No mostrar si ya está instalada (standalone)
-    if(window.matchMedia('(display-mode:standalone)').matches||window.navigator.standalone)return;
-    const b=document.createElement('div');b.id='pwa-install-banner';
-    b.innerHTML=`
-      <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">
-        <img src="/assets/icon.png" style="width:40px;height:40px;border-radius:10px;flex-shrink:0;">
-        <div style="min-width:0;"><div style="font-weight:800;font-size:.9rem;">Instalar AuraOS Pro</div><div style="font-size:.72rem;color:var(--dim);">Acceso directo desde tu pantalla</div></div>
-      </div>
-      <div style="display:flex;gap:8px;flex-shrink:0;">
-        <button onclick="dismissInstall()" style="background:none;border:none;color:var(--dim);font-size:.78rem;cursor:pointer;padding:8px;">Ahora no</button>
-        <button onclick="doInstall()" style="background:var(--accent);color:#000;border:none;border-radius:10px;padding:8px 16px;font-weight:800;font-size:.82rem;cursor:pointer;">Instalar</button>
-      </div>`;
-    b.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:9999;background:var(--bg3);border-top:1px solid var(--accent-b);padding:14px 16px;display:flex;align-items:center;gap:10px;animation:slideUp .3s ease;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px));';
-    document.body.appendChild(b);
-  }
-
-  window.doInstall=async function(){
-    const b=document.getElementById('pwa-install-banner');if(b)b.remove();
-    if(deferredPrompt){deferredPrompt.prompt();const{outcome}=await deferredPrompt.userChoice;deferredPrompt=null;}
-  };
-  window.dismissInstall=function(){
-    const b=document.getElementById('pwa-install-banner');if(b)b.remove();
-    localStorage.setItem('pwa-dismiss',Date.now());
-  };
-
-  // iOS: mostrar instrucciones manuales (no tiene beforeinstallprompt)
-  const isIos=/iphone|ipad|ipod/i.test(navigator.userAgent);
-  const isStandalone=window.matchMedia('(display-mode:standalone)').matches||window.navigator.standalone;
-  const dismissed=localStorage.getItem('pwa-dismiss');
-  const dismissedRecent=dismissed&&(Date.now()-parseInt(dismissed))<86400000*7; // 7 días
-  if(isIos&&!isStandalone&&!dismissedRecent){
-    setTimeout(()=>{
-      if(document.getElementById('pwa-install-banner'))return;
-      const b=document.createElement('div');b.id='pwa-install-banner';
-      b.innerHTML=`
-        <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">
-          <img src="/assets/icon.png" style="width:40px;height:40px;border-radius:10px;flex-shrink:0;">
-          <div style="min-width:0;"><div style="font-weight:800;font-size:.9rem;">Instalar AuraOS Pro</div><div style="font-size:.72rem;color:var(--dim);">Toca <b>Compartir</b> ⬆ y luego <b>"Agregar a inicio"</b></div></div>
-        </div>
-        <button onclick="dismissInstall()" style="background:none;border:none;color:var(--dim);font-size:1.1rem;cursor:pointer;padding:8px;flex-shrink:0;">✕</button>`;
-      b.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:9999;background:var(--bg3);border-top:1px solid var(--accent-b);padding:14px 16px;display:flex;align-items:center;gap:10px;animation:slideUp .3s ease;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px));';
-      document.body.appendChild(b);
-    },3000);
-  }
 });
 </script>
-<style>@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}</style>
 </body>
 </html>
