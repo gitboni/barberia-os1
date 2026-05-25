@@ -104,7 +104,6 @@ h1,h2,h3,.outfit{font-family:'Outfit',sans-serif}
 .bottom-nav{
   flex-shrink:0;
   display:flex;
-  justify-content:center;
   background:#050505;
   border-top:1px solid rgba(255,255,255,.08);
   /* El padding-bottom rellena el home indicator con el color del nav */
@@ -114,7 +113,7 @@ h1,h2,h3,.outfit{font-family:'Outfit',sans-serif}
 }
 /* ::after ya no es necesario — el padding del nav rellena el gap */
 .nav-btn{
-  flex:1;max-width:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:3px;padding:6px 4px;height:var(--nav-h);  /* altura fija del área de toque */
   cursor:pointer;color:var(--dim);transition:color .2s;
   -webkit-tap-highlight-color:transparent;
@@ -1050,6 +1049,12 @@ function updateHeaderUI(){
   document.getElementById('headerStatsBtn').style.display=showStats?'':'none';
   document.getElementById('nav-monitor').style.display=showMonitor?'':'none';
   document.getElementById('nav-stats').style.display=showStats?'':'none';
+  // Adaptar nav: centrar y compactar si hay pocos tabs
+  const nav=document.getElementById('bottomNav');
+  const visible=nav.querySelectorAll('.nav-btn:not([style*="display: none"]),.nav-btn:not([style*="display:none"])');
+  const count=[showMonitor,showStats].filter(Boolean).length+3;
+  nav.style.justifyContent=count<=3?'center':'';
+  nav.querySelectorAll('.nav-btn').forEach(b=>{b.style.maxWidth=count<=3?'90px':'';});
 }
 function renderStatusText(activo){
   const t=document.getElementById('statusTxt'),s=document.getElementById('statusSub');
