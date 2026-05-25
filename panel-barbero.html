@@ -658,8 +658,8 @@ input:checked+.slider:before{transform:translateX(22px)}
 </div><!-- /app -->
 
 <!-- MODALS -->
-<div id="modalCompletar" class="modal-overlay hidden">
-  <div class="modal-box">
+<div id="modalCompletar" class="modal-overlay hidden" onclick="closeModal('modalCompletar')">
+  <div class="modal-box" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
     <div style="font-size:1rem;font-weight:900;font-family:Outfit,sans-serif;margin-bottom:4px;">Completar servicio</div>
     <div style="font-size:.78rem;color:var(--dim);margin-bottom:14px;" id="completarDetalle"></div>
@@ -704,8 +704,8 @@ input:checked+.slider:before{transform:translateX(22px)}
   </div>
 </div>
 
-<div id="modalHistorial" class="modal-overlay hidden">
-  <div class="modal-box">
+<div id="modalHistorial" class="modal-overlay hidden" onclick="closeModal('modalHistorial')">
+  <div class="modal-box" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
       <div style="font-size:1rem;font-weight:900;font-family:Outfit,sans-serif;">Historial del cliente</div>
@@ -716,8 +716,8 @@ input:checked+.slider:before{transform:translateX(22px)}
   </div>
 </div>
 
-<div id="modalReagendar" class="modal-overlay hidden">
-  <div class="modal-box">
+<div id="modalReagendar" class="modal-overlay hidden" onclick="closeModal('modalReagendar')">
+  <div class="modal-box" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
     <div style="font-size:1rem;font-weight:900;font-family:Outfit,sans-serif;margin-bottom:4px;">📅 Reagendar cita</div>
     <div style="font-size:.76rem;color:var(--dim);margin-bottom:14px;" id="reagendarDetalle"></div>
@@ -733,8 +733,8 @@ input:checked+.slider:before{transform:translateX(22px)}
   </div>
 </div>
 
-<div id="modalBloqueo" class="modal-overlay hidden">
-  <div class="modal-box">
+<div id="modalBloqueo" class="modal-overlay hidden" onclick="closeModal('modalBloqueo')">
+  <div class="modal-box" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
     <div style="font-size:1rem;font-weight:900;font-family:Outfit,sans-serif;margin-bottom:14px;">Bloquear horario</div>
     <label class="label">Fecha</label>
@@ -761,8 +761,8 @@ input:checked+.slider:before{transform:translateX(22px)}
   </div>
 </div>
 
-<div id="modalVIP" class="modal-overlay hidden">
-  <div class="modal-box">
+<div id="modalVIP" class="modal-overlay hidden" onclick="closeModal('modalVIP')">
+  <div class="modal-box" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
     <div style="font-size:1rem;font-weight:900;font-family:Outfit,sans-serif;margin-bottom:14px;" id="vipModalTitle">Nueva Cita Fija</div>
     <label class="label">Nombre del cliente</label>
