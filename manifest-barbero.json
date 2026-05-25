@@ -1,0 +1,27 @@
+{
+  "name": "AuraOS Pro — Panel Profesional",
+  "short_name": "AuraOS Pro",
+  "description": "Panel de gestión para profesionales — turnos, clientes, stats",
+  "start_url": "/panel-barbero.html",
+  "scope": "/panel-barbero.html",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#0a0a0a",
+  "orientation": "portrait-primary",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "/assets/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Inicio",
+      "url": "/panel-barbero.html",
+      "description": "Ir al panel principal"
+    }
+  ]
+}
