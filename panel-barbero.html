@@ -1480,7 +1480,9 @@ function openModalNuevaCita(){
   ncFecha='hoy';ncServicioSel=null;ncHoraSel=null;
   document.getElementById('ncNombre').value='';document.getElementById('ncTel').value='';document.getElementById('ncSugs').style.display='none';
   document.querySelectorAll('#ncFechaChips .chip').forEach(c=>c.classList.remove('on'));document.querySelector('#ncFechaChips .chip').classList.add('on');
-  document.getElementById('ncSvcRow').innerHTML=servicios.map(s=>`<div class="hora-chip" onclick="ncSelSvc(this,'${DOMPurify.sanitize(s.nombre)}')">${DOMPurify.sanitize(s.nombre)}</div>`).join('');
+  const cats=barbero?.categorias||[];
+  const svcsFiltered=cats.length>0?servicios.filter(s=>!s.categoria||cats.includes(s.categoria)):servicios;
+  document.getElementById('ncSvcRow').innerHTML=svcsFiltered.map(s=>`<div class="hora-chip" onclick="ncSelSvc(this,'${DOMPurify.sanitize(s.nombre)}')">${DOMPurify.sanitize(s.nombre)}</div>`).join('');
   document.getElementById('ncHoraRow').innerHTML='<div style="color:var(--dim);font-size:.78rem;">Elige un servicio primero</div>';
   document.getElementById('modalNuevaCita').classList.remove('hidden');
 }
