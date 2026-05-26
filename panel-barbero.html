@@ -927,7 +927,7 @@ async function initApp(){
   barbero=b;shop=b.shops;maxTurnos=b.max_turnos_dia||5;
   const[{data:svcs},{data:otrosData}]=await Promise.all([
     sb.from('servicios').select('*').eq('shop_id',b.shop_id).eq('activo',true).order('orden'),
-    sb.from('barberos').select('id,nombre,activo').eq('shop_id',b.shop_id).eq('activo',true).neq('id',b.id)
+    sb.from('barberos').select('id,nombre,activo,categorias').eq('shop_id',b.shop_id).eq('activo',true).neq('id',b.id)
   ]);
   servicios=svcs||[];
   otrosBarberos=otrosData||[];
@@ -1328,14 +1328,21 @@ let currentCitaTransferir=null;
 function openModalTransferir(cita){
   currentCitaTransferir=cita;
   document.getElementById('transferDetalle').textContent=`${cita.nombre} · ${cita.servicio} · ${fmt12(cita.hora)}`;
+  const svc=servicios.find(s=>s.nombre.toLowerCase().trim()===(cita.servicio||'').toLowerCase().trim());
+  const svcCat=svc?.categoria||null;
+  const filtrados=svcCat?otrosBarberos.filter(b=>(b.categorias||[]).includes(svcCat)):otrosBarberos;
   const listEl=document.getElementById('transferBarberosList');
-  listEl.innerHTML=otrosBarberos.map(b=>`
-    <div class="card" style="display:flex;align-items:center;gap:9px;cursor:pointer;margin-bottom:6px;" onclick="transferirCita('${b.id}','${DOMPurify.sanitize(b.nombre)}')">
-      <div style="width:10px;height:10px;border-radius:50%;background:var(--green);flex-shrink:0;"></div>
-      <div style="flex:1;font-weight:800;font-size:.88rem;">${DOMPurify.sanitize(b.nombre)}</div>
-      <span style="color:#60a5fa;font-size:1.1rem;font-weight:800;">↪</span>
-    </div>
-  `).join('');
+  if(filtrados.length===0){
+    listEl.innerHTML=`<div style="text-align:center;padding:18px;color:var(--dim);font-size:.82rem;">No hay profesionales disponibles${svcCat?` en "${svcCat}"`:''}</div>`;
+  }else{
+    listEl.innerHTML=filtrados.map(b=>`
+      <div class="card" style="display:flex;align-items:center;gap:9px;cursor:pointer;margin-bottom:6px;" onclick="transferirCita('${b.id}','${DOMPurify.sanitize(b.nombre)}')">
+        <div style="width:10px;height:10px;border-radius:50%;background:var(--green);flex-shrink:0;"></div>
+        <div style="flex:1;font-weight:800;font-size:.88rem;">${DOMPurify.sanitize(b.nombre)}</div>
+        <span style="color:#60a5fa;font-size:1.1rem;font-weight:800;">↪</span>
+      </div>
+    `).join('');
+  }
   document.getElementById('modalTransferir').classList.remove('hidden');
 }
 async function transferirCita(barberoId,barberoNombre){
