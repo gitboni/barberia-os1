@@ -1164,64 +1164,116 @@ tr:hover td{background:rgba(255,255,255,0.016);}
     <!-- ══ SALUD DEL BOT ══════════════════════════════════════════════ -->
     <div class="page" id="page-bot-salud">
       <div class="section-header" style="margin-bottom:16px;">
-        <div class="section-title">🤖 Salud del Bot — Métricas Diarias</div>
+        <div class="section-title">🤖 Salud del Bot WhatsApp</div>
         <div style="display:flex;gap:8px;align-items:center;">
           <select id="botSaludShopFilter" class="filter-select" style="font-size:0.58rem;" onchange="loadBotSalud()">
             <option value="">Todas las barberías</option>
           </select>
           <select id="botSaludDays" class="filter-select" style="font-size:0.58rem;" onchange="loadBotSalud()">
-            <option value="7">Últimos 7 días</option>
+            <option value="7" selected>Últimos 7 días</option>
             <option value="14">Últimos 14 días</option>
-            <option value="30" selected>Últimos 30 días</option>
+            <option value="30">Últimos 30 días</option>
           </select>
           <button class="btn btn-ghost" onclick="loadBotSalud()">↻ Actualizar</button>
         </div>
       </div>
 
-      <!-- KPIs salud -->
-      <div class="kpi-grid" style="margin-bottom:16px;" id="botSaludKpis">
-        <div class="kpi-card" style="--accent-color:var(--gold)"><div class="kpi-icon">💬</div><div class="kpi-label">Mensajes</div><div class="kpi-value" id="bs-mensajes">—</div><div class="kpi-sub">Total período</div></div>
-        <div class="kpi-card" style="--accent-color:var(--green)"><div class="kpi-icon">📅</div><div class="kpi-label">Citas creadas</div><div class="kpi-value" id="bs-citas">—</div><div class="kpi-sub">Total período</div></div>
-        <div class="kpi-card" style="--accent-color:var(--blue)"><div class="kpi-icon">👤</div><div class="kpi-label">Clientes nuevos</div><div class="kpi-value" id="bs-clientes">—</div><div class="kpi-sub">Total período</div></div>
-        <div class="kpi-card" style="--accent-color:var(--red)"><div class="kpi-icon">⚠️</div><div class="kpi-label">Conv. incompletas</div><div class="kpi-value" id="bs-incompletas">—</div><div class="kpi-sub">Flujos no terminados</div></div>
+      <!-- KPIs row 1: volume -->
+      <div class="kpi-grid" style="margin-bottom:14px;" id="botSaludKpis">
+        <div class="kpi-card" style="--accent-color:var(--gold)"><div class="kpi-icon">💬</div><div class="kpi-label">Mensajes</div><div class="kpi-value" id="bs-mensajes">—</div><div class="kpi-sub" id="bs-mensajes-sub">Total período</div></div>
+        <div class="kpi-card" style="--accent-color:var(--green)"><div class="kpi-icon">👤</div><div class="kpi-label">Clientes únicos</div><div class="kpi-value" id="bs-clientes">—</div><div class="kpi-sub">Teléfonos distintos</div></div>
+        <div class="kpi-card" style="--accent-color:var(--blue)"><div class="kpi-icon">⚡</div><div class="kpi-label">Resp. promedio</div><div class="kpi-value" id="bs-avgms">—</div><div class="kpi-sub" id="bs-avgms-sub">milisegundos</div></div>
+        <div class="kpi-card" style="--accent-color:var(--purple)"><div class="kpi-icon">🔘</div><div class="kpi-label">Interactivos</div><div class="kpi-value" id="bs-interactivos">—</div><div class="kpi-sub">Botones + Listas</div></div>
       </div>
 
-      <!-- Gráfica de barras -->
-      <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px;">
+      <!-- KPIs row 2: success/errors -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px;">
+        <div class="kpi-card" style="--accent-color:var(--green);padding:18px 20px;">
+          <div class="kpi-label" style="margin-bottom:8px;">Tasa de éxito</div>
+          <div style="display:flex;align-items:baseline;gap:8px;">
+            <div class="kpi-value" id="bs-success-rate" style="font-size:2.2rem;">—</div>
+            <span style="font-size:0.7rem;color:var(--muted);">%</span>
+          </div>
+          <div style="height:4px;background:var(--border);margin-top:8px;border-radius:2px;"><div id="bs-success-bar" style="height:100%;background:var(--green);border-radius:2px;transition:width 0.6s ease;width:0%;"></div></div>
+          <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:0.5rem;color:var(--muted);"><span id="bs-ok-count">0 exitosos</span><span id="bs-fail-count">0 fallidos</span></div>
+        </div>
+        <div class="kpi-card" style="--accent-color:var(--red);padding:18px 20px;">
+          <div class="kpi-label" style="margin-bottom:8px;">Errores</div>
+          <div class="kpi-value" id="bs-errores" style="font-size:2.2rem;">—</div>
+          <div class="kpi-sub" id="bs-errores-sub">en el período</div>
+        </div>
+        <div class="kpi-card" style="--accent-color:var(--orange);padding:18px 20px;">
+          <div class="kpi-label" style="margin-bottom:8px;">Resp. máximo</div>
+          <div class="kpi-value" id="bs-maxms" style="font-size:2.2rem;">—</div>
+          <div class="kpi-sub">ms pico</div>
+        </div>
+      </div>
+
+      <!-- Charts row: daily volume + response time -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
         <div class="chart-card">
-          <div class="chart-title">📊 Citas por día</div>
+          <div class="chart-title">📊 Volumen diario de mensajes</div>
           <div id="bs-bar-chart" style="display:flex;align-items:flex-end;gap:3px;height:110px;padding:0 4px;"></div>
           <div id="bs-bar-labels" style="display:flex;gap:3px;margin-top:3px;padding:0 4px;"></div>
         </div>
         <div class="chart-card">
-          <div class="chart-title">🔴 Alertas</div>
-          <div id="bs-alertas" style="display:flex;flex-direction:column;gap:6px;max-height:140px;overflow-y:auto;">
-            <div style="color:var(--muted);font-size:0.6rem;">Sin alertas</div>
-          </div>
+          <div class="chart-title">⚡ Tiempo de respuesta (ms avg)</div>
+          <div id="bs-resp-chart" style="display:flex;align-items:flex-end;gap:3px;height:110px;padding:0 4px;"></div>
+          <div id="bs-resp-labels" style="display:flex;gap:3px;margin-top:3px;padding:0 4px;"></div>
         </div>
       </div>
 
-      <!-- Tabla detalle -->
-      <div class="chart-card">
-        <div class="chart-title">📋 Detalle diario</div>
+      <!-- Per-shop breakdown -->
+      <div class="chart-card" style="margin-bottom:14px;">
+        <div class="chart-title">🏪 Desglose por barbería</div>
         <div style="overflow-x:auto;">
           <table style="width:100%;border-collapse:collapse;font-size:0.62rem;font-family:'DM Mono',monospace;">
             <thead>
               <tr style="border-bottom:1px solid var(--border);color:var(--muted);text-align:left;">
-                <th style="padding:8px 6px;">Fecha</th>
-                <th style="padding:8px 6px;">💬 Mensajes</th>
-                <th style="padding:8px 6px;">📅 Creadas</th>
-                <th style="padding:8px 6px;">✅ Completadas</th>
-                <th style="padding:8px 6px;">❌ Canceladas</th>
-                <th style="padding:8px 6px;">👤 Nuevos</th>
-                <th style="padding:8px 6px;">⚠️ Incompletas</th>
-                <th style="padding:8px 6px;">Estado</th>
+                <th style="padding:8px 6px;">Barbería</th>
+                <th style="padding:8px 6px;">💬 Total</th>
+                <th style="padding:8px 6px;">✅ Éxito</th>
+                <th style="padding:8px 6px;">❌ Fallos</th>
+                <th style="padding:8px 6px;">⚡ Avg ms</th>
+                <th style="padding:8px 6px;">🔘 Interactivos</th>
+                <th style="padding:8px 6px;">Tasa</th>
               </tr>
             </thead>
-            <tbody id="bs-tabla-body">
-              <tr><td colspan="8" style="padding:20px;text-align:center;color:var(--muted);">Cargando...</td></tr>
+            <tbody id="bs-shop-body">
+              <tr><td colspan="7" style="padding:20px;text-align:center;color:var(--muted);">Cargando...</td></tr>
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- Daily detail + Errors -->
+      <div style="display:grid;grid-template-columns:3fr 2fr;gap:14px;margin-bottom:14px;">
+        <div class="chart-card">
+          <div class="chart-title">📋 Detalle diario</div>
+          <div style="overflow-x:auto;max-height:280px;overflow-y:auto;">
+            <table style="width:100%;border-collapse:collapse;font-size:0.62rem;font-family:'DM Mono',monospace;">
+              <thead>
+                <tr style="border-bottom:1px solid var(--border);color:var(--muted);text-align:left;position:sticky;top:0;background:var(--bg2);">
+                  <th style="padding:8px 6px;">Fecha</th>
+                  <th style="padding:8px 6px;">💬</th>
+                  <th style="padding:8px 6px;">✅</th>
+                  <th style="padding:8px 6px;">❌</th>
+                  <th style="padding:8px 6px;">⚡ Avg</th>
+                  <th style="padding:8px 6px;">👤</th>
+                  <th style="padding:8px 6px;">Tasa</th>
+                </tr>
+              </thead>
+              <tbody id="bs-tabla-body">
+                <tr><td colspan="7" style="padding:20px;text-align:center;color:var(--muted);">Cargando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">🔴 Errores recientes</div>
+          <div id="bs-errors-list" style="display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto;">
+            <div style="color:var(--muted);font-size:0.6rem;padding:8px;">Cargando...</div>
+          </div>
         </div>
       </div>
     </div>
@@ -2419,99 +2471,199 @@ function setText(id, val) {
 async function loadBotSalud() {
   try {
     const shopId = document.getElementById('botSaludShopFilter').value;
-    const days = document.getElementById('botSaludDays').value || 30;
-    let query = `select=fecha,shop_id,mensajes_procesados,citas_creadas,citas_completadas,citas_canceladas,clientes_nuevos,conv_incompletas&order=fecha.desc&limit=${days * 6}`;
+    const days = parseInt(document.getElementById('botSaludDays').value) || 7;
+    const since = new Date(); since.setDate(since.getDate() - days);
+    const sinceISO = since.toISOString();
+
+    let query = `select=created_at,shop_id,telefono,mensaje_tipo,response_time_ms,success,error_msg&order=created_at.desc&limit=2000&created_at=gte.${sinceISO}`;
     if (shopId) query += `&shop_id=eq.${shopId}`;
 
-    const raw = await sbGet('bot_metricas', query);
+    const logs = await sbGet('bot_response_log', query);
 
-    // Agrupar por fecha (sumar todos los shops)
-    const byDate = {};
-    raw.forEach(r => {
-      if (!byDate[r.fecha]) byDate[r.fecha] = { fecha: r.fecha, mensajes: 0, creadas: 0, completadas: 0, canceladas: 0, nuevos: 0, incompletas: 0 };
-      byDate[r.fecha].mensajes += r.mensajes_procesados || 0;
-      byDate[r.fecha].creadas += r.citas_creadas || 0;
-      byDate[r.fecha].completadas += r.citas_completadas || 0;
-      byDate[r.fecha].canceladas += r.citas_canceladas || 0;
-      byDate[r.fecha].nuevos += r.clientes_nuevos || 0;
-      byDate[r.fecha].incompletas += r.conv_incompletas || 0;
-    });
+    if (!logs || logs.length === 0) {
+      setText('bs-mensajes', '0'); setText('bs-clientes', '0'); setText('bs-avgms', '—');
+      setText('bs-interactivos', '0'); setText('bs-success-rate', '—'); setText('bs-errores', '0'); setText('bs-maxms', '—');
+      document.getElementById('bs-tabla-body').innerHTML = '<tr><td colspan="7" style="padding:20px;text-align:center;color:var(--muted);">Sin datos en el período</td></tr>';
+      document.getElementById('bs-shop-body').innerHTML = '<tr><td colspan="7" style="padding:20px;text-align:center;color:var(--muted);">Sin datos</td></tr>';
+      document.getElementById('bs-errors-list').innerHTML = '<div style="color:var(--green);font-size:0.6rem;padding:8px;">Sin errores</div>';
+      document.getElementById('bs-bar-chart').innerHTML = ''; document.getElementById('bs-bar-labels').innerHTML = '';
+      document.getElementById('bs-resp-chart').innerHTML = ''; document.getElementById('bs-resp-labels').innerHTML = '';
+      return;
+    }
 
-    const data = Object.values(byDate).sort((a,b) => a.fecha.localeCompare(b.fecha)).slice(-days);
+    // Get shop names
+    const shopIds = [...new Set(logs.map(l => l.shop_id))];
+    let shopNames = {};
+    try {
+      const shopsData = await sbGet('shops', `select=id,nombre&id=in.(${shopIds.join(',')})`);
+      (shopsData || []).forEach(s => { shopNames[s.id] = s.nombre; });
+    } catch(_) {}
 
-    // KPIs
-    const totMsgs = data.reduce((s,d) => s + d.mensajes, 0);
-    const totCitas = data.reduce((s,d) => s + d.creadas, 0);
-    const totNuevos = data.reduce((s,d) => s + d.nuevos, 0);
-    const totIncomp = data.reduce((s,d) => s + d.incompletas, 0);
-    setText('bs-mensajes', totMsgs.toLocaleString());
-    setText('bs-citas', totCitas.toLocaleString());
-    setText('bs-clientes', totNuevos.toLocaleString());
-    setText('bs-incompletas', totIncomp.toLocaleString());
+    // ── Daily aggregation ──
+    const dayMap = {};
+    for (const l of logs) {
+      const dia = l.created_at.substring(0, 10);
+      if (!dayMap[dia]) dayMap[dia] = { total: 0, ok: 0, fail: 0, sumMs: 0, maxMs: 0, phones: new Set(), inter: 0 };
+      const e = dayMap[dia];
+      e.total++; if (l.success) e.ok++; else e.fail++;
+      e.sumMs += l.response_time_ms || 0;
+      e.maxMs = Math.max(e.maxMs, l.response_time_ms || 0);
+      e.phones.add(l.telefono);
+      if (l.mensaje_tipo === 'interactive') e.inter++;
+    }
+    const dailyData = Object.entries(dayMap)
+      .sort((a,b) => a[0].localeCompare(b[0]))
+      .map(([dia, e]) => ({
+        dia, total: e.total, ok: e.ok, fail: e.fail,
+        avgMs: e.total > 0 ? Math.round(e.sumMs / e.total) : 0,
+        maxMs: e.maxMs, clientes: e.phones.size, inter: e.inter,
+      }));
 
-    // Gráfica de barras
-    const maxCitas = Math.max(...data.map(d => d.creadas), 1);
+    // ── Per-shop aggregation ──
+    const shopMap = {};
+    for (const l of logs) {
+      if (!shopMap[l.shop_id]) shopMap[l.shop_id] = { total: 0, ok: 0, fail: 0, sumMs: 0, inter: 0 };
+      const e = shopMap[l.shop_id];
+      e.total++; if (l.success) e.ok++; else e.fail++;
+      e.sumMs += l.response_time_ms || 0;
+      if (l.mensaje_tipo === 'interactive') e.inter++;
+    }
+    const shopData = Object.entries(shopMap)
+      .map(([sid, e]) => ({
+        id: sid, nombre: shopNames[sid] || sid.substring(0, 8),
+        total: e.total, ok: e.ok, fail: e.fail,
+        avgMs: e.total > 0 ? Math.round(e.sumMs / e.total) : 0,
+        inter: e.inter,
+      }))
+      .sort((a,b) => b.total - a.total);
+
+    // ── Totals ──
+    const allPhones = new Set(logs.map(l => l.telefono));
+    const totalOk = logs.filter(l => l.success).length;
+    const totalFail = logs.length - totalOk;
+    const totalMs = logs.reduce((a, l) => a + (l.response_time_ms || 0), 0);
+    const totalInter = logs.filter(l => l.mensaje_tipo === 'interactive').length;
+    const avgMs = logs.length > 0 ? Math.round(totalMs / logs.length) : 0;
+    const maxMs = Math.max(...logs.map(l => l.response_time_ms || 0));
+    const successRate = logs.length > 0 ? ((totalOk / logs.length) * 100).toFixed(1) : 0;
+
+    // ── KPIs ──
+    setText('bs-mensajes', logs.length.toLocaleString());
+    setText('bs-mensajes-sub', `${dailyData.length} días con actividad`);
+    setText('bs-clientes', allPhones.size.toLocaleString());
+    setText('bs-avgms', avgMs.toLocaleString());
+    setText('bs-avgms-sub', avgMs < 2000 ? 'Excelente' : avgMs < 5000 ? 'Aceptable' : 'Lento');
+    setText('bs-interactivos', totalInter.toLocaleString());
+    setText('bs-success-rate', successRate);
+    document.getElementById('bs-success-bar').style.width = successRate + '%';
+    document.getElementById('bs-success-bar').style.background = successRate >= 95 ? 'var(--green)' : successRate >= 80 ? 'var(--orange)' : 'var(--red)';
+    setText('bs-ok-count', totalOk + ' exitosos');
+    setText('bs-fail-count', totalFail + ' fallidos');
+    setText('bs-errores', totalFail.toLocaleString());
+    setText('bs-errores-sub', totalFail === 0 ? 'Sin errores' : `${((totalFail/logs.length)*100).toFixed(1)}% del total`);
+    setText('bs-maxms', maxMs.toLocaleString());
+
+    // ── Volume bar chart ──
+    const maxVol = Math.max(...dailyData.map(d => d.total), 1);
     const barChart = document.getElementById('bs-bar-chart');
     const barLabels = document.getElementById('bs-bar-labels');
-    barChart.innerHTML = data.map(d => {
-      const h = Math.max((d.creadas / maxCitas) * 100, 2);
-      const color = d.creadas === 0 ? 'var(--red)' : d.canceladas > d.completadas ? 'var(--orange)' : 'var(--green)';
-      return `<div style="flex:1;min-width:4px;height:${h}%;background:${color};border-radius:2px 2px 0 0;transition:height 0.3s;" title="${d.fecha}: ${d.creadas} citas"></div>`;
+    barChart.innerHTML = dailyData.map(d => {
+      const h = Math.max((d.total / maxVol) * 100, 2);
+      const color = d.fail > d.ok ? 'var(--red)' : d.fail > 0 ? 'var(--orange)' : 'var(--green)';
+      return `<div style="flex:1;min-width:4px;height:${h}%;background:${color};border-radius:2px 2px 0 0;transition:height 0.3s;" title="${d.dia}: ${d.total} msgs (${d.ok} ok, ${d.fail} err)"></div>`;
     }).join('');
-    barLabels.innerHTML = data.map((d,i) => {
-      if (data.length > 14 && i % 3 !== 0) return `<div style="flex:1;"></div>`;
-      const dt = new Date(d.fecha + 'T12:00:00');
+    barLabels.innerHTML = dailyData.map((d,i) => {
+      if (dailyData.length > 14 && i % 3 !== 0) return '<div style="flex:1;"></div>';
+      const dt = new Date(d.dia + 'T12:00:00');
       return `<div style="flex:1;font-size:0.42rem;color:var(--muted);text-align:center;min-width:4px;">${dt.getDate()}/${dt.getMonth()+1}</div>`;
     }).join('');
 
-    // Alertas
-    const alertas = [];
-    data.slice(-7).forEach(d => {
-      if (d.creadas === 0 && d.mensajes === 0) alertas.push({ tipo: '🔴', msg: `${d.fecha} — Sin actividad (bot caído?)` });
-      else if (d.canceladas > d.completadas && d.creadas > 2) alertas.push({ tipo: '🟡', msg: `${d.fecha} — Más cancelaciones (${d.canceladas}) que completadas (${d.completadas})` });
-      else if (d.incompletas > 5) alertas.push({ tipo: '🟠', msg: `${d.fecha} — ${d.incompletas} conversaciones incompletas` });
-    });
-    const alertBox = document.getElementById('bs-alertas');
-    alertBox.innerHTML = alertas.length === 0
-      ? '<div style="color:var(--green);font-size:0.6rem;padding:8px;">✅ Todo normal — sin alertas</div>'
-      : alertas.map(a => `<div style="font-size:0.58rem;padding:6px 8px;background:rgba(255,255,255,0.03);border-left:2px solid ${a.tipo==='🔴'?'var(--red)':a.tipo==='🟡'?'var(--orange)':'var(--orange)'};border-radius:2px;">${a.tipo} ${a.msg}</div>`).join('');
+    // ── Response time chart ──
+    const maxAvg = Math.max(...dailyData.map(d => d.avgMs), 1);
+    const respChart = document.getElementById('bs-resp-chart');
+    const respLabels = document.getElementById('bs-resp-labels');
+    respChart.innerHTML = dailyData.map(d => {
+      const h = Math.max((d.avgMs / maxAvg) * 100, 2);
+      const color = d.avgMs < 2000 ? 'var(--green)' : d.avgMs < 5000 ? 'var(--orange)' : 'var(--red)';
+      return `<div style="flex:1;min-width:4px;height:${h}%;background:${color};border-radius:2px 2px 0 0;transition:height 0.3s;" title="${d.dia}: ${d.avgMs}ms avg"></div>`;
+    }).join('');
+    respLabels.innerHTML = dailyData.map((d,i) => {
+      if (dailyData.length > 14 && i % 3 !== 0) return '<div style="flex:1;"></div>';
+      const dt = new Date(d.dia + 'T12:00:00');
+      return `<div style="flex:1;font-size:0.42rem;color:var(--muted);text-align:center;min-width:4px;">${dt.getDate()}/${dt.getMonth()+1}</div>`;
+    }).join('');
 
-    // Tabla
-    const tbody = document.getElementById('bs-tabla-body');
-    tbody.innerHTML = data.slice().reverse().map(d => {
-      let estado = '🟢';
-      if (d.creadas === 0 && d.mensajes === 0) estado = '🔴 Sin actividad';
-      else if (d.canceladas > d.completadas && d.creadas > 2) estado = '🟡 Cancelaciones altas';
-      else if (d.incompletas > 5) estado = '🟠 Conv. incompletas';
-      else estado = '🟢 Normal';
+    // ── Per-shop table ──
+    const shopBody = document.getElementById('bs-shop-body');
+    shopBody.innerHTML = shopData.map(s => {
+      const rate = s.total > 0 ? ((s.ok / s.total) * 100).toFixed(1) : 0;
+      const rateColor = rate >= 95 ? 'var(--green)' : rate >= 80 ? 'var(--orange)' : 'var(--red)';
       return `<tr style="border-bottom:1px solid var(--border);">
-        <td style="padding:6px;">${d.fecha}</td>
-        <td style="padding:6px;">${d.mensajes}</td>
-        <td style="padding:6px;">${d.creadas}</td>
-        <td style="padding:6px;color:var(--green);">${d.completadas}</td>
-        <td style="padding:6px;color:${d.canceladas>0?'var(--red)':'inherit'};">${d.canceladas}</td>
-        <td style="padding:6px;color:var(--blue);">${d.nuevos}</td>
-        <td style="padding:6px;color:${d.incompletas>0?'var(--orange)':'inherit'};">${d.incompletas}</td>
-        <td style="padding:6px;font-size:0.52rem;">${estado}</td>
+        <td style="padding:6px;font-weight:600;color:var(--text);">${s.nombre}</td>
+        <td style="padding:6px;">${s.total}</td>
+        <td style="padding:6px;color:var(--green);">${s.ok}</td>
+        <td style="padding:6px;color:${s.fail>0?'var(--red)':'inherit'};">${s.fail}</td>
+        <td style="padding:6px;color:${s.avgMs>5000?'var(--red)':s.avgMs>2000?'var(--orange)':'var(--green)'};">${s.avgMs.toLocaleString()}</td>
+        <td style="padding:6px;color:var(--purple);">${s.inter}</td>
+        <td style="padding:6px;"><span style="color:${rateColor};font-weight:600;">${rate}%</span></td>
       </tr>`;
     }).join('');
 
+    // ── Daily detail table ──
+    const tbody = document.getElementById('bs-tabla-body');
+    tbody.innerHTML = dailyData.slice().reverse().map(d => {
+      const rate = d.total > 0 ? ((d.ok / d.total) * 100).toFixed(1) : 0;
+      const rateColor = rate >= 95 ? 'var(--green)' : rate >= 80 ? 'var(--orange)' : 'var(--red)';
+      return `<tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:6px;">${d.dia}</td>
+        <td style="padding:6px;">${d.total}</td>
+        <td style="padding:6px;color:var(--green);">${d.ok}</td>
+        <td style="padding:6px;color:${d.fail>0?'var(--red)':'inherit'};">${d.fail}</td>
+        <td style="padding:6px;color:${d.avgMs>5000?'var(--red)':d.avgMs>2000?'var(--orange)':'var(--green)'};">${d.avgMs.toLocaleString()}</td>
+        <td style="padding:6px;color:var(--blue);">${d.clientes}</td>
+        <td style="padding:6px;"><span style="color:${rateColor};font-weight:600;">${rate}%</span></td>
+      </tr>`;
+    }).join('');
+
+    // ── Recent errors ──
+    const errors = logs.filter(l => !l.success && l.error_msg).slice(0, 15);
+    const errBox = document.getElementById('bs-errors-list');
+    errBox.innerHTML = errors.length === 0
+      ? '<div style="color:var(--green);font-size:0.6rem;padding:8px;">Sin errores en el período</div>'
+      : errors.map(e => {
+        const dt = new Date(e.created_at);
+        const time = dt.toLocaleDateString('es',{day:'2-digit',month:'short'}) + ' ' + dt.toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'});
+        const shop = shopNames[e.shop_id] || e.shop_id?.substring(0,8) || '?';
+        return `<div style="font-size:0.54rem;padding:8px 10px;background:rgba(248,113,113,0.06);border-left:2px solid var(--red);border-radius:2px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+            <span style="color:var(--red);font-weight:600;">${shop}</span>
+            <span style="color:var(--muted);font-size:0.48rem;">${time}</span>
+          </div>
+          <div style="color:var(--text);word-break:break-word;">${(e.error_msg||'').substring(0,120)}</div>
+          <div style="color:var(--muted);font-size:0.46rem;margin-top:2px;">${e.telefono || ''} · ${e.response_time_ms||0}ms</div>
+        </div>`;
+      }).join('');
+
   } catch(e) {
     console.error('loadBotSalud error:', e);
-    document.getElementById('bs-tabla-body').innerHTML = `<tr><td colspan="8" style="padding:20px;text-align:center;color:var(--red);">Error: ${e.message}</td></tr>`;
+    document.getElementById('bs-tabla-body').innerHTML = `<tr><td colspan="7" style="padding:20px;text-align:center;color:var(--red);">Error: ${e.message}</td></tr>`;
   }
 }
 
-function initBotSaludFilter() {
+async function initBotSaludFilter() {
   const sel = document.getElementById('botSaludShopFilter');
   if (!sel || sel.options.length > 1) return;
-  if (window._allShops) {
-    window._allShops.forEach(s => {
+  try {
+    let shops = allShops;
+    if (!shops || shops.length === 0) {
+      shops = await sbGet('shops', 'select=id,nombre&activo=eq.true&order=nombre.asc');
+    }
+    (shops || []).forEach(s => {
       const o = document.createElement('option');
       o.value = s.id; o.textContent = s.nombre;
       sel.appendChild(o);
     });
-  }
+  } catch(_) {}
 }
 
 async function loadSolicitudes() {
