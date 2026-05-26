@@ -169,6 +169,7 @@ input:checked+.slider:before{transform:translateX(21px)}
 .btn-check{background:var(--green-s);border-color:rgba(46,204,113,.3)}
 .btn-x{background:var(--red-s);border-color:rgba(231,76,60,.3)}
 .btn-wa{background:rgba(37,211,102,.1);border-color:rgba(37,211,102,.3)}
+.btn-transfer{background:rgba(96,165,250,.1);border-color:rgba(96,165,250,.3);color:#60a5fa;font-weight:800}
 .btn-cal{background:rgba(99,179,237,.1);border-color:rgba(99,179,237,.3)}
 /* Header */
 .barb-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:8px}
@@ -788,6 +789,21 @@ input:checked+.slider:before{transform:translateX(22px)}
   </div>
 </div>
 
+<div id="modalTransferir" class="modal-overlay hidden" onclick="closeModal('modalTransferir')">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:12px;">
+      <div style="flex:1;">
+        <div style="font-size:1rem;font-weight:900;font-family:Outfit,sans-serif;">Transferir cita</div>
+        <div id="transferDetalle" style="font-size:.75rem;color:var(--dim);margin-top:3px;"></div>
+      </div>
+      <div onclick="closeModal('modalTransferir')" style="cursor:pointer;color:var(--accent);font-size:1.1rem;padding:4px 8px;">✕</div>
+    </div>
+    <div class="sec-title" style="margin-bottom:8px;">Seleccionar nuevo profesional</div>
+    <div id="transferBarberosList"></div>
+  </div>
+</div>
+
 <script>
 const SB_URL = 'https://mmokunpuslcfphalrwot.supabase.co';
 const SB_KEY = 'sb_publishable_aETz_9ECH5RcBMjmRhUnfw_g71zRdwT';
@@ -799,6 +815,7 @@ lucide.createIcons();
 let usuario=null,barbero=null,shop=null;
 let servicios=[],svcMap={},durMap={};
 let citas=[],citasManana=[],bloqueos=[];
+let otrosBarberos=[];
 let maxTurnos=5,vistaFecha='hoy';
 let currentCitaCompletar=null,currentCitaReagendar=null;
 let pollingInterval=null,monitorInterval=null;
@@ -908,8 +925,12 @@ async function initApp(){
   const{data:b}=await sb.from('barberos').select('*,shops(*)').eq('id',u.barbero_id).single();
   if(!b){toast('Barbero no encontrado','error');doLogout();return;}
   barbero=b;shop=b.shops;maxTurnos=b.max_turnos_dia||5;
-  const{data:svcs}=await sb.from('servicios').select('*').eq('shop_id',b.shop_id).eq('activo',true).order('orden');
+  const[{data:svcs},{data:otrosData}]=await Promise.all([
+    sb.from('servicios').select('*').eq('shop_id',b.shop_id).eq('activo',true).order('orden'),
+    sb.from('barberos').select('id,nombre,activo').eq('shop_id',b.shop_id).eq('activo',true).neq('id',b.id)
+  ]);
   servicios=svcs||[];
+  otrosBarberos=otrosData||[];
   servicios.forEach(s=>{svcMap[s.nombre.toLowerCase().trim()]=parseFloat(s.precio)||0;durMap[s.nombre.toLowerCase().trim()]=s.duracion_min||30;});
   document.getElementById('loginScreen').classList.add('hidden');
   document.getElementById('bottomNav').style.display='flex';updateHeaderUI();showScreen('homeScreen');
@@ -1241,6 +1262,7 @@ function renderCola(lista){
           ${i<lista.length-1?`<div class="action-btn" onclick="moverCola(${c.id},'down')">↓</div>`:''}
           <div class="action-btn btn-cal" onclick="openModalReagendar(${JSON.stringify(c).replace(/"/g,'&quot;')})">📅</div>
           ${c.telefono&&c.telefono!=='walk-in'?`<div class="action-btn btn-wa" onclick="abrirWhatsApp(${JSON.stringify(c).replace(/"/g,'&quot;')})">💬</div>`:''}
+          ${otrosBarberos.length>0?`<div class="action-btn btn-transfer" onclick="openModalTransferir(${JSON.stringify(c).replace(/"/g,'&quot;')})">↪</div>`:''}
           <div class="action-btn btn-check" onclick="pedirNota(${JSON.stringify(c).replace(/"/g,'&quot;')})">✓</div>
           <div class="action-btn btn-x" onclick="cancelarCita(${c.id},'${DOMPurify.sanitize(c.nombre)}')">✕</div>
         </div>
@@ -1301,6 +1323,31 @@ async function confirmarCita(id,estado){
   toast(estado==='Confirmada'?'Cita confirmada ✓':'Reserva rechazada',estado==='Confirmada'?'success':'info');
   await cargarDatos();
 }
+// ── Transferir cita ────────────────────────────────────────────────────────
+let currentCitaTransferir=null;
+function openModalTransferir(cita){
+  currentCitaTransferir=cita;
+  document.getElementById('transferDetalle').textContent=`${cita.nombre} · ${cita.servicio} · ${fmt12(cita.hora)}`;
+  const listEl=document.getElementById('transferBarberosList');
+  listEl.innerHTML=otrosBarberos.map(b=>`
+    <div class="card" style="display:flex;align-items:center;gap:9px;cursor:pointer;margin-bottom:6px;" onclick="transferirCita('${b.id}','${DOMPurify.sanitize(b.nombre)}')">
+      <div style="width:10px;height:10px;border-radius:50%;background:var(--green);flex-shrink:0;"></div>
+      <div style="flex:1;font-weight:800;font-size:.88rem;">${DOMPurify.sanitize(b.nombre)}</div>
+      <span style="color:#60a5fa;font-size:1.1rem;font-weight:800;">↪</span>
+    </div>
+  `).join('');
+  document.getElementById('modalTransferir').classList.remove('hidden');
+}
+async function transferirCita(barberoId,barberoNombre){
+  if(!currentCitaTransferir)return;
+  if(!confirm(`¿Transferir la cita de ${currentCitaTransferir.nombre} a ${barberoNombre}?`))return;
+  const{error}=await sb.from('citas').update({barbero_id:barberoId,barbero:barberoNombre}).eq('id',currentCitaTransferir.id);
+  if(error){toast('Error al transferir','error');return;}
+  toast(`Cita transferida a ${barberoNombre}`,'success');
+  closeModal('modalTransferir');currentCitaTransferir=null;
+  await cargarDatos();
+}
+
 function pedirNota(cita){
   currentCitaCompletar=cita;
   document.getElementById('completarDetalle').textContent=`${cita.nombre} · ${cita.servicio}`;
