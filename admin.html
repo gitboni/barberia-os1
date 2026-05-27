@@ -3935,10 +3935,10 @@ async function saveMovimiento(){
 // ── VENTA DE PRODUCTOS (POS) ──────────────────────────────────
 // ═══════════════════════════════════════════════════════════════
 
-let _ventasCarrito = []; // { productoId, nombre, cantidad, precioUnit, subtotal }
-let _ventasFiltro = '';
-let _ventasHistRango = 'hoy';
-let _ventasInvLoaded = false;
+var _ventasCarrito = []; // { productoId, nombre, cantidad, precioUnit, subtotal }
+var _ventasFiltro = '';
+var _ventasHistRango = 'hoy';
+var _ventasInvLoaded = false;
 
 function renderVentas(){
   // Si no hay productos cargados y no lo hemos intentado, cargar inventario async
