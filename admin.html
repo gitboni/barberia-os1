@@ -434,6 +434,23 @@ tr:last-child td{border-bottom:none;}
 .pos-total-val{font-size:1rem;font-weight:800;color:var(--green);}
 .pos-hist-card{min-height:160px;}
 .pos-hist-card .card-header{padding:12px 18px;}
+.pos-top-product{border-color:rgba(201,168,76,0.35);background:linear-gradient(135deg,var(--bg3),rgba(201,168,76,0.06));}
+.pos-fav-badge{position:absolute;top:4px;right:4px;font-size:0.45rem;background:rgba(201,168,76,0.15);color:var(--gold);padding:1px 5px;border-radius:8px;font-weight:700;letter-spacing:0.03em;}
+.pos-product-card{position:relative;}
+.pos-product-sku{font-family:'DM Mono',monospace;font-size:0.45rem;color:var(--muted);opacity:0.7;}
+.pos-cliente-dd{position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:160px;overflow-y:auto;z-index:20;box-shadow:0 8px 24px rgba(0,0,0,0.3);}
+.pos-cliente-option{padding:7px 10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background 0.15s;font-size:0.65rem;}
+.pos-cliente-option:hover{background:rgba(201,168,76,0.1);}
+.pos-reportes-tabs{display:flex;gap:0;background:var(--bg3);border-radius:8px;overflow:hidden;border:1px solid var(--border);margin-bottom:12px;}
+.pos-reportes-tabs button{flex:1;padding:8px 12px;border:none;background:transparent;color:var(--muted);font-size:0.6rem;font-weight:600;cursor:pointer;transition:all 0.2s;}
+.pos-reportes-tabs button.active{background:var(--gold);color:var(--bg);}
+.pos-rank-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--border);transition:background 0.15s;}
+.pos-rank-row:hover{background:rgba(201,168,76,0.04);}
+.pos-rank-num{font-family:'DM Mono',monospace;font-size:0.8rem;font-weight:800;min-width:24px;text-align:center;}
+.pos-rank-bar{flex:1;background:var(--bg3);border-radius:4px;height:18px;overflow:hidden;position:relative;}
+.pos-rank-fill{height:100%;border-radius:4px;transition:width 0.5s var(--bez);}
+.pos-rank-label{position:absolute;left:6px;top:50%;transform:translateY(-50%);font-size:0.55rem;font-weight:600;color:var(--text);white-space:nowrap;}
+.pos-rank-val{font-family:'DM Mono',monospace;font-size:0.65rem;font-weight:700;min-width:50px;text-align:right;}
 @media(max-width:1200px){
   .pos-layout{grid-template-columns:1fr 260px;}
   .pos-grid{max-height:220px;}
@@ -443,6 +460,7 @@ tr:last-child td{border-bottom:none;}
   .pos-layout{grid-template-columns:1fr;gap:10px;}
   .pos-grid{grid-template-columns:repeat(auto-fill,minmax(100px,1fr));max-height:200px;padding:8px;}
   .pos-cart-panel{max-height:none;}
+  .pos-reportes-tabs{flex-wrap:wrap;}
 }
 </style>
 </head>
@@ -661,7 +679,10 @@ tr:last-child td{border-bottom:none;}
     <h3 id="modal-producto-title">Nuevo Producto</h3>
     <input type="hidden" id="mp-id">
     <div class="fg"><label>Nombre del producto</label><input type="text" id="mp-nombre" placeholder="Ej: Pomada Matte, Navaja Gillette…"></div>
-    <div class="fg"><label>Descripción (opcional)</label><input type="text" id="mp-desc" placeholder="Marca, presentación, notas…"></div>
+    <div class="fg-row">
+      <div class="fg" style="flex:2;"><label>Descripción (opcional)</label><input type="text" id="mp-desc" placeholder="Marca, presentación, notas…"></div>
+      <div class="fg" style="flex:1;"><label>SKU / Código</label><input type="text" id="mp-sku" placeholder="Ej: GEL-001"></div>
+    </div>
     <div class="fg-row">
       <div class="fg"><label>Categoría</label>
         <select id="mp-categoria">
@@ -890,6 +911,7 @@ var _ventasCarrito = [];
 var _ventasFiltro = '';
 var _ventasHistRango = 'hoy';
 var _ventasInvLoaded = false;
+var _ventasTab = 'historial';
 
 function toast(msg,type='success'){
   const el=document.getElementById('toast');
@@ -1140,6 +1162,58 @@ function bc(e){
 function nowStr(){return new Date().toISOString().split('T')[0];}
 
 // ── DASHBOARD ──
+function _buildDashProductWidget(){
+  if(!S.movimientos || !S.movimientos.length) return '';
+  const hoy = getHoyRD();
+  const ventasHoy = S.movimientos.filter(m => m.tipo==='venta' && m.fecha===hoy);
+  if(!ventasHoy.length && !S.productos.some(p=>p.categoria==='Venta')) return '';
+  const totalHoy = ventasHoy.reduce((a,m) => a + parseFloat(m.total || (m.cantidad * m.precio_unitario) || 0), 0);
+  const cantHoy = ventasHoy.reduce((a,m) => a + parseFloat(m.cantidad||0), 0);
+  // Mini chart: last 7 days
+  const days = [];
+  for(let i=6; i>=0; i--){
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const ds = d.toISOString().split('T')[0];
+    const dayLabel = d.toLocaleDateString('es-DO',{weekday:'short'}).slice(0,2);
+    const dayTotal = S.movimientos.filter(m=>m.tipo==='venta'&&m.fecha===ds).reduce((a,m)=>a+parseFloat(m.total||(m.cantidad*m.precio_unitario)||0),0);
+    days.push({label:dayLabel, val:dayTotal});
+  }
+  const maxVal = Math.max(...days.map(d=>d.val), 1);
+  const barsHtml = days.map(d => {
+    const h = Math.max(4, Math.round(d.val/maxVal*48));
+    return `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+      <div style="width:16px;height:${h}px;background:${d.val>0?'var(--green)':'var(--bg3)'};border-radius:3px;transition:height 0.3s;"></div>
+      <div style="font-size:0.4rem;color:var(--muted);">${d.label}</div>
+    </div>`;
+  }).join('');
+  // Stock alerts
+  const lowStock = (S.productos||[]).filter(p=>p.categoria==='Venta'&&p.activo!==false&&parseFloat(p.stock_actual)<=parseFloat(p.stock_minimo));
+  const alertHtml = lowStock.length ? `<div style="margin-top:8px;padding:6px 8px;background:rgba(231,76,60,0.08);border-radius:6px;border-left:3px solid var(--red);">
+    <div style="font-size:0.5rem;font-weight:700;color:var(--red);margin-bottom:3px;">⚠️ Stock bajo (${lowStock.length})</div>
+    ${lowStock.slice(0,3).map(p=>`<div style="font-size:0.48rem;color:var(--muted);">${p.nombre}: ${p.stock_actual} ${p.unidad}</div>`).join('')}
+    ${lowStock.length>3?`<div style="font-size:0.42rem;color:var(--muted);">+${lowStock.length-3} más</div>`:''}
+  </div>` : '';
+
+  return `<div class="card" style="margin-top:0;border-left:3px solid var(--green);">
+    <div class="card-header">
+      <div class="card-title"><i data-lucide="shopping-cart" style="width:14px;height:14px;margin-right:6px;vertical-align:middle;color:var(--green);"></i> Ventas Productos Hoy</div>
+      <button class="btn-sm btn-dark" style="font-size:0.5rem;" onclick="setPage('ventas',document.getElementById('nav-btn-ventas'))">Ver POS →</button>
+    </div>
+    <div style="padding:14px 18px;">
+      <div style="display:flex;gap:20px;align-items:flex-end;">
+        <div>
+          <div style="font-size:1.6rem;font-weight:800;color:var(--green);line-height:1;">$${totalHoy.toLocaleString()}</div>
+          <div style="font-size:0.5rem;color:var(--muted);margin-top:2px;">${cantHoy} producto${cantHoy!==1?'s':''} vendido${cantHoy!==1?'s':''}</div>
+        </div>
+        <div style="flex:1;display:flex;align-items:flex-end;justify-content:flex-end;gap:4px;padding-bottom:2px;">
+          ${barsHtml}
+        </div>
+      </div>
+      ${alertHtml}
+    </div>
+  </div>`;
+}
+
 function renderDashboard(){
   const conf=S.citas.filter(c=>c.estado==='Confirmada').length;
   const comp=S.citas.filter(c=>c.estado==='Completada').length;
@@ -1239,7 +1313,8 @@ function renderDashboard(){
         <div class="timeline">${tl}</div>
       </div>
     </div>
-  </div>`;
+  </div>
+  ${_buildDashProductWidget()}`;
 }
 
 // ── CITAS ──
@@ -3470,7 +3545,7 @@ function openModal(type, reset = false){
     if(type==='barbero'){document.getElementById('modal-barbero-title').textContent='Nuevo Barbero';document.getElementById('mb-id').value='';document.getElementById('mb-nombre').value='';document.getElementById('mb-orden').value=S.barberos.length+1;document.getElementById('mb-activo').checked=true;renderBarberoCategories([]);}
     if(type==='cliente'){document.getElementById('modal-cliente-title').textContent='Nuevo Cliente';document.getElementById('mc-id').value='';document.getElementById('mc-nombre').value='';document.getElementById('mc-tel').value='';document.getElementById('mc-notas').value='';}
     if(type==='config'){const s=S.shopData||{};document.getElementById('cfg-nombre').value=s.nombre||'';document.getElementById('cfg-whatsapp').value=s.whatsapp_dueño||'';document.getElementById('cfg-duracion').value=s.duracion_turno||45;document.getElementById('cfg-timezone').value=s.timezone||'America/Santo_Domingo';buildHpdGrid('cfg',s.dias_atencion,s.horarios_por_dia,s.hora_inicio||9,s.hora_fin||21);}
-    if(type==='producto'){document.getElementById('modal-producto-title').textContent='Nuevo Producto';document.getElementById('mp-id').value='';document.getElementById('mp-nombre').value='';document.getElementById('mp-desc').value='';document.getElementById('mp-categoria').value='Insumo';document.getElementById('mp-unidad').value='unidades';document.getElementById('mp-stock').value=0;document.getElementById('mp-minimo').value=5;document.getElementById('mp-costo').value=0;document.getElementById('mp-pventa').value=0;}
+    if(type==='producto'){document.getElementById('modal-producto-title').textContent='Nuevo Producto';document.getElementById('mp-id').value='';document.getElementById('mp-nombre').value='';document.getElementById('mp-desc').value='';document.getElementById('mp-sku').value='';document.getElementById('mp-categoria').value='Insumo';document.getElementById('mp-unidad').value='unidades';document.getElementById('mp-stock').value=0;document.getElementById('mp-minimo').value=5;document.getElementById('mp-costo').value=0;document.getElementById('mp-pventa').value=0;}
   }
   document.getElementById('modal-'+type).classList.add('open');
 }
@@ -3636,8 +3711,9 @@ function renderInventario(){
     const bajo = parseFloat(p.stock_actual) <= parseFloat(p.stock_minimo);
     const catColor = p.categoria==='Venta' ? 'var(--green)' : p.categoria==='Herramienta' ? 'var(--blue)' : 'var(--muted)';
     const descHtml = p.descripcion ? `<div style="font-size:0.6rem;color:var(--muted);margin-top:1px;">${esc(p.descripcion)}</div>` : '';
+    const skuHtml = p.sku ? `<div style="font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--gold);opacity:0.7;margin-top:1px;">${esc(p.sku)}</div>` : '';
     return `<tr data-cat="${esc(p.categoria)}">
-      <td><span style="font-weight:600;">${esc(p.nombre)}</span>${descHtml}</td>
+      <td><span style="font-weight:600;">${esc(p.nombre)}</span>${skuHtml}${descHtml}</td>
       <td><span style="font-size:0.65rem;color:${catColor};background:rgba(255,255,255,0.04);padding:3px 8px;border-radius:6px;">${esc(p.categoria)}</span></td>
       <td style="font-family:'DM Mono',monospace;font-size:0.8rem;color:${bajo?'var(--red)':'var(--text)'};font-weight:700;">${p.stock_actual} <span style="font-size:0.6rem;color:var(--muted);">${p.unidad}</span></td>
       <td style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);">${p.stock_minimo} ${p.unidad}</td>
@@ -3805,6 +3881,7 @@ function editProducto(id){
   document.getElementById('mp-id').value = p.id;
   document.getElementById('mp-nombre').value = p.nombre;
   document.getElementById('mp-desc').value = p.descripcion || '';
+  document.getElementById('mp-sku').value = p.sku || '';
   document.getElementById('mp-categoria').value = p.categoria;
   document.getElementById('mp-unidad').value = p.unidad;
   document.getElementById('mp-stock').value = p.stock_actual;
@@ -3822,6 +3899,7 @@ async function saveProducto(){
     shop_id:      S.shopId,
     nombre,
     descripcion:  document.getElementById('mp-desc').value.trim() || null,
+    sku:          document.getElementById('mp-sku').value.trim() || null,
     categoria:    document.getElementById('mp-categoria').value,
     unidad:       document.getElementById('mp-unidad').value.trim() || 'unidades',
     stock_actual: parseFloat(document.getElementById('mp-stock').value) || 0,
@@ -3984,6 +4062,14 @@ function renderVentas(){
   // Productos de venta (solo los de categoría Venta y con stock > 0)
   const productosVenta = S.productos.filter(p => p.categoria==='Venta');
 
+  // Calcular ventas por producto (30 días) para ranking de favoritos
+  const ventasCountProd = {};
+  ventasMes.forEach(m => { ventasCountProd[m.producto_id] = (ventasCountProd[m.producto_id]||0) + parseFloat(m.cantidad||0); });
+
+  // Margen bruto promedio por producto
+  const margenMap = {};
+  productosVenta.forEach(p => { margenMap[p.id] = parseFloat(p.precio_venta||0) - parseFloat(p.precio_costo||0); });
+
   const statsHtml = `<div class="pos-stats">
     <div class="stat-card c-green">
       <div class="stat-val green">$${totalHoy.toLocaleString('es-DO',{maximumFractionDigits:0})}</div>
@@ -4003,13 +4089,20 @@ function renderVentas(){
     </div>
   </div>`;
 
+  // Sort: favoritos/más vendidos primero
+  const sortedProds = [...productosVenta].sort((a,b) => (ventasCountProd[b.id]||0) - (ventasCountProd[a.id]||0));
+
   // Product grid for quick sale
-  const gridHtml = productosVenta.length ? productosVenta.map(p => {
+  const gridHtml = sortedProds.length ? sortedProds.map((p, idx) => {
     const sinStock = parseFloat(p.stock_actual) <= 0;
     const bajo = parseFloat(p.stock_actual) <= parseFloat(p.stock_minimo);
-    return `<div class="pos-product-card ${sinStock?'pos-sin-stock':''}" onclick="${sinStock?'':'addToCarrito(\''+p.id+'\')'}" data-search="${esc((p.nombre||'').toLowerCase())}">
+    const ventas30 = ventasCountProd[p.id] || 0;
+    const isTop = ventas30 > 0 && idx < 3;
+    return `<div class="pos-product-card ${sinStock?'pos-sin-stock':''} ${isTop?'pos-top-product':''}" onclick="${sinStock?'':'addToCarrito(\''+p.id+'\')'}" data-search="${esc((p.nombre||'').toLowerCase()+' '+(p.sku||'').toLowerCase())}">
+      ${isTop ? `<div class="pos-fav-badge">⭐ Top ${idx+1}</div>` : ''}
       <div class="pos-product-emoji">${p.categoria==='Venta'?'💈':'📦'}</div>
       <div class="pos-product-name">${esc(p.nombre)}</div>
+      ${p.sku ? `<div class="pos-product-sku">${esc(p.sku)}</div>` : ''}
       ${p.descripcion ? `<div class="pos-product-desc">${esc(p.descripcion)}</div>` : ''}
       <div class="pos-product-price">$${parseFloat(p.precio_venta||0).toLocaleString()}</div>
       <div class="pos-product-stock" style="color:${sinStock?'var(--red)':bajo?'#fbbf24':'var(--muted)'}">
@@ -4087,8 +4180,41 @@ function renderVentas(){
       ${_ventasCarrito.length ? `
       <div class="pos-checkout">
         <div class="pos-total-row">
-          <span class="pos-total-label">Total</span>
-          <span class="pos-total-val">$${totalCarrito.toLocaleString()}</span>
+          <span class="pos-total-label">Subtotal</span>
+          <span class="pos-total-val" id="pos-subtotal-val">$${totalCarrito.toLocaleString()}</span>
+        </div>
+        <!-- Descuento -->
+        <div class="fg" style="margin-bottom:4px;">
+          <label style="display:flex;align-items:center;gap:6px;">🏷️ Descuento
+            <div style="display:flex;gap:0;background:var(--bg3);border-radius:4px;overflow:hidden;border:1px solid var(--border);margin-left:auto;">
+              <button onclick="document.getElementById('pos-desc-tipo').value='pct';calcPosTotal()" id="pos-desc-pct-btn" style="font-size:0.5rem;padding:2px 6px;border:none;cursor:pointer;background:var(--gold);color:var(--bg);">%</button>
+              <button onclick="document.getElementById('pos-desc-tipo').value='monto';calcPosTotal()" id="pos-desc-monto-btn" style="font-size:0.5rem;padding:2px 6px;border:none;cursor:pointer;background:transparent;color:var(--muted);">$</button>
+            </div>
+          </label>
+          <input type="hidden" id="pos-desc-tipo" value="pct">
+          <input type="number" id="pos-descuento" value="0" min="0" step="1" placeholder="0"
+            oninput="calcPosTotal()"
+            style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:0.68rem;width:100%;">
+        </div>
+        <div class="pos-total-row" id="pos-desc-row" style="display:none;">
+          <span class="pos-total-label" style="color:var(--red);">Descuento</span>
+          <span style="color:var(--red);font-weight:700;font-size:0.8rem;" id="pos-desc-display">-$0</span>
+        </div>
+        <div class="pos-total-row" style="border-top:2px solid var(--gold);padding-top:6px;">
+          <span class="pos-total-label" style="font-size:0.85rem;font-weight:800;">TOTAL</span>
+          <span class="pos-total-val" id="pos-total-final" style="font-size:1.1rem;">$${totalCarrito.toLocaleString()}</span>
+        </div>
+        <!-- Cliente -->
+        <div class="fg">
+          <label>👤 Cliente (opcional)</label>
+          <div style="position:relative;">
+            <input type="text" id="pos-cliente-search" placeholder="Buscar por nombre o teléfono…"
+              oninput="filterPosClientes()" onfocus="filterPosClientes()"
+              autocomplete="off"
+              style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:0.68rem;width:100%;">
+            <input type="hidden" id="pos-cliente-id" value="">
+            <div id="pos-cliente-dropdown" class="pos-cliente-dd" style="display:none;"></div>
+          </div>
         </div>
         <div class="fg">
           <label>Vendedor</label>
@@ -4096,25 +4222,62 @@ function renderVentas(){
             <option value="">— Sin asignar —</option>
           </select>
         </div>
+        <!-- Método de pago (con split) -->
         <div class="fg">
-          <label>Método de pago</label>
-          <select id="pos-metodo" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:0.68rem;width:100%;">
+          <label style="display:flex;align-items:center;gap:6px;">Método de pago
+            <label style="margin-left:auto;font-size:0.5rem;display:flex;align-items:center;gap:3px;cursor:pointer;color:var(--muted);">
+              <input type="checkbox" id="pos-split-check" onchange="toggleSplitPago()" style="width:12px;height:12px;accent-color:var(--gold);">
+              Pago mixto
+            </label>
+          </label>
+          <select id="pos-metodo" onchange="onPosMetodoChange()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:0.68rem;width:100%;">
             <option value="efectivo">💵 Efectivo</option>
             <option value="tarjeta">💳 Tarjeta</option>
             <option value="transferencia">🏦 Transferencia</option>
           </select>
         </div>
+        <!-- Split payment fields (hidden by default) -->
+        <div id="pos-split-fields" style="display:none;background:var(--bg3);border-radius:8px;padding:8px;margin-bottom:4px;">
+          <div style="display:flex;gap:6px;align-items:center;margin-bottom:4px;">
+            <div style="flex:1;">
+              <label style="font-size:0.5rem;color:var(--muted);">💵 Efectivo</label>
+              <input type="number" id="pos-split-efectivo" value="0" min="0" oninput="calcSplitResto()"
+                style="background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:4px;font-size:0.68rem;width:100%;">
+            </div>
+            <div style="flex:1;">
+              <label style="font-size:0.5rem;color:var(--muted);">💳 Tarjeta</label>
+              <input type="number" id="pos-split-tarjeta" value="0" min="0" oninput="calcSplitResto()"
+                style="background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:4px;font-size:0.68rem;width:100%;">
+            </div>
+            <div style="flex:1;">
+              <label style="font-size:0.5rem;color:var(--muted);">🏦 Transf.</label>
+              <input type="number" id="pos-split-transferencia" value="0" min="0" oninput="calcSplitResto()"
+                style="background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:4px;font-size:0.68rem;width:100%;">
+            </div>
+          </div>
+          <div id="pos-split-resto" style="font-size:0.55rem;text-align:center;color:var(--muted);"></div>
+        </div>
         <div class="fg">
           <label>Nota (opcional)</label>
-          <input type="text" id="pos-nota" placeholder="Cliente, referencia…" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:0.68rem;width:100%;">
+          <input type="text" id="pos-nota" placeholder="Referencia, detalle…" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:0.68rem;width:100%;">
         </div>
         <button class="btn-sm btn-gold" style="width:100%;padding:10px;font-size:0.78rem;" onclick="procesarVentaPOS()" id="pos-btn-cobrar">
           💰 Cobrar $${totalCarrito.toLocaleString()}
         </button>
+        <button class="btn-sm btn-dark" style="width:100%;padding:6px;font-size:0.55rem;margin-top:4px;" onclick="generarTicketCombinado()">
+          🎟️ Ticket combinado (servicio + productos)
+        </button>
       </div>` : ''}
     </div>
   </div>
-  <!-- Historial de ventas -->
+  <!-- Historial + Reportes -->
+  <div class="pos-reportes-tabs">
+    <button class="${_ventasTab==='historial'||!_ventasTab?'active':''}" onclick="_ventasTab='historial';renderPage()">📊 Historial</button>
+    <button class="${_ventasTab==='ranking'?'active':''}" onclick="_ventasTab='ranking';renderPage()">🏆 Ranking</button>
+    <button class="${_ventasTab==='rentabilidad'?'active':''}" onclick="_ventasTab='rentabilidad';renderPage()">💰 Rentabilidad</button>
+    <button class="${_ventasTab==='vendedores'?'active':''}" onclick="_ventasTab='vendedores';renderPage()">👥 Por Vendedor</button>
+  </div>
+  ${(!_ventasTab || _ventasTab==='historial') ? `
   <div class="card pos-hist-card">
     <div class="card-header">
       <div class="card-title" style="font-size:0.8rem;">📊 Historial</div>
@@ -4133,7 +4296,10 @@ function renderVentas(){
         <tbody>${histRows}</tbody>
       </table>
     </div>
-  </div>`;
+  </div>` : ''}
+  ${_ventasTab==='ranking' ? _buildRankingReport(ventasMes, ventasCountProd, sortedProds) : ''}
+  ${_ventasTab==='rentabilidad' ? _buildRentabilidadReport(productosVenta, ventasCountProd, margenMap) : ''}
+  ${_ventasTab==='vendedores' ? _buildVendedoresReport(ventasMes) : ''}`;
 }
 
 function initVentasPage(){
@@ -4218,16 +4384,168 @@ function clearCarrito(){
   renderPage();
 }
 
+// ── POS: Discount calculation ──
+function calcPosTotal(){
+  const subtotal = _ventasCarrito.reduce((a,item) => a + item.subtotal, 0);
+  const tipo = document.getElementById('pos-desc-tipo')?.value || 'pct';
+  const val = parseFloat(document.getElementById('pos-descuento')?.value) || 0;
+  let descMonto = 0;
+  if(tipo === 'pct'){
+    descMonto = Math.round(subtotal * Math.min(val, 100) / 100);
+  } else {
+    descMonto = Math.min(val, subtotal);
+  }
+  const total = subtotal - descMonto;
+  // Update toggle buttons
+  const pctBtn = document.getElementById('pos-desc-pct-btn');
+  const montoBtn = document.getElementById('pos-desc-monto-btn');
+  if(pctBtn && montoBtn){
+    pctBtn.style.background = tipo==='pct' ? 'var(--gold)' : 'transparent';
+    pctBtn.style.color = tipo==='pct' ? 'var(--bg)' : 'var(--muted)';
+    montoBtn.style.background = tipo==='monto' ? 'var(--gold)' : 'transparent';
+    montoBtn.style.color = tipo==='monto' ? 'var(--bg)' : 'var(--muted)';
+  }
+  const descRow = document.getElementById('pos-desc-row');
+  const descDisp = document.getElementById('pos-desc-display');
+  if(descRow) descRow.style.display = descMonto > 0 ? 'flex' : 'none';
+  if(descDisp) descDisp.textContent = '-$' + descMonto.toLocaleString();
+  const totalEl = document.getElementById('pos-total-final');
+  if(totalEl) totalEl.textContent = '$' + total.toLocaleString();
+  const btn = document.getElementById('pos-btn-cobrar');
+  if(btn) btn.textContent = '💰 Cobrar $' + total.toLocaleString();
+  // Update split total if active
+  calcSplitResto();
+}
+
+// ── POS: Client autocomplete ──
+function filterPosClientes(){
+  const term = (document.getElementById('pos-cliente-search')?.value||'').toLowerCase();
+  const dd = document.getElementById('pos-cliente-dropdown');
+  if(!dd) return;
+  if(!term || term.length < 1){
+    dd.style.display = 'none';
+    document.getElementById('pos-cliente-id').value = '';
+    return;
+  }
+  const matches = (S.clientes||[]).filter(c =>
+    (c.nombre||'').toLowerCase().includes(term) || (c.telefono||'').includes(term)
+  ).slice(0, 6);
+  if(!matches.length){
+    dd.style.display = 'none';
+    return;
+  }
+  dd.innerHTML = matches.map(c => `
+    <div class="pos-cliente-option" onclick="selectPosCliente('${c.id}','${esc(c.nombre)}','${esc(c.telefono||'')}')">
+      <span style="font-weight:600;">${esc(c.nombre)}</span>
+      <span style="color:var(--muted);font-size:0.55rem;">${esc(c.telefono||'')}</span>
+    </div>
+  `).join('');
+  dd.style.display = 'block';
+}
+
+function selectPosCliente(id, nombre, tel){
+  document.getElementById('pos-cliente-id').value = id;
+  document.getElementById('pos-cliente-search').value = nombre + (tel ? ' ('+tel+')' : '');
+  document.getElementById('pos-cliente-dropdown').style.display = 'none';
+}
+
+// Close client dropdown on outside click
+document.addEventListener('click', function(e){
+  const dd = document.getElementById('pos-cliente-dropdown');
+  if(dd && !e.target.closest('#pos-cliente-search') && !e.target.closest('.pos-cliente-dd')){
+    dd.style.display = 'none';
+  }
+});
+
+// ── POS: Split payment ──
+function toggleSplitPago(){
+  const checked = document.getElementById('pos-split-check')?.checked;
+  const fields = document.getElementById('pos-split-fields');
+  const metodoSel = document.getElementById('pos-metodo');
+  if(fields) fields.style.display = checked ? 'block' : 'none';
+  if(metodoSel) metodoSel.style.display = checked ? 'none' : 'block';
+  if(checked) calcSplitResto();
+}
+
+function onPosMetodoChange(){}
+
+function calcSplitResto(){
+  const checked = document.getElementById('pos-split-check')?.checked;
+  if(!checked) return;
+  const subtotal = _ventasCarrito.reduce((a,item) => a + item.subtotal, 0);
+  const tipo = document.getElementById('pos-desc-tipo')?.value || 'pct';
+  const val = parseFloat(document.getElementById('pos-descuento')?.value) || 0;
+  let descMonto = tipo === 'pct' ? Math.round(subtotal * Math.min(val,100) / 100) : Math.min(val, subtotal);
+  const total = subtotal - descMonto;
+  const ef = parseFloat(document.getElementById('pos-split-efectivo')?.value) || 0;
+  const ta = parseFloat(document.getElementById('pos-split-tarjeta')?.value) || 0;
+  const tr = parseFloat(document.getElementById('pos-split-transferencia')?.value) || 0;
+  const sum = ef + ta + tr;
+  const resto = total - sum;
+  const el = document.getElementById('pos-split-resto');
+  if(el){
+    if(Math.abs(resto) < 1) el.innerHTML = '<span style="color:var(--green);font-weight:600;">✓ Exacto</span>';
+    else if(resto > 0) el.innerHTML = '<span style="color:var(--red);">Faltan $'+Math.round(resto).toLocaleString()+'</span>';
+    else el.innerHTML = '<span style="color:var(--gold);">Cambio $'+Math.abs(Math.round(resto)).toLocaleString()+'</span>';
+  }
+}
+
+// ── POS: Stock alert via WhatsApp ──
+async function checkStockAlerts(productoId){
+  const prod = S.productos.find(p=>p.id===productoId);
+  if(!prod) return;
+  if(parseFloat(prod.stock_actual) > parseFloat(prod.stock_minimo)) return;
+  const whatsapp = S.shopData?.['whatsapp_dueño'];
+  if(!whatsapp) return;
+  const msg = encodeURIComponent(`⚠️ *Alerta Stock Bajo*\n\n📦 ${prod.nombre}\n📉 Quedan: ${prod.stock_actual} ${prod.unidad}\n⚡ Mínimo: ${prod.stock_minimo} ${prod.unidad}\n\n🔄 Reordena pronto para no quedarte sin stock.\n\n_Enviado por AuraOS_`);
+  const tel = whatsapp.replace(/\D/g,'');
+  // Open WhatsApp with pre-filled message (non-blocking)
+  window.open(`https://wa.me/${tel}?text=${msg}`, '_blank');
+}
+
 async function procesarVentaPOS(){
   if(!_ventasCarrito.length){ toast('El carrito está vacío','error'); return; }
   const barberoId = document.getElementById('pos-barbero')?.value || null;
-  const metodo = document.getElementById('pos-metodo')?.value || 'efectivo';
+  const isSplit = document.getElementById('pos-split-check')?.checked;
   const nota = document.getElementById('pos-nota')?.value?.trim() || '';
+  const clienteId = document.getElementById('pos-cliente-id')?.value || null;
+  const clienteNombre = document.getElementById('pos-cliente-search')?.value || '';
   const fecha = getHoyRD();
   const btn = document.getElementById('pos-btn-cobrar');
   if(btn){ btn.disabled = true; btn.textContent = '⏳ Procesando…'; }
 
-  let totalVenta = 0;
+  // Calculate discount
+  const subtotal = _ventasCarrito.reduce((a,item) => a + item.subtotal, 0);
+  const descTipo = document.getElementById('pos-desc-tipo')?.value || 'pct';
+  const descVal = parseFloat(document.getElementById('pos-descuento')?.value) || 0;
+  let descMonto = 0;
+  if(descTipo === 'pct') descMonto = Math.round(subtotal * Math.min(descVal,100) / 100);
+  else descMonto = Math.min(descVal, subtotal);
+
+  // Determine payment method string
+  let metodo = 'efectivo';
+  let metodoDisplay = '';
+  if(isSplit){
+    const ef = parseFloat(document.getElementById('pos-split-efectivo')?.value) || 0;
+    const ta = parseFloat(document.getElementById('pos-split-tarjeta')?.value) || 0;
+    const tr = parseFloat(document.getElementById('pos-split-transferencia')?.value) || 0;
+    const total = subtotal - descMonto;
+    if(ef + ta + tr < total - 1){
+      toast('El monto de los pagos no cubre el total','error');
+      if(btn){ btn.disabled = false; btn.textContent = '💰 Cobrar'; }
+      return;
+    }
+    const parts = [];
+    if(ef > 0) parts.push(`💵$${ef.toLocaleString()}`);
+    if(ta > 0) parts.push(`💳$${ta.toLocaleString()}`);
+    if(tr > 0) parts.push(`🏦$${tr.toLocaleString()}`);
+    metodo = 'mixto';
+    metodoDisplay = parts.join(' + ');
+  } else {
+    metodo = document.getElementById('pos-metodo')?.value || 'efectivo';
+  }
+
+  let totalVenta = subtotal - descMonto;
   let itemsDesc = [];
 
   try {
@@ -4242,10 +4560,11 @@ async function procesarVentaPOS(){
         return;
       }
 
-      const total = item.cantidad * item.precioUnit;
       const motivoParts = [];
       if(nota) motivoParts.push(nota);
-      motivoParts.push('Pago: '+metodo);
+      if(clienteNombre) motivoParts.push('Cliente: '+clienteNombre.split('(')[0].trim());
+      motivoParts.push('Pago: '+(isSplit?metodoDisplay:metodo));
+      if(descMonto > 0) motivoParts.push('Desc: -$'+descMonto.toLocaleString());
 
       const mov = {
         shop_id: S.shopId,
@@ -4266,23 +4585,25 @@ async function procesarVentaPOS(){
       await sbPatch('productos','id=eq.'+item.productoId,{stock_actual:nuevoStock, updated_at:new Date().toISOString()});
       prod.stock_actual = nuevoStock;
 
-      totalVenta += total;
+      // Check stock alerts (non-blocking)
+      checkStockAlerts(item.productoId);
+
       itemsDesc.push(`${prod.nombre} x${item.cantidad}`);
     }
 
     // Registrar ingreso en gastos (monto negativo = ingreso)
     if(totalVenta > 0){
+      const descLabel = descMonto > 0 ? ` (desc -$${descMonto.toLocaleString()})` : '';
       await sbPost('gastos', {
         shop_id: S.shopId,
-        descripcion: `Venta POS: ${itemsDesc.join(', ')}`,
+        descripcion: `Venta POS: ${itemsDesc.join(', ')}${descLabel}`,
         monto: -totalVenta,
         categoria: 'Productos',
         fecha
       }).catch(()=>{});
-      // Agregar a S.gastos local para que caja lo refleje
       S.gastos.unshift({
         shop_id: S.shopId,
-        descripcion: `Venta POS: ${itemsDesc.join(', ')}`,
+        descripcion: `Venta POS: ${itemsDesc.join(', ')}${descLabel}`,
         monto: -totalVenta,
         categoria: 'Productos',
         fecha
@@ -4292,9 +4613,18 @@ async function procesarVentaPOS(){
     // Guardar datos para factura antes de limpiar
     const facturaData = {
       items: _ventasCarrito.map(item => ({nombre:item.nombre, cantidad:item.cantidad, precioUnit:item.precioUnit, subtotal:item.cantidad*item.precioUnit})),
+      subtotal,
+      descuento: descMonto,
+      descuentoTipo: descTipo,
+      descuentoVal: descVal,
       total: totalVenta,
-      metodo,
+      metodo: isSplit ? 'mixto' : metodo,
+      metodoDisplay: isSplit ? metodoDisplay : '',
+      splitEfectivo: isSplit ? (parseFloat(document.getElementById('pos-split-efectivo')?.value)||0) : 0,
+      splitTarjeta: isSplit ? (parseFloat(document.getElementById('pos-split-tarjeta')?.value)||0) : 0,
+      splitTransferencia: isSplit ? (parseFloat(document.getElementById('pos-split-transferencia')?.value)||0) : 0,
       nota,
+      cliente: clienteNombre ? clienteNombre.split('(')[0].trim() : '',
       vendedor: barberoId ? (S.barberos.find(b=>b.id===barberoId)?.nombre||'') : '',
       fecha,
       hora: new Date().toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit',hour12:true,timeZone:'America/Santo_Domingo'}),
@@ -4308,7 +4638,6 @@ async function procesarVentaPOS(){
     _ventasCarrito = [];
     toast(`✅ Venta registrada — $${totalVenta.toLocaleString()} (${itemsDesc.length} producto${itemsDesc.length>1?'s':''})`);
 
-    // Preguntar si imprimir factura
     imprimirFactura(facturaData);
     renderPage();
 
@@ -4319,9 +4648,11 @@ async function procesarVentaPOS(){
 }
 
 function imprimirFactura(data){
-  const metodoIcon = {efectivo:'💵',tarjeta:'💳',transferencia:'🏦'}[data.metodo]||'💵';
-  const metodoLabel = {efectivo:'Efectivo',tarjeta:'Tarjeta',transferencia:'Transferencia'}[data.metodo]||data.metodo;
+  const metodoIcon = {efectivo:'💵',tarjeta:'💳',transferencia:'🏦',mixto:'💱'}[data.metodo]||'💵';
+  const metodoLabel = {efectivo:'Efectivo',tarjeta:'Tarjeta',transferencia:'Transferencia',mixto:'Pago Mixto'}[data.metodo]||data.metodo;
   const numFactura = 'V-' + Date.now().toString(36).toUpperCase();
+  const sub = data.subtotal || data.total;
+  const desc = data.descuento || 0;
 
   const itemsHtml = data.items.map(item => `
     <tr>
@@ -4337,6 +4668,16 @@ function imprimirFactura(data){
   if(data.instagram) contactoLines.push('📷 @' + data.instagram.replace('@',''));
   if(data.direccion) contactoLines.push('📍 ' + data.direccion);
   const contactoHtml = contactoLines.length ? contactoLines.map(l=>`<div style="font-size:11px;color:#666;margin:1px 0;">${l}</div>`).join('') : '';
+
+  // Split payment detail
+  let splitHtml = '';
+  if(data.metodo === 'mixto'){
+    const parts = [];
+    if(data.splitEfectivo) parts.push(`<div style="display:flex;justify-content:space-between;font-size:11px;"><span>💵 Efectivo</span><span>$${data.splitEfectivo.toLocaleString()}</span></div>`);
+    if(data.splitTarjeta) parts.push(`<div style="display:flex;justify-content:space-between;font-size:11px;"><span>💳 Tarjeta</span><span>$${data.splitTarjeta.toLocaleString()}</span></div>`);
+    if(data.splitTransferencia) parts.push(`<div style="display:flex;justify-content:space-between;font-size:11px;"><span>🏦 Transferencia</span><span>$${data.splitTransferencia.toLocaleString()}</span></div>`);
+    splitHtml = `<div style="background:#f8f8f8;border-radius:6px;padding:8px 12px;margin:6px 0;">${parts.join('')}</div>`;
+  }
 
   const html = `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><title>Factura ${numFactura}</title>
@@ -4367,6 +4708,7 @@ function imprimirFactura(data){
     <div>
       <div><strong style="color:#1a1a1a;">No.</strong> ${numFactura}</div>
       <div style="margin-top:2px;"><strong style="color:#1a1a1a;">Fecha:</strong> ${data.fecha}</div>
+      ${data.cliente ? `<div style="margin-top:2px;"><strong style="color:#1a1a1a;">Cliente:</strong> ${data.cliente}</div>` : ''}
     </div>
     <div style="text-align:right;">
       <div><strong style="color:#1a1a1a;">Hora:</strong> ${data.hora}</div>
@@ -4391,8 +4733,13 @@ function imprimirFactura(data){
   <div style="border-top:2px solid #1a1a1a;padding-top:12px;margin-top:4px;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
       <span style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">Subtotal</span>
-      <span style="font-size:14px;font-weight:600;">$${data.total.toLocaleString()}</span>
+      <span style="font-size:14px;font-weight:600;">$${sub.toLocaleString()}</span>
     </div>
+    ${desc > 0 ? `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+      <span style="font-size:11px;color:#c0392b;text-transform:uppercase;letter-spacing:1px;">Descuento${data.descuentoTipo==='pct'?' ('+data.descuentoVal+'%)':''}</span>
+      <span style="font-size:14px;font-weight:600;color:#c0392b;">-$${desc.toLocaleString()}</span>
+    </div>` : ''}
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
       <span style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">ITBIS (0%)</span>
       <span style="font-size:14px;font-weight:600;">$0</span>
@@ -4408,12 +4755,14 @@ function imprimirFactura(data){
     <span style="font-size:16px;">${metodoIcon}</span>
     <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">${metodoLabel}</span>
   </div>
+  ${splitHtml}
 
   ${data.nota ? `<div style="text-align:center;font-size:11px;color:#888;margin:4px 0;">📝 ${data.nota}</div>` : ''}
 
   <!-- Footer -->
   <div style="text-align:center;margin-top:18px;padding-top:14px;border-top:1px dashed #ddd;">
     <div style="font-size:13px;font-weight:700;">¡Gracias por tu compra! 🙏</div>
+    ${data.cliente ? `<div style="font-size:11px;color:#888;margin-top:4px;">${data.cliente}</div>` : ''}
     <div style="font-size:10px;color:#aaa;margin-top:6px;">Powered by AuraOS</div>
   </div>
 </div>
@@ -4457,6 +4806,89 @@ function reimprimirFactura(movId){
   });
 }
 
+// ── TICKET COMBINADO (Servicio + Producto) ──
+function generarTicketCombinado(){
+  // Permite generar una factura que combine un servicio (cita completada) + productos del carrito
+  const hoy = getHoyRD();
+  const citasCompletadas = S.citas.filter(c=>c.estado==='Completada');
+  if(!citasCompletadas.length && !_ventasCarrito.length){
+    toast('No hay citas completadas ni productos en el carrito para combinar','error');
+    return;
+  }
+  // Build a quick selector
+  let optHtml = '<option value="">— Solo productos —</option>';
+  citasCompletadas.forEach(c => {
+    const precio = parseFloat(c.precio || 0);
+    optHtml += `<option value="${c.id}">✂️ ${esc(c.nombre)} — ${c.servicio} ($${precio.toLocaleString()}) — ${fmt12rpt(c.hora)}</option>`;
+  });
+
+  const modalHtml = `<div style="padding:16px;">
+    <div style="font-size:0.75rem;font-weight:700;margin-bottom:8px;">🎟️ Ticket Combinado: Servicio + Productos</div>
+    <div class="fg" style="margin-bottom:10px;">
+      <label style="font-size:0.55rem;color:var(--muted);">Selecciona la cita completada</label>
+      <select id="combo-cita-select" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 8px;border-radius:6px;font-size:0.65rem;width:100%;">
+        ${optHtml}
+      </select>
+    </div>
+    <div style="font-size:0.55rem;color:var(--muted);margin-bottom:6px;">Productos del carrito actual (${_ventasCarrito.length}):</div>
+    ${_ventasCarrito.length ? _ventasCarrito.map(item => `<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:0.6rem;border-bottom:1px solid var(--border);">
+      <span>${esc(item.nombre)} x${item.cantidad}</span>
+      <span style="font-weight:700;color:var(--green);">$${item.subtotal.toLocaleString()}</span>
+    </div>`).join('') : '<div style="font-size:0.55rem;color:var(--muted);padding:8px 0;">Carrito vacío — agrega productos primero</div>'}
+    <div style="margin-top:12px;display:flex;gap:8px;">
+      <button class="btn-sm btn-gold" style="flex:1;" onclick="emitirTicketCombinado()">🖨️ Generar Ticket</button>
+      <button class="btn-sm btn-dark" onclick="document.getElementById('combo-modal-overlay').remove()">Cancelar</button>
+    </div>
+  </div>`;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'combo-modal-overlay';
+  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:999;display:flex;align-items:center;justify-content:center;';
+  overlay.innerHTML = `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;max-width:400px;width:90%;max-height:80vh;overflow-y:auto;">${modalHtml}</div>`;
+  overlay.addEventListener('click', e => { if(e.target===overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
+function emitirTicketCombinado(){
+  const citaId = document.getElementById('combo-cita-select')?.value;
+  const cita = citaId ? S.citas.find(c=>c.id==citaId) : null;
+  const items = [];
+  // Add service if selected
+  if(cita){
+    items.push({
+      nombre: '✂️ '+cita.servicio+(cita.barbero?' ('+cita.barbero+')':''),
+      cantidad: 1,
+      precioUnit: parseFloat(cita.precio||0),
+      subtotal: parseFloat(cita.precio||0)
+    });
+  }
+  // Add cart products
+  _ventasCarrito.forEach(item => {
+    items.push({nombre: '📦 '+item.nombre, cantidad: item.cantidad, precioUnit: item.precioUnit, subtotal: item.subtotal});
+  });
+  if(!items.length){ toast('No hay items para el ticket','error'); return; }
+  const subtotal = items.reduce((a,item) => a + item.subtotal, 0);
+  const facturaData = {
+    items,
+    subtotal,
+    descuento: 0,
+    total: subtotal,
+    metodo: document.getElementById('pos-metodo')?.value || 'efectivo',
+    metodoDisplay: '',
+    nota: cita ? 'Ticket combinado: servicio + productos' : '',
+    cliente: cita ? cita.nombre : '',
+    vendedor: cita ? (cita.barbero||'') : '',
+    fecha: getHoyRD(),
+    hora: new Date().toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit',hour12:true,timeZone:'America/Santo_Domingo'}),
+    shop: S.shopData?.nombre || '',
+    direccion: S.shopData?.direccion || '',
+    whatsapp: S.shopData?.['whatsapp_dueño'] || '',
+    instagram: S.shopData?.instagram || '',
+  };
+  imprimirFactura(facturaData);
+  document.getElementById('combo-modal-overlay')?.remove();
+}
+
 function exportVentasCSV(){
   let corte = getHoyRD();
   if(_ventasHistRango==='semana'){ const d=new Date();d.setDate(d.getDate()-7);corte=d.toISOString().split('T')[0]; }
@@ -4475,6 +4907,105 @@ function exportVentasCSV(){
   const a = document.createElement('a'); a.href = url; a.download = `ventas_${getHoyRD()}.csv`; a.click();
   URL.revokeObjectURL(url);
   toast('Ventas exportadas ✓');
+}
+
+// ── REPORTES PRODUCTOS ──
+function _buildRankingReport(ventasMes, ventasCountProd, sortedProds){
+  if(!sortedProds.length) return '<div class="card" style="padding:30px;text-align:center;color:var(--muted);font-size:0.7rem;">No hay productos para rankear</div>';
+  const maxVentas = Math.max(...sortedProds.map(p => ventasCountProd[p.id]||0), 1);
+  const rows = sortedProds.slice(0,15).map((p,i) => {
+    const cnt = ventasCountProd[p.id] || 0;
+    const pct = Math.round(cnt / maxVentas * 100);
+    const totalRev = cnt * parseFloat(p.precio_venta||0);
+    const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+    const colors = ['rgba(201,168,76,0.3)','rgba(62,207,142,0.25)','rgba(59,130,246,0.2)','rgba(156,163,175,0.15)'];
+    const fillColor = colors[Math.min(i,3)];
+    return `<div class="pos-rank-row">
+      <div class="pos-rank-num" style="color:${i<3?'var(--gold)':'var(--muted)'};">${medal||'#'+(i+1)}</div>
+      <div class="pos-rank-bar">
+        <div class="pos-rank-fill" style="width:${Math.max(pct,8)}%;background:${fillColor};"></div>
+        <div class="pos-rank-label">${esc(p.nombre)}${p.sku?' <span style="opacity:0.5;font-size:0.45rem;">('+esc(p.sku)+')</span>':''}</div>
+      </div>
+      <div class="pos-rank-val" style="color:var(--text);">${cnt} uds</div>
+      <div class="pos-rank-val" style="color:var(--green);">$${totalRev.toLocaleString()}</div>
+    </div>`;
+  }).join('');
+  return `<div class="card">
+    <div class="card-header"><div class="card-title" style="font-size:0.8rem;">🏆 Ranking Productos (30 días)</div><span class="card-meta">Por unidades vendidas</span></div>
+    <div style="padding:4px 0;">${rows}</div>
+    ${sortedProds.filter(p=>!ventasCountProd[p.id]).length ? `<div style="padding:8px 14px;font-size:0.5rem;color:var(--muted);border-top:1px solid var(--border);">⚠️ ${sortedProds.filter(p=>!ventasCountProd[p.id]).length} producto(s) sin movimiento en 30 días</div>` : ''}
+  </div>`;
+}
+
+function _buildRentabilidadReport(productos, ventasCountProd, margenMap){
+  if(!productos.length) return '<div class="card" style="padding:30px;text-align:center;color:var(--muted);font-size:0.7rem;">No hay productos para analizar</div>';
+  const sorted = [...productos].sort((a,b) => {
+    const maA = (margenMap[a.id]||0) * (ventasCountProd[a.id]||0);
+    const maB = (margenMap[b.id]||0) * (ventasCountProd[b.id]||0);
+    return maB - maA;
+  });
+  const rows = sorted.map(p => {
+    const costo = parseFloat(p.precio_costo||0);
+    const venta = parseFloat(p.precio_venta||0);
+    const margen = venta - costo;
+    const margenPct = venta > 0 ? Math.round(margen/venta*100) : 0;
+    const uds = ventasCountProd[p.id]||0;
+    const margenTotal = margen * uds;
+    const roi = costo > 0 ? Math.round(margen/costo*100) : 0;
+    const color = margenPct >= 50 ? 'var(--green)' : margenPct >= 25 ? 'var(--gold)' : 'var(--red)';
+    return `<tr>
+      <td style="font-weight:600;font-size:0.68rem;">${esc(p.nombre)}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:0.65rem;text-align:right;">$${costo.toLocaleString()}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:0.65rem;text-align:right;">$${venta.toLocaleString()}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:0.65rem;text-align:right;font-weight:700;color:${color};">$${margen.toLocaleString()} <span style="font-size:0.5rem;opacity:0.7;">(${margenPct}%)</span></td>
+      <td style="font-family:'DM Mono',monospace;font-size:0.65rem;text-align:right;">${uds}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:0.65rem;text-align:right;font-weight:700;color:var(--green);">$${margenTotal.toLocaleString()}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:0.65rem;text-align:right;color:${color};">${roi}%</td>
+    </tr>`;
+  }).join('');
+  const totalMargenBruto = sorted.reduce((a,p) => a + (margenMap[p.id]||0)*(ventasCountProd[p.id]||0), 0);
+  return `<div class="card">
+    <div class="card-header"><div class="card-title" style="font-size:0.8rem;">💰 Rentabilidad por Producto (30 días)</div><span class="card-meta">Margen bruto total: <strong style="color:var(--green);">$${totalMargenBruto.toLocaleString()}</strong></span></div>
+    <div class="table-wrapper" style="max-height:280px;">
+      <table>
+        <thead><tr><th>Producto</th><th style="text-align:right;">Costo</th><th style="text-align:right;">Venta</th><th style="text-align:right;">Margen</th><th style="text-align:right;">Uds.</th><th style="text-align:right;">Ganancia</th><th style="text-align:right;">ROI</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function _buildVendedoresReport(ventasMes){
+  if(!ventasMes.length) return '<div class="card" style="padding:30px;text-align:center;color:var(--muted);font-size:0.7rem;">Sin ventas en los últimos 30 días</div>';
+  // Group by barbero
+  const byBarbero = {};
+  ventasMes.forEach(m => {
+    const bid = m.barbero_id || '__sin_asignar__';
+    if(!byBarbero[bid]) byBarbero[bid] = {total:0, cantidad:0, ventas:0};
+    byBarbero[bid].total += parseFloat(m.total || (m.cantidad * m.precio_unitario) || 0);
+    byBarbero[bid].cantidad += parseFloat(m.cantidad || 0);
+    byBarbero[bid].ventas++;
+  });
+  const sortedBarberos = Object.entries(byBarbero).sort((a,b) => b[1].total - a[1].total);
+  const maxTotal = Math.max(...sortedBarberos.map(([,v])=>v.total), 1);
+  const rows = sortedBarberos.map(([bid, data], i) => {
+    const barb = bid==='__sin_asignar__' ? {nombre:'Sin asignar'} : (S.barberos||[]).find(b=>b.id===bid) || {nombre:'Desconocido'};
+    const pct = Math.round(data.total / maxTotal * 100);
+    const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+    return `<div class="pos-rank-row">
+      <div class="pos-rank-num" style="color:${i<3?'var(--gold)':'var(--muted)'};">${medal||'#'+(i+1)}</div>
+      <div class="pos-rank-bar">
+        <div class="pos-rank-fill" style="width:${Math.max(pct,8)}%;background:rgba(62,207,142,0.25);"></div>
+        <div class="pos-rank-label">${esc(barb.nombre)}</div>
+      </div>
+      <div class="pos-rank-val" style="color:var(--text);">${data.ventas} ventas</div>
+      <div class="pos-rank-val" style="color:var(--green);font-weight:800;">$${data.total.toLocaleString()}</div>
+    </div>`;
+  }).join('');
+  return `<div class="card">
+    <div class="card-header"><div class="card-title" style="font-size:0.8rem;">👥 Ventas por Vendedor (30 días)</div></div>
+    <div style="padding:4px 0;">${rows}</div>
+  </div>`;
 }
 
 // ── HORARIO POR DÍA ──────────────────────────────────────────────────────────
