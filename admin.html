@@ -4025,15 +4025,17 @@ function renderVentas(){
   const histRows = ventasHist.length ? ventasHist.map(m => {
     const prod = S.productos.find(p=>p.id===m.producto_id);
     const barb = m.barbero_id ? (S.barberos||[]).find(b=>b.id===m.barbero_id) : null;
+    const totalMov = parseFloat(m.total || (m.cantidad * m.precio_unitario) || 0);
     return `<tr>
       <td style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);">${m.fecha}</td>
       <td style="font-weight:600;">${prod?esc(prod.nombre):'—'}</td>
       <td style="font-family:'DM Mono',monospace;text-align:right;">${m.cantidad}</td>
-      <td style="font-family:'DM Mono',monospace;text-align:right;color:var(--green);font-weight:700;">$${parseFloat(m.total||0).toLocaleString()}</td>
+      <td style="font-family:'DM Mono',monospace;text-align:right;color:var(--green);font-weight:700;">$${totalMov.toLocaleString()}</td>
       <td style="font-size:0.72rem;color:var(--gold);">${barb?esc(barb.nombre):'—'}</td>
       <td style="font-size:0.72rem;color:var(--muted);">${m.motivo||'Venta directa'}</td>
+      <td><button class="ra-btn" title="Reimprimir factura" onclick="reimprimirFactura('${m.id}')">🖨️</button></td>
     </tr>`;
-  }).join('') : '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--muted);font-family:\'DM Mono\',monospace;font-size:0.6rem;">Sin ventas en este período.</td></tr>';
+  }).join('') : '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--muted);font-family:\'DM Mono\',monospace;font-size:0.6rem;">Sin ventas en este período.</td></tr>';
 
   return `
   ${statsHtml}
@@ -4106,7 +4108,7 @@ function renderVentas(){
     </div>
     <div class="table-wrapper">
       <table>
-        <thead><tr><th>Fecha</th><th>Producto</th><th style="text-align:right;">Cant.</th><th style="text-align:right;">Total</th><th>Vendedor</th><th>Nota</th></tr></thead>
+        <thead><tr><th>Fecha</th><th>Producto</th><th style="text-align:right;">Cant.</th><th style="text-align:right;">Total</th><th>Vendedor</th><th>Nota</th><th></th></tr></thead>
         <tbody>${histRows}</tbody>
       </table>
     </div>
@@ -4266,15 +4268,172 @@ async function procesarVentaPOS(){
       });
     }
 
+    // Guardar datos para factura antes de limpiar
+    const facturaData = {
+      items: _ventasCarrito.map(item => ({nombre:item.nombre, cantidad:item.cantidad, precioUnit:item.precioUnit, subtotal:item.cantidad*item.precioUnit})),
+      total: totalVenta,
+      metodo,
+      nota,
+      vendedor: barberoId ? (S.barberos.find(b=>b.id===barberoId)?.nombre||'') : '',
+      fecha,
+      hora: new Date().toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit',hour12:true,timeZone:'America/Santo_Domingo'}),
+      shop: S.shopData?.nombre || '',
+      direccion: S.shopData?.direccion || '',
+      whatsapp: S.shopData?.['whatsapp_dueño'] || '',
+      instagram: S.shopData?.instagram || '',
+    };
+
     // Limpiar carrito
     _ventasCarrito = [];
     toast(`✅ Venta registrada — $${totalVenta.toLocaleString()} (${itemsDesc.length} producto${itemsDesc.length>1?'s':''})`);
+
+    // Preguntar si imprimir factura
+    imprimirFactura(facturaData);
     renderPage();
 
   } catch(e){
     toast('Error al procesar venta: '+e.message,'error');
     if(btn){ btn.disabled = false; btn.textContent = '💰 Cobrar'; }
   }
+}
+
+function imprimirFactura(data){
+  const metodoIcon = {efectivo:'💵',tarjeta:'💳',transferencia:'🏦'}[data.metodo]||'💵';
+  const metodoLabel = {efectivo:'Efectivo',tarjeta:'Tarjeta',transferencia:'Transferencia'}[data.metodo]||data.metodo;
+  const numFactura = 'V-' + Date.now().toString(36).toUpperCase();
+
+  const itemsHtml = data.items.map(item => `
+    <tr>
+      <td style="padding:8px 0;border-bottom:1px dashed #ddd;font-size:13px;">${item.nombre}</td>
+      <td style="padding:8px 0;border-bottom:1px dashed #ddd;text-align:center;font-size:13px;">${item.cantidad}</td>
+      <td style="padding:8px 0;border-bottom:1px dashed #ddd;text-align:right;font-size:13px;">$${item.precioUnit.toLocaleString()}</td>
+      <td style="padding:8px 0;border-bottom:1px dashed #ddd;text-align:right;font-weight:700;font-size:13px;">$${item.subtotal.toLocaleString()}</td>
+    </tr>
+  `).join('');
+
+  const contactoLines = [];
+  if(data.whatsapp) contactoLines.push('📱 ' + data.whatsapp);
+  if(data.instagram) contactoLines.push('📷 @' + data.instagram.replace('@',''));
+  if(data.direccion) contactoLines.push('📍 ' + data.direccion);
+  const contactoHtml = contactoLines.length ? contactoLines.map(l=>`<div style="font-size:11px;color:#666;margin:1px 0;">${l}</div>`).join('') : '';
+
+  const html = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Factura ${numFactura}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter',sans-serif;background:#fff;color:#1a1a1a;padding:0;margin:0;}
+  @media print{
+    body{padding:0;margin:0;}
+    .no-print{display:none!important;}
+    @page{margin:10mm 8mm;size:80mm auto;}
+  }
+  @media screen{
+    body{max-width:380px;margin:20px auto;padding:20px;background:#f5f5f5;}
+    .receipt{background:#fff;padding:30px 24px;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,0.08);}
+  }
+</style></head><body>
+<div class="receipt">
+  <!-- Header -->
+  <div style="text-align:center;padding-bottom:16px;border-bottom:2px solid #1a1a1a;">
+    <div style="font-size:24px;font-weight:800;letter-spacing:-0.5px;text-transform:uppercase;">${data.shop || 'Mi Negocio'}</div>
+    <div style="font-size:10px;font-weight:600;letter-spacing:3px;color:#888;margin-top:4px;text-transform:uppercase;">Comprobante de Venta</div>
+    ${contactoHtml}
+  </div>
+
+  <!-- Info -->
+  <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #eee;font-size:11px;color:#666;">
+    <div>
+      <div><strong style="color:#1a1a1a;">No.</strong> ${numFactura}</div>
+      <div style="margin-top:2px;"><strong style="color:#1a1a1a;">Fecha:</strong> ${data.fecha}</div>
+    </div>
+    <div style="text-align:right;">
+      <div><strong style="color:#1a1a1a;">Hora:</strong> ${data.hora}</div>
+      ${data.vendedor ? `<div style="margin-top:2px;"><strong style="color:#1a1a1a;">Vendedor:</strong> ${data.vendedor}</div>` : ''}
+    </div>
+  </div>
+
+  <!-- Items -->
+  <table style="width:100%;border-collapse:collapse;margin:12px 0;">
+    <thead>
+      <tr style="border-bottom:2px solid #1a1a1a;">
+        <th style="padding:8px 0;text-align:left;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#888;">Producto</th>
+        <th style="padding:8px 0;text-align:center;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#888;">Cant.</th>
+        <th style="padding:8px 0;text-align:right;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#888;">Precio</th>
+        <th style="padding:8px 0;text-align:right;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#888;">Total</th>
+      </tr>
+    </thead>
+    <tbody>${itemsHtml}</tbody>
+  </table>
+
+  <!-- Totals -->
+  <div style="border-top:2px solid #1a1a1a;padding-top:12px;margin-top:4px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+      <span style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">Subtotal</span>
+      <span style="font-size:14px;font-weight:600;">$${data.total.toLocaleString()}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <span style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">ITBIS (0%)</span>
+      <span style="font-size:14px;font-weight:600;">$0</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-top:2px solid #1a1a1a;border-bottom:2px solid #1a1a1a;">
+      <span style="font-size:16px;font-weight:800;text-transform:uppercase;letter-spacing:1px;">Total</span>
+      <span style="font-size:22px;font-weight:800;">$${data.total.toLocaleString()}</span>
+    </div>
+  </div>
+
+  <!-- Payment -->
+  <div style="display:flex;justify-content:center;align-items:center;gap:6px;margin:14px 0 6px;padding:8px 16px;background:#f8f8f8;border-radius:8px;">
+    <span style="font-size:16px;">${metodoIcon}</span>
+    <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">${metodoLabel}</span>
+  </div>
+
+  ${data.nota ? `<div style="text-align:center;font-size:11px;color:#888;margin:4px 0;">📝 ${data.nota}</div>` : ''}
+
+  <!-- Footer -->
+  <div style="text-align:center;margin-top:18px;padding-top:14px;border-top:1px dashed #ddd;">
+    <div style="font-size:13px;font-weight:700;">¡Gracias por tu compra! 🙏</div>
+    <div style="font-size:10px;color:#aaa;margin-top:6px;">Powered by AuraOS</div>
+  </div>
+</div>
+
+<!-- Print buttons -->
+<div class="no-print" style="text-align:center;margin-top:20px;display:flex;gap:10px;justify-content:center;">
+  <button onclick="window.print()" style="padding:12px 32px;background:#1a1a1a;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">🖨️ Imprimir</button>
+  <button onclick="window.close()" style="padding:12px 32px;background:#f5f5f5;color:#666;border:1px solid #ddd;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">Cerrar</button>
+</div>
+</body></html>`;
+
+  const win = window.open('','_blank','width=420,height=680');
+  if(win){
+    win.document.write(html);
+    win.document.close();
+  } else {
+    toast('El navegador bloqueó la ventana emergente — permite popups para imprimir','warn');
+  }
+}
+
+function reimprimirFactura(movId){
+  const m = S.movimientos.find(x=>x.id===movId);
+  if(!m){ toast('Movimiento no encontrado','error'); return; }
+  const prod = S.productos.find(p=>p.id===m.producto_id);
+  const barb = m.barbero_id ? (S.barberos||[]).find(b=>b.id===m.barbero_id) : null;
+  const total = parseFloat(m.total || (m.cantidad * m.precio_unitario) || 0);
+  const metodo = (m.motivo||'').includes('Pago: tarjeta') ? 'tarjeta' : (m.motivo||'').includes('Pago: transferencia') ? 'transferencia' : 'efectivo';
+  const notaParts = (m.motivo||'').split(' · ').filter(p => !p.startsWith('Pago: '));
+  imprimirFactura({
+    items: [{nombre: prod?.nombre||'Producto', cantidad: parseFloat(m.cantidad), precioUnit: parseFloat(m.precio_unitario||0), subtotal: total}],
+    total,
+    metodo,
+    nota: notaParts.join(' · '),
+    vendedor: barb?.nombre || '',
+    fecha: m.fecha,
+    hora: m.created_at ? new Date(m.created_at).toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit',hour12:true}) : '',
+    shop: S.shopData?.nombre || '',
+    direccion: S.shopData?.direccion || '',
+    whatsapp: S.shopData?.['whatsapp_dueño'] || '',
+    instagram: S.shopData?.instagram || '',
+  });
 }
 
 function exportVentasCSV(){
