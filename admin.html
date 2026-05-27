@@ -1011,7 +1011,7 @@ let currentPage='dashboard';
 let _citasFechaVer='';let _citasBarberoFiltro='';let _citasEstadoFiltro='';
 function setPage(page,btn){
   const f=getFeatures();
-  const blocked={'reportes':!f.reportes,'config':!f.config,'bot':!f.bot,'clientes':!f.clientes,'barberos':!f.barberos,'gastos':!f.reportes,'marketplace':!f.marketplace,'reseñas':!f.reseñas,'caja':!f.caja,'festivos':!f.festivos,'ventas':!f.inventario};
+  const blocked={'reportes':!f.reportes,'config':!f.config,'bot':!f.bot,'clientes':!f.clientes,'barberos':!f.barberos,'gastos':!f.reportes,'marketplace':!f.marketplace,'reseñas':!f.reseñas,'caja':!f.caja,'festivos':!f.festivos};
   if(blocked[page]){toast('Esta sección está desactivada para tu plan','warn');return;}
   currentPage=page;
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
@@ -1034,7 +1034,7 @@ function renderPage(){
   else if(currentPage==='reseñas'){el.innerHTML='<div style="padding:20px;color:var(--muted);font-size:0.75rem;">Cargando reseñas…</div>';loadReseñas();}
   else if(currentPage==='caja'){el.innerHTML=renderCaja();}
   else if(currentPage==='inventario'){el.innerHTML=renderInventario();}
-  else if(currentPage==='ventas'){el.innerHTML=renderVentas();setTimeout(initVentasPage,80);}
+  else if(currentPage==='ventas'){try{el.innerHTML=renderVentas();setTimeout(initVentasPage,80);}catch(err){console.error('renderVentas error:',err);el.innerHTML='<div style="padding:40px;text-align:center;color:var(--red);"><h3>Error al cargar Ventas</h3><pre style="font-size:0.7rem;color:var(--muted);margin-top:10px;">'+esc(err.message)+'</pre></div>';}}
   renderSidebar();updateBarberoSelect();
   if(window.lucide) lucide.createIcons();
 }
@@ -3938,9 +3938,17 @@ async function saveMovimiento(){
 let _ventasCarrito = []; // { productoId, nombre, cantidad, precioUnit, subtotal }
 let _ventasFiltro = '';
 let _ventasHistRango = 'hoy';
+let _ventasInvLoaded = false;
 
 function renderVentas(){
+  // Si no hay productos cargados y no lo hemos intentado, cargar inventario async
+  if(!_ventasInvLoaded && (!S.productos || !S.productos.length)){
+    _ventasInvLoaded = true;
+    loadInventario().then(()=>{ if(currentPage==='ventas') renderPage(); }).catch(()=>{});
+  }
   const hoy = getHoyRD();
+  if(!S.movimientos) S.movimientos = [];
+  if(!S.productos) S.productos = [];
   // Stats
   const ventasHoy = S.movimientos.filter(m => m.tipo==='venta' && m.fecha===hoy);
   const totalHoy = ventasHoy.reduce((a,m) => a + parseFloat(m.total||0), 0);
