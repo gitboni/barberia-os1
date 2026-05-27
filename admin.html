@@ -865,6 +865,10 @@ async function sbPatch(t,q,d){const r=await fetch(SUPABASE_URL+'/rest/v1/'+t+'?'
 async function sbDelete(t,q){const r=await fetch(SUPABASE_URL+'/rest/v1/'+t+'?'+q,{method:'DELETE',headers:H});if(!r.ok)throw new Error(await r.text());return true;}
 
 let S={shopId:null,shopData:null,barberos:[],citas:[],clientes:[],activity:[],gastos:[],productos:[],movimientos:[]};
+var _ventasCarrito = [];
+var _ventasFiltro = '';
+var _ventasHistRango = 'hoy';
+var _ventasInvLoaded = false;
 
 function toast(msg,type='success'){
   const el=document.getElementById('toast');
@@ -3934,11 +3938,6 @@ async function saveMovimiento(){
 // ═══════════════════════════════════════════════════════════════
 // ── VENTA DE PRODUCTOS (POS) ──────────────────────────────────
 // ═══════════════════════════════════════════════════════════════
-
-var _ventasCarrito = []; // { productoId, nombre, cantidad, precioUnit, subtotal }
-var _ventasFiltro = '';
-var _ventasHistRango = 'hoy';
-var _ventasInvLoaded = false;
 
 function renderVentas(){
   // Si no hay productos cargados y no lo hemos intentado, cargar inventario async
