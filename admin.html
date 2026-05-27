@@ -611,6 +611,7 @@ tr:last-child td{border-bottom:none;}
     <h3 id="modal-producto-title">Nuevo Producto</h3>
     <input type="hidden" id="mp-id">
     <div class="fg"><label>Nombre del producto</label><input type="text" id="mp-nombre" placeholder="Ej: Pomada Matte, Navaja Gillette…"></div>
+    <div class="fg"><label>Descripción (opcional)</label><input type="text" id="mp-desc" placeholder="Marca, presentación, notas…"></div>
     <div class="fg-row">
       <div class="fg"><label>Categoría</label>
         <select id="mp-categoria">
@@ -656,7 +657,10 @@ tr:last-child td{border-bottom:none;}
       <div class="fg"><label>Precio unitario (RD$)</label><input type="number" id="mm-precio" value="0" min="0" step="0.01"></div>
       <div class="fg"><label>Fecha</label><input type="date" id="mm-fecha"></div>
     </div>
-    <div class="fg"><label>Motivo / Notas</label><input type="text" id="mm-motivo" placeholder="Compra proveedor, usado en corte de Lucas…"></div>
+    <div class="fg-row">
+      <div class="fg"><label>Barbero (opcional)</label><select id="mm-barbero"><option value="">— Sin asignar —</option></select></div>
+      <div class="fg"><label>Motivo / Notas</label><input type="text" id="mm-motivo" placeholder="Compra proveedor, usado en corte de Lucas…"></div>
+    </div>
     <div class="modal-actions">
       <button class="btn-full btn-gold" onclick="saveMovimiento()">Registrar</button>
       <button class="btn-full btn-cancel" onclick="closeModal('movimiento')">Cancelar</button>
@@ -3411,7 +3415,7 @@ function openModal(type, reset = false){
     if(type==='barbero'){document.getElementById('modal-barbero-title').textContent='Nuevo Barbero';document.getElementById('mb-id').value='';document.getElementById('mb-nombre').value='';document.getElementById('mb-orden').value=S.barberos.length+1;document.getElementById('mb-activo').checked=true;renderBarberoCategories([]);}
     if(type==='cliente'){document.getElementById('modal-cliente-title').textContent='Nuevo Cliente';document.getElementById('mc-id').value='';document.getElementById('mc-nombre').value='';document.getElementById('mc-tel').value='';document.getElementById('mc-notas').value='';}
     if(type==='config'){const s=S.shopData||{};document.getElementById('cfg-nombre').value=s.nombre||'';document.getElementById('cfg-whatsapp').value=s.whatsapp_dueño||'';document.getElementById('cfg-duracion').value=s.duracion_turno||45;document.getElementById('cfg-timezone').value=s.timezone||'America/Santo_Domingo';buildHpdGrid('cfg',s.dias_atencion,s.horarios_por_dia,s.hora_inicio||9,s.hora_fin||21);}
-    if(type==='producto'){document.getElementById('modal-producto-title').textContent='Nuevo Producto';document.getElementById('mp-id').value='';document.getElementById('mp-nombre').value='';document.getElementById('mp-categoria').value='Insumo';document.getElementById('mp-unidad').value='unidades';document.getElementById('mp-stock').value=0;document.getElementById('mp-minimo').value=5;document.getElementById('mp-costo').value=0;document.getElementById('mp-pventa').value=0;}
+    if(type==='producto'){document.getElementById('modal-producto-title').textContent='Nuevo Producto';document.getElementById('mp-id').value='';document.getElementById('mp-nombre').value='';document.getElementById('mp-desc').value='';document.getElementById('mp-categoria').value='Insumo';document.getElementById('mp-unidad').value='unidades';document.getElementById('mp-stock').value=0;document.getElementById('mp-minimo').value=5;document.getElementById('mp-costo').value=0;document.getElementById('mp-pventa').value=0;}
   }
   document.getElementById('modal-'+type).classList.add('open');
 }
@@ -3570,37 +3574,44 @@ function renderInventario(){
     ${alertas.map(p=>`<span style="font-family:'DM Mono',monospace;font-size:0.6rem;background:rgba(248,113,113,0.12);color:var(--red);padding:4px 10px;border-radius:8px;">${esc(p.nombre)} (${esc(p.stock_actual)} ${esc(p.unidad)})</span>`).join('')}
   </div>` : '';
 
+  // Categorías únicas para filtro
+  const catsUnicas = [...new Set(S.productos.map(p=>p.categoria))];
+
   const productoRows = S.productos.length ? S.productos.map(p => {
     const bajo = parseFloat(p.stock_actual) <= parseFloat(p.stock_minimo);
     const catColor = p.categoria==='Venta' ? 'var(--green)' : p.categoria==='Herramienta' ? 'var(--blue)' : 'var(--muted)';
-    return `<tr>
-      <td style="font-weight:600;">${esc(p.nombre)}</td>
+    const descHtml = p.descripcion ? `<div style="font-size:0.6rem;color:var(--muted);margin-top:1px;">${esc(p.descripcion)}</div>` : '';
+    return `<tr data-cat="${esc(p.categoria)}">
+      <td><span style="font-weight:600;">${esc(p.nombre)}</span>${descHtml}</td>
       <td><span style="font-size:0.65rem;color:${catColor};background:rgba(255,255,255,0.04);padding:3px 8px;border-radius:6px;">${esc(p.categoria)}</span></td>
       <td style="font-family:'DM Mono',monospace;font-size:0.8rem;color:${bajo?'var(--red)':'var(--text)'};font-weight:700;">${p.stock_actual} <span style="font-size:0.6rem;color:var(--muted);">${p.unidad}</span></td>
       <td style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);">${p.stock_minimo} ${p.unidad}</td>
       <td style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--muted);">$${parseFloat(p.precio_costo||0).toLocaleString()}</td>
       <td style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--green);">$${parseFloat(p.precio_venta||0).toLocaleString()}</td>
       <td><div class="row-actions">
+        <button class="ra-btn" onclick="verHistorialProducto('${p.id}')" title="Historial">📋</button>
         <button class="ra-btn" onclick="openModalMovimiento(null,'${p.id}')">+Mov</button>
         <button class="ra-btn" onclick="editProducto('${p.id}')">✏️</button>
         <button class="ra-btn danger" onclick="deleteProducto('${p.id}')">✕</button>
       </div></td>
     </tr>`;
-  }).join('') : '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--muted);font-family:\'DM Mono\',monospace;font-size:0.6rem;">Sin productos. Agrega uno con el botón + Nuevo Producto.</td></tr>';
+  }).join('') : '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--muted);font-family:\'DM Mono\',monospace;font-size:0.6rem;">Sin productos. Agrega uno con el boton + Nuevo Producto.</td></tr>';
 
   const movRows = S.movimientos.slice(0,50).map(m => {
     const prod = S.productos.find(p=>p.id===m.producto_id);
+    const barb = m.barbero_id ? (S.barberos||[]).find(b=>b.id===m.barbero_id) : null;
     const tipoColor = {entrada:'var(--blue)',salida:'var(--muted)',venta:'var(--green)',ajuste:'var(--gold)'}[m.tipo]||'var(--muted)';
     const tipoLabel = {entrada:'📦 Entrada',salida:'🔧 Salida',venta:'💰 Venta',ajuste:'⚖️ Ajuste'}[m.tipo]||m.tipo;
+    const barbLabel = barb ? `<span style="font-size:0.6rem;color:var(--gold);">${esc(barb.nombre)}</span>` : '';
     return `<tr>
       <td style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);">${m.fecha}</td>
-      <td style="font-weight:600;">${prod?prod.nombre:'Producto eliminado'}</td>
+      <td style="font-weight:600;">${prod?esc(prod.nombre):'Producto eliminado'}</td>
       <td><span style="font-size:0.65rem;color:${tipoColor};">${tipoLabel}</span></td>
       <td style="font-family:'DM Mono',monospace;text-align:right;">${m.cantidad}</td>
       <td style="font-family:'DM Mono',monospace;color:var(--green);text-align:right;">$${parseFloat(m.total||0).toLocaleString()}</td>
-      <td style="font-size:0.75rem;color:var(--muted);">${m.motivo||'—'}</td>
+      <td style="font-size:0.75rem;color:var(--muted);">${barb?barbLabel+' · ':''}${m.motivo||'—'}</td>
     </tr>`;
-  }).join('') || '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--muted);font-family:\'DM Mono\',monospace;font-size:0.6rem;">Sin movimientos registrados aún.</td></tr>';
+  }).join('') || '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--muted);font-family:\'DM Mono\',monospace;font-size:0.6rem;">Sin movimientos registrados aun.</td></tr>';
 
   return `
   ${statsHtml}
@@ -3611,9 +3622,15 @@ function renderInventario(){
         <div class="card-title">📦 Productos e Inventario</div>
         <div style="font-size:0.6rem;color:var(--muted);margin-top:2px;">Gestiona stock, costos y ventas de productos</div>
       </div>
-      <div style="display:flex;gap:10px;align-items:center;">
-        <input type="text" id="inv-search" placeholder="🔍 Buscar producto…" oninput="filterProductos(this.value)"
-          style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:10px;font-size:0.75rem;width:180px;">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <input type="text" id="inv-search" placeholder="🔍 Buscar producto…" oninput="filterProductos()"
+          style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:10px;font-size:0.75rem;width:160px;">
+        <select id="inv-cat-filter" onchange="filterProductos()"
+          style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:10px;font-size:0.72rem;">
+          <option value="">Todas las categorías</option>
+          ${catsUnicas.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')}
+        </select>
+        <button class="btn-sm btn-dark" onclick="exportInventarioCSV()" title="Exportar CSV">📥 CSV</button>
         <button class="btn-sm btn-dark" onclick="openModalMovimiento()">+ Movimiento</button>
         <button class="btn-sm btn-gold" onclick="openModal('producto',true)">+ Nuevo Producto</button>
       </div>
@@ -3642,13 +3659,88 @@ function renderInventario(){
   </div>`;
 }
 
-function filterProductos(q){
+function filterProductos(){
+  const term = (document.getElementById('inv-search')?.value||'').toLowerCase();
+  const catSel = document.getElementById('inv-cat-filter')?.value||'';
   const rows = document.querySelectorAll('#inv-productos-body tr');
-  const term = (q||'').toLowerCase();
   rows.forEach(r => {
     const txt = r.textContent.toLowerCase();
-    r.style.display = (!term || txt.includes(term)) ? '' : 'none';
+    const cat = r.dataset.cat || '';
+    const matchText = !term || txt.includes(term);
+    const matchCat = !catSel || cat === catSel;
+    r.style.display = (matchText && matchCat) ? '' : 'none';
   });
+}
+
+function exportInventarioCSV(){
+  if(!S.productos.length){ toast('No hay productos para exportar','error'); return; }
+  const header = 'Nombre,Descripcion,Categoria,Stock,Minimo,Unidad,Costo,P.Venta';
+  const rows = S.productos.map(p =>
+    `"${(p.nombre||'').replace(/"/g,'""')}","${(p.descripcion||'').replace(/"/g,'""')}","${p.categoria}",${p.stock_actual},${p.stock_minimo},"${p.unidad}",${p.precio_costo||0},${p.precio_venta||0}`
+  );
+  const csv = header + '\n' + rows.join('\n');
+  const blob = new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = `inventario_${getHoyRD()}.csv`; a.click();
+  URL.revokeObjectURL(url);
+  toast('Inventario exportado ✓');
+}
+
+function verHistorialProducto(id){
+  const prod = S.productos.find(p=>p.id===id);
+  if(!prod) return;
+  const movsProd = S.movimientos.filter(m=>m.producto_id===id);
+  if(!movsProd.length){ toast('Sin movimientos para este producto'); return; }
+  const rows = movsProd.map(m => {
+    const tipoLabel = {entrada:'📦 Entrada',salida:'🔧 Salida',venta:'💰 Venta',ajuste:'⚖️ Ajuste'}[m.tipo]||m.tipo;
+    const barb = m.barbero_id ? (S.barberos||[]).find(b=>b.id===m.barbero_id) : null;
+    return `<tr>
+      <td style="font-family:'DM Mono',monospace;font-size:0.65rem;">${m.fecha}</td>
+      <td style="font-size:0.75rem;">${tipoLabel}</td>
+      <td style="font-family:'DM Mono',monospace;text-align:right;">${m.cantidad}</td>
+      <td style="font-family:'DM Mono',monospace;text-align:right;">$${parseFloat(m.total||0).toLocaleString()}</td>
+      <td style="font-size:0.72rem;color:var(--muted);">${barb?barb.nombre+' · ':''}${m.motivo||'—'}</td>
+    </tr>`;
+  }).join('');
+  // Stock evolution
+  let stockAcum = 0;
+  const movsCron = [...movsProd].reverse();
+  const evolucion = movsCron.map(m => {
+    if(m.tipo==='entrada') stockAcum += parseFloat(m.cantidad);
+    else if(m.tipo==='salida'||m.tipo==='venta') stockAcum -= parseFloat(m.cantidad);
+    else if(m.tipo==='ajuste') stockAcum = parseFloat(m.cantidad);
+    return { fecha: m.fecha, stock: Math.max(0,stockAcum) };
+  });
+  const maxStock = Math.max(...evolucion.map(e=>e.stock),1);
+  const barWidth = Math.max(4, Math.floor(280 / evolucion.length));
+  const miniChart = evolucion.slice(-20).map(e => {
+    const h = Math.max(2, (e.stock / maxStock) * 60);
+    return `<div title="${e.fecha}: ${e.stock}" style="width:${barWidth}px;height:${h}px;background:var(--gold);border-radius:2px;"></div>`;
+  }).join('');
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay open';
+  overlay.style.zIndex = '210';
+  overlay.onclick = e => { if(e.target===overlay) overlay.remove(); };
+  overlay.innerHTML = `<div class="modal" style="max-width:600px;max-height:85vh;overflow-y:auto;">
+    <h3>📋 Historial: ${esc(prod.nombre)}</h3>
+    <div style="display:flex;gap:20px;margin:10px 0 16px;">
+      <div style="font-size:0.75rem;">Stock actual: <strong style="color:${parseFloat(prod.stock_actual)<=parseFloat(prod.stock_minimo)?'var(--red)':'var(--green)'}">${prod.stock_actual} ${prod.unidad}</strong></div>
+      <div style="font-size:0.75rem;color:var(--muted);">Minimo: ${prod.stock_minimo} ${prod.unidad}</div>
+      <div style="font-size:0.75rem;color:var(--muted);">${movsProd.length} movimientos</div>
+    </div>
+    <div style="display:flex;align-items:flex-end;gap:2px;height:70px;padding:4px 0;border-bottom:1px solid var(--border);margin-bottom:14px;">
+      ${miniChart}
+    </div>
+    <div style="overflow-x:auto;">
+      <table><thead><tr><th>Fecha</th><th>Tipo</th><th style="text-align:right;">Cant.</th><th style="text-align:right;">Total</th><th>Detalle</th></tr></thead>
+      <tbody>${rows}</tbody></table>
+    </div>
+    <div class="modal-actions" style="margin-top:14px;">
+      <button class="btn-full btn-cancel" onclick="this.closest('.modal-overlay').remove()">Cerrar</button>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
 }
 
 function editProducto(id){
@@ -3657,6 +3749,7 @@ function editProducto(id){
   document.getElementById('modal-producto-title').textContent = 'Editar Producto';
   document.getElementById('mp-id').value = p.id;
   document.getElementById('mp-nombre').value = p.nombre;
+  document.getElementById('mp-desc').value = p.descripcion || '';
   document.getElementById('mp-categoria').value = p.categoria;
   document.getElementById('mp-unidad').value = p.unidad;
   document.getElementById('mp-stock').value = p.stock_actual;
@@ -3673,6 +3766,7 @@ async function saveProducto(){
   const p = {
     shop_id:      S.shopId,
     nombre,
+    descripcion:  document.getElementById('mp-desc').value.trim() || null,
     categoria:    document.getElementById('mp-categoria').value,
     unidad:       document.getElementById('mp-unidad').value.trim() || 'unidades',
     stock_actual: parseFloat(document.getElementById('mp-stock').value) || 0,
@@ -3706,12 +3800,17 @@ async function deleteProducto(id){
 }
 
 function openModalMovimiento(tipo, productoId){
+  if(!S.productos.length){ toast('Primero agrega un producto','error'); return; }
   // Poblar selector de productos
   const sel = document.getElementById('mm-producto');
   sel.innerHTML = S.productos.map(p =>
     `<option value="${p.id}" ${p.id===productoId?'selected':''}>${p.nombre} (${p.stock_actual} ${p.unidad})</option>`
   ).join('');
-  if(!S.productos.length){ toast('Primero agrega un producto','error'); return; }
+  // Poblar selector de barberos
+  const selB = document.getElementById('mm-barbero');
+  selB.innerHTML = '<option value="">— Sin asignar —</option>' + (S.barberos||[]).filter(b=>b.activo).map(b =>
+    `<option value="${b.id}">${b.nombre}</option>`
+  ).join('');
   if(tipo) document.getElementById('mm-tipo').value = tipo;
   document.getElementById('mm-cantidad').value = 1;
   document.getElementById('mm-precio').value = 0;
@@ -3747,14 +3846,18 @@ async function saveMovimiento(){
   if(!productoId){ toast('Selecciona un producto','error'); return; }
   if(cantidad <= 0){ toast('La cantidad debe ser mayor a 0','error'); return; }
 
+  const barberoId = document.getElementById('mm-barbero').value || null;
+  const total = cantidad * precio;
   const mov = {
     shop_id:       S.shopId,
     producto_id:   productoId,
     tipo,
     cantidad,
     precio_unitario: precio,
+    total,
     motivo:        motivo || null,
     fecha,
+    ...(barberoId ? { barbero_id: barberoId } : {}),
   };
   try {
     const res = await sbPost('inventario_movimientos', mov);
@@ -3772,9 +3875,25 @@ async function saveMovimiento(){
       prod.stock_actual = nuevoStock;
     }
 
-    // Si es venta, registrar también como gasto (costo) y como ingreso
-    if(tipo==='venta' && precio > 0){
-      // Opcional: agregar registro en gastos con el costo del producto
+    // Si es venta de producto, registrar como ingreso en caja (gastos con monto negativo = ingreso)
+    if(tipo==='venta' && total > 0 && prod){
+      await sbPost('gastos', {
+        shop_id: S.shopId,
+        descripcion: `Venta producto: ${prod.nombre} x${cantidad}`,
+        monto: -total,
+        categoria: 'Productos',
+        fecha
+      }).catch(()=>{});
+    }
+    // Si es entrada (compra), registrar como gasto
+    if(tipo==='entrada' && total > 0 && prod){
+      await sbPost('gastos', {
+        shop_id: S.shopId,
+        descripcion: `Compra inventario: ${prod.nombre} x${cantidad}`,
+        monto: total,
+        categoria: 'Productos',
+        fecha
+      }).catch(()=>{});
     }
 
     toast('Movimiento registrado ✓');
