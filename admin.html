@@ -4056,16 +4056,16 @@ function renderVentas(){
   if(!S.productos) S.productos = [];
   // Stats
   const ventasHoy = S.movimientos.filter(m => m.tipo==='venta' && m.fecha===hoy);
-  const totalHoy = ventasHoy.reduce((a,m) => a + parseFloat(m.total||0), 0);
+  const totalHoy = ventasHoy.reduce((a,m) => a + parseFloat(m.total||(m.cantidad*m.precio_unitario)||0), 0);
   const cantHoy = ventasHoy.reduce((a,m) => a + parseFloat(m.cantidad||0), 0);
   const hace7 = new Date(); hace7.setDate(hace7.getDate()-7);
-  const corte7 = hace7.toISOString().split('T')[0];
+  const corte7 = hace7.toLocaleDateString('en-CA', {timeZone: 'America/Santo_Domingo'});
   const ventasSemana = S.movimientos.filter(m => m.tipo==='venta' && m.fecha >= corte7);
-  const totalSemana = ventasSemana.reduce((a,m) => a + parseFloat(m.total||0), 0);
+  const totalSemana = ventasSemana.reduce((a,m) => a + parseFloat(m.total||(m.cantidad*m.precio_unitario)||0), 0);
   const hace30 = new Date(); hace30.setDate(hace30.getDate()-30);
-  const corte30 = hace30.toISOString().split('T')[0];
+  const corte30 = hace30.toLocaleDateString('en-CA', {timeZone: 'America/Santo_Domingo'});
   const ventasMes = S.movimientos.filter(m => m.tipo==='venta' && m.fecha >= corte30);
-  const totalMes = ventasMes.reduce((a,m) => a + parseFloat(m.total||0), 0);
+  const totalMes = ventasMes.reduce((a,m) => a + parseFloat(m.total||(m.cantidad*m.precio_unitario)||0), 0);
 
   // Productos de venta (solo los de categoría Venta y con stock > 0)
   const productosVenta = S.productos.filter(p => p.categoria==='Venta');
@@ -4119,7 +4119,6 @@ function renderVentas(){
     </div>`;
   }).join('') : '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);font-size:0.75rem;">No hay productos de venta configurados.<br><br><button class="btn-sm btn-gold" onclick="setPage(\'inventario\',document.getElementById(\'nav-btn-inventario\'))">Ir a Inventario →</button></div>';
 
-  // Carrito HTML
   const carritoHtml = _ventasCarrito.length ? _ventasCarrito.map((item,i) => `
     <div class="pos-cart-item">
       <div class="pos-cart-info">
@@ -4162,25 +4161,58 @@ function renderVentas(){
   return `
   ${statsHtml}
   <div class="pos-layout">
-    <!-- Grilla de productos -->
-    <div class="card" style="display:flex;flex-direction:column;min-height:0;">
-      <div class="card-header" style="padding:10px 14px;">
-        <div>
-          <div class="card-title" style="font-size:0.8rem;">🛍️ Productos</div>
-          <div style="font-size:0.5rem;color:var(--muted);">Clic para agregar al carrito</div>
+    <div style="display:flex;flex-direction:column;gap:12px;min-width:0;">
+      <!-- Grilla de productos -->
+      <div class="card" style="display:flex;flex-direction:column;min-height:0;">
+        <div class="card-header" style="padding:10px 14px;">
+          <div>
+            <div class="card-title" style="font-size:0.8rem;">🛍️ Productos</div>
+            <div style="font-size:0.5rem;color:var(--muted);">Clic para agregar al carrito</div>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <button class="btn-sm btn-dark" onclick="imprimirTodasEtiquetas()" title="Imprimir etiquetas QR" style="font-size:0.5rem;padding:4px 8px;">🏷️</button>
+            <input type="text" id="pos-search" placeholder="🔍 Buscar…" oninput="filterVentasGrid()"
+              style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:8px;font-size:0.68rem;width:140px;">
+          </div>
         </div>
-        <div style="display:flex;gap:6px;align-items:center;">
-          <button class="btn-sm btn-dark" onclick="imprimirTodasEtiquetas()" title="Imprimir etiquetas QR" style="font-size:0.5rem;padding:4px 8px;">🏷️</button>
-          <input type="text" id="pos-search" placeholder="🔍 Buscar…" oninput="filterVentasGrid()"
-            style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:8px;font-size:0.68rem;width:140px;">
+        <div class="pos-grid" id="pos-product-grid">
+          ${gridHtml}
         </div>
       </div>
-      <div class="pos-grid" id="pos-product-grid">
-        ${gridHtml}
+      <!-- Historial + Reportes -->
+      <div class="pos-reportes-tabs">
+        <button class="${_ventasTab==='historial'||!_ventasTab?'active':''}" onclick="_ventasTab='historial';renderPage()">📊 Historial</button>
+        <button class="${_ventasTab==='ranking'?'active':''}" onclick="_ventasTab='ranking';renderPage()">🏆 Ranking</button>
+        <button class="${_ventasTab==='rentabilidad'?'active':''}" onclick="_ventasTab='rentabilidad';renderPage()">💰 Rentabilidad</button>
+        <button class="${_ventasTab==='vendedores'?'active':''}" onclick="_ventasTab='vendedores';renderPage()">👥 Por Vendedor</button>
       </div>
+      ${(!_ventasTab || _ventasTab==='historial') ? `
+      <div class="card pos-hist-card">
+        <div class="card-header">
+          <div class="card-title" style="font-size:0.8rem;">📊 Historial</div>
+          <div style="display:flex;gap:4px;align-items:center;">
+            <div style="display:flex;gap:0;background:var(--bg3);border-radius:6px;overflow:hidden;border:1px solid var(--border);">
+              <button onclick="_ventasHistRango='hoy';renderPage()" style="font-size:0.55rem;padding:4px 10px;border:none;cursor:pointer;background:${_ventasHistRango==='hoy'?'var(--gold)':'transparent'};color:${_ventasHistRango==='hoy'?'var(--bg)':'var(--muted)'};">HOY</button>
+              <button onclick="_ventasHistRango='semana';renderPage()" style="font-size:0.55rem;padding:4px 10px;border:none;cursor:pointer;background:${_ventasHistRango==='semana'?'var(--gold)':'transparent'};color:${_ventasHistRango==='semana'?'var(--bg)':'var(--muted)'};">7D</button>
+              <button onclick="_ventasHistRango='mes';renderPage()" style="font-size:0.55rem;padding:4px 10px;border:none;cursor:pointer;background:${_ventasHistRango==='mes'?'var(--gold)':'transparent'};color:${_ventasHistRango==='mes'?'var(--bg)':'var(--muted)'};">30D</button>
+            </div>
+            <button class="btn-sm btn-dark" style="font-size:0.5rem;padding:4px 8px;" onclick="exportVentasCSV()">📥 CSV</button>
+          </div>
+        </div>
+        <div class="table-wrapper" style="max-height:220px;">
+          <table>
+            <thead><tr><th>Fecha</th><th>Producto</th><th style="text-align:right;">Cant.</th><th style="text-align:right;">Total</th><th>Vendedor</th><th>Nota</th><th></th></tr></thead>
+            <tbody>${histRows}</tbody>
+          </table>
+        </div>
+      </div>` : ''}
+      ${_ventasTab==='ranking' ? _buildRankingReport(ventasMes, ventasCountProd, sortedProds) : ''}
+      ${_ventasTab==='rentabilidad' ? _buildRentabilidadReport(productosVenta, ventasCountProd, margenMap) : ''}
+      ${_ventasTab==='vendedores' ? _buildVendedoresReport(ventasMes) : ''}
     </div>
+
     <!-- Carrito / Cobro -->
-    <div class="card pos-cart-panel">
+    <div class="card pos-cart-panel" style="position:sticky;top:12px;">
       <div class="card-header">
         <div class="card-title" style="font-size:0.8rem;">🛒 Carrito</div>
         ${_ventasCarrito.length ? `<button class="btn-sm btn-dark" style="font-size:0.5rem;padding:3px 8px;" onclick="clearCarrito()">Vaciar</button>` : ''}
@@ -4509,9 +4541,16 @@ async function checkStockAlerts(productoId){
   if(parseFloat(prod.stock_actual) > parseFloat(prod.stock_minimo)) return;
   const whatsapp = S.shopData?.['whatsapp_dueño'];
   if(!whatsapp) return;
-  const msg = encodeURIComponent(`⚠️ *Alerta Stock Bajo*\n\n📦 ${prod.nombre}\n📉 Quedan: ${prod.stock_actual} ${prod.unidad}\n⚡ Mínimo: ${prod.stock_minimo} ${prod.unidad}\n\n🔄 Reordena pronto para no quedarte sin stock.\n\n_Enviado por AuraOS_`);
-  const tel = whatsapp.replace(/\D/g,'');
-  // Open WhatsApp with pre-filled message (non-blocking)
+  const msg = encodeURIComponent(`⚠️ *Alerta Stock Bajo*
+
+📦 ${prod.nombre}
+📉 Quedan: ${prod.stock_actual} ${prod.unidad}
+⚡ Mínimo: ${prod.stock_minimo} ${prod.unidad}
+
+🔄 Reordena pronto para no quedarte sin stock.
+
+_Enviado por AuraOS_`);
+  const tel = whatsapp.replace(/\\D/g,'');
   window.open(`https://wa.me/${tel}?text=${msg}`, '_blank');
 }
 
@@ -4526,7 +4565,6 @@ async function procesarVentaPOS(){
   const btn = document.getElementById('pos-btn-cobrar');
   if(btn){ btn.disabled = true; btn.textContent = '⏳ Procesando…'; }
 
-  // Calculate discount
   const subtotal = _ventasCarrito.reduce((a,item) => a + item.subtotal, 0);
   const descTipo = document.getElementById('pos-desc-tipo')?.value || 'pct';
   const descVal = parseFloat(document.getElementById('pos-descuento')?.value) || 0;
@@ -4534,7 +4572,6 @@ async function procesarVentaPOS(){
   if(descTipo === 'pct') descMonto = Math.round(subtotal * Math.min(descVal,100) / 100);
   else descMonto = Math.min(descVal, subtotal);
 
-  // Determine payment method string
   let metodo = 'efectivo';
   let metodoDisplay = '';
   if(isSplit){
@@ -4542,17 +4579,12 @@ async function procesarVentaPOS(){
     const ta = parseFloat(document.getElementById('pos-split-tarjeta')?.value) || 0;
     const tr = parseFloat(document.getElementById('pos-split-transferencia')?.value) || 0;
     const total = subtotal - descMonto;
-    if(ef + ta + tr < total - 1){
-      toast('El monto de los pagos no cubre el total','error');
-      if(btn){ btn.disabled = false; btn.textContent = '💰 Cobrar'; }
-      return;
-    }
+    if(ef + ta + tr < total - 1){ toast('El monto de los pagos no cubre el total','error'); if(btn){ btn.disabled = false; btn.textContent = '💰 Cobrar'; } return; }
     const parts = [];
     if(ef > 0) parts.push(`💵$${ef.toLocaleString()}`);
     if(ta > 0) parts.push(`💳$${ta.toLocaleString()}`);
     if(tr > 0) parts.push(`🏦$${tr.toLocaleString()}`);
-    metodo = 'mixto';
-    metodoDisplay = parts.join(' + ');
+    metodo = 'mixto'; metodoDisplay = parts.join(' + ');
   } else {
     metodo = document.getElementById('pos-metodo')?.value || 'efectivo';
   }
@@ -4565,35 +4597,29 @@ async function procesarVentaPOS(){
       const prod = S.productos.find(p=>p.id===item.productoId);
       if(!prod){ toast('Producto no encontrado: '+item.nombre,'error'); continue; }
 
-      // Verificar stock
-      if(parseFloat(prod.stock_actual) < item.cantidad){
-        toast(`Stock insuficiente de ${prod.nombre} (disponible: ${prod.stock_actual})`,'error');
-        if(btn){ btn.disabled = false; btn.textContent = '💰 Cobrar'; }
-        return;
-      }
+      let dbStock = parseFloat(prod.stock_actual);
+      try { const dbProdRes = await sbGet('productos', `id=eq.${item.productoId}&select=stock_actual`); if(dbProdRes && dbProdRes.length) dbStock = parseFloat(dbProdRes[0].stock_actual); } catch(e) {}
+
+      if(dbStock < item.cantidad){ toast(`Stock insuficiente de ${prod.nombre} (disponible: ${dbStock})`,'error'); if(btn){ btn.disabled = false; btn.textContent = '💰 Cobrar'; } return; }
 
       const motivoParts = [];
       if(nota) motivoParts.push(nota);
       if(clienteNombre) motivoParts.push('Cliente: '+clienteNombre.split('(')[0].trim());
       motivoParts.push('Pago: '+(isSplit?metodoDisplay:metodo));
-      if(descMonto > 0) motivoParts.push('Desc: -$'+descMonto.toLocaleString());
+      if(descMonto > 0) motivoParts.push('Desc global: -$'+descMonto.toLocaleString());
+
+      const subtotalItem = item.cantidad * item.precioUnit;
+      const descItem = subtotal > 0 ? (subtotalItem / subtotal) * descMonto : 0;
+      const totalFinal = subtotalItem - descItem;
 
       const mov = {
-        shop_id: S.shopId,
-        producto_id: item.productoId,
-        tipo: 'venta',
-        cantidad: item.cantidad,
-        precio_unitario: item.precioUnit,
-        motivo: motivoParts.join(' · ') || null,
-        fecha,
-        ...(barberoId ? { barbero_id: barberoId } : {}),
+        shop_id: S.shopId, producto_id: item.productoId, tipo: 'venta', cantidad: item.cantidad, precio_unitario: item.precioUnit, total: totalFinal, motivo: motivoParts.join(' • ') || null, fecha, ...(barberoId ? { barbero_id: barberoId } : {})
       };
 
       const res = await sbPost('inventario_movimientos', mov);
       if(res && res[0]) S.movimientos.unshift(res[0]);
 
-      // Actualizar stock local y remoto
-      let nuevoStock = Math.max(0, parseFloat(prod.stock_actual) - item.cantidad);
+      let nuevoStock = Math.max(0, dbStock - item.cantidad);
       await sbPatch('productos','id=eq.'+item.productoId,{stock_actual:nuevoStock, updated_at:new Date().toISOString()});
       prod.stock_actual = nuevoStock;
 
@@ -5431,7 +5457,7 @@ function renderCaja(){
   const unidadesVendidas=ventasDia.reduce((a,m)=>a+parseFloat(m.cantidad||0),0);
 
   const ingresosBrutos=ingresosServicios+ingresosProductos;
-  const gastosDia=esHoy?(S.gastos||[]).filter(g=>g.fecha===fecha):(_cajaGastos||[]);
+  const gastosDia=esHoy?(S.gastos||[]).filter(g=>g.fecha===fecha && parseFloat(g.monto||0)>0):(_cajaGastos||[]).filter(g=>parseFloat(g.monto||0)>0);
   const totalGastos=gastosDia.reduce((a,g)=>a+parseFloat(g.monto||0),0);
 
   // Comisiones configurables
@@ -5648,7 +5674,7 @@ function exportCSV_caja(){
     const metodo=mt.includes('pago: tarjeta')?'Tarjeta':mt.includes('pago: transferencia')?'Transferencia':'Efectivo';
     return `${new Date(m.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})},"${m.cliente_nombre||'—'}","${m.producto_nombre||'Producto'}","${barb?.nombre||'—'}","Producto","${metodo}",${parseFloat(m.total||(m.cantidad*m.precio_unitario)||0)}`;
   });
-  const gastosDia=esHoy?(S.gastos||[]).filter(g=>g.fecha===fecha):(_cajaGastos||[]);
+  const gastosDia=esHoy?(S.gastos||[]).filter(g=>g.fecha===fecha && parseFloat(g.monto||0)>0):(_cajaGastos||[]).filter(g=>parseFloat(g.monto||0)>0);
   const gastoRows=gastosDia.map(g=>`—,"—","${g.descripcion||'—'}","—","Gasto","${g.categoria}",-${parseFloat(g.monto||0)}`);
   const csv='Hora,Cliente,Concepto,Barbero,Tipo,MetodoPago,Monto\n'+[...svcRows,...prodRows,...gastoRows].join('\n');
   const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download=`caja-${fecha}.csv`;a.click();
@@ -5662,7 +5688,7 @@ function enviarResumenWA(){
   const ventasDia=esHoy?(S.movimientos||[]).filter(m=>m.tipo==='venta'&&m.fecha===fecha):(_cajaMovs||[]);
   const ingProd=ventasDia.reduce((a,m)=>a+parseFloat(m.total||(m.cantidad*m.precio_unitario)||0),0);
   const unidades=ventasDia.reduce((a,m)=>a+parseFloat(m.cantidad||0),0);
-  const gastosDia=esHoy?(S.gastos||[]).filter(g=>g.fecha===fecha):(_cajaGastos||[]);
+  const gastosDia=esHoy?(S.gastos||[]).filter(g=>g.fecha===fecha && parseFloat(g.monto||0)>0):(_cajaGastos||[]).filter(g=>parseFloat(g.monto||0)>0);
   const totalGastos=gastosDia.reduce((a,g)=>a+parseFloat(g.monto||0),0);
   const comServPct=parseFloat(S.shopData?.comision_servicio_pct!=null?S.shopData.comision_servicio_pct:50);
   const comProdPct=parseFloat(S.shopData?.comision_barbero_pct||0);
