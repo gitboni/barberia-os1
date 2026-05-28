@@ -532,6 +532,7 @@ tr:last-child td{border-bottom:none;}
     <button class="nav-item" id="nav-btn-marketplace" onclick="setPage('marketplace',this)"><i data-lucide="store" class="nav-icon"></i>Perfil Marketplace</button>
     <button class="nav-item" id="nav-btn-reseñas" onclick="setPage('reseñas',this)"><i data-lucide="star" class="nav-icon"></i>Reseñas</button>
     <button class="nav-item" id="nav-btn-caja" onclick="setPage('caja',this)"><i data-lucide="banknote" class="nav-icon"></i>Cierre de Caja</button>
+    <button class="nav-item" id="nav-btn-credito" onclick="setPage('credito',this)"><i data-lucide="hand-coins" class="nav-icon"></i>Créditos<span class="nav-badge" id="nb-creditos" style="background:rgba(248,113,113,0.12);color:var(--red);display:none;">0</span></button>
     <div class="nav-section">Sistema</div>
     <button class="nav-item" id="nav-btn-config" onclick="setPage('config',this)"><i data-lucide="settings" class="nav-icon"></i>Configuración</button>
     <button class="nav-item" onclick="window.open('/sala/'+SHOP_SLUG,'_blank')"><i data-lucide="monitor" class="nav-icon"></i>Ver Sala →</button>
@@ -909,7 +910,7 @@ async function sbPost(t,d){const r=await fetch(SUPABASE_URL+'/rest/v1/'+t,{metho
 async function sbPatch(t,q,d){const r=await fetch(SUPABASE_URL+'/rest/v1/'+t+'?'+q,{method:'PATCH',headers:{...H,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify(d)});if(!r.ok)throw new Error(await r.text());return true;}
 async function sbDelete(t,q){const r=await fetch(SUPABASE_URL+'/rest/v1/'+t+'?'+q,{method:'DELETE',headers:H});if(!r.ok)throw new Error(await r.text());return true;}
 
-let S={shopId:null,shopData:null,barberos:[],citas:[],clientes:[],activity:[],gastos:[],productos:[],movimientos:[]};
+let S={shopId:null,shopData:null,barberos:[],citas:[],clientes:[],activity:[],gastos:[],productos:[],movimientos:[],creditos:[]};
 var _ventasCarrito = [];
 var _ventasFiltro = '';
 var _ventasHistRango = 'hoy';
@@ -965,7 +966,7 @@ async function loadAll(){
 
     if(data){
       const citas=data.citas_hoy||[];
-      S.citas=citas.map(c=>({id:c.id,nombre:c.nombre||'Cliente',hora:(c.hora||'').substring(0,5),servicio:c.servicio||'Corte',barbero:c.barbero||'—',estado:c.estado||'Confirmada',tel:c.telefono||'',fecha:c.fecha||hoy}));
+      S.citas=citas.map(c=>({id:c.id,nombre:c.nombre||'Cliente',hora:(c.hora||'').substring(0,5),servicio:c.servicio||'Corte',barbero:c.barbero||'—',estado:c.estado||'Confirmada',tel:c.telefono||'',fecha:c.fecha||hoy,metodo_pago:c.metodo_pago||''}));
       document.getElementById('nb-citas').textContent=S.citas.length;
       const barbs=data.barberos||[];
       const cpb={};S.citas.forEach(c=>{cpb[c.barbero]=(cpb[c.barbero]||0)+1;});
@@ -985,7 +986,7 @@ async function loadAll(){
     } else {
       // Fallback a queries individuales si RPC falla
       const citas=await sbGet('citas','shop_id=eq.'+S.shopId+'&fecha=eq.'+hoy+'&order=hora.asc');
-      S.citas=citas.map(c=>({id:c.id,nombre:c.nombre||'Cliente',hora:(c.hora||'').substring(0,5),servicio:c.servicio||'Corte',barbero:c.barbero||'—',estado:c.estado||'Confirmada',tel:c.telefono||'',fecha:c.fecha||hoy}));
+      S.citas=citas.map(c=>({id:c.id,nombre:c.nombre||'Cliente',hora:(c.hora||'').substring(0,5),servicio:c.servicio||'Corte',barbero:c.barbero||'—',estado:c.estado||'Confirmada',tel:c.telefono||'',fecha:c.fecha||hoy,metodo_pago:c.metodo_pago||''}));
       document.getElementById('nb-citas').textContent=S.citas.length;
       const barbs=await sbGet('barberos','shop_id=eq.'+S.shopId+'&order=orden.asc');
       const cpb={};S.citas.forEach(c=>{cpb[c.barbero]=(cpb[c.barbero]||0)+1;});
@@ -1051,6 +1052,9 @@ async function loadAll(){
     // Cargar inventario si el plan lo permite
     if(getFeatures().inventario) await loadInventario().catch(()=>{});
 
+    // Cargar créditos pendientes
+    if(getFeatures().credito) await loadCreditos().catch(()=>{});
+
     renderPage();
   }catch(e){console.warn(e);toast('Error: '+e.message,'error');}
 }
@@ -1061,12 +1065,12 @@ let currentPage='dashboard';
 let _citasFechaVer='';let _citasBarberoFiltro='';let _citasEstadoFiltro='';
 function setPage(page,btn){
   const f=getFeatures();
-  const blocked={'reportes':!f.reportes,'config':!f.config,'bot':!f.bot,'clientes':!f.clientes,'barberos':!f.barberos,'gastos':!f.reportes,'marketplace':!f.marketplace,'reseñas':!f.reseñas,'caja':!f.caja,'festivos':!f.festivos};
+  const blocked={'reportes':!f.reportes,'config':!f.config,'bot':!f.bot,'clientes':!f.clientes,'barberos':!f.barberos,'gastos':!f.reportes,'marketplace':!f.marketplace,'reseñas':!f.reseñas,'caja':!f.caja,'festivos':!f.festivos,'credito':!f.credito};
   if(blocked[page]){toast('Esta sección está desactivada para tu plan','warn');return;}
   currentPage=page;
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   if(btn)btn.classList.add('active');
-  const T={dashboard:'Dashboard',citas:'Citas del día',clientes:'Clientes',barberos:'Barberos',reportes:'Reportes',bot:'Bot WhatsApp',config:'Configuración',gastos:'Gestión de Gastos',marketplace:'Mi Perfil en Marketplace',reseñas:'Reseñas del Marketplace',caja:'Cierre de Caja',ventas:'Venta de Productos',inventario:'Inventario'};
+  const T={dashboard:'Dashboard',citas:'Citas del día',clientes:'Clientes',barberos:'Barberos',reportes:'Reportes',bot:'Bot WhatsApp',config:'Configuración',gastos:'Gestión de Gastos',marketplace:'Mi Perfil en Marketplace',reseñas:'Reseñas del Marketplace',caja:'Cierre de Caja',credito:'Cuentas por Cobrar',ventas:'Venta de Productos',inventario:'Inventario'};
   document.getElementById('page-title').textContent=T[page]||page;
   renderPage();
 }
@@ -1082,17 +1086,18 @@ function renderPage(){
   else if(currentPage==='gastos'){el.innerHTML=renderGastos();}
   else if(currentPage==='marketplace'){el.innerHTML=renderMarketplace();setTimeout(initMarketplacePage,100);}
   else if(currentPage==='reseñas'){el.innerHTML='<div style="padding:20px;color:var(--muted);font-size:0.75rem;">Cargando reseñas…</div>';loadReseñas();}
-  else if(currentPage==='caja'){el.innerHTML=renderCaja();}
+  else if(currentPage==='caja'){try{el.innerHTML=renderCaja();}catch(err){console.error('renderCaja error:',err);el.innerHTML='<div style="padding:40px;text-align:center;color:var(--red);"><h3>Error al cargar Cierre de Caja</h3><pre style="font-size:0.7rem;color:var(--muted);margin-top:10px;">'+esc(err.message)+'</pre></div>';}}
   else if(currentPage==='inventario'){el.innerHTML=renderInventario();}
+  else if(currentPage==='credito'){try{el.innerHTML=renderCredito();}catch(err){console.error('renderCredito error:',err);el.innerHTML='<div style="padding:40px;text-align:center;color:var(--red);"><h3>Error al cargar Créditos</h3><pre style="font-size:0.7rem;color:var(--muted);margin-top:10px;">'+esc(err.message)+'</pre></div>';}}
   else if(currentPage==='ventas'){try{el.innerHTML=renderVentas();setTimeout(initVentasPage,80);}catch(err){console.error('renderVentas error:',err);el.innerHTML='<div style="padding:40px;text-align:center;color:var(--red);"><h3>Error al cargar Ventas</h3><pre style="font-size:0.7rem;color:var(--muted);margin-top:10px;">'+esc(err.message)+'</pre></div>';}}
   renderSidebar();updateBarberoSelect();
   if(window.lucide) lucide.createIcons();
 }
 // ── Features por plan + overrides manuales del superadmin ──
 const PLAN_FEATURES = {
-  free:  {reportes:true,  config:true, servicios:true, bot:true, barberos:true, clientes:true, walkin:true, marketplace:true, reseñas:true, caja:true,  festivos:false, inventario:false, pwa:true},
-  pro:   {reportes:true,  config:true, servicios:true, bot:true, barberos:true, clientes:true, walkin:true, marketplace:true, reseñas:true, caja:true,  festivos:true,  inventario:true,  pwa:true},
-  elite: {reportes:true,  config:true, servicios:true, bot:true, barberos:true, clientes:true, walkin:true, marketplace:true, reseñas:true, caja:true,  festivos:true,  inventario:true,  pwa:true},
+  free:  {reportes:true,  config:true, servicios:true, bot:true, barberos:true, clientes:true, walkin:true, marketplace:true, reseñas:true, caja:true,  festivos:false, inventario:false, credito:false, pwa:true},
+  pro:   {reportes:true,  config:true, servicios:true, bot:true, barberos:true, clientes:true, walkin:true, marketplace:true, reseñas:true, caja:true,  festivos:true,  inventario:true,  credito:true,  pwa:true},
+  elite: {reportes:true,  config:true, servicios:true, bot:true, barberos:true, clientes:true, walkin:true, marketplace:true, reseñas:true, caja:true,  festivos:true,  inventario:true,  credito:true,  pwa:true},
 };
 
 function getFeatures(){
@@ -1115,12 +1120,13 @@ function getFeatures(){
     inventario:  s.feature_inventario  !==null&&s.feature_inventario  !==undefined ? s.feature_inventario  : base.inventario,
     pwa:         s.feature_pwa         !==null&&s.feature_pwa         !==undefined ? s.feature_pwa         : base.pwa,
     pos_barbero: s.feature_pos_barbero !==null&&s.feature_pos_barbero !==undefined ? s.feature_pos_barbero : false,
+    credito:     s.feature_credito    !==null&&s.feature_credito    !==undefined ? s.feature_credito    : base.credito,
   };
 }
 function renderSidebar(){
   document.getElementById('barbers-sidebar').innerHTML=S.barberos.map(b=>'<div class="barber-mini-item"><div class="barber-mini-dot" style="background:'+(b.activo?'var(--green)':'var(--muted)')+'"></div><div class="barber-mini-name">'+b.nombre+'</div><div class="barber-mini-status" style="color:'+(b.activo?'var(--green)':'var(--muted)')+';">'+b.citas_hoy+' citas</div></div>').join('');
   const f=getFeatures();
-  const navMap={'nav-btn-reportes':'reportes','nav-btn-config':'config','nav-btn-bot':'bot','nav-btn-clientes':'clientes','nav-btn-barberos':'barberos','nav-btn-gastos':'reportes','nav-btn-marketplace':'marketplace','nav-btn-reseñas':'reseñas','nav-btn-caja':'caja','nav-btn-inventario':'inventario','nav-btn-ventas':'inventario'};
+  const navMap={'nav-btn-reportes':'reportes','nav-btn-config':'config','nav-btn-bot':'bot','nav-btn-clientes':'clientes','nav-btn-barberos':'barberos','nav-btn-gastos':'reportes','nav-btn-marketplace':'marketplace','nav-btn-reseñas':'reseñas','nav-btn-caja':'caja','nav-btn-inventario':'inventario','nav-btn-ventas':'inventario','nav-btn-credito':'credito'};
   Object.entries(navMap).forEach(function(kv){var el=document.getElementById(kv[0]);if(el)el.style.display=f[kv[1]]?'':'none';});
   var wf=document.getElementById('walkin-fab-btn');if(wf)wf.style.display=f.walkin?'':'none';
 }
@@ -5439,25 +5445,34 @@ function renderCaja(){
   const utilidad=ingresosBrutos-totalGastos-totalComisiones;
 
   // Métodos de pago — servicios (metodo_pago) + productos (motivo)
-  let mpServEfec=0,mpServTarj=0,mpServTrans=0,mpServOtro=0;
+  let mpServEfec=0,mpServTarj=0,mpServTrans=0,mpServCred=0,mpServOtro=0;
   citasDia.forEach(c=>{
     const precio=svcMap[(c.servicio||'').trim().toUpperCase()]||0;
     const mp=(c.metodo_pago||'').toLowerCase();
-    if(mp.includes('tarjeta'))mpServTarj+=precio;
+    if(mp.includes('crédito')||mp.includes('credito'))mpServCred+=precio;
+    else if(mp.includes('tarjeta'))mpServTarj+=precio;
     else if(mp.includes('transferencia'))mpServTrans+=precio;
     else if(mp&&mp!=='sin especificar')mpServEfec+=precio;
     else mpServOtro+=precio;
   });
-  let mpProdEfec=0,mpProdTarj=0,mpProdTrans=0;
+  let mpProdEfec=0,mpProdTarj=0,mpProdTrans=0,mpProdCred=0;
   ventasDia.forEach(m=>{
     const mt=(m.motivo||'').toLowerCase();
     const monto=parseFloat(m.total||(m.cantidad*m.precio_unitario)||0);
-    if(mt.includes('pago: tarjeta'))mpProdTarj+=monto;
+    if(mt.includes('pago: crédito')||mt.includes('pago: credito'))mpProdCred+=monto;
+    else if(mt.includes('pago: tarjeta'))mpProdTarj+=monto;
     else if(mt.includes('pago: transferencia'))mpProdTrans+=monto;
     else mpProdEfec+=monto;
   });
+  const mpCred=mpServCred+mpProdCred;
   const mpEfec=mpServEfec+mpProdEfec,mpTarj=mpServTarj+mpProdTarj,mpTrans=mpServTrans+mpProdTrans;
-  const mpTotal=mpEfec+mpTarj+mpTrans+mpServOtro;
+  const mpTotal=mpEfec+mpTarj+mpTrans+mpCred+mpServOtro;
+  // Créditos del día (desde cuentas_por_cobrar)
+  const creditosDia=(S.creditos||[]).filter(c=>c.fecha_venta===fecha&&(c.estado==='pendiente'||c.estado==='parcial'));
+  const cobrosDia=(S.creditos||[]).filter(c=>c.fecha_pago===fecha&&c.estado==='pagado');
+  const totalCreditoDia=creditosDia.reduce((a,c)=>a+(parseFloat(c.monto)-parseFloat(c.monto_pagado||0)),0);
+  const totalCobrosDia=cobrosDia.reduce((a,c)=>a+parseFloat(c.monto),0);
+  const efectivoEnCaja=ingresosBrutos-mpCred-totalGastos+totalCobrosDia;
 
   // Por barbero
   const porBarbero={};
@@ -5508,6 +5523,8 @@ function renderCaja(){
       <div class="stat-card c-gold"><div class="stat-val gold">$${ingresosBrutos.toLocaleString()}</div><div class="stat-lbl">Ingresos brutos</div></div>
       <div class="stat-card c-red"><div class="stat-val red">$${totalGastos.toLocaleString()}</div><div class="stat-lbl">Gastos</div></div>
       ${totalComisiones>0?`<div class="stat-card" style="border-color:rgba(245,158,11,.2);"><div class="stat-val" style="color:#F59E0B;">$${totalComisiones.toLocaleString()}</div><div class="stat-lbl">Comisiones</div></div>`:''}
+      ${mpCred>0?`<div class="stat-card" style="border-color:rgba(248,113,113,.2);"><div class="stat-val" style="color:var(--red);">$${mpCred.toLocaleString()}</div><div class="stat-lbl">🔴 A crédito</div></div>`:''}
+      ${totalCobrosDia>0?`<div class="stat-card c-green"><div class="stat-val green">+$${totalCobrosDia.toLocaleString()}</div><div class="stat-lbl">Cobros crédito</div></div>`:''}
       <div class="stat-card ${utilidad>=0?'c-green':'c-red'}"><div class="stat-val ${utilidad>=0?'green':'red'}">$${utilidad.toLocaleString()}</div><div class="stat-lbl">Utilidad neta</div></div>
       <div class="stat-card c-blue"><div class="stat-val blue">${citasDia.length}</div><div class="stat-lbl">Servicios</div></div>
       ${ventasDia.length?`<div class="stat-card" style="border-color:rgba(62,207,142,.2);"><div class="stat-val green">${ventasDia.length}</div><div class="stat-lbl">Ventas prod.</div></div>`:''}
@@ -5541,7 +5558,7 @@ function renderCaja(){
         <div class="card-header"><div class="card-title">💳 Métodos de pago</div></div>
         <div style="padding:16px;">
           ${mpTotal>0?`
-          ${[['💵 Efectivo',mpEfec,'var(--green)'],['💳 Tarjeta',mpTarj,'var(--blue)'],['📲 Transferencia',mpTrans,'#A78BFA']].filter(([,v])=>v>0).map(([label,val,color])=>{
+          ${[['💵 Efectivo',mpEfec,'var(--green)'],['💳 Tarjeta',mpTarj,'var(--blue)'],['📲 Transferencia',mpTrans,'#A78BFA'],['🔴 Crédito',mpCred,'var(--red)']].filter(([,v])=>v>0).map(([label,val,color])=>{
             const pct=mpTotal>0?Math.round(val/mpTotal*100):0;
             return `<div style="margin-bottom:10px;">
               <div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:4px;">
@@ -5612,6 +5629,24 @@ function renderCaja(){
         </div>
       </div>
     </div>
+
+    <!-- Créditos del día -->
+    ${(creditosDia.length||cobrosDia.length)?`
+    <div class="card">
+      <div class="card-header"><div class="card-title">🔴 Créditos del día</div></div>
+      <div style="padding:16px;">
+        ${creditosDia.length?`<div style="font-size:.7rem;font-weight:700;color:var(--red);margin-bottom:8px;">Fiados hoy:</div>
+        ${creditosDia.map(c=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border2);font-size:.78rem;">
+          <div>${esc(c.cliente_nombre)} · <span style="color:var(--muted);font-size:.65rem;">${esc(c.descripcion)}</span></div>
+          <div style="color:var(--red);font-weight:700;">$${(parseFloat(c.monto)-parseFloat(c.monto_pagado||0)).toLocaleString()}</div>
+        </div>`).join('')}`:''}
+        ${cobrosDia.length?`<div style="font-size:.7rem;font-weight:700;color:var(--green);margin:${creditosDia.length?'12px':'0'} 0 8px;">Cobros recibidos hoy:</div>
+        ${cobrosDia.map(c=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border2);font-size:.78rem;">
+          <div>${esc(c.cliente_nombre)} · <span style="color:var(--muted);font-size:.65rem;">${esc(c.descripcion)}</span> <span style="font-size:.6rem;color:var(--green);">${c.metodo_pago_final||''}</span></div>
+          <div style="color:var(--green);font-weight:700;">+$${parseFloat(c.monto).toLocaleString()}</div>
+        </div>`).join('')}`:''}
+      </div>
+    </div>`:``}
 
     <!-- Gastos -->
     <div class="card">
@@ -5686,6 +5721,138 @@ function enviarResumenWA(){
   const wa=(S.shopData?.whatsapp_dueño||S.shopData?.whatsapp||'').replace(/\D/g,'');
   if(wa) window.open(`https://wa.me/${wa}?text=${encodeURIComponent(msg)}`,'_blank');
   else{navigator.clipboard?.writeText(msg).then(()=>toast('Resumen copiado — pégalo en WhatsApp'));}
+}
+
+// ── CUENTAS POR COBRAR (Crédito/Fiado) ──
+let _creditoFiltro='pendiente'; // pendiente | parcial | pagado | todos
+
+async function loadCreditos(){
+  try{
+    const rows=await sbGet('cuentas_por_cobrar','shop_id=eq.'+S.shopId+'&order=created_at.desc');
+    S.creditos=rows||[];
+    const pend=S.creditos.filter(c=>c.estado==='pendiente'||c.estado==='parcial').length;
+    const nb=document.getElementById('nb-creditos');
+    if(nb){nb.style.display=pend>0?'':'none';nb.textContent=pend;}
+  }catch(e){S.creditos=[];}
+}
+
+function renderCredito(){
+  const todos=S.creditos||[];
+  const filtrados=_creditoFiltro==='todos'?todos:todos.filter(c=>c.estado===_creditoFiltro);
+  const pendientes=todos.filter(c=>c.estado==='pendiente'||c.estado==='parcial');
+  const totalDeuda=pendientes.reduce((a,c)=>a+(parseFloat(c.monto)-parseFloat(c.monto_pagado||0)),0);
+  const totalCobrado=todos.filter(c=>c.estado==='pagado').reduce((a,c)=>a+parseFloat(c.monto),0);
+
+  return `<div style="display:flex;flex-direction:column;gap:16px;">
+    <!-- KPIs -->
+    <div class="stats-row" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
+      <div class="stat-card c-red"><div class="stat-val red">$${totalDeuda.toLocaleString()}</div><div class="stat-lbl">Deuda pendiente</div></div>
+      <div class="stat-card c-gold"><div class="stat-val gold">${pendientes.length}</div><div class="stat-lbl">Créditos activos</div></div>
+      <div class="stat-card c-green"><div class="stat-val green">$${totalCobrado.toLocaleString()}</div><div class="stat-lbl">Cobrado (histórico)</div></div>
+    </div>
+
+    <!-- Filtros + Nuevo -->
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+      <div style="display:flex;gap:6px;">
+        ${['pendiente','parcial','pagado','todos'].map(f=>`<button class="btn-sm ${_creditoFiltro===f?'btn-gold':'btn-dark'}" onclick="_creditoFiltro='${f}';renderPage();" style="font-size:.65rem;padding:6px 12px;">${f==='todos'?'Todos':f==='pendiente'?'🔴 Pendientes':f==='parcial'?'🟡 Parciales':'🟢 Pagados'}</button>`).join('')}
+      </div>
+      <button class="btn-sm btn-gold" onclick="abrirNuevoCredito()">+ Registrar crédito</button>
+    </div>
+
+    <!-- Lista -->
+    <div class="card">
+      <div style="padding:16px;">
+        ${filtrados.length?filtrados.map(c=>{
+          const deuda=parseFloat(c.monto)-parseFloat(c.monto_pagado||0);
+          const pct=parseFloat(c.monto)>0?Math.round(parseFloat(c.monto_pagado||0)/parseFloat(c.monto)*100):0;
+          const estadoColor=c.estado==='pagado'?'var(--green)':c.estado==='parcial'?'#F59E0B':'var(--red)';
+          const estadoIcon=c.estado==='pagado'?'✅':c.estado==='parcial'?'🟡':'🔴';
+          const tipoIcon=c.tipo==='servicio'?'✂️':'🛒';
+          return `<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);gap:12px;">
+            <div style="flex:1;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                <span style="font-weight:800;font-size:.9rem;">${esc(c.cliente_nombre)}</span>
+                <span style="font-size:.6rem;padding:2px 8px;border-radius:99px;background:${estadoColor}20;color:${estadoColor};font-weight:700;">${estadoIcon} ${c.estado}</span>
+                <span style="font-size:.55rem;padding:2px 6px;border-radius:4px;background:var(--bg3);color:var(--muted);">${tipoIcon} ${c.tipo}</span>
+              </div>
+              <div style="font-size:.72rem;color:var(--muted);">${esc(c.descripcion)} · ${c.fecha_venta}</div>
+              ${c.cliente_telefono?`<div style="font-size:.6rem;color:var(--muted);">📱 ${esc(c.cliente_telefono)}</div>`:''}
+              ${c.notas?`<div style="font-size:.6rem;color:var(--muted);font-style:italic;">📝 ${esc(c.notas)}</div>`:''}
+              ${c.estado!=='pagado'&&pct>0?`<div style="margin-top:4px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;max-width:200px;"><div style="height:100%;width:${pct}%;background:#F59E0B;border-radius:2px;"></div></div><div style="font-size:.5rem;color:var(--muted);">${pct}% pagado</div>`:''}</div>
+            <div style="text-align:right;min-width:120px;">
+              <div style="font-weight:900;font-size:1rem;color:${c.estado==='pagado'?'var(--green)':'var(--red)'};">$${deuda>0?deuda.toLocaleString():parseFloat(c.monto).toLocaleString()}</div>
+              <div style="font-size:.6rem;color:var(--muted);">de $${parseFloat(c.monto).toLocaleString()}</div>
+              ${c.estado!=='pagado'?`<div style="display:flex;gap:4px;margin-top:6px;justify-content:flex-end;">
+                <button class="btn-sm btn-gold" onclick="registrarPagoCredito('${c.id}',${deuda})" style="font-size:.55rem;padding:4px 10px;">💰 Cobrar</button>
+                <button class="btn-sm btn-dark" onclick="editarNotaCredito('${c.id}')" style="font-size:.55rem;padding:4px 8px;">📝</button>
+              </div>`:`<div style="font-size:.6rem;color:var(--green);margin-top:4px;">Pagado ${c.fecha_pago||''} ${c.metodo_pago_final?'· '+c.metodo_pago_final:''}</div>`}
+            </div>
+          </div>`;}).join(''):'<div style="color:var(--muted);font-size:.72rem;text-align:center;padding:30px;">Sin créditos ${_creditoFiltro!=="todos"?_creditoFiltro+"s":""}</div>'}
+      </div>
+    </div>
+  </div>`;
+}
+
+async function abrirNuevoCredito(){
+  const nombre=prompt('Nombre del cliente:');
+  if(!nombre)return;
+  const tel=prompt('Teléfono (opcional):');
+  const tipo=prompt('Tipo: servicio o producto','servicio');
+  if(tipo!=='servicio'&&tipo!=='producto'){toast('Tipo debe ser servicio o producto','error');return;}
+  const desc=prompt('Descripción (ej: Corte clásico, Gel x2):');
+  if(!desc)return;
+  const montoStr=prompt('Monto total ($):');
+  const monto=parseFloat(montoStr);
+  if(!monto||monto<=0){toast('Monto inválido','error');return;}
+  const notas=prompt('Notas (opcional):');
+  try{
+    await sbPost('cuentas_por_cobrar',{
+      shop_id:S.shopId,
+      cliente_nombre:nombre.trim(),
+      cliente_telefono:(tel||'').trim(),
+      tipo:tipo,
+      descripcion:desc.trim(),
+      monto:monto,
+      fecha_venta:getHoyRD(),
+      notas:(notas||'').trim()||null
+    });
+    toast('Crédito registrado');
+    await loadCreditos();
+    renderPage();
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+
+async function registrarPagoCredito(id,deudaActual){
+  const montoStr=prompt('Monto a cobrar (deuda: $'+deudaActual.toLocaleString()+'):',deudaActual);
+  const monto=parseFloat(montoStr);
+  if(!monto||monto<=0){toast('Monto inválido','error');return;}
+  const metodo=prompt('Método de pago: efectivo, tarjeta o transferencia','efectivo');
+  if(!metodo)return;
+  const cred=S.creditos.find(c=>c.id===id);
+  if(!cred)return;
+  const nuevoPagado=parseFloat(cred.monto_pagado||0)+monto;
+  const totalMonto=parseFloat(cred.monto);
+  const nuevoEstado=nuevoPagado>=totalMonto?'pagado':nuevoPagado>0?'parcial':'pendiente';
+  try{
+    const update={monto_pagado:Math.min(nuevoPagado,totalMonto),estado:nuevoEstado};
+    if(nuevoEstado==='pagado'){update.fecha_pago=getHoyRD();update.metodo_pago_final=metodo.trim();}
+    await sbPatch('cuentas_por_cobrar','id=eq.'+id,update);
+    toast(nuevoEstado==='pagado'?'✅ Crédito liquidado':'Pago parcial registrado');
+    await loadCreditos();
+    renderPage();
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+
+async function editarNotaCredito(id){
+  const cred=S.creditos.find(c=>c.id===id);
+  const nota=prompt('Nota para este crédito:',cred?.notas||'');
+  if(nota===null)return;
+  try{
+    await sbPatch('cuentas_por_cobrar','id=eq.'+id,{notas:nota.trim()||null});
+    toast('Nota actualizada');
+    await loadCreditos();
+    renderPage();
+  }catch(e){toast('Error: '+e.message,'error');}
 }
 
 // ── DÍAS FESTIVOS ──
