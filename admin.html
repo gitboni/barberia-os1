@@ -5381,8 +5381,8 @@ function exportCSV_reseñas(){
 }
 
 // ── CIERRE DE CAJA (con histórico) ──
-let _cajaFecha=null; // null=hoy, string='YYYY-MM-DD'
-let _cajaCitas=null,_cajaMovs=null,_cajaGastos=null;
+var _cajaFecha=null; // null=hoy, string='YYYY-MM-DD'
+var _cajaCitas=null,_cajaMovs=null,_cajaGastos=null;
 
 function cajaGetFecha(){return _cajaFecha||getHoyRD();}
 function cajaEsHoy(){return cajaGetFecha()===getHoyRD();}
