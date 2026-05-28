@@ -4922,9 +4922,9 @@ function exportVentasCSV(){
 // ── QR LABEL GENERATION (uses Google Charts API for QR) ────
 // ══════════════════════════════════════════════════════════════
 function _qrImgTag(data, size){
-  size = size || 150;
-  var url = 'https://chart.googleapis.com/chart?cht=qr&chs='+size+'x'+size+'&chl='+encodeURIComponent(data)+'&choe=UTF-8&chld=M|2';
-  return '<img src="'+url+'" width="'+size+'" height="'+size+'" style="image-rendering:pixelated;" onerror="this.alt=\'QR no disponible\'">';
+  size = size || 120;
+  var url = 'https://api.qrserver.com/v1/create-qr-code/?size='+size+'x'+size+'&data='+encodeURIComponent(data)+'&margin=1&format=svg';
+  return '<img src="'+url+'" width="'+size+'" height="'+size+'" style="image-rendering:pixelated;" onerror="this.alt=\'QR error\'">';
 }
 
 // ── Imprimir Etiqueta QR ──
@@ -4933,59 +4933,47 @@ function imprimirEtiquetaQR(productoId){
   if(!p){ toast('Producto no encontrado','error'); return; }
   var shopName = S.shopData?.nombre || 'Mi Negocio';
   var qrData = JSON.stringify({id:p.id,sku:p.sku||'',n:p.nombre,p:p.precio_venta});
-  var qrImg = _qrImgTag(qrData, 150);
-  var skuLine = p.sku ? '<div class="prod-sku">'+esc(p.sku)+'</div>' : '';
-  var descLine = p.descripcion ? '<div style="font-size:9px;color:#888;">'+esc(p.descripcion)+'</div>' : '';
+  var qrImg = _qrImgTag(qrData, 100);
+  var skuHtml = p.sku ? ' <span style="font-family:monospace;font-size:7px;color:#999;">'+esc(p.sku)+'</span>' : '';
 
   var html = [
-    '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Etiqueta '+esc(p.nombre)+'</title>',
+    '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+esc(p.nombre)+'</title>',
     '<style>',
-    '@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap");',
     '*{margin:0;padding:0;box-sizing:border-box;}',
-    'body{font-family:"Inter",sans-serif;background:#fff;color:#000;}',
-    '@media print{body{margin:0;padding:0;}.no-print{display:none!important;}@page{margin:3mm 2mm;size:80mm auto;}}',
-    '@media screen{body{max-width:300px;margin:20px auto;padding:16px;background:#f5f5f5;}.label{background:#fff;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,0.08);}}',
-    '.label{padding:12px 10px;text-align:center;}',
-    '.shop{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#666;margin-bottom:6px;}',
-    '.qr-wrap{display:flex;justify-content:center;margin:8px 0;}',
-    '.prod-name{font-size:14px;font-weight:800;margin:6px 0 2px;line-height:1.2;}',
-    '.prod-sku{font-family:"DM Mono",monospace;font-size:10px;color:#888;margin-bottom:4px;}',
-    '.prod-price{font-size:22px;font-weight:800;color:#000;margin:4px 0;}',
-    '.prod-price sup{font-size:11px;font-weight:600;vertical-align:super;}',
-    '.divider{border-top:1px dashed #ccc;margin:8px 0;}',
-    '.footer{font-size:7px;color:#aaa;letter-spacing:0.5px;}',
-    '.stock-info{font-family:"DM Mono",monospace;font-size:9px;color:#999;margin-top:2px;}',
-    '.btn-row{display:flex;gap:8px;margin-top:12px;justify-content:center;}',
-    '.btn-row button{padding:10px 20px;border-radius:8px;border:none;font-size:13px;font-weight:700;cursor:pointer;}',
-    '.btn-print{background:#000;color:#D4A017;}',
-    '.btn-close{background:#eee;color:#333;}',
-    '.copies{display:flex;align-items:center;gap:8px;justify-content:center;margin-top:10px;}',
-    '.copies label{font-size:11px;color:#666;}',
-    '.copies input{width:50px;text-align:center;padding:4px;border:1px solid #ddd;border-radius:4px;font-size:13px;font-weight:700;}',
+    'body{font-family:Arial,sans-serif;background:#fff;color:#000;}',
+    '@media print{.no-print{display:none!important;}@page{margin:1mm;size:58mm auto;}}',
+    '@media screen{body{max-width:220px;margin:10px auto;padding:8px;background:#eee;}.lbl{box-shadow:0 1px 6px rgba(0,0,0,0.1);border-radius:6px;}}',
+    '.lbl{background:#fff;padding:6px 8px;text-align:center;}',
+    '.sh{font-size:7px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#888;}',
+    '.qw{margin:4px 0;line-height:0;}',
+    '.nm{font-size:11px;font-weight:800;line-height:1.15;margin:3px 0 1px;}',
+    '.pr{font-size:18px;font-weight:900;margin:2px 0;}',
+    '.pr sup{font-size:8px;vertical-align:super;}',
+    '.ft{font-size:6px;color:#bbb;margin-top:3px;}',
+    '.hr{border-top:1px dashed #ddd;margin:4px 0;}',
+    '.no-print{padding:8px;text-align:center;}',
+    '.no-print button{padding:8px 16px;border-radius:6px;border:none;font-size:12px;font-weight:700;cursor:pointer;margin:3px;}',
+    '.bp{background:#000;color:#D4A017;}.bc{background:#eee;color:#333;}',
     '</style></head><body>',
-    '<div class="label" id="label-content">',
-    '  <div class="shop">'+esc(shopName)+'</div>',
-    '  <div class="divider"></div>',
-    '  <div class="qr-wrap">'+qrImg+'</div>',
-    '  <div class="prod-name">'+esc(p.nombre)+'</div>',
-    '  '+skuLine,
-    '  '+descLine,
-    '  <div class="prod-price">$'+parseFloat(p.precio_venta||0).toLocaleString()+'<sup>RD</sup></div>',
-    '  <div class="stock-info">Stock: '+p.stock_actual+' '+p.unidad+'</div>',
-    '  <div class="divider"></div>',
-    '  <div class="footer">Escanea para compra rapida · AuraOS</div>',
+    '<div class="lbl" id="lc">',
+    '<div class="sh">'+esc(shopName)+'</div>',
+    '<div class="hr"></div>',
+    '<div class="qw">'+qrImg+'</div>',
+    '<div class="nm">'+esc(p.nombre)+skuHtml+'</div>',
+    '<div class="pr">$'+parseFloat(p.precio_venta||0).toLocaleString()+'<sup>RD</sup></div>',
+    '<div class="ft">AuraOS · Escanea para comprar</div>',
     '</div>',
     '<div class="no-print">',
-    '  <div class="copies"><label>Copias:</label><input type="number" id="label-copies" value="1" min="1" max="50"></div>',
-    '  <div class="btn-row">',
-    '    <button class="btn-print" onclick="var n=parseInt(document.getElementById(\'label-copies\').value)||1;if(n>1){var o=document.getElementById(\'label-content\');var c=document.createElement(\'div\');for(var i=1;i<n;i++){var h=document.createElement(\'div\');h.style.cssText=\'border-top:1px dashed #aaa;margin:6px 0;\';c.appendChild(h);c.appendChild(o.cloneNode(true));}o.parentNode.insertBefore(c,o.nextSibling);}setTimeout(function(){window.print();},300);">🖨️ Imprimir</button>',
-    '    <button class="btn-close" onclick="window.close()">Cerrar</button>',
-    '  </div>',
+    '<div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:6px;">',
+    '<span style="font-size:10px;">Copias:</span>',
+    '<input type="number" id="lc-n" value="1" min="1" max="50" style="width:40px;text-align:center;padding:3px;border:1px solid #ddd;border-radius:4px;font-size:12px;font-weight:700;">',
     '</div>',
-    '</body></html>'
-  ].join('\n');
+    '<button class="bp" onclick="var n=parseInt(document.getElementById(\'lc-n\').value)||1;if(n>1){var o=document.getElementById(\'lc\');var c=document.createElement(\'div\');for(var i=1;i<n;i++){var h=document.createElement(\'div\');h.style.cssText=\'border-top:1px dashed #aaa;margin:3px 0;\';c.appendChild(h);c.appendChild(o.cloneNode(true));}o.parentNode.insertBefore(c,o.nextSibling);}setTimeout(function(){window.print();},400);">🖨️ Imprimir</button>',
+    '<button class="bc" onclick="window.close()">Cerrar</button>',
+    '</div></body></html>'
+  ].join('');
 
-  var w = window.open('','_blank','width=340,height=580');
+  var w = window.open('','_blank','width=250,height=420');
   if(!w){ toast('Permite pop-ups para imprimir etiquetas','error'); return; }
   w.document.write(html);
   w.document.close();
@@ -4999,56 +4987,48 @@ function imprimirTodasEtiquetas(){
 
   var labelsHtml = prods.map(function(p,i){
     var qrData = JSON.stringify({id:p.id,sku:p.sku||'',n:p.nombre,p:p.precio_venta});
-    var qrImg = _qrImgTag(qrData, 130);
-    var sep = i > 0 ? '<div style="border-top:1px dashed #aaa;margin:8px 0;"></div>' : '';
+    var qrImg = _qrImgTag(qrData, 80);
+    var skuHtml = p.sku ? ' <span style="font-family:monospace;font-size:6px;color:#999;">'+esc(p.sku)+'</span>' : '';
+    var sep = i > 0 ? '<div style="border-top:1px dashed #aaa;margin:3px 0;"></div>' : '';
     return sep +
-      '<div class="label">' +
-      '<div class="shop">'+esc(shopName)+'</div>' +
-      '<div class="divider"></div>' +
-      '<div class="qr-wrap">'+qrImg+'</div>' +
-      '<div class="prod-name">'+esc(p.nombre)+'</div>' +
-      (p.sku ? '<div class="prod-sku">'+esc(p.sku)+'</div>' : '') +
-      '<div class="prod-price">$'+parseFloat(p.precio_venta||0).toLocaleString()+'<sup>RD</sup></div>' +
-      '<div class="stock-info">Stock: '+p.stock_actual+' '+p.unidad+'</div>' +
-      '<div class="divider"></div>' +
-      '<div class="footer">Escanea para compra rapida · AuraOS</div>' +
+      '<div class="lbl">' +
+      '<div class="sh">'+esc(shopName)+'</div>' +
+      '<div class="hr"></div>' +
+      '<div class="qw">'+qrImg+'</div>' +
+      '<div class="nm">'+esc(p.nombre)+skuHtml+'</div>' +
+      '<div class="pr">$'+parseFloat(p.precio_venta||0).toLocaleString()+'<sup>RD</sup></div>' +
+      '<div class="ft">AuraOS</div>' +
       '</div>';
   }).join('');
 
   var html = [
-    '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Etiquetas - '+esc(shopName)+'</title>',
+    '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Etiquetas</title>',
     '<style>',
-    '@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap");',
     '*{margin:0;padding:0;box-sizing:border-box;}',
-    'body{font-family:"Inter",sans-serif;background:#fff;color:#000;}',
-    '@media print{body{margin:0;padding:0;}.no-print{display:none!important;}@page{margin:3mm 2mm;size:80mm auto;}}',
-    '@media screen{body{max-width:300px;margin:20px auto;padding:16px;background:#f5f5f5;}}',
-    '.label{padding:12px 10px;text-align:center;background:#fff;border-radius:4px;}',
-    '.shop{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#666;margin-bottom:4px;}',
-    '.qr-wrap{display:flex;justify-content:center;margin:6px 0;}',
-    '.prod-name{font-size:13px;font-weight:800;margin:4px 0 2px;line-height:1.2;}',
-    '.prod-sku{font-family:"DM Mono",monospace;font-size:9px;color:#888;}',
-    '.prod-price{font-size:20px;font-weight:800;}',
-    '.prod-price sup{font-size:10px;font-weight:600;vertical-align:super;}',
-    '.divider{border-top:1px dashed #ccc;margin:6px 0;}',
-    '.footer{font-size:7px;color:#aaa;letter-spacing:0.5px;}',
-    '.stock-info{font-family:"DM Mono",monospace;font-size:8px;color:#999;}',
-    '.btn-row{display:flex;gap:8px;margin:16px 0;justify-content:center;}',
-    '.btn-row button{padding:10px 24px;border-radius:8px;border:none;font-size:13px;font-weight:700;cursor:pointer;}',
-    '.btn-print{background:#000;color:#D4A017;}',
-    '.btn-close{background:#eee;color:#333;}',
+    'body{font-family:Arial,sans-serif;background:#fff;color:#000;}',
+    '@media print{.no-print{display:none!important;}@page{margin:1mm;size:58mm auto;}}',
+    '@media screen{body{max-width:220px;margin:10px auto;padding:8px;background:#eee;}}',
+    '.lbl{background:#fff;padding:5px 6px;text-align:center;}',
+    '.sh{font-size:6px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#999;}',
+    '.qw{margin:3px 0;line-height:0;}',
+    '.nm{font-size:10px;font-weight:800;line-height:1.15;margin:2px 0 1px;}',
+    '.pr{font-size:15px;font-weight:900;margin:1px 0;}',
+    '.pr sup{font-size:7px;vertical-align:super;}',
+    '.ft{font-size:5px;color:#ccc;}',
+    '.hr{border-top:1px dashed #ddd;margin:3px 0;}',
+    '.no-print{padding:8px;text-align:center;}',
+    '.no-print button{padding:8px 16px;border-radius:6px;border:none;font-size:12px;font-weight:700;cursor:pointer;margin:3px;}',
     '</style></head><body>',
-    '<div class="no-print" style="text-align:center;padding:10px;">',
-    '<div style="font-size:14px;font-weight:800;margin-bottom:4px;">🏷️ '+prods.length+' Etiquetas</div>',
-    '<div class="btn-row">',
-    '<button class="btn-print" onclick="window.print()">🖨️ Imprimir todas</button>',
-    '<button class="btn-close" onclick="window.close()">Cerrar</button>',
-    '</div></div>',
+    '<div class="no-print">',
+    '<div style="font-size:12px;font-weight:800;margin-bottom:6px;">🏷️ '+prods.length+' etiquetas</div>',
+    '<button style="background:#000;color:#D4A017;" onclick="window.print()">🖨️ Imprimir</button>',
+    '<button style="background:#eee;color:#333;" onclick="window.close()">Cerrar</button>',
+    '</div>',
     labelsHtml,
     '</body></html>'
-  ].join('\n');
+  ].join('');
 
-  var w = window.open('','_blank','width=340,height=600');
+  var w = window.open('','_blank','width=250,height=500');
   if(!w){ toast('Permite pop-ups para imprimir','error'); return; }
   w.document.write(html);
   w.document.close();
