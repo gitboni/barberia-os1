@@ -2809,6 +2809,7 @@ function renderConfigPage(){
           <div class="fg"><label>Nombre del local</label><input type="text" id="cfg-nombre-pg" value="${s.nombre||''}"></div>
           <div class="fg"><label>WhatsApp del dueño</label><input type="text" id="cfg-whatsapp-pg" value="${s.whatsapp_dueño||''}"></div>
           <div class="fg"><label>Duración de turno (minutos)</label><input type="number" id="cfg-dur-pg" value="${s.duracion_turno||45}" min="15" max="120"></div>
+          <div class="fg"><label>Comisión barbero por servicios (%)</label><div style="display:flex;align-items:center;gap:8px;"><input type="number" id="cfg-comision-serv-pg" value="${s.comision_servicio_pct!=null?s.comision_servicio_pct:50}" min="0" max="100" step="1" style="width:80px;"><span style="font-size:0.6rem;color:var(--muted);">Ej: 50 = el barbero gana 50% de cada servicio · 0 = sin comisión</span></div></div>
           <div class="fg"><label>Comisión barbero por venta de productos (%)</label><div style="display:flex;align-items:center;gap:8px;"><input type="number" id="cfg-comision-pg" value="${s.comision_barbero_pct||0}" min="0" max="100" step="1" style="width:80px;"><span style="font-size:0.6rem;color:var(--muted);">0 = sin comisión · Ej: 10 = el barbero gana 10% de cada venta de producto</span></div></div>
           <div class="fg"><label>Zona horaria</label>
             <select id="cfg-tz-pg">
@@ -5224,7 +5225,8 @@ async function saveConfigPage() {
       horarios_por_dia: hpd.horarios_por_dia,
       hora_inicio: hpd.hora_inicio,
       hora_fin: hpd.hora_fin,
-      comision_barbero_pct: parseFloat(document.getElementById('cfg-comision-pg')?.value) || 0
+      comision_barbero_pct: parseFloat(document.getElementById('cfg-comision-pg')?.value) || 0,
+      comision_servicio_pct: parseFloat(document.getElementById('cfg-comision-serv-pg')?.value) ?? 50
     };
 
     if (!update.nombre) { toast('El nombre es obligatorio', 'error'); throw 'err'; }
@@ -5378,45 +5380,96 @@ function exportCSV_reseñas(){
   });
 }
 
-// ── CIERRE DE CAJA ──
+// ── CIERRE DE CAJA (con histórico) ──
+let _cajaFecha=null; // null=hoy, string='YYYY-MM-DD'
+let _cajaCitas=null,_cajaMovs=null,_cajaGastos=null;
+
+function cajaGetFecha(){return _cajaFecha||getHoyRD();}
+function cajaEsHoy(){return cajaGetFecha()===getHoyRD();}
+
+async function cajaNavFecha(dir){
+  const cur=new Date(cajaGetFecha()+'T12:00:00');
+  cur.setDate(cur.getDate()+dir);
+  const y=cur.getFullYear(),m=String(cur.getMonth()+1).padStart(2,'0'),d=String(cur.getDate()).padStart(2,'0');
+  _cajaFecha=`${y}-${m}-${d}`;
+  if(cajaEsHoy()){_cajaFecha=null;_cajaCitas=null;_cajaMovs=null;_cajaGastos=null;renderPage();return;}
+  await cajaLoadFecha(_cajaFecha);
+}
+async function cajaPickFecha(){
+  const val=document.getElementById('cajaDatePicker')?.value;
+  if(!val)return;
+  _cajaFecha=val;
+  if(cajaEsHoy()){_cajaFecha=null;_cajaCitas=null;_cajaMovs=null;_cajaGastos=null;renderPage();return;}
+  await cajaLoadFecha(val);
+}
+async function cajaIrHoy(){_cajaFecha=null;_cajaCitas=null;_cajaMovs=null;_cajaGastos=null;renderPage();}
+
+async function cajaLoadFecha(fecha){
+  toast('Cargando '+fecha+'…','info');
+  try{
+    const[citasRes,movsRes,gastosRes]=await Promise.all([
+      sbGet('citas','shop_id=eq.'+S.shopId+'&fecha=eq.'+fecha+'&order=hora.asc'),
+      sbGet('inventario_movimientos','shop_id=eq.'+S.shopId+'&fecha=eq.'+fecha+'&tipo=eq.venta&order=created_at.desc'),
+      sbGet('gastos','shop_id=eq.'+S.shopId+'&fecha=eq.'+fecha)
+    ]);
+    _cajaCitas=citasRes||[];_cajaMovs=movsRes||[];_cajaGastos=gastosRes||[];
+  }catch(e){toast('Error cargando datos: '+e.message,'error');_cajaCitas=[];_cajaMovs=[];_cajaGastos=[];}
+  renderPage();
+}
+
 function renderCaja(){
-  const hoy=getHoyRD();
-  // ── Servicios ──
-  const citasHoy=S.citas.filter(c=>c.estado==='Completada');
+  const fecha=cajaGetFecha();
+  const esHoy=cajaEsHoy();
+  // Fuentes de datos: si es hoy usa S.*, si es histórico usa _caja*
+  const citasDia=esHoy?S.citas.filter(c=>c.estado==='Completada'):(_cajaCitas||[]).filter(c=>c.estado==='Completada');
   const svcMap={};(S.servicios||[]).forEach(s=>{svcMap[s.nombre?.trim().toUpperCase()]=parseFloat(s.precio||0);});
-  const ingresosServicios=citasHoy.reduce((a,c)=>a+(svcMap[(c.servicio||'').trim().toUpperCase()]||0),0);
+  const ingresosServicios=citasDia.reduce((a,c)=>a+(svcMap[(c.servicio||'').trim().toUpperCase()]||0),0);
 
-  // ── Ventas productos ──
-  const ventasHoy=(S.movimientos||[]).filter(m=>m.tipo==='venta'&&m.fecha===hoy);
-  const ingresosProductos=ventasHoy.reduce((a,m)=>a+parseFloat(m.total||(m.cantidad*m.precio_unitario)||0),0);
-  const unidadesVendidas=ventasHoy.reduce((a,m)=>a+parseFloat(m.cantidad||0),0);
+  const ventasDia=esHoy?(S.movimientos||[]).filter(m=>m.tipo==='venta'&&m.fecha===fecha):(_cajaMovs||[]);
+  const ingresosProductos=ventasDia.reduce((a,m)=>a+parseFloat(m.total||(m.cantidad*m.precio_unitario)||0),0);
+  const unidadesVendidas=ventasDia.reduce((a,m)=>a+parseFloat(m.cantidad||0),0);
 
-  // ── Totales ──
   const ingresosBrutos=ingresosServicios+ingresosProductos;
-  const gastosHoy=S.gastos.filter(g=>g.fecha===hoy).reduce((a,g)=>a+parseFloat(g.monto||0),0);
-  const comisionPct=parseFloat(S.shopData?.comision_barbero_pct||0);
-  const comisionesProductos=comisionPct>0?Math.round(ingresosProductos*(comisionPct/100)):0;
-  const utilidad=ingresosBrutos-gastosHoy-comisionesProductos;
+  const gastosDia=esHoy?S.gastos.filter(g=>g.fecha===fecha):(_cajaGastos||[]);
+  const totalGastos=gastosDia.reduce((a,g)=>a+parseFloat(g.monto||0),0);
 
-  // ── Desglose por método de pago (productos) ──
-  let pagoEfectivo=0,pagoTarjeta=0,pagoTransferencia=0;
-  ventasHoy.forEach(m=>{
+  // Comisiones configurables
+  const comServPct=parseFloat(S.shopData?.comision_servicio_pct!=null?S.shopData.comision_servicio_pct:50);
+  const comProdPct=parseFloat(S.shopData?.comision_barbero_pct||0);
+  const comisionesServicios=comServPct>0?Math.round(ingresosServicios*(comServPct/100)):0;
+  const comisionesProductos=comProdPct>0?Math.round(ingresosProductos*(comProdPct/100)):0;
+  const totalComisiones=comisionesServicios+comisionesProductos;
+  const utilidad=ingresosBrutos-totalGastos-totalComisiones;
+
+  // Métodos de pago — servicios (metodo_pago) + productos (motivo)
+  let mpServEfec=0,mpServTarj=0,mpServTrans=0,mpServOtro=0;
+  citasDia.forEach(c=>{
+    const precio=svcMap[(c.servicio||'').trim().toUpperCase()]||0;
+    const mp=(c.metodo_pago||'').toLowerCase();
+    if(mp.includes('tarjeta'))mpServTarj+=precio;
+    else if(mp.includes('transferencia'))mpServTrans+=precio;
+    else if(mp&&mp!=='sin especificar')mpServEfec+=precio;
+    else mpServOtro+=precio;
+  });
+  let mpProdEfec=0,mpProdTarj=0,mpProdTrans=0;
+  ventasDia.forEach(m=>{
     const mt=(m.motivo||'').toLowerCase();
     const monto=parseFloat(m.total||(m.cantidad*m.precio_unitario)||0);
-    if(mt.includes('pago: tarjeta'))pagoTarjeta+=monto;
-    else if(mt.includes('pago: transferencia'))pagoTransferencia+=monto;
-    else pagoEfectivo+=monto;
+    if(mt.includes('pago: tarjeta'))mpProdTarj+=monto;
+    else if(mt.includes('pago: transferencia'))mpProdTrans+=monto;
+    else mpProdEfec+=monto;
   });
+  const mpEfec=mpServEfec+mpProdEfec,mpTarj=mpServTarj+mpProdTarj,mpTrans=mpServTrans+mpProdTrans;
+  const mpTotal=mpEfec+mpTarj+mpTrans+mpServOtro;
 
-  // ── Por barbero (servicios + productos) ──
+  // Por barbero
   const porBarbero={};
-  citasHoy.forEach(c=>{
+  citasDia.forEach(c=>{
     const k=c.barbero||'Sin asignar';
     if(!porBarbero[k])porBarbero[k]={citas:0,ingServ:0,ingProd:0,unidades:0};
-    porBarbero[k].citas++;
-    porBarbero[k].ingServ+=(svcMap[(c.servicio||'').trim().toUpperCase()]||0);
+    porBarbero[k].citas++;porBarbero[k].ingServ+=(svcMap[(c.servicio||'').trim().toUpperCase()]||0);
   });
-  ventasHoy.forEach(m=>{
+  ventasDia.forEach(m=>{
     const barb=(S.barberos||[]).find(b=>b.id===m.barbero_id);
     const k=barb?.nombre||'Sin asignar';
     if(!porBarbero[k])porBarbero[k]={citas:0,ingServ:0,ingProd:0,unidades:0};
@@ -5424,22 +5477,28 @@ function renderCaja(){
     porBarbero[k].unidades+=parseFloat(m.cantidad||0);
   });
 
-  // ── Productos más vendidos hoy ──
+  // Top productos
   const prodRank={};
-  ventasHoy.forEach(m=>{
-    const pid=m.producto_id;
-    if(!prodRank[pid])prodRank[pid]={nombre:m.producto_nombre||'Producto',cant:0,total:0};
-    prodRank[pid].cant+=parseFloat(m.cantidad||0);
-    prodRank[pid].total+=parseFloat(m.total||(m.cantidad*m.precio_unitario)||0);
+  ventasDia.forEach(m=>{
+    const pid=m.producto_id;if(!prodRank[pid])prodRank[pid]={nombre:m.producto_nombre||'Producto',cant:0,total:0};
+    prodRank[pid].cant+=parseFloat(m.cantidad||0);prodRank[pid].total+=parseFloat(m.total||(m.cantidad*m.precio_unitario)||0);
   });
   const topProds=Object.values(prodRank).sort((a,b)=>b.total-a.total).slice(0,5);
 
+  const fechaDisplay=new Date(fecha+'T12:00:00').toLocaleDateString('es-DO',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
   return `<div style="display:flex;flex-direction:column;gap:16px;">
-    <!-- Header -->
+    <!-- Header con navegación -->
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
       <div>
-        <div style="font-family:'DM Mono',monospace;font-size:.58rem;color:var(--gold);letter-spacing:.1em;margin-bottom:4px;">CIERRE DEL DÍA</div>
-        <div style="font-size:1.6rem;font-weight:800;">${new Date().toLocaleDateString('es-DO',{weekday:'long',day:'numeric',month:'long'})}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:.58rem;color:var(--gold);letter-spacing:.1em;margin-bottom:4px;">CIERRE DE CAJA${esHoy?'':' — HISTÓRICO'}</div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <button class="btn-sm btn-dark" onclick="cajaNavFecha(-1)" style="padding:6px 10px;font-size:1rem;">←</button>
+          <div style="font-size:1.4rem;font-weight:800;min-width:260px;text-align:center;">${fechaDisplay}</div>
+          <button class="btn-sm btn-dark" onclick="cajaNavFecha(1)" style="padding:6px 10px;font-size:1rem;" ${esHoy?'disabled style="opacity:.3;padding:6px 10px;font-size:1rem;"':''}>→</button>
+          <input type="date" id="cajaDatePicker" value="${fecha}" onchange="cajaPickFecha()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:8px;font-size:.75rem;font-family:'DM Mono',monospace;">
+          ${!esHoy?`<button class="btn-sm btn-gold" onclick="cajaIrHoy()" style="padding:6px 14px;font-size:.7rem;">Hoy</button>`:''}
+        </div>
       </div>
       <div style="display:flex;gap:10px;">
         <button class="btn-sm btn-dark" onclick="exportCSV_caja()">⬇ CSV</button>
@@ -5447,51 +5506,56 @@ function renderCaja(){
       </div>
     </div>
 
-    <!-- KPIs principales -->
-    <div class="stats-row" style="grid-template-columns:repeat(5,1fr);">
+    <!-- KPIs -->
+    <div class="stats-row" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));">
       <div class="stat-card c-gold"><div class="stat-val gold">$${ingresosBrutos.toLocaleString()}</div><div class="stat-lbl">Ingresos brutos</div></div>
-      <div class="stat-card c-red"><div class="stat-val red">$${gastosHoy.toLocaleString()}</div><div class="stat-lbl">Gastos del día</div></div>
-      ${comisionesProductos>0?`<div class="stat-card c-red"><div class="stat-val" style="color:#F59E0B;">$${comisionesProductos.toLocaleString()}</div><div class="stat-lbl">Comisiones (${comisionPct}%)</div></div>`:''}
+      <div class="stat-card c-red"><div class="stat-val red">$${totalGastos.toLocaleString()}</div><div class="stat-lbl">Gastos</div></div>
+      ${totalComisiones>0?`<div class="stat-card" style="border-color:rgba(245,158,11,.2);"><div class="stat-val" style="color:#F59E0B;">$${totalComisiones.toLocaleString()}</div><div class="stat-lbl">Comisiones</div></div>`:''}
       <div class="stat-card ${utilidad>=0?'c-green':'c-red'}"><div class="stat-val ${utilidad>=0?'green':'red'}">$${utilidad.toLocaleString()}</div><div class="stat-lbl">Utilidad neta</div></div>
-      <div class="stat-card c-blue"><div class="stat-val blue">${citasHoy.length}</div><div class="stat-lbl">Servicios</div></div>
-      ${ventasHoy.length?`<div class="stat-card" style="border-color:rgba(62,207,142,.2);"><div class="stat-val green">${ventasHoy.length}</div><div class="stat-lbl">Ventas prod.</div></div>`:''}
+      <div class="stat-card c-blue"><div class="stat-val blue">${citasDia.length}</div><div class="stat-lbl">Servicios</div></div>
+      ${ventasDia.length?`<div class="stat-card" style="border-color:rgba(62,207,142,.2);"><div class="stat-val green">${ventasDia.length}</div><div class="stat-lbl">Ventas prod.</div></div>`:''}
     </div>
 
-    <!-- Desglose ingresos + métodos de pago -->
+    <!-- Desglose ingresos + Métodos de pago -->
     <div class="two-col">
       <div class="card">
         <div class="card-header"><div class="card-title">💰 Desglose de ingresos</div></div>
         <div style="padding:16px;">
           <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
-            <div><div style="font-weight:700;">✂️ Servicios</div><div style="font-size:.65rem;color:var(--muted);">${citasHoy.length} completado${citasHoy.length!==1?'s':''}</div></div>
+            <div><div style="font-weight:700;">✂️ Servicios</div><div style="font-size:.65rem;color:var(--muted);">${citasDia.length} completado${citasDia.length!==1?'s':''}</div></div>
             <div style="font-weight:800;color:var(--gold);font-size:1rem;">$${ingresosServicios.toLocaleString()}</div>
           </div>
           <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
-            <div><div style="font-weight:700;">🛒 Productos</div><div style="font-size:.65rem;color:var(--muted);">${unidadesVendidas} unidad${unidadesVendidas!==1?'es':''} · ${ventasHoy.length} venta${ventasHoy.length!==1?'s':''}</div></div>
+            <div><div style="font-weight:700;">🛒 Productos</div><div style="font-size:.65rem;color:var(--muted);">${unidadesVendidas} uds. · ${ventasDia.length} venta${ventasDia.length!==1?'s':''}</div></div>
             <div style="font-weight:800;color:var(--green);font-size:1rem;">$${ingresosProductos.toLocaleString()}</div>
           </div>
+          ${totalComisiones>0?`
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:.78rem;">
+            <div><span style="color:#F59E0B;">💸 Comisiones barberos</span><div style="font-size:.58rem;color:var(--muted);">Serv. ${comServPct}% ($${comisionesServicios.toLocaleString()}) + Prod. ${comProdPct}% ($${comisionesProductos.toLocaleString()})</div></div>
+            <div style="font-weight:800;color:#F59E0B;">−$${totalComisiones.toLocaleString()}</div>
+          </div>`:''}
           <div style="display:flex;justify-content:space-between;padding:10px 0;">
-            <div style="font-weight:900;font-size:1rem;">Total</div>
+            <div style="font-weight:900;font-size:1rem;">Total ingresos</div>
             <div style="font-weight:900;color:var(--gold);font-size:1.1rem;">$${ingresosBrutos.toLocaleString()}</div>
           </div>
         </div>
       </div>
       <div class="card">
-        <div class="card-header"><div class="card-title">💳 Métodos de pago (productos)</div></div>
+        <div class="card-header"><div class="card-title">💳 Métodos de pago</div></div>
         <div style="padding:16px;">
-          ${ventasHoy.length?`
-          ${[['💵 Efectivo',pagoEfectivo,'var(--green)'],['💳 Tarjeta',pagoTarjeta,'var(--blue)'],['📲 Transferencia',pagoTransferencia,'#A78BFA']].filter(([,v])=>v>0).map(([label,val,color])=>{
-            const pct=ingresosBrutos>0?Math.round(val/ingresosProductos*100):0;
+          ${mpTotal>0?`
+          ${[['💵 Efectivo',mpEfec,'var(--green)'],['💳 Tarjeta',mpTarj,'var(--blue)'],['📲 Transferencia',mpTrans,'#A78BFA']].filter(([,v])=>v>0).map(([label,val,color])=>{
+            const pct=mpTotal>0?Math.round(val/mpTotal*100):0;
             return `<div style="margin-bottom:10px;">
               <div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:4px;">
                 <span>${label}</span><span style="font-weight:800;color:${color};">$${val.toLocaleString()} <span style="font-size:.62rem;color:var(--muted);">(${pct}%)</span></span>
               </div>
               <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
-                <div style="height:100%;width:${pct}%;background:${color};border-radius:3px;transition:width .3s;"></div>
+                <div style="height:100%;width:${pct}%;background:${color};border-radius:3px;"></div>
               </div>
             </div>`;}).join('')}
-          `:'<div style="color:var(--muted);font-size:.72rem;text-align:center;padding:20px;">Sin ventas de productos hoy</div>'}
-          <div style="font-size:.58rem;color:var(--muted);margin-top:8px;text-align:center;">ℹ️ Métodos de pago de servicios se registran aparte</div>
+          ${mpServOtro>0?`<div style="font-size:.65rem;color:var(--muted);margin-top:4px;">⚠️ $${mpServOtro.toLocaleString()} sin método especificado</div>`:''}
+          `:'<div style="color:var(--muted);font-size:.72rem;text-align:center;padding:20px;">Sin transacciones</div>'}
         </div>
       </div>
     </div>
@@ -5506,11 +5570,13 @@ function renderCaja(){
         </div>
         ${Object.entries(porBarbero).sort((a,b)=>(b[1].ingServ+b[1].ingProd)-(a[1].ingServ+a[1].ingProd)).map(([b,d])=>{
           const totalBarb=d.ingServ+d.ingProd;
-          const comBarb=comisionPct>0?Math.round(d.ingProd*(comisionPct/100)):0;
+          const comServB=comServPct>0?Math.round(d.ingServ*(comServPct/100)):0;
+          const comProdB=comProdPct>0?Math.round(d.ingProd*(comProdPct/100)):0;
+          const comTotalB=comServB+comProdB;
           return `<div style="display:grid;grid-template-columns:2fr repeat(4,1fr);gap:0;padding:10px 0;border-bottom:1px solid var(--border);align-items:center;">
             <div>
               <div style="font-weight:700;">${esc(b)}</div>
-              ${comBarb>0?`<div style="font-size:.6rem;color:#F59E0B;">💰 Comisión: $${comBarb.toLocaleString()}</div>`:''}
+              ${comTotalB>0?`<div style="font-size:.6rem;color:#F59E0B;">💰 Comisión: $${comTotalB.toLocaleString()}</div>`:''}
               ${d.unidades>0?`<div style="font-size:.6rem;color:var(--muted);">${d.unidades} uds. vendidas</div>`:''}
             </div>
             <div style="text-align:right;font-weight:700;">${d.citas}</div>
@@ -5518,96 +5584,101 @@ function renderCaja(){
             <div style="text-align:right;font-weight:700;color:var(--green);">${d.ingProd>0?'$'+d.ingProd.toLocaleString():'—'}</div>
             <div style="text-align:right;font-weight:900;font-size:.9rem;">$${totalBarb.toLocaleString()}</div>
           </div>`;}).join('')}
-        `:'<div style="color:var(--muted);font-size:.72rem;text-align:center;padding:20px;">Sin actividad de barberos hoy</div>'}
+        `:'<div style="color:var(--muted);font-size:.72rem;text-align:center;padding:20px;">Sin actividad de barberos</div>'}
       </div>
     </div>
 
-    <!-- Productos más vendidos + Servicios realizados -->
+    <!-- Top productos + Servicios -->
     <div class="two-col">
       ${topProds.length?`
       <div class="card">
-        <div class="card-header"><div class="card-title">🏆 Productos más vendidos hoy</div></div>
+        <div class="card-header"><div class="card-title">🏆 Productos más vendidos</div></div>
         <div style="padding:16px;">
           ${topProds.map((p,i)=>`
             <div style="display:flex;align-items:center;gap:10px;padding:8px 0;${i<topProds.length-1?'border-bottom:1px solid var(--border);':''}">
               <div style="min-width:24px;height:24px;border-radius:50%;background:${i===0?'var(--gold)':i===1?'silver':i===2?'#CD7F32':'var(--border)'};color:#000;font-size:.6rem;font-weight:900;display:flex;align-items:center;justify-content:center;">${i+1}</div>
-              <div style="flex:1;">
-                <div style="font-weight:700;font-size:.82rem;">${esc(p.nombre)}</div>
-                <div style="font-size:.65rem;color:var(--muted);">${p.cant} unidad${p.cant!==1?'es':''}</div>
-              </div>
+              <div style="flex:1;"><div style="font-weight:700;font-size:.82rem;">${esc(p.nombre)}</div><div style="font-size:.65rem;color:var(--muted);">${p.cant} uds.</div></div>
               <div style="font-weight:800;color:var(--green);">$${p.total.toLocaleString()}</div>
             </div>`).join('')}
         </div>
-      </div>
-      `:''}
+      </div>`:''}
       <div class="card">
         <div class="card-header"><div class="card-title">✂️ Servicios realizados</div></div>
         <div style="padding:16px;max-height:300px;overflow-y:auto;">
-          ${citasHoy.map(c=>`
-            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border2);font-size:.8rem;">
-              <div><span style="color:var(--gold);font-family:'DM Mono',monospace;font-size:.7rem;">${esc(c.hora)}</span> · ${esc(c.nombre)}</div>
+          ${citasDia.map(c=>{
+            const mp=c.metodo_pago&&c.metodo_pago!=='Sin especificar'?c.metodo_pago:'';
+            const mpIcon=mp.includes('Tarjeta')?'💳':mp.includes('Transferencia')?'📲':mp?'💵':'';
+            return `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border2);font-size:.8rem;">
+              <div><span style="color:var(--gold);font-family:'DM Mono',monospace;font-size:.7rem;">${esc(c.hora)}</span> · ${esc(c.nombre)} ${mpIcon?`<span style="font-size:.6rem;">${mpIcon}</span>`:''}</div>
               <div style="display:flex;gap:8px;align-items:center;"><span style="color:var(--muted);font-size:.72rem;">${esc(c.servicio)}</span><span style="font-weight:700;color:var(--gold);font-size:.72rem;">$${(svcMap[(c.servicio||'').trim().toUpperCase()]||0).toLocaleString()}</span></div>
-            </div>`).join('')||'<div style="color:var(--muted);font-size:.72rem;text-align:center;padding:20px;">Sin servicios hoy</div>'}
+            </div>`;}).join('')||'<div style="color:var(--muted);font-size:.72rem;text-align:center;padding:20px;">Sin servicios</div>'}
         </div>
       </div>
     </div>
 
     <!-- Gastos -->
     <div class="card">
-      <div class="card-header"><div class="card-title">📉 Gastos registrados hoy</div></div>
+      <div class="card-header"><div class="card-title">📉 Gastos registrados</div></div>
       <div style="padding:16px;">
-        ${S.gastos.filter(g=>g.fecha===hoy).map(g=>`
+        ${gastosDia.map(g=>`
           <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border2);">
             <span style="font-size:.82rem;">${g.descripcion||'—'} <span style="font-size:.65rem;color:var(--muted);">(${g.categoria})</span></span>
             <span style="color:var(--red);font-weight:700;">-$${parseFloat(g.monto).toLocaleString()}</span>
-          </div>`).join('')||'<div style="color:var(--muted);font-size:.72rem;text-align:center;padding:16px;">Sin gastos registrados hoy</div>'}
-        <button class="btn-sm btn-dark" style="margin-top:12px;width:100%;" onclick="openModal('gasto',true)">+ Registrar gasto del día</button>
+          </div>`).join('')||'<div style="color:var(--muted);font-size:.72rem;text-align:center;padding:16px;">Sin gastos registrados</div>'}
+        ${esHoy?`<button class="btn-sm btn-dark" style="margin-top:12px;width:100%;" onclick="openModal('gasto',true)">+ Registrar gasto del día</button>`:''}
       </div>
     </div>
   </div>`;
 }
 
 function exportCSV_caja(){
-  const hoy=getHoyRD();
+  const fecha=cajaGetFecha();const esHoy=cajaEsHoy();
   const svcMap={};(S.servicios||[]).forEach(s=>{svcMap[s.nombre?.trim().toUpperCase()]=parseFloat(s.precio||0);});
-  const svcRows=S.citas.filter(c=>c.estado==='Completada').map(c=>`${c.hora},"${c.nombre}","${c.servicio}","${c.barbero}","Servicio",${svcMap[(c.servicio||'').trim().toUpperCase()]||0}`);
-  const ventasHoy=(S.movimientos||[]).filter(m=>m.tipo==='venta'&&m.fecha===hoy);
-  const prodRows=ventasHoy.map(m=>{
+  const citasDia=esHoy?S.citas.filter(c=>c.estado==='Completada'):(_cajaCitas||[]).filter(c=>c.estado==='Completada');
+  const svcRows=citasDia.map(c=>`${c.hora},"${c.nombre}","${c.servicio}","${c.barbero}","Servicio","${c.metodo_pago||''}",${svcMap[(c.servicio||'').trim().toUpperCase()]||0}`);
+  const ventasDia=esHoy?(S.movimientos||[]).filter(m=>m.tipo==='venta'&&m.fecha===fecha):(_cajaMovs||[]);
+  const prodRows=ventasDia.map(m=>{
     const barb=(S.barberos||[]).find(b=>b.id===m.barbero_id);
     const mt=(m.motivo||'').toLowerCase();
     const metodo=mt.includes('pago: tarjeta')?'Tarjeta':mt.includes('pago: transferencia')?'Transferencia':'Efectivo';
-    return `${new Date(m.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})},"${m.cliente_nombre||'—'}","${m.producto_nombre||'Producto'}","${barb?.nombre||'—'}","Producto (${metodo})",${parseFloat(m.total||(m.cantidad*m.precio_unitario)||0)}`;
+    return `${new Date(m.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})},"${m.cliente_nombre||'—'}","${m.producto_nombre||'Producto'}","${barb?.nombre||'—'}","Producto","${metodo}",${parseFloat(m.total||(m.cantidad*m.precio_unitario)||0)}`;
   });
-  const gastoRows=S.gastos.filter(g=>g.fecha===hoy).map(g=>`—,"—","${g.descripcion||'—'}","—","Gasto (${g.categoria})",-${parseFloat(g.monto||0)}`);
-  const csv='Hora,Cliente,Concepto,Barbero,Tipo,Monto\n'+[...svcRows,...prodRows,...gastoRows].join('\n');
-  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download=`caja-${hoy}.csv`;a.click();
+  const gastosDia=esHoy?S.gastos.filter(g=>g.fecha===fecha):(_cajaGastos||[]);
+  const gastoRows=gastosDia.map(g=>`—,"—","${g.descripcion||'—'}","—","Gasto","${g.categoria}",-${parseFloat(g.monto||0)}`);
+  const csv='Hora,Cliente,Concepto,Barbero,Tipo,MetodoPago,Monto\n'+[...svcRows,...prodRows,...gastoRows].join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download=`caja-${fecha}.csv`;a.click();
 }
 
 function enviarResumenWA(){
-  const hoy=getHoyRD();
+  const fecha=cajaGetFecha();const esHoy=cajaEsHoy();
   const svcMap={};(S.servicios||[]).forEach(s=>{svcMap[s.nombre?.trim().toUpperCase()]=parseFloat(s.precio||0);});
-  const completadas=S.citas.filter(c=>c.estado==='Completada');
-  const ingServ=completadas.reduce((a,c)=>a+(svcMap[(c.servicio||'').trim().toUpperCase()]||0),0);
-  const ventasHoy=(S.movimientos||[]).filter(m=>m.tipo==='venta'&&m.fecha===hoy);
-  const ingProd=ventasHoy.reduce((a,m)=>a+parseFloat(m.total||(m.cantidad*m.precio_unitario)||0),0);
-  const unidades=ventasHoy.reduce((a,m)=>a+parseFloat(m.cantidad||0),0);
-  const gastosHoy=S.gastos.filter(g=>g.fecha===hoy).reduce((a,g)=>a+parseFloat(g.monto||0),0);
-  const comPct=parseFloat(S.shopData?.comision_barbero_pct||0);
-  const comisiones=comPct>0?Math.round(ingProd*(comPct/100)):0;
+  const citasDia=esHoy?S.citas.filter(c=>c.estado==='Completada'):(_cajaCitas||[]).filter(c=>c.estado==='Completada');
+  const ingServ=citasDia.reduce((a,c)=>a+(svcMap[(c.servicio||'').trim().toUpperCase()]||0),0);
+  const ventasDia=esHoy?(S.movimientos||[]).filter(m=>m.tipo==='venta'&&m.fecha===fecha):(_cajaMovs||[]);
+  const ingProd=ventasDia.reduce((a,m)=>a+parseFloat(m.total||(m.cantidad*m.precio_unitario)||0),0);
+  const unidades=ventasDia.reduce((a,m)=>a+parseFloat(m.cantidad||0),0);
+  const gastosDia=esHoy?S.gastos.filter(g=>g.fecha===fecha):(_cajaGastos||[]);
+  const totalGastos=gastosDia.reduce((a,g)=>a+parseFloat(g.monto||0),0);
+  const comServPct=parseFloat(S.shopData?.comision_servicio_pct!=null?S.shopData.comision_servicio_pct:50);
+  const comProdPct=parseFloat(S.shopData?.comision_barbero_pct||0);
+  const comServ=comServPct>0?Math.round(ingServ*(comServPct/100)):0;
+  const comProd=comProdPct>0?Math.round(ingProd*(comProdPct/100)):0;
+  const totalCom=comServ+comProd;
   const total=ingServ+ingProd;
-  const utilidad=total-gastosHoy-comisiones;
+  const utilidad=total-totalGastos-totalCom;
+  const fechaDisplay=new Date(fecha+'T12:00:00').toLocaleDateString('es-DO',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   const L='━━━━━━━━━━━━━━━━━━━━━━━';
   const l='─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─';
   let msg=`📊 *CIERRE DE CAJA*\n`;
   msg+=`🏪 _${S.shopData?.nombre||'Barbería'}_\n`;
-  msg+=`📅 ${new Date().toLocaleDateString('es-DO',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}\n`;
+  msg+=`📅 ${fechaDisplay}\n`;
   msg+=`${L}\n\n`;
-  msg+=`✂️ *Servicios:* ${completadas.length} → $${ingServ.toLocaleString()}\n`;
-  if(ventasHoy.length)msg+=`🛒 *Productos:* ${ventasHoy.length} ventas (${unidades} uds.) → $${ingProd.toLocaleString()}\n`;
+  msg+=`✂️ *Servicios:* ${citasDia.length} → $${ingServ.toLocaleString()}\n`;
+  if(ventasDia.length)msg+=`🛒 *Productos:* ${ventasDia.length} ventas (${unidades} uds.) → $${ingProd.toLocaleString()}\n`;
   msg+=`${l}\n`;
   msg+=`💰 *Ingresos:* $${total.toLocaleString()}\n`;
-  msg+=`📉 *Gastos:* $${gastosHoy.toLocaleString()}\n`;
-  if(comisiones>0)msg+=`💸 *Comisiones (${comPct}%):* $${comisiones.toLocaleString()}\n`;
+  msg+=`📉 *Gastos:* $${totalGastos.toLocaleString()}\n`;
+  if(totalCom>0)msg+=`💸 *Comisiones:* $${totalCom.toLocaleString()} (serv. ${comServPct}% + prod. ${comProdPct}%)\n`;
   msg+=`${L}\n`;
   msg+=`✅ *UTILIDAD NETA: $${utilidad.toLocaleString()}*\n\n`;
   msg+=`_Generado por AuraOS_`;
