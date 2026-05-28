@@ -2462,8 +2462,8 @@ async function posRegistrarVenta(){
     const cartItemsBk=_posCarrito.map(c=>({...c}));
     const clienteBk=_posClienteSel?{..._posClienteSel}:null;
     const _posMetodoBk=_posMetodo;
-    const now=new Date();
-    const folioBk=`${String(now.getFullYear()).slice(2)}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}-${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}-${Math.random().toString(36).slice(2,6).toUpperCase()}`;
+    const nf=new Date();
+    const folioBk=`${String(nf.getFullYear()).slice(2)}${String(nf.getMonth()+1).padStart(2,'0')}${String(nf.getDate()).padStart(2,'0')}-${String(nf.getHours()).padStart(2,'0')}${String(nf.getMinutes()).padStart(2,'0')}-${Math.random().toString(36).slice(2,6).toUpperCase()}`;
 
     // Generar ticket
     const ticketText=posGenerarTicket(total,subtotal,descPct,descMonto);
