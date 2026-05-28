@@ -5418,10 +5418,11 @@ async function cajaLoadFecha(fecha){
 }
 
 function renderCaja(){
+  try {
   const fecha=cajaGetFecha();
   const esHoy=cajaEsHoy();
   // Fuentes de datos: si es hoy usa S.*, si es histórico usa _caja*
-  const citasDia=esHoy?S.citas.filter(c=>c.estado==='Completada'):(_cajaCitas||[]).filter(c=>c.estado==='Completada');
+  const citasDia=esHoy?(S.citas||[]).filter(c=>c.estado==='Completada'):(_cajaCitas||[]).filter(c=>c.estado==='Completada');
   const svcMap={};(S.servicios||[]).forEach(s=>{svcMap[s.nombre?.trim().toUpperCase()]=parseFloat(s.precio||0);});
   const ingresosServicios=citasDia.reduce((a,c)=>a+(svcMap[(c.servicio||'').trim().toUpperCase()]||0),0);
 
@@ -5430,7 +5431,7 @@ function renderCaja(){
   const unidadesVendidas=ventasDia.reduce((a,m)=>a+parseFloat(m.cantidad||0),0);
 
   const ingresosBrutos=ingresosServicios+ingresosProductos;
-  const gastosDia=esHoy?S.gastos.filter(g=>g.fecha===fecha):(_cajaGastos||[]);
+  const gastosDia=esHoy?(S.gastos||[]).filter(g=>g.fecha===fecha):(_cajaGastos||[]);
   const totalGastos=gastosDia.reduce((a,g)=>a+parseFloat(g.monto||0),0);
 
   // Comisiones configurables
@@ -5629,12 +5630,16 @@ function renderCaja(){
       </div>
     </div>
   </div>`;
+  } catch (err) {
+    console.error("Error en renderCaja:", err);
+    return `<div style="padding:40px;text-align:center;color:var(--red);"><h3>Error al cargar Cierre de Caja</h3><pre style="font-size:0.7rem;color:var(--muted);margin-top:10px;">${err.message}</pre></div>`;
+  }
 }
 
 function exportCSV_caja(){
   const fecha=cajaGetFecha();const esHoy=cajaEsHoy();
   const svcMap={};(S.servicios||[]).forEach(s=>{svcMap[s.nombre?.trim().toUpperCase()]=parseFloat(s.precio||0);});
-  const citasDia=esHoy?S.citas.filter(c=>c.estado==='Completada'):(_cajaCitas||[]).filter(c=>c.estado==='Completada');
+  const citasDia=esHoy?(S.citas||[]).filter(c=>c.estado==='Completada'):(_cajaCitas||[]).filter(c=>c.estado==='Completada');
   const svcRows=citasDia.map(c=>`${c.hora},"${c.nombre}","${c.servicio}","${c.barbero}","Servicio","${c.metodo_pago||''}",${svcMap[(c.servicio||'').trim().toUpperCase()]||0}`);
   const ventasDia=esHoy?(S.movimientos||[]).filter(m=>m.tipo==='venta'&&m.fecha===fecha):(_cajaMovs||[]);
   const prodRows=ventasDia.map(m=>{
@@ -5643,7 +5648,7 @@ function exportCSV_caja(){
     const metodo=mt.includes('pago: tarjeta')?'Tarjeta':mt.includes('pago: transferencia')?'Transferencia':'Efectivo';
     return `${new Date(m.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})},"${m.cliente_nombre||'—'}","${m.producto_nombre||'Producto'}","${barb?.nombre||'—'}","Producto","${metodo}",${parseFloat(m.total||(m.cantidad*m.precio_unitario)||0)}`;
   });
-  const gastosDia=esHoy?S.gastos.filter(g=>g.fecha===fecha):(_cajaGastos||[]);
+  const gastosDia=esHoy?(S.gastos||[]).filter(g=>g.fecha===fecha):(_cajaGastos||[]);
   const gastoRows=gastosDia.map(g=>`—,"—","${g.descripcion||'—'}","—","Gasto","${g.categoria}",-${parseFloat(g.monto||0)}`);
   const csv='Hora,Cliente,Concepto,Barbero,Tipo,MetodoPago,Monto\n'+[...svcRows,...prodRows,...gastoRows].join('\n');
   const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download=`caja-${fecha}.csv`;a.click();
@@ -5652,12 +5657,12 @@ function exportCSV_caja(){
 function enviarResumenWA(){
   const fecha=cajaGetFecha();const esHoy=cajaEsHoy();
   const svcMap={};(S.servicios||[]).forEach(s=>{svcMap[s.nombre?.trim().toUpperCase()]=parseFloat(s.precio||0);});
-  const citasDia=esHoy?S.citas.filter(c=>c.estado==='Completada'):(_cajaCitas||[]).filter(c=>c.estado==='Completada');
+  const citasDia=esHoy?(S.citas||[]).filter(c=>c.estado==='Completada'):(_cajaCitas||[]).filter(c=>c.estado==='Completada');
   const ingServ=citasDia.reduce((a,c)=>a+(svcMap[(c.servicio||'').trim().toUpperCase()]||0),0);
   const ventasDia=esHoy?(S.movimientos||[]).filter(m=>m.tipo==='venta'&&m.fecha===fecha):(_cajaMovs||[]);
   const ingProd=ventasDia.reduce((a,m)=>a+parseFloat(m.total||(m.cantidad*m.precio_unitario)||0),0);
   const unidades=ventasDia.reduce((a,m)=>a+parseFloat(m.cantidad||0),0);
-  const gastosDia=esHoy?S.gastos.filter(g=>g.fecha===fecha):(_cajaGastos||[]);
+  const gastosDia=esHoy?(S.gastos||[]).filter(g=>g.fecha===fecha):(_cajaGastos||[]);
   const totalGastos=gastosDia.reduce((a,g)=>a+parseFloat(g.monto||0),0);
   const comServPct=parseFloat(S.shopData?.comision_servicio_pct!=null?S.shopData.comision_servicio_pct:50);
   const comProdPct=parseFloat(S.shopData?.comision_barbero_pct||0);
