@@ -751,6 +751,17 @@ input:checked+.slider:before{transform:translateX(22px)}
     <div><div style="font-size:.72rem;color:var(--dim);">Ingresos este mes</div><div style="font-size:1.4rem;font-weight:900;color:var(--accent);" id="perfilIngMes">—</div></div>
     <div style="font-size:1.6rem;">💰</div>
   </div>
+  <!-- Clientes que deben -->
+  <div class="card" id="perfilCreditosCard" style="display:none;margin-bottom:10px;border:1px solid rgba(248,113,113,.25);">
+    <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="togglePerfilCreditos()">
+      <div>
+        <div style="color:#F87171;font-weight:800;font-size:.88rem;">🔴 Clientes que deben</div>
+        <div style="font-size:.72rem;color:var(--dim);margin-top:2px;" id="perfilCreditosSub"></div>
+      </div>
+      <span style="font-size:1rem;color:var(--dim);" id="perfilCreditosToggle">▼</span>
+    </div>
+    <div id="perfilCreditosList" style="display:none;margin-top:10px;"></div>
+  </div>
   <div class="card" style="margin-bottom:10px;">
     <div style="display:flex;justify-content:space-between;padding:7px 0;"><span style="font-size:.78rem;color:var(--dim);">Teléfono</span><span style="font-weight:700;font-size:.85rem;" id="perfilTel">—</span></div>
     <div style="height:1px;background:var(--border);"></div>
@@ -2085,6 +2096,56 @@ async function renderPerfil(){
   const ingMes=(mesRes.data||[]).reduce((a,c)=>a+(svcMap[(c.servicio||'').toLowerCase().trim()]||0),0);
   document.getElementById('perfilKPIs').innerHTML=`<div class="kpi-box"><span class="kpi-val">${all.filter(c=>c.fecha===hoy).length}</span><span class="kpi-lbl">Hoy</span></div><div class="kpi-box"><span class="kpi-val" style="color:var(--green);">${all.filter(c=>c.estado==='Completada').length}</span><span class="kpi-lbl">Completadas</span></div><div class="kpi-box"><span class="kpi-val" style="color:var(--red);">${all.filter(c=>c.estado==='Cancelada').length}</span><span class="kpi-lbl">Canceladas</span></div>`;
   if(ingMes>0){document.getElementById('perfilIngCard').style.display='flex';document.getElementById('perfilIngMes').textContent=`$${ingMes.toLocaleString()}`;}
+  // Créditos pendientes
+  try{
+    const{data:creds}=await sb.from('cuentas_por_cobrar').select('*').eq('shop_id',shop.id).in('estado',['pendiente','parcial']).order('created_at',{ascending:false});
+    const crCard=document.getElementById('perfilCreditosCard');
+    if(creds&&creds.length>0){
+      crCard.style.display='block';
+      const totalDeuda=creds.reduce((a,c)=>a+(parseFloat(c.monto)-parseFloat(c.monto_pagado||0)),0);
+      document.getElementById('perfilCreditosSub').textContent=`${creds.length} pendiente${creds.length!==1?'s':''} · $${totalDeuda.toLocaleString()}`;
+      document.getElementById('perfilCreditosList').innerHTML=creds.map(c=>{
+        const deuda=parseFloat(c.monto)-parseFloat(c.monto_pagado||0);
+        const tipoIcon=c.tipo==='servicio'?'✂️':'🛒';
+        const pagado=parseFloat(c.monto_pagado||0);
+        return`<div style="padding:10px 0;border-top:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-between;align-items:center;">
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:700;font-size:.85rem;">${DOMPurify.sanitize(c.cliente_nombre)}</div>
+            <div style="font-size:.68rem;color:var(--dim);margin-top:2px;">${tipoIcon} ${DOMPurify.sanitize(c.descripcion||'')} · ${c.fecha_venta}</div>
+            ${c.cliente_telefono?`<div onclick="window.open('tel:${c.cliente_telefono}')" style="font-size:.68rem;color:var(--accent);margin-top:2px;cursor:pointer;">📱 ${c.cliente_telefono}</div>`:''}
+            ${pagado>0?`<div style="font-size:.65rem;color:var(--green);margin-top:2px;">Abonado: $${pagado.toLocaleString()}</div>`:''}
+          </div>
+          <div style="text-align:right;flex-shrink:0;margin-left:10px;">
+            <div style="color:#F87171;font-weight:900;font-size:1rem;">$${deuda.toLocaleString()}</div>
+            <div onclick="cobrarCreditoPerfil('${c.id}',${deuda},'${DOMPurify.sanitize(c.cliente_nombre).replace(/'/g,"\\'")}')" style="background:rgba(62,207,142,.12);border:1px solid rgba(62,207,142,.4);border-radius:6px;padding:3px 10px;margin-top:5px;cursor:pointer;text-align:center;">
+              <span style="font-size:.7rem;font-weight:800;color:var(--green);">💰 Cobrar</span>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    }else crCard.style.display='none';
+  }catch(e){document.getElementById('perfilCreditosCard').style.display='none';}
+}
+function togglePerfilCreditos(){
+  const el=document.getElementById('perfilCreditosList');const icon=document.getElementById('perfilCreditosToggle');
+  const open=el.style.display!=='none';el.style.display=open?'none':'block';icon.textContent=open?'▼':'▲';
+}
+async function cobrarCreditoPerfil(id,deuda,nombre){
+  const op=prompt(`${nombre} debe $${deuda.toLocaleString()}\n\nIngresa monto a cobrar (vacío = cobrar todo):`);
+  if(op===null)return;
+  const monto=op.trim()===''?deuda:parseFloat(op);
+  if(isNaN(monto)||monto<=0){toast('Monto inválido','error');return;}
+  if(monto>deuda+0.01){toast('El monto supera la deuda','error');return;}
+  const{data:reg}=await sb.from('cuentas_por_cobrar').select('*').eq('id',id).single();
+  if(!reg){toast('Crédito no encontrado','error');return;}
+  const nuevoPagado=parseFloat(reg.monto_pagado||0)+monto;
+  const nuevoEstado=nuevoPagado>=parseFloat(reg.monto)?'pagado':'parcial';
+  const{error}=await sb.from('cuentas_por_cobrar').update({monto_pagado:nuevoPagado,estado:nuevoEstado}).eq('id',id);
+  if(error){toast('Error al registrar pago','error');return;}
+  toast(nuevoEstado==='pagado'?`✅ Deuda saldada · ${nombre}`:`💰 Abono de $${monto.toLocaleString()} registrado`,'success');
+  renderPerfil();// Refresh
+  // Refrescar creditosPendientes para badges en home
+  try{const{data:crData}=await sb.from('cuentas_por_cobrar').select('cliente_nombre,cliente_telefono,monto,monto_pagado').eq('shop_id',shop.id).in('estado',['pendiente','parcial']);creditosPendientes=crData||[];}catch(e){}
 }
 // ── WhatsApp template ──
 function toggleWaForm(){
