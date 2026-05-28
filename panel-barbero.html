@@ -594,10 +594,11 @@ input:checked+.slider:before{transform:translateX(22px)}
     <h2 style="font-size:1.2rem;font-weight:900;font-family:Outfit,sans-serif;">Venta de Productos</h2>
   </div>
 
-  <!-- Tabs POS / Historial -->
-  <div style="display:flex;gap:8px;margin-bottom:14px;" id="posTabs">
+  <!-- Tabs POS / Historial / Inventario -->
+  <div style="display:flex;gap:6px;margin-bottom:14px;" id="posTabs">
     <div class="chip on" onclick="posTab('pos',this)" style="flex:1;text-align:center;padding:10px;font-weight:800;">🛒 POS</div>
     <div class="chip" onclick="posTab('historial',this)" style="flex:1;text-align:center;padding:10px;font-weight:800;">📋 Historial</div>
+    <div class="chip" onclick="posTab('inventario',this)" style="flex:1;text-align:center;padding:10px;font-weight:800;">📦 Stock</div>
   </div>
 
   <!-- ═══ POS TAB ═══ -->
@@ -679,6 +680,33 @@ input:checked+.slider:before{transform:translateX(22px)}
       <div style="font-weight:800;font-size:1rem;">Sin productos</div>
       <div style="font-size:.78rem;margin-top:4px;">Escanea un QR o busca un producto</div>
     </div>
+  </div>
+
+  <!-- ═══ INVENTARIO TAB ═══ -->
+  <div id="posInvContent" style="display:none;">
+    <!-- Buscador inventario -->
+    <div style="position:relative;margin-bottom:10px;">
+      <input class="input" id="posInvBuscar" placeholder="🔍 Buscar en inventario..." oninput="posFilterInventario()">
+    </div>
+    <!-- Stats rápidos -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px;">
+      <div class="card" style="text-align:center;padding:10px;">
+        <div id="posInvTotal" style="font-size:1.1rem;font-weight:900;color:var(--accent);font-family:Outfit,sans-serif;">0</div>
+        <div style="font-size:.6rem;color:var(--dim);font-weight:700;">PRODUCTOS</div>
+      </div>
+      <div class="card" style="text-align:center;padding:10px;">
+        <div id="posInvBajoStock" style="font-size:1.1rem;font-weight:900;color:var(--red);font-family:Outfit,sans-serif;">0</div>
+        <div style="font-size:.6rem;color:var(--dim);font-weight:700;">BAJO STOCK</div>
+      </div>
+      <div class="card" style="text-align:center;padding:10px;">
+        <div id="posInvAgotados" style="font-size:1.1rem;font-weight:900;color:var(--dim);font-family:Outfit,sans-serif;">0</div>
+        <div style="font-size:.6rem;color:var(--dim);font-weight:700;">AGOTADOS</div>
+      </div>
+    </div>
+    <!-- Alertas stock bajo -->
+    <div id="posInvAlertas" style="display:none;"></div>
+    <!-- Lista de productos -->
+    <div id="posInvList"></div>
   </div>
 
   <!-- ═══ HISTORIAL TAB ═══ -->
@@ -1109,6 +1137,8 @@ async function initApp(){
   document.getElementById('loginScreen').classList.add('hidden');
   document.getElementById('bottomNav').style.display='flex';updateHeaderUI();showScreen('homeScreen');
   await cargarDatos();startPolling();startRealtimeHoy();
+  // Notificación de stock bajo (si POS está activo)
+  setTimeout(()=>posCheckStockBajo(),2000);
 }
 
 async function doLogout(){
@@ -1599,21 +1629,57 @@ async function verHistorial(cita){
   document.getElementById('histClienteInfo').innerHTML=`<div style="font-weight:900;">${DOMPurify.sanitize(cita.nombre)}</div><div style="font-size:.72rem;color:var(--dim);">${cita.telefono||''}</div>`;
   document.getElementById('histList').innerHTML='<div style="color:var(--dim);font-size:.8rem;padding:8px 0;">Cargando…</div>';
   document.getElementById('modalHistorial').classList.remove('hidden');
-  const{data}=await sb.from('citas').select('*').eq('shop_id',cita.shop_id).eq('telefono',cita.telefono).eq('estado','Completada').order('fecha',{ascending:false}).limit(10);
-  const hist=data||[];const gasto=hist.reduce((a,c)=>a+(svcMap[(c.servicio||'').toLowerCase().trim()]||0),0);
+  // Cargar citas completadas Y compras de productos en paralelo
+  const[citasRes, comprasRes]=await Promise.all([
+    sb.from('citas').select('*').eq('shop_id',cita.shop_id).eq('telefono',cita.telefono).eq('estado','Completada').order('fecha',{ascending:false}).limit(10),
+    cita.telefono ? sb.from('inventario_movimientos').select('id,producto_id,cantidad,precio_unitario,total,fecha,created_at').eq('shop_id',cita.shop_id).eq('tipo','venta').eq('cliente_telefono',cita.telefono).order('created_at',{ascending:false}).limit(15) : {data:[]}
+  ]);
+  const hist=citasRes.data||[];
+  const compras=comprasRes.data||[];
+  const gastoServicios=hist.reduce((a,c)=>a+(svcMap[(c.servicio||'').toLowerCase().trim()]||0),0);
+  const gastoProductos=compras.reduce((a,c)=>a+parseFloat(c.total||0),0);
+  const gastoTotal=gastoServicios+gastoProductos;
+  // Obtener nombres de productos comprados
+  let prodNames={};
+  if(compras.length){
+    const prodIds=[...new Set(compras.map(c=>c.producto_id))];
+    const{data:prods}=await sb.from('productos').select('id,nombre').in('id',prodIds);
+    (prods||[]).forEach(p=>{prodNames[p.id]=p.nombre;});
+  }
   document.getElementById('histClienteInfo').innerHTML=`
     <div style="font-weight:900;">${DOMPurify.sanitize(cita.nombre)}</div>
     <div style="font-size:.72rem;color:var(--dim);margin-top:2px;">${cita.telefono||''}</div>
-    <div style="display:flex;gap:14px;margin-top:8px;">
+    <div style="display:flex;gap:14px;margin-top:8px;flex-wrap:wrap;">
       <div style="text-align:center;"><div style="font-size:1.1rem;font-weight:900;color:var(--accent);">${hist.length}</div><div style="font-size:.62rem;color:var(--dim);">Visitas</div></div>
-      ${gasto>0?`<div style="text-align:center;"><div style="font-size:1.1rem;font-weight:900;color:var(--green);">$${gasto.toLocaleString()}</div><div style="font-size:.62rem;color:var(--dim);">Gastado</div></div>`:''}
+      ${compras.length?`<div style="text-align:center;"><div style="font-size:1.1rem;font-weight:900;color:#60A5FA;">${compras.length}</div><div style="font-size:.62rem;color:var(--dim);">Compras</div></div>`:''}
+      ${gastoTotal>0?`<div style="text-align:center;"><div style="font-size:1.1rem;font-weight:900;color:var(--green);">$${gastoTotal.toLocaleString()}</div><div style="font-size:.62rem;color:var(--dim);">Total gastado</div></div>`:''}
     </div>`;
-  if(!hist.length){document.getElementById('histList').innerHTML='<div style="color:var(--dim);font-size:.8rem;padding:8px 0;text-align:center;">Primera visita 🌟</div>';return;}
-  document.getElementById('histList').innerHTML=hist.map(c=>`
-    <div class="hist-item"><div style="display:flex;justify-content:space-between;align-items:start;">
-      <div><div style="font-size:.88rem;font-weight:700;">${c.servicio}</div>${c.nota?`<div style="font-size:.68rem;color:var(--dim);">📝 ${DOMPurify.sanitize(c.nota)}</div>`:''}</div>
-      <div style="text-align:right;"><div style="font-size:.72rem;">${c.fecha}</div><div style="font-size:.7rem;color:var(--accent);">${fmt12(c.hora)}</div></div>
-    </div></div>`).join('');
+  let html='';
+  if(!hist.length&&!compras.length){
+    document.getElementById('histList').innerHTML='<div style="color:var(--dim);font-size:.8rem;padding:8px 0;text-align:center;">Primera visita 🌟</div>';return;
+  }
+  // Servicios
+  if(hist.length){
+    html+=`<div style="font-size:.62rem;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin:8px 0 4px;">✂️ Servicios</div>`;
+    html+=hist.map(c=>`
+      <div class="hist-item"><div style="display:flex;justify-content:space-between;align-items:start;">
+        <div><div style="font-size:.88rem;font-weight:700;">${c.servicio}</div>${c.nota?`<div style="font-size:.68rem;color:var(--dim);">📝 ${DOMPurify.sanitize(c.nota)}</div>`:''}</div>
+        <div style="text-align:right;"><div style="font-size:.72rem;">${c.fecha}</div><div style="font-size:.7rem;color:var(--accent);">${fmt12(c.hora)}</div></div>
+      </div></div>`).join('');
+  }
+  // Compras de productos
+  if(compras.length){
+    html+=`<div style="font-size:.62rem;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin:12px 0 4px;">🛒 Productos comprados</div>`;
+    html+=compras.map(c=>{
+      const nombre=prodNames[c.producto_id]||'Producto';
+      const hora=new Date(c.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+      return`<div class="hist-item" style="border-left:2px solid #60A5FA;"><div style="display:flex;justify-content:space-between;align-items:start;">
+        <div><div style="font-size:.88rem;font-weight:700;">${DOMPurify.sanitize(nombre)}</div><div style="font-size:.68rem;color:var(--dim);">${c.cantidad}x $${parseFloat(c.precio_unitario).toLocaleString()}</div></div>
+        <div style="text-align:right;"><div style="font-size:.72rem;">${c.fecha}</div><div style="font-size:.7rem;color:var(--green);font-weight:700;">$${parseFloat(c.total).toLocaleString()}</div></div>
+      </div></div>`;
+    }).join('');
+  }
+  document.getElementById('histList').innerHTML=html;
 }
 function toggleBloqueos(){const b=document.getElementById('bloqueosBody');const icon=document.getElementById('bloqueosToggleIcon');const s=b.style.display!=='none';b.style.display=s?'none':'block';icon.textContent=s?'▼':'▲';}
 function toggleCompletadas(){const el=document.getElementById('completadasList');const icon=document.getElementById('compToggleIcon');const s=el.style.display!=='none';el.style.display=s?'none':'block';icon.textContent=s?'▼ ver':'▲ ocultar';}
@@ -1821,6 +1887,31 @@ async function renderStats(){
   const porSvc={};datos.forEach(c=>{const k=c.servicio||'Otro';if(!porSvc[k])porSvc[k]={total:0,ing:0};porSvc[k].total++;porSvc[k].ing+=svcMap[k.toLowerCase().trim()]||0;});
   const topSvcs=Object.entries(porSvc).map(([n,v])=>({n,...v})).sort((a,b)=>b.total-a.total).slice(0,5);const mx2=topSvcs[0]?.total||1;
   document.getElementById('statsTopSvcs').innerHTML=topSvcs.map((s,i)=>`<div class="card" style="display:flex;align-items:center;gap:9px;margin-bottom:7px;"><div style="width:22px;font-size:.8rem;font-weight:900;color:${i===0?'var(--accent)':'var(--dim)'};">#${i+1}</div><div style="flex:1;"><div style="display:flex;justify-content:space-between;"><span style="font-weight:800;font-size:.88rem;">${DOMPurify.sanitize(s.n)}</span><span style="font-size:.72rem;color:var(--accent);">${s.total}x</span></div>${s.ing>0?`<div style="font-size:.7rem;color:var(--dim);">$${s.ing.toLocaleString()} total</div>`:''}<div class="prog-wrap" style="margin:3px 0 0;"><div class="prog-fill" style="width:${(s.total/mx2)*100}%;"></div></div></div></div>`).join('');
+  // ── Ventas de productos (si POS activo) ────────────────────────────────
+  if(shop?.feature_pos_barbero){
+    try{
+      const{data:ventasProd}=await sb.from('inventario_movimientos')
+        .select('id,producto_id,cantidad,precio_unitario,total,fecha')
+        .eq('shop_id',barbero.shop_id).eq('barbero_id',barbero.id).eq('tipo','venta')
+        .gte('fecha',desdeStr).order('created_at',{ascending:false});
+      const vp=ventasProd||[];
+      if(vp.length>0){
+        const totalVP=vp.reduce((a,v)=>a+parseFloat(v.total||0),0);
+        const cantVP=vp.reduce((a,v)=>a+parseInt(v.cantidad||0),0);
+        const comPct=parseFloat(shop.comision_barbero_pct||0);
+        const comision=comPct>0?Math.round(totalVP*comPct/100):0;
+        let vpHtml=`<div style="margin-top:14px;"><div class="sec-title">🛒 Ventas de Productos</div>`;
+        vpHtml+=`<div class="kpi-grid" style="grid-template-columns:repeat(${comPct>0?'4':'3'},1fr);">`;
+        vpHtml+=`<div class="kpi-box"><span class="kpi-val" style="color:var(--green);">$${totalVP.toLocaleString()}</span><span class="kpi-lbl">Vendido</span></div>`;
+        vpHtml+=`<div class="kpi-box"><span class="kpi-val">${cantVP}</span><span class="kpi-lbl">Uds.</span></div>`;
+        vpHtml+=`<div class="kpi-box"><span class="kpi-val">${vp.length}</span><span class="kpi-lbl">Transacc.</span></div>`;
+        if(comPct>0)vpHtml+=`<div class="kpi-box" style="border-color:rgba(46,204,113,.3);"><span class="kpi-val" style="color:var(--green);font-size:${comision>999?'.82':'1.1'}rem;">$${comision.toLocaleString()}</span><span class="kpi-lbl">${comPct}% Comisión</span></div>`;
+        vpHtml+=`</div></div>`;
+        document.getElementById('statsTopSvcs').insertAdjacentHTML('beforebegin',vpHtml);
+      }
+    }catch(e){/* silent */}
+  }
+
   const porDia={};datos.forEach(c=>{if(!porDia[c.fecha])porDia[c.fecha]=[];porDia[c.fecha].push(c);});
   const hist=Object.entries(porDia).sort(([a],[b])=>b.localeCompare(a)).slice(0,20);
   document.getElementById('statsHistorial').innerHTML=hist.map(([fecha,cs])=>{
@@ -2032,7 +2123,9 @@ function posTab(tab,el){
   el.classList.add('on');
   document.getElementById('posContent').style.display=tab==='pos'?'':'none';
   document.getElementById('posHistContent').style.display=tab==='historial'?'':'none';
+  document.getElementById('posInvContent').style.display=tab==='inventario'?'':'none';
   if(tab==='historial')posLoadHistorial();
+  if(tab==='inventario')posRenderInventario();
 }
 
 // ── Productos rápidos (grid top 6) ──────────────────────────────────────
@@ -2450,6 +2543,87 @@ function posRenderHistorial(){
       <div style="font-weight:900;color:var(--green);font-size:1rem;">$${Number(v.total).toLocaleString()}</div>
     </div>`;
   }).join('');
+}
+
+// ── Inventario completo (vista para barbero) ────────────────────────────
+async function posRenderInventario(){
+  // Recargar productos frescos
+  const{data}=await sb.from('productos')
+    .select('id,nombre,precio_venta,stock_actual,stock_minimo,sku,categoria,activo,unidad')
+    .eq('shop_id',barbero.shop_id).eq('activo',true).order('nombre');
+  const productos=data||[];
+  _posProductos=productos.filter(p=>p.categoria==='Venta'); // Actualizar lista POS también
+  const venta=productos.filter(p=>p.categoria==='Venta');
+  const bajoStock=venta.filter(p=>parseFloat(p.stock_actual)<=parseFloat(p.stock_minimo||0)&&parseFloat(p.stock_actual)>0);
+  const agotados=venta.filter(p=>parseFloat(p.stock_actual)<=0);
+  document.getElementById('posInvTotal').textContent=venta.length;
+  document.getElementById('posInvBajoStock').textContent=bajoStock.length;
+  document.getElementById('posInvAgotados').textContent=agotados.length;
+  // Alertas
+  const alertDiv=document.getElementById('posInvAlertas');
+  if(bajoStock.length){
+    alertDiv.style.display='block';
+    alertDiv.innerHTML=`<div style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:12px;padding:10px 12px;margin-bottom:10px;">
+      <div style="font-size:.72rem;font-weight:700;color:var(--red);margin-bottom:6px;">⚠️ Stock bajo</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;">${bajoStock.map(p=>`<span style="font-size:.65rem;background:rgba(248,113,113,.12);color:var(--red);padding:3px 8px;border-radius:8px;font-weight:600;">${DOMPurify.sanitize(p.nombre)} (${p.stock_actual})</span>`).join('')}</div>
+    </div>`;
+  } else alertDiv.style.display='none';
+  // Lista completa
+  _posInvAll=venta;
+  posFilterInventario();
+}
+
+let _posInvAll=[];
+function posFilterInventario(){
+  const q=(document.getElementById('posInvBuscar')?.value||'').toLowerCase();
+  const filtered=q?_posInvAll.filter(p=>p.nombre.toLowerCase().includes(q)||(p.sku&&p.sku.toLowerCase().includes(q))):_posInvAll;
+  const list=document.getElementById('posInvList');
+  if(!filtered.length){
+    list.innerHTML='<div style="text-align:center;padding:30px 0;color:var(--dim);font-size:.85rem;">📦 No hay productos</div>';
+    return;
+  }
+  list.innerHTML=filtered.map(p=>{
+    const stock=parseFloat(p.stock_actual)||0;
+    const minimo=parseFloat(p.stock_minimo||0);
+    const agotado=stock<=0;
+    const bajo=stock>0&&stock<=minimo;
+    const stockColor=agotado?'var(--red)':bajo?'#F59E0B':'var(--green)';
+    const stockBg=agotado?'rgba(248,113,113,.08)':bajo?'rgba(251,191,36,.08)':'transparent';
+    const pct=minimo>0?Math.min(100,Math.round(stock/Math.max(minimo*3,1)*100)):stock>0?100:0;
+    return`<div class="card" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:${stockBg};">
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:700;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${DOMPurify.sanitize(p.nombre)}</div>
+        <div style="font-size:.68rem;color:var(--dim);">${p.sku||''} · $${Number(p.precio_venta).toLocaleString()}</div>
+        <div style="height:3px;background:var(--bg4);border-radius:2px;margin-top:4px;overflow:hidden;">
+          <div style="height:100%;width:${pct}%;background:${stockColor};border-radius:2px;"></div>
+        </div>
+      </div>
+      <div style="text-align:center;min-width:50px;">
+        <div style="font-size:1.2rem;font-weight:900;color:${stockColor};">${stock}</div>
+        <div style="font-size:.55rem;color:var(--dim);font-weight:600;">${agotado?'AGOTADO':bajo?'BAJO':'OK'}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Comisión por venta (se agrega a Stats del barbero) ──────────────────
+// La comisión se calcula sobre el total de ventas de productos del barbero
+// El % se guarda en shop.comision_barbero_pct (default 0 = sin comisión)
+// Se muestra en renderStats si hay ventas de productos
+
+// ── Notificación de stock bajo al entrar ────────────────────────────────
+async function posCheckStockBajo(){
+  if(!shop?.feature_pos_barbero)return;
+  const{data}=await sb.from('productos')
+    .select('nombre,stock_actual,stock_minimo')
+    .eq('shop_id',barbero.shop_id).eq('categoria','Venta').eq('activo',true);
+  if(!data)return;
+  const alertas=data.filter(p=>parseFloat(p.stock_actual)<=parseFloat(p.stock_minimo||0)&&parseFloat(p.stock_minimo||0)>0);
+  if(alertas.length>0){
+    const nombres=alertas.slice(0,3).map(p=>`${p.nombre} (${p.stock_actual})`).join(', ');
+    const extra=alertas.length>3?` y ${alertas.length-3} más`:'';
+    toast(`⚠️ Stock bajo: ${nombres}${extra}`,'error');
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
