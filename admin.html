@@ -396,50 +396,50 @@ tr:last-child td{border-bottom:none;}
   .topbar-search-inner input{width:110px;}
 }
 /* ── POS Venta de Productos ─────────────────────────── */
-.pos-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
-.pos-stats .stat-card{padding:14px 16px;}
-.pos-stats .stat-val{font-size:1.3rem;}
-.pos-stats .stat-lbl{font-size:0.46rem;}
-.pos-layout{display:grid;grid-template-columns:1fr 300px;gap:12px;min-height:0;}
-.pos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;padding:10px;overflow-y:auto;max-height:260px;}
-.pos-product-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 8px;cursor:pointer;transition:all 0.2s var(--bez);display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;}
+.pos-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.pos-stats .stat-card{padding:10px 12px;}
+.pos-stats .stat-val{font-size:1.1rem;}
+.pos-stats .stat-lbl{font-size:0.44rem;}
+.pos-layout{display:grid;grid-template-columns:1fr 320px;gap:12px;min-height:0;align-items:start;}
+.pos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:6px;padding:8px;overflow-y:auto;max-height:50vh;}
+.pos-product-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:8px 6px;cursor:pointer;transition:all 0.2s var(--bez);display:flex;flex-direction:column;align-items:center;text-align:center;gap:1px;position:relative;}
 .pos-product-card:hover{border-color:rgba(201,168,76,0.4);transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,0.3);}
 .pos-product-card:active{transform:translateY(0);scale:0.97;}
 .pos-sin-stock{opacity:0.35;cursor:not-allowed;pointer-events:none;}
-.pos-product-emoji{font-size:1.2rem;}
-.pos-product-name{font-size:0.68rem;font-weight:700;color:var(--text);line-height:1.15;}
-.pos-product-desc{font-size:0.5rem;color:var(--muted);line-height:1.15;max-height:1.5em;overflow:hidden;}
-.pos-product-price{font-family:'DM Mono',monospace;font-size:0.78rem;font-weight:800;color:var(--green);margin-top:2px;}
-.pos-product-stock{font-family:'DM Mono',monospace;font-size:0.48rem;margin-top:1px;}
-.pos-cart-panel{display:flex;flex-direction:column;max-height:400px;}
-.pos-cart-panel .card-header{padding:10px 14px;}
-.pos-cart-items{flex:1;overflow-y:auto;padding:0 10px;min-height:0;}
-.pos-cart-item{display:flex;align-items:center;gap:6px;padding:7px 0;border-bottom:1px solid var(--border);}
+.pos-product-emoji{font-size:1rem;}
+.pos-product-name{font-size:0.62rem;font-weight:700;color:var(--text);line-height:1.15;}
+.pos-product-desc{font-size:0.46rem;color:var(--muted);line-height:1.15;max-height:1.3em;overflow:hidden;}
+.pos-product-price{font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:800;color:var(--green);margin-top:1px;}
+.pos-product-stock{font-family:'DM Mono',monospace;font-size:0.44rem;margin-top:1px;}
+.pos-cart-panel{display:flex;flex-direction:column;max-height:none;overflow:visible;}
+.pos-cart-panel .card-header{padding:8px 12px;}
+.pos-cart-items{overflow-y:auto;padding:0 8px;max-height:120px;min-height:0;}
+.pos-cart-item{display:flex;align-items:center;gap:5px;padding:5px 0;border-bottom:1px solid var(--border);}
 .pos-cart-info{flex:1;min-width:0;}
-.pos-cart-name{font-size:0.7rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.pos-cart-unit{font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--muted);}
-.pos-cart-qty{display:flex;align-items:center;gap:3px;}
-.pos-qty-btn{width:20px;height:20px;border-radius:5px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:0.75rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}
+.pos-cart-name{font-size:0.62rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pos-cart-unit{font-family:'DM Mono',monospace;font-size:0.46rem;color:var(--muted);}
+.pos-cart-qty{display:flex;align-items:center;gap:2px;}
+.pos-qty-btn{width:18px;height:18px;border-radius:4px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:0.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}
 .pos-qty-btn:hover{background:rgba(201,168,76,0.15);border-color:var(--gold);}
-.pos-qty-val{font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:700;min-width:18px;text-align:center;}
-.pos-cart-subtotal{font-family:'DM Mono',monospace;font-size:0.7rem;font-weight:700;color:var(--green);min-width:48px;text-align:right;}
-.pos-cart-remove{background:none;border:none;color:var(--red);cursor:pointer;font-size:0.6rem;padding:3px;opacity:0.5;transition:opacity 0.15s;}
+.pos-qty-val{font-family:'DM Mono',monospace;font-size:0.65rem;font-weight:700;min-width:16px;text-align:center;}
+.pos-cart-subtotal{font-family:'DM Mono',monospace;font-size:0.62rem;font-weight:700;color:var(--green);min-width:42px;text-align:right;}
+.pos-cart-remove{background:none;border:none;color:var(--red);cursor:pointer;font-size:0.55rem;padding:2px;opacity:0.5;transition:opacity 0.15s;}
 .pos-cart-remove:hover{opacity:1;}
-.pos-checkout{padding:10px 12px;border-top:1px solid var(--border);}
-.pos-checkout .fg{margin-bottom:6px;}
-.pos-checkout label{font-size:0.55rem;color:var(--muted);}
-.pos-checkout select,.pos-checkout input{padding:5px 8px;font-size:0.68rem;border-radius:6px;}
-.pos-total-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
-.pos-total-label{font-size:0.75rem;font-weight:700;}
-.pos-total-val{font-size:1rem;font-weight:800;color:var(--green);}
+.pos-checkout{padding:8px 10px;border-top:1px solid var(--border);overflow-y:auto;max-height:calc(100vh - 280px);}
+.pos-checkout .fg{margin-bottom:4px;}
+.pos-checkout label{font-size:0.5rem;color:var(--muted);}
+.pos-checkout select,.pos-checkout input{padding:4px 6px;font-size:0.62rem;border-radius:5px;}
+.pos-checkout-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.pos-total-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.pos-total-label{font-size:0.65rem;font-weight:700;}
+.pos-total-val{font-size:0.85rem;font-weight:800;color:var(--green);}
 .pos-hist-card{min-height:160px;}
 .pos-hist-card .card-header{padding:12px 18px;}
 .pos-top-product{border-color:rgba(201,168,76,0.35);background:linear-gradient(135deg,var(--bg3),rgba(201,168,76,0.06));}
-.pos-fav-badge{position:absolute;top:4px;right:4px;font-size:0.45rem;background:rgba(201,168,76,0.15);color:var(--gold);padding:1px 5px;border-radius:8px;font-weight:700;letter-spacing:0.03em;}
-.pos-product-card{position:relative;}
-.pos-product-sku{font-family:'DM Mono',monospace;font-size:0.45rem;color:var(--muted);opacity:0.7;}
-.pos-cliente-dd{position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:160px;overflow-y:auto;z-index:20;box-shadow:0 8px 24px rgba(0,0,0,0.3);}
-.pos-cliente-option{padding:7px 10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background 0.15s;font-size:0.65rem;}
+.pos-fav-badge{position:absolute;top:3px;right:3px;font-size:0.4rem;background:rgba(201,168,76,0.15);color:var(--gold);padding:1px 4px;border-radius:6px;font-weight:700;letter-spacing:0.03em;}
+.pos-product-sku{font-family:'DM Mono',monospace;font-size:0.42rem;color:var(--muted);opacity:0.7;}
+.pos-cliente-dd{position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:140px;overflow-y:auto;z-index:20;box-shadow:0 8px 24px rgba(0,0,0,0.3);}
+.pos-cliente-option{padding:6px 8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background 0.15s;font-size:0.58rem;}
 .pos-cliente-option:hover{background:rgba(201,168,76,0.1);}
 .pos-reportes-tabs{display:flex;gap:0;background:var(--bg3);border-radius:8px;overflow:hidden;border:1px solid var(--border);margin-bottom:12px;}
 .pos-reportes-tabs button{flex:1;padding:8px 12px;border:none;background:transparent;color:var(--muted);font-size:0.6rem;font-weight:600;cursor:pointer;transition:all 0.2s;}
@@ -452,14 +452,17 @@ tr:last-child td{border-bottom:none;}
 .pos-rank-label{position:absolute;left:6px;top:50%;transform:translateY(-50%);font-size:0.55rem;font-weight:600;color:var(--text);white-space:nowrap;}
 .pos-rank-val{font-family:'DM Mono',monospace;font-size:0.65rem;font-weight:700;min-width:50px;text-align:right;}
 @media(max-width:1200px){
-  .pos-layout{grid-template-columns:1fr 260px;}
-  .pos-grid{max-height:220px;}
+  .pos-layout{grid-template-columns:1fr 280px;}
+  .pos-grid{max-height:40vh;}
+  .pos-cart-items{max-height:100px;}
 }
 @media(max-width:768px){
   .pos-stats{grid-template-columns:1fr 1fr;}
   .pos-layout{grid-template-columns:1fr;gap:10px;}
-  .pos-grid{grid-template-columns:repeat(auto-fill,minmax(100px,1fr));max-height:200px;padding:8px;}
+  .pos-grid{grid-template-columns:repeat(auto-fill,minmax(90px,1fr));max-height:35vh;padding:6px;}
   .pos-cart-panel{max-height:none;}
+  .pos-cart-items{max-height:none;}
+  .pos-checkout{max-height:none;}
   .pos-reportes-tabs{flex-wrap:wrap;}
 }
 </style>
@@ -4179,93 +4182,93 @@ function renderVentas(){
       </div>
       ${_ventasCarrito.length ? `
       <div class="pos-checkout">
-        <div class="pos-total-row">
-          <span class="pos-total-label">Subtotal</span>
-          <span class="pos-total-val" id="pos-subtotal-val">$${totalCarrito.toLocaleString()}</span>
+        <!-- Totals + Descuento compacto -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;">
+          <span style="font-size:0.55rem;color:var(--muted);">Subtotal</span>
+          <span style="font-size:0.7rem;font-weight:700;color:var(--text);" id="pos-subtotal-val">$${totalCarrito.toLocaleString()}</span>
         </div>
-        <!-- Descuento -->
-        <div class="fg" style="margin-bottom:4px;">
-          <label style="display:flex;align-items:center;gap:6px;">🏷️ Descuento
-            <div style="display:flex;gap:0;background:var(--bg3);border-radius:4px;overflow:hidden;border:1px solid var(--border);margin-left:auto;">
-              <button onclick="document.getElementById('pos-desc-tipo').value='pct';calcPosTotal()" id="pos-desc-pct-btn" style="font-size:0.5rem;padding:2px 6px;border:none;cursor:pointer;background:var(--gold);color:var(--bg);">%</button>
-              <button onclick="document.getElementById('pos-desc-tipo').value='monto';calcPosTotal()" id="pos-desc-monto-btn" style="font-size:0.5rem;padding:2px 6px;border:none;cursor:pointer;background:transparent;color:var(--muted);">$</button>
-            </div>
-          </label>
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px;">
+          <span style="font-size:0.48rem;color:var(--muted);white-space:nowrap;">🏷️ Desc</span>
+          <div style="display:flex;gap:0;background:var(--bg3);border-radius:3px;overflow:hidden;border:1px solid var(--border);">
+            <button onclick="document.getElementById('pos-desc-tipo').value='pct';calcPosTotal()" id="pos-desc-pct-btn" style="font-size:0.42rem;padding:1px 5px;border:none;cursor:pointer;background:var(--gold);color:var(--bg);">%</button>
+            <button onclick="document.getElementById('pos-desc-tipo').value='monto';calcPosTotal()" id="pos-desc-monto-btn" style="font-size:0.42rem;padding:1px 5px;border:none;cursor:pointer;background:transparent;color:var(--muted);">$</button>
+          </div>
           <input type="hidden" id="pos-desc-tipo" value="pct">
-          <input type="number" id="pos-descuento" value="0" min="0" step="1" placeholder="0"
-            oninput="calcPosTotal()"
-            style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:0.68rem;width:100%;">
+          <input type="number" id="pos-descuento" value="0" min="0" step="1" placeholder="0" oninput="calcPosTotal()"
+            style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:3px 6px;border-radius:4px;font-size:0.6rem;flex:1;min-width:0;">
+          <span style="font-size:0.55rem;color:var(--red);font-weight:700;min-width:40px;text-align:right;display:none;" id="pos-desc-display">-$0</span>
         </div>
-        <div class="pos-total-row" id="pos-desc-row" style="display:none;">
-          <span class="pos-total-label" style="color:var(--red);">Descuento</span>
-          <span style="color:var(--red);font-weight:700;font-size:0.8rem;" id="pos-desc-display">-$0</span>
+        <div id="pos-desc-row" style="display:none;"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-top:2px solid var(--gold);border-bottom:1px solid var(--border);margin-bottom:5px;">
+          <span style="font-size:0.75rem;font-weight:800;">TOTAL</span>
+          <span style="font-size:0.95rem;font-weight:800;color:var(--green);" id="pos-total-final">$${totalCarrito.toLocaleString()}</span>
         </div>
-        <div class="pos-total-row" style="border-top:2px solid var(--gold);padding-top:6px;">
-          <span class="pos-total-label" style="font-size:0.85rem;font-weight:800;">TOTAL</span>
-          <span class="pos-total-val" id="pos-total-final" style="font-size:1.1rem;">$${totalCarrito.toLocaleString()}</span>
-        </div>
-        <!-- Cliente -->
-        <div class="fg">
-          <label>👤 Cliente (opcional)</label>
-          <div style="position:relative;">
-            <input type="text" id="pos-cliente-search" placeholder="Buscar por nombre o teléfono…"
-              oninput="filterPosClientes()" onfocus="filterPosClientes()"
-              autocomplete="off"
-              style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:0.68rem;width:100%;">
-            <input type="hidden" id="pos-cliente-id" value="">
-            <div id="pos-cliente-dropdown" class="pos-cliente-dd" style="display:none;"></div>
+        <!-- Cliente + Vendedor en 2 cols -->
+        <div class="pos-checkout-row">
+          <div class="fg">
+            <label>👤 Cliente</label>
+            <div style="position:relative;">
+              <input type="text" id="pos-cliente-search" placeholder="Nombre / tel…"
+                oninput="filterPosClientes()" onfocus="filterPosClientes()" autocomplete="off"
+                style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:5px;font-size:0.58rem;width:100%;">
+              <input type="hidden" id="pos-cliente-id" value="">
+              <div id="pos-cliente-dropdown" class="pos-cliente-dd" style="display:none;"></div>
+            </div>
+          </div>
+          <div class="fg">
+            <label>Vendedor</label>
+            <select id="pos-barbero" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:5px;font-size:0.58rem;width:100%;">
+              <option value="">— Ninguno —</option>
+            </select>
           </div>
         </div>
-        <div class="fg">
-          <label>Vendedor</label>
-          <select id="pos-barbero" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:0.68rem;width:100%;">
-            <option value="">— Sin asignar —</option>
-          </select>
-        </div>
-        <!-- Método de pago (con split) -->
-        <div class="fg">
-          <label style="display:flex;align-items:center;gap:6px;">Método de pago
-            <label style="margin-left:auto;font-size:0.5rem;display:flex;align-items:center;gap:3px;cursor:pointer;color:var(--muted);">
-              <input type="checkbox" id="pos-split-check" onchange="toggleSplitPago()" style="width:12px;height:12px;accent-color:var(--gold);">
-              Pago mixto
+        <!-- Método pago + Nota en 2 cols -->
+        <div class="pos-checkout-row">
+          <div class="fg">
+            <label style="display:flex;align-items:center;gap:4px;">Pago
+              <label style="margin-left:auto;font-size:0.42rem;display:flex;align-items:center;gap:2px;cursor:pointer;color:var(--muted);">
+                <input type="checkbox" id="pos-split-check" onchange="toggleSplitPago()" style="width:10px;height:10px;accent-color:var(--gold);">
+                Mixto
+              </label>
             </label>
-          </label>
-          <select id="pos-metodo" onchange="onPosMetodoChange()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:0.68rem;width:100%;">
-            <option value="efectivo">💵 Efectivo</option>
-            <option value="tarjeta">💳 Tarjeta</option>
-            <option value="transferencia">🏦 Transferencia</option>
-          </select>
+            <select id="pos-metodo" onchange="onPosMetodoChange()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:5px;font-size:0.58rem;width:100%;">
+              <option value="efectivo">💵 Efectivo</option>
+              <option value="tarjeta">💳 Tarjeta</option>
+              <option value="transferencia">🏦 Transfer.</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label>Nota</label>
+            <input type="text" id="pos-nota" placeholder="Referencia…" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:5px;font-size:0.58rem;width:100%;">
+          </div>
         </div>
-        <!-- Split payment fields (hidden by default) -->
-        <div id="pos-split-fields" style="display:none;background:var(--bg3);border-radius:8px;padding:8px;margin-bottom:4px;">
-          <div style="display:flex;gap:6px;align-items:center;margin-bottom:4px;">
+        <!-- Split fields (hidden) -->
+        <div id="pos-split-fields" style="display:none;background:var(--bg3);border-radius:6px;padding:6px;margin-bottom:3px;">
+          <div style="display:flex;gap:4px;align-items:center;">
             <div style="flex:1;">
-              <label style="font-size:0.5rem;color:var(--muted);">💵 Efectivo</label>
+              <label style="font-size:0.42rem;color:var(--muted);">💵</label>
               <input type="number" id="pos-split-efectivo" value="0" min="0" oninput="calcSplitResto()"
-                style="background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:4px;font-size:0.68rem;width:100%;">
+                style="background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 4px;border-radius:3px;font-size:0.58rem;width:100%;">
             </div>
             <div style="flex:1;">
-              <label style="font-size:0.5rem;color:var(--muted);">💳 Tarjeta</label>
+              <label style="font-size:0.42rem;color:var(--muted);">💳</label>
               <input type="number" id="pos-split-tarjeta" value="0" min="0" oninput="calcSplitResto()"
-                style="background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:4px;font-size:0.68rem;width:100%;">
+                style="background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 4px;border-radius:3px;font-size:0.58rem;width:100%;">
             </div>
             <div style="flex:1;">
-              <label style="font-size:0.5rem;color:var(--muted);">🏦 Transf.</label>
+              <label style="font-size:0.42rem;color:var(--muted);">🏦</label>
               <input type="number" id="pos-split-transferencia" value="0" min="0" oninput="calcSplitResto()"
-                style="background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:4px;font-size:0.68rem;width:100%;">
+                style="background:var(--bg);border:1px solid var(--border);color:var(--text);padding:3px 4px;border-radius:3px;font-size:0.58rem;width:100%;">
             </div>
           </div>
-          <div id="pos-split-resto" style="font-size:0.55rem;text-align:center;color:var(--muted);"></div>
+          <div id="pos-split-resto" style="font-size:0.48rem;text-align:center;color:var(--muted);margin-top:2px;"></div>
         </div>
-        <div class="fg">
-          <label>Nota (opcional)</label>
-          <input type="text" id="pos-nota" placeholder="Referencia, detalle…" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:5px 8px;border-radius:6px;font-size:0.68rem;width:100%;">
-        </div>
-        <button class="btn-sm btn-gold" style="width:100%;padding:10px;font-size:0.78rem;" onclick="procesarVentaPOS()" id="pos-btn-cobrar">
+        <!-- Buttons -->
+        <button class="btn-sm btn-gold" style="width:100%;padding:8px;font-size:0.72rem;" onclick="procesarVentaPOS()" id="pos-btn-cobrar">
           💰 Cobrar $${totalCarrito.toLocaleString()}
         </button>
-        <button class="btn-sm btn-dark" style="width:100%;padding:6px;font-size:0.55rem;margin-top:4px;" onclick="generarTicketCombinado()">
-          🎟️ Ticket combinado (servicio + productos)
+        <button class="btn-sm btn-dark" style="width:100%;padding:4px;font-size:0.48rem;margin-top:3px;opacity:0.7;" onclick="generarTicketCombinado()">
+          🎟️ Ticket combinado
         </button>
       </div>` : ''}
     </div>
@@ -4405,10 +4408,11 @@ function calcPosTotal(){
     montoBtn.style.background = tipo==='monto' ? 'var(--gold)' : 'transparent';
     montoBtn.style.color = tipo==='monto' ? 'var(--bg)' : 'var(--muted)';
   }
-  const descRow = document.getElementById('pos-desc-row');
   const descDisp = document.getElementById('pos-desc-display');
-  if(descRow) descRow.style.display = descMonto > 0 ? 'flex' : 'none';
-  if(descDisp) descDisp.textContent = '-$' + descMonto.toLocaleString();
+  if(descDisp){
+    descDisp.style.display = descMonto > 0 ? 'inline' : 'none';
+    descDisp.textContent = '-$' + descMonto.toLocaleString();
+  }
   const totalEl = document.getElementById('pos-total-final');
   if(totalEl) totalEl.textContent = '$' + total.toLocaleString();
   const btn = document.getElementById('pos-btn-cobrar');
