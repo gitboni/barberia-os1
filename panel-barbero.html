@@ -1042,6 +1042,7 @@ let blqFechaVal='hoy';
 let vipEditando=null,vipDiaSel=1,vipHoraSel='09:00',vipSvcSel='';
 let statsRango=0,metodoPagoSel='Sin especificar';
 let reagFecha=null,reagHora=null;
+var creditosPendientes=[];
 
 function toast(msg,type='info',ms=3000){
   const w=document.getElementById('toastWrap');
@@ -1217,7 +1218,44 @@ async function cargarDatos(origenPoll=false){
   const diaHoy=new Date().getDay();
   const virtuals=(prefs||[]).filter(p=>p.dia_semana===diaHoy&&p.activo!==false&&!citas.some(c=>c.hora.substring(0,5)===p.hora.substring(0,5))).map(p=>({id:-1,shop_id:p.shop_id,barbero_id:p.barbero_id,nombre:p.nombre+' ⭐',telefono:p.telefono,fecha:hoy,hora:p.hora.length===5?p.hora+':00':p.hora,servicio:p.servicio,barbero:barbero.nombre,estado:'Confirmada',nota:'Cliente Preferencial',virtual:true}));
   citas=[...citas,...virtuals].sort((a,b)=>a.hora.localeCompare(b.hora));
+  // Cargar créditos pendientes para badge de deuda
+  try{const{data:crData}=await sb.from('cuentas_por_cobrar').select('cliente_nombre,cliente_telefono,monto,monto_pagado').eq('shop_id',shop.id).in('estado',['pendiente','parcial']);creditosPendientes=crData||[];}catch(e){creditosPendientes=[];}
   renderHome();
+}
+function getDeudaCliente(telefono,nombre){
+  if(!creditosPendientes.length)return 0;
+  const tel=telefono?normTel(telefono):'';
+  let total=0;
+  for(const cr of creditosPendientes){
+    const crTel=cr.cliente_telefono?normTel(cr.cliente_telefono):'';
+    const match=(tel&&crTel&&tel===crTel)||(nombre&&cr.cliente_nombre&&cr.cliente_nombre.replace(' ⭐','').toLowerCase().trim()===nombre.replace(' ⭐','').toLowerCase().trim());
+    if(match)total+=parseFloat(cr.monto)-parseFloat(cr.monto_pagado||0);
+  }
+  return total;
+}
+async function cobrarCredito(nombre,telefono){
+  const tel=telefono?normTel(telefono):'';
+  const creditos=creditosPendientes.filter(cr=>{
+    const crTel=cr.cliente_telefono?normTel(cr.cliente_telefono):'';
+    return(tel&&crTel&&tel===crTel)||(nombre&&cr.cliente_nombre&&cr.cliente_nombre.replace(' ⭐','').toLowerCase().trim()===nombre.replace(' ⭐','').toLowerCase().trim());
+  });
+  if(!creditos.length){toast('No hay deuda pendiente','info');return;}
+  // Buscar en la tabla el registro completo
+  const{data:regs}=await sb.from('cuentas_por_cobrar').select('*').eq('shop_id',shop.id).in('estado',['pendiente','parcial']).or(tel?`cliente_telefono.eq.${telefono}`:`cliente_nombre.eq.${nombre}`);
+  if(!regs||!regs.length){toast('No se encontró el crédito','error');return;}
+  const reg=regs[0];
+  const deuda=parseFloat(reg.monto)-parseFloat(reg.monto_pagado||0);
+  const op=prompt(`${reg.cliente_nombre} debe $${deuda.toLocaleString()}\n\nIngresa monto a cobrar (o deja vacío para cobrar todo):`);
+  if(op===null)return;
+  const monto=op.trim()===''?deuda:parseFloat(op);
+  if(isNaN(monto)||monto<=0){toast('Monto inválido','error');return;}
+  if(monto>deuda){toast('El monto supera la deuda','error');return;}
+  const nuevoPagado=parseFloat(reg.monto_pagado||0)+monto;
+  const nuevoEstado=nuevoPagado>=parseFloat(reg.monto)?'pagado':'parcial';
+  const{error}=await sb.from('cuentas_por_cobrar').update({monto_pagado:nuevoPagado,estado:nuevoEstado}).eq('id',reg.id);
+  if(error){toast('Error al registrar pago','error');return;}
+  toast(nuevoEstado==='pagado'?`✅ Deuda saldada · ${reg.cliente_nombre}`:`💰 Abono de $${monto.toLocaleString()} registrado`,'success');
+  await cargarDatos();
 }
 function startPolling(){
   clearInterval(pollingInterval);
@@ -1410,6 +1448,8 @@ function renderHome(){
     let meta='';
     if(precio>0)meta+=`<span style="font-size:.7rem;color:var(--green);font-weight:700;">$${precio.toLocaleString()}</span>`;
     if(dur>0)meta+=`<span style="font-size:.7rem;color:var(--dim);"> · ${dur} min</span>`;
+    const deudaProx=getDeudaCliente(proxima.telefono,proxima.nombre);
+    if(deudaProx>0)meta+=`<span onclick="event.stopPropagation();cobrarCredito('${DOMPurify.sanitize(proxima.nombre).replace(/'/g,"\\'")}','${proxima.telefono||''}')" style="font-size:.7rem;color:#F87171;font-weight:900;background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:4px;padding:2px 8px;cursor:pointer;">🔴 Debe $${deudaProx.toLocaleString()} · Cobrar</span>`;
     document.getElementById('proxMeta').innerHTML=meta;
     document.getElementById('proxTel').textContent=proxima.telefono&&proxima.telefono!=='walk-in'?proxima.telefono:'';
     document.getElementById('proximoTimer').textContent=tiempoHasta(proxima.hora);
@@ -1471,6 +1511,7 @@ function renderCola(lista){
             ${dur>0?`<span style="color:var(--muted);">· ${dur}m</span>`:''}
           </div>
           ${c.nota?`<div style="font-size:.65rem;color:var(--dim);font-style:italic;">📝 ${DOMPurify.sanitize(c.nota)}</div>`:''}
+          ${(()=>{const d=getDeudaCliente(c.telefono,c.nombre);return d>0?`<div style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:4px;padding:2px 7px;margin-top:3px;display:inline-block;cursor:pointer;" onclick="event.stopPropagation();cobrarCredito('${DOMPurify.sanitize(c.nombre).replace(/'/g,"\\'")}','${c.telefono||''}')"><span style="font-size:.62rem;color:#F87171;font-weight:900;">🔴 Debe $${d.toLocaleString()}</span> <span style="font-size:.58rem;color:rgba(62,207,142,.8);font-weight:700;">· Cobrar</span></div>`:'';})()}
         </div>
         <div style="text-align:right;flex-shrink:0;">
           <div style="font-size:.82rem;font-weight:900;color:var(--accent);">${fmt12(c.hora)}</div>
@@ -1683,6 +1724,7 @@ async function verHistorial(cita){
       <div style="text-align:center;"><div style="font-size:1.1rem;font-weight:900;color:var(--accent);">${hist.length}</div><div style="font-size:.62rem;color:var(--dim);">Visitas</div></div>
       ${compras.length?`<div style="text-align:center;"><div style="font-size:1.1rem;font-weight:900;color:#60A5FA;">${compras.length}</div><div style="font-size:.62rem;color:var(--dim);">Compras</div></div>`:''}
       ${gastoTotal>0?`<div style="text-align:center;"><div style="font-size:1.1rem;font-weight:900;color:var(--green);">$${gastoTotal.toLocaleString()}</div><div style="font-size:.62rem;color:var(--dim);">Total gastado</div></div>`:''}
+      ${(()=>{const d=getDeudaCliente(cita.telefono,cita.nombre);return d>0?`<div style="text-align:center;cursor:pointer;" onclick="cobrarCredito('${DOMPurify.sanitize(cita.nombre).replace(/'/g,"\\'")}','${cita.telefono||''}')"><div style="font-size:1.1rem;font-weight:900;color:#F87171;">$${d.toLocaleString()}</div><div style="font-size:.62rem;color:#F87171;">🔴 Debe · Cobrar</div></div>`:''})()}
     </div>`;
   let html='';
   if(!hist.length&&!compras.length){
