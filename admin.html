@@ -5381,14 +5381,62 @@ function exportCSV_reseñas(){
 // ── CIERRE DE CAJA ──
 function renderCaja(){
   const hoy=getHoyRD();
+  // ── Servicios ──
   const citasHoy=S.citas.filter(c=>c.estado==='Completada');
   const svcMap={};(S.servicios||[]).forEach(s=>{svcMap[s.nombre?.trim().toUpperCase()]=parseFloat(s.precio||0);});
-  const ingresos=citasHoy.reduce((a,c)=>a+(svcMap[(c.servicio||'').trim().toUpperCase()]||0),0);
+  const ingresosServicios=citasHoy.reduce((a,c)=>a+(svcMap[(c.servicio||'').trim().toUpperCase()]||0),0);
+
+  // ── Ventas productos ──
+  const ventasHoy=(S.movimientos||[]).filter(m=>m.tipo==='venta'&&m.fecha===hoy);
+  const ingresosProductos=ventasHoy.reduce((a,m)=>a+parseFloat(m.total||(m.cantidad*m.precio_unitario)||0),0);
+  const unidadesVendidas=ventasHoy.reduce((a,m)=>a+parseFloat(m.cantidad||0),0);
+
+  // ── Totales ──
+  const ingresosBrutos=ingresosServicios+ingresosProductos;
   const gastosHoy=S.gastos.filter(g=>g.fecha===hoy).reduce((a,g)=>a+parseFloat(g.monto||0),0);
-  const utilidad=ingresos-gastosHoy;
-  const porBarbero={};citasHoy.forEach(c=>{if(!porBarbero[c.barbero])porBarbero[c.barbero]={citas:0,ingresos:0};porBarbero[c.barbero].citas++;porBarbero[c.barbero].ingresos+=(svcMap[(c.servicio||'').trim().toUpperCase()]||0);});
+  const comisionPct=parseFloat(S.shopData?.comision_barbero_pct||0);
+  const comisionesProductos=comisionPct>0?Math.round(ingresosProductos*(comisionPct/100)):0;
+  const utilidad=ingresosBrutos-gastosHoy-comisionesProductos;
+
+  // ── Desglose por método de pago (productos) ──
+  let pagoEfectivo=0,pagoTarjeta=0,pagoTransferencia=0;
+  ventasHoy.forEach(m=>{
+    const mt=(m.motivo||'').toLowerCase();
+    const monto=parseFloat(m.total||(m.cantidad*m.precio_unitario)||0);
+    if(mt.includes('pago: tarjeta'))pagoTarjeta+=monto;
+    else if(mt.includes('pago: transferencia'))pagoTransferencia+=monto;
+    else pagoEfectivo+=monto;
+  });
+
+  // ── Por barbero (servicios + productos) ──
+  const porBarbero={};
+  citasHoy.forEach(c=>{
+    const k=c.barbero||'Sin asignar';
+    if(!porBarbero[k])porBarbero[k]={citas:0,ingServ:0,ingProd:0,unidades:0};
+    porBarbero[k].citas++;
+    porBarbero[k].ingServ+=(svcMap[(c.servicio||'').trim().toUpperCase()]||0);
+  });
+  ventasHoy.forEach(m=>{
+    const barb=(S.barberos||[]).find(b=>b.id===m.barbero_id);
+    const k=barb?.nombre||'Sin asignar';
+    if(!porBarbero[k])porBarbero[k]={citas:0,ingServ:0,ingProd:0,unidades:0};
+    porBarbero[k].ingProd+=parseFloat(m.total||(m.cantidad*m.precio_unitario)||0);
+    porBarbero[k].unidades+=parseFloat(m.cantidad||0);
+  });
+
+  // ── Productos más vendidos hoy ──
+  const prodRank={};
+  ventasHoy.forEach(m=>{
+    const pid=m.producto_id;
+    if(!prodRank[pid])prodRank[pid]={nombre:m.producto_nombre||'Producto',cant:0,total:0};
+    prodRank[pid].cant+=parseFloat(m.cantidad||0);
+    prodRank[pid].total+=parseFloat(m.total||(m.cantidad*m.precio_unitario)||0);
+  });
+  const topProds=Object.values(prodRank).sort((a,b)=>b.total-a.total).slice(0,5);
+
   return `<div style="display:flex;flex-direction:column;gap:16px;">
-    <div style="display:flex;justify-content:space-between;align-items:center;">
+    <!-- Header -->
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
       <div>
         <div style="font-family:'DM Mono',monospace;font-size:.58rem;color:var(--gold);letter-spacing:.1em;margin-bottom:4px;">CIERRE DEL DÍA</div>
         <div style="font-size:1.6rem;font-weight:800;">${new Date().toLocaleDateString('es-DO',{weekday:'long',day:'numeric',month:'long'})}</div>
@@ -5398,36 +5446,115 @@ function renderCaja(){
         <button class="btn-sm btn-gold" onclick="enviarResumenWA()">💬 Enviar por WhatsApp</button>
       </div>
     </div>
-    <div class="stats-row" style="grid-template-columns:repeat(4,1fr);">
-      <div class="stat-card c-gold"><div class="stat-val gold">$${ingresos.toLocaleString()}</div><div class="stat-lbl">Ingresos brutos</div></div>
+
+    <!-- KPIs principales -->
+    <div class="stats-row" style="grid-template-columns:repeat(5,1fr);">
+      <div class="stat-card c-gold"><div class="stat-val gold">$${ingresosBrutos.toLocaleString()}</div><div class="stat-lbl">Ingresos brutos</div></div>
       <div class="stat-card c-red"><div class="stat-val red">$${gastosHoy.toLocaleString()}</div><div class="stat-lbl">Gastos del día</div></div>
+      ${comisionesProductos>0?`<div class="stat-card c-red"><div class="stat-val" style="color:#F59E0B;">$${comisionesProductos.toLocaleString()}</div><div class="stat-lbl">Comisiones (${comisionPct}%)</div></div>`:''}
       <div class="stat-card ${utilidad>=0?'c-green':'c-red'}"><div class="stat-val ${utilidad>=0?'green':'red'}">$${utilidad.toLocaleString()}</div><div class="stat-lbl">Utilidad neta</div></div>
-      <div class="stat-card c-blue"><div class="stat-val blue">${citasHoy.length}</div><div class="stat-lbl">Servicios completados</div></div>
+      <div class="stat-card c-blue"><div class="stat-val blue">${citasHoy.length}</div><div class="stat-lbl">Servicios</div></div>
+      ${ventasHoy.length?`<div class="stat-card" style="border-color:rgba(62,207,142,.2);"><div class="stat-val green">${ventasHoy.length}</div><div class="stat-lbl">Ventas prod.</div></div>`:''}
     </div>
+
+    <!-- Desglose ingresos + métodos de pago -->
     <div class="two-col">
       <div class="card">
-        <div class="card-header"><div class="card-title">Resumen por barbero</div></div>
+        <div class="card-header"><div class="card-title">💰 Desglose de ingresos</div></div>
         <div style="padding:16px;">
-          ${Object.entries(porBarbero).map(([b,d])=>`
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
-              <div><div style="font-weight:700">${b}</div><div style="font-size:.68rem;color:var(--muted)">${d.citas} servicio${d.citas!==1?'s':''}</div></div>
-              <div style="text-align:right;"><div style="font-weight:800;color:var(--gold);">$${d.ingresos.toLocaleString()}</div><div style="font-size:.62rem;color:var(--muted);">50% = $${(d.ingresos*.5).toLocaleString()}</div></div>
-            </div>`).join('')||'<div style="color:var(--muted);font-size:.72rem;text-align:center;padding:20px;">Sin servicios completados hoy</div>'}
+          <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+            <div><div style="font-weight:700;">✂️ Servicios</div><div style="font-size:.65rem;color:var(--muted);">${citasHoy.length} completado${citasHoy.length!==1?'s':''}</div></div>
+            <div style="font-weight:800;color:var(--gold);font-size:1rem;">$${ingresosServicios.toLocaleString()}</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+            <div><div style="font-weight:700;">🛒 Productos</div><div style="font-size:.65rem;color:var(--muted);">${unidadesVendidas} unidad${unidadesVendidas!==1?'es':''} · ${ventasHoy.length} venta${ventasHoy.length!==1?'s':''}</div></div>
+            <div style="font-weight:800;color:var(--green);font-size:1rem;">$${ingresosProductos.toLocaleString()}</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:10px 0;">
+            <div style="font-weight:900;font-size:1rem;">Total</div>
+            <div style="font-weight:900;color:var(--gold);font-size:1.1rem;">$${ingresosBrutos.toLocaleString()}</div>
+          </div>
         </div>
       </div>
       <div class="card">
-        <div class="card-header"><div class="card-title">Servicios realizados</div></div>
+        <div class="card-header"><div class="card-title">💳 Métodos de pago (productos)</div></div>
         <div style="padding:16px;">
+          ${ventasHoy.length?`
+          ${[['💵 Efectivo',pagoEfectivo,'var(--green)'],['💳 Tarjeta',pagoTarjeta,'var(--blue)'],['📲 Transferencia',pagoTransferencia,'#A78BFA']].filter(([,v])=>v>0).map(([label,val,color])=>{
+            const pct=ingresosBrutos>0?Math.round(val/ingresosProductos*100):0;
+            return `<div style="margin-bottom:10px;">
+              <div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:4px;">
+                <span>${label}</span><span style="font-weight:800;color:${color};">$${val.toLocaleString()} <span style="font-size:.62rem;color:var(--muted);">(${pct}%)</span></span>
+              </div>
+              <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
+                <div style="height:100%;width:${pct}%;background:${color};border-radius:3px;transition:width .3s;"></div>
+              </div>
+            </div>`;}).join('')}
+          `:'<div style="color:var(--muted);font-size:.72rem;text-align:center;padding:20px;">Sin ventas de productos hoy</div>'}
+          <div style="font-size:.58rem;color:var(--muted);margin-top:8px;text-align:center;">ℹ️ Métodos de pago de servicios se registran aparte</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resumen por barbero -->
+    <div class="card">
+      <div class="card-header"><div class="card-title">👥 Resumen por barbero</div></div>
+      <div style="padding:16px;">
+        ${Object.keys(porBarbero).length?`
+        <div style="display:grid;grid-template-columns:2fr repeat(4,1fr);gap:0;font-family:'DM Mono',monospace;font-size:.58rem;color:var(--muted);padding:6px 0;border-bottom:2px solid var(--border);">
+          <div>BARBERO</div><div style="text-align:right;">SERVICIOS</div><div style="text-align:right;">ING. SERV.</div><div style="text-align:right;">ING. PROD.</div><div style="text-align:right;">TOTAL</div>
+        </div>
+        ${Object.entries(porBarbero).sort((a,b)=>(b[1].ingServ+b[1].ingProd)-(a[1].ingServ+a[1].ingProd)).map(([b,d])=>{
+          const totalBarb=d.ingServ+d.ingProd;
+          const comBarb=comisionPct>0?Math.round(d.ingProd*(comisionPct/100)):0;
+          return `<div style="display:grid;grid-template-columns:2fr repeat(4,1fr);gap:0;padding:10px 0;border-bottom:1px solid var(--border);align-items:center;">
+            <div>
+              <div style="font-weight:700;">${esc(b)}</div>
+              ${comBarb>0?`<div style="font-size:.6rem;color:#F59E0B;">💰 Comisión: $${comBarb.toLocaleString()}</div>`:''}
+              ${d.unidades>0?`<div style="font-size:.6rem;color:var(--muted);">${d.unidades} uds. vendidas</div>`:''}
+            </div>
+            <div style="text-align:right;font-weight:700;">${d.citas}</div>
+            <div style="text-align:right;font-weight:700;color:var(--gold);">$${d.ingServ.toLocaleString()}</div>
+            <div style="text-align:right;font-weight:700;color:var(--green);">${d.ingProd>0?'$'+d.ingProd.toLocaleString():'—'}</div>
+            <div style="text-align:right;font-weight:900;font-size:.9rem;">$${totalBarb.toLocaleString()}</div>
+          </div>`;}).join('')}
+        `:'<div style="color:var(--muted);font-size:.72rem;text-align:center;padding:20px;">Sin actividad de barberos hoy</div>'}
+      </div>
+    </div>
+
+    <!-- Productos más vendidos + Servicios realizados -->
+    <div class="two-col">
+      ${topProds.length?`
+      <div class="card">
+        <div class="card-header"><div class="card-title">🏆 Productos más vendidos hoy</div></div>
+        <div style="padding:16px;">
+          ${topProds.map((p,i)=>`
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 0;${i<topProds.length-1?'border-bottom:1px solid var(--border);':''}">
+              <div style="min-width:24px;height:24px;border-radius:50%;background:${i===0?'var(--gold)':i===1?'silver':i===2?'#CD7F32':'var(--border)'};color:#000;font-size:.6rem;font-weight:900;display:flex;align-items:center;justify-content:center;">${i+1}</div>
+              <div style="flex:1;">
+                <div style="font-weight:700;font-size:.82rem;">${esc(p.nombre)}</div>
+                <div style="font-size:.65rem;color:var(--muted);">${p.cant} unidad${p.cant!==1?'es':''}</div>
+              </div>
+              <div style="font-weight:800;color:var(--green);">$${p.total.toLocaleString()}</div>
+            </div>`).join('')}
+        </div>
+      </div>
+      `:''}
+      <div class="card">
+        <div class="card-header"><div class="card-title">✂️ Servicios realizados</div></div>
+        <div style="padding:16px;max-height:300px;overflow-y:auto;">
           ${citasHoy.map(c=>`
             <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border2);font-size:.8rem;">
               <div><span style="color:var(--gold);font-family:'DM Mono',monospace;font-size:.7rem;">${esc(c.hora)}</span> · ${esc(c.nombre)}</div>
-              <div style="color:var(--muted);font-size:.72rem;">${esc(c.servicio)}</div>
+              <div style="display:flex;gap:8px;align-items:center;"><span style="color:var(--muted);font-size:.72rem;">${esc(c.servicio)}</span><span style="font-weight:700;color:var(--gold);font-size:.72rem;">$${(svcMap[(c.servicio||'').trim().toUpperCase()]||0).toLocaleString()}</span></div>
             </div>`).join('')||'<div style="color:var(--muted);font-size:.72rem;text-align:center;padding:20px;">Sin servicios hoy</div>'}
         </div>
       </div>
     </div>
+
+    <!-- Gastos -->
     <div class="card">
-      <div class="card-header"><div class="card-title">Gastos registrados hoy</div></div>
+      <div class="card-header"><div class="card-title">📉 Gastos registrados hoy</div></div>
       <div style="padding:16px;">
         ${S.gastos.filter(g=>g.fecha===hoy).map(g=>`
           <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border2);">
@@ -5443,8 +5570,16 @@ function renderCaja(){
 function exportCSV_caja(){
   const hoy=getHoyRD();
   const svcMap={};(S.servicios||[]).forEach(s=>{svcMap[s.nombre?.trim().toUpperCase()]=parseFloat(s.precio||0);});
-  const rows=S.citas.filter(c=>c.estado==='Completada');
-  const csv='Hora,Cliente,Servicio,Barbero,Monto\n'+rows.map(c=>`${c.hora},"${c.nombre}","${c.servicio}","${c.barbero}",${svcMap[(c.servicio||'').trim().toUpperCase()]||0}`).join('\n');
+  const svcRows=S.citas.filter(c=>c.estado==='Completada').map(c=>`${c.hora},"${c.nombre}","${c.servicio}","${c.barbero}","Servicio",${svcMap[(c.servicio||'').trim().toUpperCase()]||0}`);
+  const ventasHoy=(S.movimientos||[]).filter(m=>m.tipo==='venta'&&m.fecha===hoy);
+  const prodRows=ventasHoy.map(m=>{
+    const barb=(S.barberos||[]).find(b=>b.id===m.barbero_id);
+    const mt=(m.motivo||'').toLowerCase();
+    const metodo=mt.includes('pago: tarjeta')?'Tarjeta':mt.includes('pago: transferencia')?'Transferencia':'Efectivo';
+    return `${new Date(m.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})},"${m.cliente_nombre||'—'}","${m.producto_nombre||'Producto'}","${barb?.nombre||'—'}","Producto (${metodo})",${parseFloat(m.total||(m.cantidad*m.precio_unitario)||0)}`;
+  });
+  const gastoRows=S.gastos.filter(g=>g.fecha===hoy).map(g=>`—,"—","${g.descripcion||'—'}","—","Gasto (${g.categoria})",-${parseFloat(g.monto||0)}`);
+  const csv='Hora,Cliente,Concepto,Barbero,Tipo,Monto\n'+[...svcRows,...prodRows,...gastoRows].join('\n');
   const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download=`caja-${hoy}.csv`;a.click();
 }
 
@@ -5452,9 +5587,30 @@ function enviarResumenWA(){
   const hoy=getHoyRD();
   const svcMap={};(S.servicios||[]).forEach(s=>{svcMap[s.nombre?.trim().toUpperCase()]=parseFloat(s.precio||0);});
   const completadas=S.citas.filter(c=>c.estado==='Completada');
-  const ingresos=completadas.reduce((a,c)=>a+(svcMap[(c.servicio||'').trim().toUpperCase()]||0),0);
+  const ingServ=completadas.reduce((a,c)=>a+(svcMap[(c.servicio||'').trim().toUpperCase()]||0),0);
+  const ventasHoy=(S.movimientos||[]).filter(m=>m.tipo==='venta'&&m.fecha===hoy);
+  const ingProd=ventasHoy.reduce((a,m)=>a+parseFloat(m.total||(m.cantidad*m.precio_unitario)||0),0);
+  const unidades=ventasHoy.reduce((a,m)=>a+parseFloat(m.cantidad||0),0);
   const gastosHoy=S.gastos.filter(g=>g.fecha===hoy).reduce((a,g)=>a+parseFloat(g.monto||0),0);
-  const msg=`📊 *Cierre de Caja — ${hoy}*\n_${S.shopData?.nombre||'Barbería'}_\n\n✂️ Servicios: ${completadas.length}\n💰 Ingresos: $${ingresos.toLocaleString()}\n📉 Gastos: $${gastosHoy.toLocaleString()}\n✅ Utilidad: $${(ingresos-gastosHoy).toLocaleString()}\n\nVia AuraOS`;
+  const comPct=parseFloat(S.shopData?.comision_barbero_pct||0);
+  const comisiones=comPct>0?Math.round(ingProd*(comPct/100)):0;
+  const total=ingServ+ingProd;
+  const utilidad=total-gastosHoy-comisiones;
+  const L='━━━━━━━━━━━━━━━━━━━━━━━';
+  const l='─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─';
+  let msg=`📊 *CIERRE DE CAJA*\n`;
+  msg+=`🏪 _${S.shopData?.nombre||'Barbería'}_\n`;
+  msg+=`📅 ${new Date().toLocaleDateString('es-DO',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}\n`;
+  msg+=`${L}\n\n`;
+  msg+=`✂️ *Servicios:* ${completadas.length} → $${ingServ.toLocaleString()}\n`;
+  if(ventasHoy.length)msg+=`🛒 *Productos:* ${ventasHoy.length} ventas (${unidades} uds.) → $${ingProd.toLocaleString()}\n`;
+  msg+=`${l}\n`;
+  msg+=`💰 *Ingresos:* $${total.toLocaleString()}\n`;
+  msg+=`📉 *Gastos:* $${gastosHoy.toLocaleString()}\n`;
+  if(comisiones>0)msg+=`💸 *Comisiones (${comPct}%):* $${comisiones.toLocaleString()}\n`;
+  msg+=`${L}\n`;
+  msg+=`✅ *UTILIDAD NETA: $${utilidad.toLocaleString()}*\n\n`;
+  msg+=`_Generado por AuraOS_`;
   const wa=(S.shopData?.whatsapp_dueño||S.shopData?.whatsapp||'').replace(/\D/g,'');
   if(wa) window.open(`https://wa.me/${wa}?text=${encodeURIComponent(msg)}`,'_blank');
   else{navigator.clipboard?.writeText(msg).then(()=>toast('Resumen copiado — pégalo en WhatsApp'));}
