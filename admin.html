@@ -4312,37 +4312,7 @@ function renderVentas(){
         </button>
       </div>` : ''}
     </div>
-  </div>
-  <!-- Historial + Reportes -->
-  <div class="pos-reportes-tabs">
-    <button class="${_ventasTab==='historial'||!_ventasTab?'active':''}" onclick="_ventasTab='historial';renderPage()">📊 Historial</button>
-    <button class="${_ventasTab==='ranking'?'active':''}" onclick="_ventasTab='ranking';renderPage()">🏆 Ranking</button>
-    <button class="${_ventasTab==='rentabilidad'?'active':''}" onclick="_ventasTab='rentabilidad';renderPage()">💰 Rentabilidad</button>
-    <button class="${_ventasTab==='vendedores'?'active':''}" onclick="_ventasTab='vendedores';renderPage()">👥 Por Vendedor</button>
-  </div>
-  ${(!_ventasTab || _ventasTab==='historial') ? `
-  <div class="card pos-hist-card">
-    <div class="card-header">
-      <div class="card-title" style="font-size:0.8rem;">📊 Historial</div>
-      <div style="display:flex;gap:4px;align-items:center;">
-        <div style="display:flex;gap:0;background:var(--bg3);border-radius:6px;overflow:hidden;border:1px solid var(--border);">
-          <button onclick="_ventasHistRango='hoy';renderPage()" style="font-size:0.55rem;padding:4px 10px;border:none;cursor:pointer;background:${_ventasHistRango==='hoy'?'var(--gold)':'transparent'};color:${_ventasHistRango==='hoy'?'var(--bg)':'var(--muted)'};">HOY</button>
-          <button onclick="_ventasHistRango='semana';renderPage()" style="font-size:0.55rem;padding:4px 10px;border:none;cursor:pointer;background:${_ventasHistRango==='semana'?'var(--gold)':'transparent'};color:${_ventasHistRango==='semana'?'var(--bg)':'var(--muted)'};">7D</button>
-          <button onclick="_ventasHistRango='mes';renderPage()" style="font-size:0.55rem;padding:4px 10px;border:none;cursor:pointer;background:${_ventasHistRango==='mes'?'var(--gold)':'transparent'};color:${_ventasHistRango==='mes'?'var(--bg)':'var(--muted)'};">30D</button>
-        </div>
-        <button class="btn-sm btn-dark" style="font-size:0.5rem;padding:4px 8px;" onclick="exportVentasCSV()">📥 CSV</button>
-      </div>
-    </div>
-    <div class="table-wrapper" style="max-height:220px;">
-      <table>
-        <thead><tr><th>Fecha</th><th>Producto</th><th style="text-align:right;">Cant.</th><th style="text-align:right;">Total</th><th>Vendedor</th><th>Nota</th><th></th></tr></thead>
-        <tbody>${histRows}</tbody>
-      </table>
-    </div>
-  </div>` : ''}
-  ${_ventasTab==='ranking' ? _buildRankingReport(ventasMes, ventasCountProd, sortedProds) : ''}
-  ${_ventasTab==='rentabilidad' ? _buildRentabilidadReport(productosVenta, ventasCountProd, margenMap) : ''}
-  ${_ventasTab==='vendedores' ? _buildVendedoresReport(ventasMes) : ''}`;
+  </div>`;
 }
 
 function initVentasPage(){
