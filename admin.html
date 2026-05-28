@@ -2809,6 +2809,7 @@ function renderConfigPage(){
           <div class="fg"><label>Nombre del local</label><input type="text" id="cfg-nombre-pg" value="${s.nombre||''}"></div>
           <div class="fg"><label>WhatsApp del dueño</label><input type="text" id="cfg-whatsapp-pg" value="${s.whatsapp_dueño||''}"></div>
           <div class="fg"><label>Duración de turno (minutos)</label><input type="number" id="cfg-dur-pg" value="${s.duracion_turno||45}" min="15" max="120"></div>
+          <div class="fg"><label>Comisión barbero por venta de productos (%)</label><div style="display:flex;align-items:center;gap:8px;"><input type="number" id="cfg-comision-pg" value="${s.comision_barbero_pct||0}" min="0" max="100" step="1" style="width:80px;"><span style="font-size:0.6rem;color:var(--muted);">0 = sin comisión · Ej: 10 = el barbero gana 10% de cada venta de producto</span></div></div>
           <div class="fg"><label>Zona horaria</label>
             <select id="cfg-tz-pg">
               <option value="America/Santo_Domingo" ${s.timezone==='America/Santo_Domingo'?'selected':''}>America/Santo_Domingo (RD)</option>
@@ -5222,7 +5223,8 @@ async function saveConfigPage() {
       dias_atencion: hpd.dias_atencion,
       horarios_por_dia: hpd.horarios_por_dia,
       hora_inicio: hpd.hora_inicio,
-      hora_fin: hpd.hora_fin
+      hora_fin: hpd.hora_fin,
+      comision_barbero_pct: parseFloat(document.getElementById('cfg-comision-pg')?.value) || 0
     };
 
     if (!update.nombre) { toast('El nombre es obligatorio', 'error'); throw 'err'; }
