@@ -657,6 +657,7 @@ input:checked+.slider:before{transform:translateX(22px)}
         <div class="chip chip-sm on" onclick="posSelMetodo(this,'Efectivo')" style="flex:1;text-align:center;padding:9px;">💵 Efectivo</div>
         <div class="chip chip-sm" onclick="posSelMetodo(this,'Tarjeta')" style="flex:1;text-align:center;padding:9px;">💳 Tarjeta</div>
         <div class="chip chip-sm" onclick="posSelMetodo(this,'Transferencia')" style="flex:1;text-align:center;padding:9px;">🔄 Transfer.</div>
+        <div class="chip chip-sm" onclick="posSelMetodo(this,'Crédito')" style="flex:1;text-align:center;padding:9px;border-color:rgba(248,113,113,.4);color:var(--red);">🔴 Crédito</div>
       </div>
 
       <!-- Total -->
@@ -816,9 +817,10 @@ input:checked+.slider:before{transform:translateX(22px)}
     <label class="label">Método de pago</label>
     <div class="chip-row" id="metodoPagoChips">
       <div class="chip chip-sm on" onclick="selMetodo(this,'Sin especificar')">Sin especificar</div>
-      <div class="chip chip-sm" onclick="selMetodo(this,'Efectivo')">Efectivo</div>
-      <div class="chip chip-sm" onclick="selMetodo(this,'Tarjeta')">Tarjeta</div>
-      <div class="chip chip-sm" onclick="selMetodo(this,'Transferencia')">Transferencia</div>
+      <div class="chip chip-sm" onclick="selMetodo(this,'Efectivo')">💵 Efectivo</div>
+      <div class="chip chip-sm" onclick="selMetodo(this,'Tarjeta')">💳 Tarjeta</div>
+      <div class="chip chip-sm" onclick="selMetodo(this,'Transferencia')">📲 Transferencia</div>
+      <div class="chip chip-sm" onclick="selMetodo(this,'Crédito')" style="border-color:rgba(248,113,113,.4);color:var(--red);">🔴 Crédito</div>
     </div>
     <label class="label" style="margin-top:4px;">Nota (opcional)</label>
     <textarea id="completarNota" class="input" rows="2" placeholder="Preferencias, observaciones…" style="resize:none;margin-bottom:14px;"></textarea>
@@ -1599,6 +1601,21 @@ async function confirmarCompletar(){
   }else await sb.from('citas').update(updates).eq('id',cita.id);
   btn.disabled=false;btn.textContent='✓ Completar';closeModal('modalCompletar');triggerConfetti();
   const precio=svcMap[(cita.servicio||'').toLowerCase().trim()]||0;
+  // Si es crédito, crear registro en cuentas_por_cobrar
+  if(metodoPagoSel==='Crédito'&&precio>0){
+    try{
+      await sb.from('cuentas_por_cobrar').insert({
+        shop_id:cita.shop_id||shopId,
+        cliente_nombre:cita.nombre?.replace(' ⭐','')||'Cliente',
+        cliente_telefono:cita.telefono||null,
+        tipo:'servicio',
+        referencia_id:cita.id>0?cita.id:null,
+        descripcion:cita.servicio||'Servicio',
+        monto:precio,
+        fecha_venta:cita.fecha||new Date().toISOString().slice(0,10)
+      });
+    }catch(e){console.warn('Error registrando crédito:',e);}
+  }
   toast(`✓ Completado${precio>0?` · $${precio.toLocaleString()}`:''}${metodoPagoSel!=='Sin especificar'?` · ${metodoPagoSel}`:''}`, 'success');
   currentCitaCompletar=null;await cargarDatos();
 }
@@ -2458,6 +2475,22 @@ async function posRegistrarVenta(){
       if(prod)prod.stock_actual=newStock;
     }
 
+    // Si es crédito, crear registro en cuentas_por_cobrar
+    if(_posMetodo==='Crédito'&&total>0){
+      try{
+        const descItems=_posCarrito.map(c=>c.nombre+' x'+c.cantidad).join(', ');
+        await sb.from('cuentas_por_cobrar').insert({
+          shop_id:barbero.shop_id,
+          cliente_nombre:_posClienteSel?.nombre||'Cliente',
+          cliente_telefono:_posClienteSel?.telefono||null,
+          tipo:'producto',
+          descripcion:descItems.substring(0,200),
+          monto:total,
+          fecha_venta:fechaLocal
+        });
+      }catch(e){console.warn('Error registrando crédito producto:',e);}
+    }
+
     // Snapshot para ticket visual (antes de limpiar)
     const cartItemsBk=_posCarrito.map(c=>({...c}));
     const clienteBk=_posClienteSel?{..._posClienteSel}:null;
@@ -2550,7 +2583,7 @@ function posRenderVisualTicket(total,subtotal,descPct,descMonto,items,cliente,me
   const fechaStr=now.toLocaleDateString('es-DO',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
   const horaStr=now.toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit',hour12:true});
   const totalItems=items.reduce((s,c)=>s+c.cantidad,0);
-  const metIcons={'Efectivo':'💵','Tarjeta':'💳','Transferencia':'📲'};
+  const metIcons={'Efectivo':'💵','Tarjeta':'💳','Transferencia':'📲','Crédito':'🔴'};
 
   let h=`<div style="text-align:center;margin-bottom:10px;">
     <div style="font-weight:900;font-size:.95rem;color:var(--text);letter-spacing:1px;font-family:Outfit,sans-serif;">${shopName}</div>
