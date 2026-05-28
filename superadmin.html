@@ -5617,6 +5617,7 @@ const FEATURES_DEF = [
   { key:'feature_stats_barbero',label:'📊 Ventas del Barbero',  desc:'La pestaña de Ventas/Estadísticas es visible para el barbero en la app' },
   { key:'feature_monitor_pwa', label:'👁 Monitor PWA',          desc:'El barbero puede ver el Monitor en vivo desde la web/PWA' },
   { key:'feature_pos_barbero', label:'🛒 POS Barbero (App)',     desc:'El barbero puede escanear productos y registrar ventas desde la app móvil' },
+  { key:'feature_credito',     label:'🔴 Crédito/Fiado',        desc:'Permitir ventas a crédito con seguimiento de cuentas por cobrar' },
 ];
 var _featShopId = null;
 var _featShopData = {};
@@ -5625,7 +5626,7 @@ async function openFeaturesModal(shopId, shopNombre) {
   _featShopId = shopId;
   document.getElementById('features-shop-name').textContent = shopNombre;
   try {
-    var rows = await sbGet('shops','id=eq.'+shopId+'&select=id,feature_reportes,feature_config,feature_servicios,feature_bot_whatsapp,feature_barberos,feature_clientes,feature_walkin,feature_monitor,feature_marketplace,feature_reseñas,feature_caja,feature_festivos,feature_pwa,feature_stats_barbero,feature_monitor_pwa,feature_pos_barbero');
+    var rows = await sbGet('shops','id=eq.'+shopId+'&select=id,feature_reportes,feature_config,feature_servicios,feature_bot_whatsapp,feature_barberos,feature_clientes,feature_walkin,feature_monitor,feature_marketplace,feature_reseñas,feature_caja,feature_festivos,feature_pwa,feature_stats_barbero,feature_monitor_pwa,feature_pos_barbero,feature_credito');
     _featShopData = rows[0] || {};
   } catch(e) { _featShopData = {}; }
 
@@ -5671,7 +5672,7 @@ function featToggle(key) {
 // Columnas originales (siempre existen en la BD)
 const FEATURES_ORIGINAL = ['feature_reportes','feature_config','feature_servicios','feature_bot_whatsapp','feature_barberos','feature_clientes','feature_walkin','feature_monitor'];
 // Columnas nuevas (pueden no existir — requieren migración SQL)
-const FEATURES_NEW = ['feature_marketplace','feature_reseñas','feature_caja','feature_festivos','feature_pwa','feature_stats_barbero','feature_monitor_pwa','feature_pos_barbero'];
+const FEATURES_NEW = ['feature_marketplace','feature_reseñas','feature_caja','feature_festivos','feature_pwa','feature_stats_barbero','feature_monitor_pwa','feature_pos_barbero','feature_credito'];
 
 async function saveFeatures(){
   if(!_featShopId) return;
