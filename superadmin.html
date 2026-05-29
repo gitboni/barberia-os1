@@ -3637,21 +3637,40 @@ document.getElementById('paypalBtn').addEventListener('click',()=>openModal('mod
 // ════════════════════════════════════════════
 //  FACTURA PDF — Diseño profesional
 // ════════════════════════════════════════════
-function imprimirFactura(shopId, shopNombreEnc, shopSlug, plan, createdAt) {
+async function imprimirFactura(shopId, shopNombreEnc, shopSlug, plan, createdAt) {
   const shopNombre = decodeURIComponent(shopNombreEnc);
-  const PLAN_PRICES = {pro: 29, elite: 79};
   const monto = PLAN_PRICES[plan] || 29;
-  const hoy = new Date();
-  const fechaEmision = hoy.toLocaleDateString('es-DO', {day:'2-digit', month:'long', year:'numeric'});
-  const fechaVence = new Date(hoy.getTime() + 30*86400000).toLocaleDateString('es-DO', {day:'2-digit', month:'long', year:'numeric'});
-  const numFactura = 'BSAS-' + String(Math.floor(Math.random()*90000)+10000);
-  const inicio = new Date(createdAt).toLocaleDateString('es-DO', {day:'2-digit', month:'long', year:'numeric'});
+
+  // Abrir ventana YA (en el gesto del clic) para evitar el bloqueador de pop-ups
+  const win = window.open('', '_blank', 'width=900,height=700');
+  if (win) win.document.write('<div style="font-family:sans-serif;padding:60px;text-align:center;color:#666;">Generando factura…</div>');
+
+  // Obtener/crear factura persistente: número correlativo + fechas reales (idempotente por mes)
+  let fact;
+  try {
+    fact = await sbRpc('obtener_o_crear_factura', {
+      p_shop_id: shopId, p_shop_nombre: shopNombre, p_plan: plan, p_monto_usd: monto
+    });
+  } catch(e) {
+    showToast('Error al generar la factura: ' + e.message, 'error');
+    if (win) win.close();
+    return;
+  }
+  if (!fact || !fact.numero) { showToast('No se pudo generar la factura', 'error'); if (win) win.close(); return; }
+
+  const numFactura = fact.numero;
+  const factId     = fact.id;
+  const fmtFechaF  = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString('es-DO', {day:'2-digit', month:'long', year:'numeric'}) : '—';
+  const fechaEmision = fmtFechaF(fact.fecha_emision);
+  const fechaVence   = fmtFechaF(fact.fecha_proximo_cobro);
+  const inicio       = fmtFechaF(fact.fecha_inicio);
 
   const html = `<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <title>Factura ${numFactura} — ${shopNombre}</title>
+<scr'+'ipt src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></scr'+'ipt>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;}
   body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#111;font-size:14px;}
@@ -3845,6 +3864,7 @@ function imprimirFactura(shopId, shopNombreEnc, shopSlug, plan, createdAt) {
     <strong>Notas:</strong> Esta factura corresponde a la suscripción mensual del plan ${plan.toUpperCase()} de AuraOS.
     El servicio incluye acceso completo a todas las funcionalidades del plan durante el período indicado.
     Para soporte técnico contactar: <strong>contacto@auraos.app</strong>
+    <div id="f-nota-desc" style="margin-top:8px;color:#111;"></div>
   </div>
 
   <!-- CONTROLES (no se imprimen) -->
@@ -3884,12 +3904,17 @@ function imprimirFactura(shopId, shopNombreEnc, shopSlug, plan, createdAt) {
         <button type="button" onclick="setDesc(50,'percent')" style="flex:1;padding:7px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;font-size:0.72rem;color:#444;">50%</button>
         <button type="button" onclick="setDesc(0,'amount')" style="flex:1;padding:7px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;font-size:0.72rem;color:#444;">Quitar</button>
       </div>
+      <input id="descMotivo" type="text" placeholder="Motivo del descuento (ej. Promoción lanzamiento)" oninput="aplicarDescuento()"
+        style="width:100%;margin-top:10px;padding:10px 12px;border:1px solid #ccc;border-radius:7px;font-size:0.8rem;color:#111;outline:none;box-sizing:border-box;">
     </div>
     <div style="text-align:center;">
-      <button onclick="window.print()" style="background:#111;color:#C9A84C;border:2px solid #C9A84C;padding:12px 40px;font-size:0.85rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;">
-        🖨 IMPRIMIR / GUARDAR PDF
+      <button onclick="descargarPDF()" style="background:#C9A84C;color:#111;border:2px solid #C9A84C;padding:12px 34px;font-size:0.85rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;">
+        ↓ DESCARGAR PDF
       </button>
-      <button onclick="window.close()" style="background:transparent;color:#888;border:1px solid #ddd;padding:12px 24px;font-size:0.8rem;cursor:pointer;margin-left:12px;">
+      <button onclick="imprimir()" style="background:#111;color:#C9A84C;border:2px solid #C9A84C;padding:12px 28px;font-size:0.85rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;margin-left:10px;">
+        🖨 IMPRIMIR
+      </button>
+      <button onclick="window.close()" style="background:transparent;color:#888;border:1px solid #ddd;padding:12px 22px;font-size:0.8rem;cursor:pointer;margin-left:10px;">
         CERRAR
       </button>
     </div>
@@ -3911,7 +3936,14 @@ function imprimirFactura(shopId, shopNombreEnc, shopSlug, plan, createdAt) {
 
 </div>
 <scr'+'ipt>
-  var MONTO = ${monto};   // precio base en USD
+  var MONTO  = ${monto};   // precio base en USD
+  var SB_URL = '${SUPABASE_URL}';
+  var SB_KEY = '${SUPABASE_KEY}';
+  var FACT_ID = '${factId}';
+  var NUMERO  = '${numFactura}';
+  var SLUG    = '${shopSlug || 'factura'}';
+  var ultimoCalc = { code:'USD', factor:1, subtotal:MONTO, desc:0, total:MONTO };
+
   function setDesc(v, tipo){
     document.getElementById('descAmount').value = v;
     document.getElementById('descTipo').value = tipo;
@@ -3930,8 +3962,9 @@ function imprimirFactura(shopId, shopNombreEnc, shopSlug, plan, createdAt) {
     var subtotal = MONTO * factor;   // todo el cálculo en la moneda mostrada
 
     // Descuento (el monto fijo se interpreta en la moneda seleccionada)
-    var amt  = parseFloat(document.getElementById('descAmount').value) || 0;
-    var tipo = document.getElementById('descTipo').value;
+    var amt    = parseFloat(document.getElementById('descAmount').value) || 0;
+    var tipo   = document.getElementById('descTipo').value;
+    var motivo = (document.getElementById('descMotivo').value || '').trim();
     if(amt < 0) amt = 0;
     var desc = tipo === 'percent' ? subtotal * (amt/100) : amt;
     if(desc > subtotal) desc = subtotal;
@@ -3945,14 +3978,56 @@ function imprimirFactura(shopId, shopNombreEnc, shopSlug, plan, createdAt) {
     document.getElementById('f-total').textContent     = fmt(total) + ' ' + code;
     document.getElementById('f-desc-label').textContent =
       (tipo === 'percent' && amt > 0) ? '(' + amt + '%)' : '';
+
+    // Nota dinámica del descuento
+    var nota = document.getElementById('f-nota-desc');
+    if(desc > 0){
+      var pct = tipo === 'percent' ? ' (' + amt + '%)' : '';
+      nota.innerHTML = '<strong>Descuento aplicado:</strong> -' + fmt(desc) + pct +
+        (motivo ? ' — ' + motivo : '');
+    } else { nota.innerHTML = ''; }
+
+    ultimoCalc = { code:code, factor:factor, subtotal:subtotal, desc:desc, total:total };
   }
+
+  // Persistir moneda/descuento/total en BD
+  function guardarCobro(){
+    var motivo = (document.getElementById('descMotivo').value || '').trim();
+    return fetch(SB_URL + '/rest/v1/rpc/guardar_factura_cobro', {
+      method:'POST',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'},
+      body: JSON.stringify({
+        p_id: FACT_ID, p_moneda: ultimoCalc.code, p_tasa: ultimoCalc.factor,
+        p_subtotal: ultimoCalc.subtotal, p_descuento: ultimoCalc.desc,
+        p_motivo: motivo || null, p_total: ultimoCalc.total
+      })
+    }).catch(function(e){ console.warn('No se pudo guardar el cobro:', e); });
+  }
+
+  function descargarPDF(){
+    guardarCobro();
+    var el = document.querySelector('.page');
+    html2pdf().set({
+      margin: 0,
+      filename: 'Factura-' + NUMERO + '-' + SLUG + '.pdf',
+      image: { type:'jpeg', quality:0.98 },
+      html2canvas: { scale:2, useCORS:true, ignoreElements:function(e){ return e.classList && e.classList.contains('no-print'); } },
+      jsPDF: { unit:'mm', format:'a4', orientation:'portrait' }
+    }).from(el).save();
+  }
+
+  function imprimir(){ guardarCobro(); setTimeout(function(){ window.print(); }, 200); }
+
+  // Inicializar valores mostrados
+  aplicarDescuento();
 </scr'+'ipt>
 
 <!-- Modal: Editar Shop (Meta/Twilio/Config) -->
 </body>
 </html>`;
 
-  const win = window.open('', '_blank', 'width=900,height=700');
+  if (!win) { showToast('Permite las ventanas emergentes para ver la factura', 'warn'); return; }
+  win.document.open();
   win.document.write(html);
   win.document.close();
 }
