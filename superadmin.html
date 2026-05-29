@@ -1634,12 +1634,23 @@ tr:hover td{background:rgba(255,255,255,0.016);}
 </div>
 
 <div class="modal-overlay" id="modalRegistrarPago">
-  <div class="modal">
-    <div class="modal-title">Registrar pago recibido</div>
-    <div class="form-group"><label class="form-label">Barbería</label><select class="form-input" id="rpShop"></select></div>
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-title">Registrar pago + generar factura</div>
+    <div class="form-group"><label class="form-label">Barbería</label><select class="form-input" id="rpShop" onchange="onRpShopChange()"></select></div>
+    <div style="font-size:0.62rem;color:var(--muted);margin:-4px 0 10px;">Base del plan: <strong id="rpBaseLabel" style="color:var(--gold);">$29 USD</strong></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-      <div class="form-group"><label class="form-label">Monto</label><input class="form-input" id="rpMonto" type="number" min="0" step="0.01"></div>
-      <div class="form-group"><label class="form-label">Moneda</label><select class="form-input" id="rpMoneda"><option value="USD">USD</option><option value="DOP">RD$ (DOP)</option></select></div>
+      <div class="form-group"><label class="form-label">Moneda</label><select class="form-input" id="rpMoneda" onchange="calcPago()"><option value="USD">USD ($)</option><option value="DOP">RD$ (Peso)</option></select></div>
+      <div class="form-group" id="rpTasaWrap" style="display:none;"><label class="form-label">Tasa USD→RD$</label><input class="form-input" id="rpTasa" type="number" min="1" step="0.01" value="58.75" oninput="calcPago()"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:10px;">
+      <div class="form-group"><label class="form-label">Descuento</label><input class="form-input" id="rpDescAmount" type="number" min="0" step="0.01" value="0" oninput="calcPago()"></div>
+      <div class="form-group"><label class="form-label">Tipo</label><select class="form-input" id="rpDescTipo" onchange="calcPago()"><option value="amount">$ / RD$</option><option value="percent">%</option></select></div>
+    </div>
+    <div class="form-group"><label class="form-label">Motivo del descuento (opcional)</label><input class="form-input" id="rpDescMotivo" placeholder="Ej. Promoción lanzamiento"></div>
+    <div style="background:var(--surface3);border:1px solid var(--border2);border-radius:8px;padding:12px 14px;margin-bottom:12px;font-size:0.68rem;">
+      <div style="display:flex;justify-content:space-between;padding:3px 0;color:var(--muted);"><span>Subtotal</span><span id="rpSubtotal">$29.00</span></div>
+      <div style="display:flex;justify-content:space-between;padding:3px 0;color:var(--muted);"><span>Descuento</span><span id="rpDescVal">-$0.00</span></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0 0;border-top:1px solid var(--border2);margin-top:4px;font-weight:800;color:var(--gold);font-size:0.82rem;"><span>TOTAL A PAGAR</span><span id="rpTotal">$29.00</span></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
       <div class="form-group"><label class="form-label">Método</label><select class="form-input" id="rpMetodo"><option value="transferencia">Transferencia</option><option value="efectivo">Efectivo</option><option value="otro">Otro</option></select></div>
@@ -1648,8 +1659,8 @@ tr:hover td{background:rgba(255,255,255,0.016);}
     <div class="form-group"><label class="form-label">Banco origen (opcional)</label><input class="form-input" id="rpBanco" placeholder="Banco del que transfirieron"></div>
     <div class="form-group"><label class="form-label"># Referencia / comprobante</label><input class="form-input" id="rpRef" placeholder="TRX-..."></div>
     <div class="form-group"><label class="form-label">Nota (opcional)</label><input class="form-input" id="rpNota" placeholder="Ej. pago mes de mayo"></div>
-    <div class="form-info">Se vinculará automáticamente con la factura del mes si existe.</div>
-    <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modalRegistrarPago')">CANCELAR</button><button class="btn btn-primary" onclick="registrarPagoSubmit()">REGISTRAR PAGO</button></div>
+    <div class="form-info">Al registrar se genera la factura con la moneda y el descuento ya aplicados.</div>
+    <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modalRegistrarPago')">CANCELAR</button><button class="btn btn-primary" onclick="registrarPagoSubmit()">REGISTRAR + FACTURAR</button></div>
   </div>
 </div>
 
@@ -3761,19 +3772,51 @@ async function guardarConfigTransfer(){
   }catch(e){ showToast('Error: '+e.message,'error'); }
 }
 
+function rpBaseUsd(){
+  const opt=document.getElementById('rpShop').selectedOptions[0];
+  const plan=opt?opt.dataset.plan:'pro';
+  return plan==='elite'?79:plan==='pro'?29:0;
+}
+function onRpShopChange(){
+  document.getElementById('rpBaseLabel').textContent='$'+rpBaseUsd()+' USD';
+  calcPago();
+}
+function calcPago(){
+  const base=rpBaseUsd();
+  const cur=document.getElementById('rpMoneda').value;            // USD | DOP
+  let rate=parseFloat(document.getElementById('rpTasa').value)||1; if(rate<1) rate=1;
+  const factor=cur==='DOP'?rate:1;
+  const sym=cur==='DOP'?'RD$':'$';
+  document.getElementById('rpTasaWrap').style.display=cur==='DOP'?'block':'none';
+  const subtotal=base*factor;
+  const amt=parseFloat(document.getElementById('rpDescAmount').value)||0;
+  const tipo=document.getElementById('rpDescTipo').value;
+  let desc=tipo==='percent'?subtotal*(amt/100):amt;
+  if(desc<0) desc=0; if(desc>subtotal) desc=subtotal;
+  const total=subtotal-desc;
+  const f=n=>sym+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('rpSubtotal').textContent=f(subtotal);
+  document.getElementById('rpDescVal').textContent='-'+f(desc);
+  document.getElementById('rpTotal').textContent=f(total);
+  window._rpCalc={moneda:cur,factor:factor,subtotal:subtotal,desc:desc,total:total};
+}
+
 function abrirRegistrarPago(shopId, shopNombreEnc, plan){
   const sel=document.getElementById('rpShop');
   const shops=(_shops||[]).filter(s=>s.activo);
   sel.innerHTML=shops.map(s=>`<option value="${s.id}" data-plan="${s.plan}" data-nombre="${encodeURIComponent(s.nombre||'')}">${s.nombre} (${s.plan})</option>`).join('');
   if(shopId) sel.value=shopId;
-  const selPlan=plan||(sel.selectedOptions[0]&&sel.selectedOptions[0].dataset.plan)||'pro';
-  document.getElementById('rpMonto').value=selPlan==='elite'?79:selPlan==='pro'?29:0;
   document.getElementById('rpMoneda').value='USD';
+  document.getElementById('rpTasa').value='58.75';
+  document.getElementById('rpDescAmount').value=0;
+  document.getElementById('rpDescTipo').value='amount';
+  document.getElementById('rpDescMotivo').value='';
   document.getElementById('rpMetodo').value='transferencia';
   document.getElementById('rpBanco').value='';
   document.getElementById('rpRef').value='';
   document.getElementById('rpNota').value='';
   document.getElementById('rpFecha').value=new Date().toISOString().split('T')[0];
+  onRpShopChange();
   openModal('modalRegistrarPago');
 }
 
@@ -3781,25 +3824,31 @@ async function registrarPagoSubmit(){
   const sel=document.getElementById('rpShop');
   const opt=sel.selectedOptions[0];
   if(!opt){ showToast('Selecciona una barbería','warn'); return; }
-  const monto=parseFloat(document.getElementById('rpMonto').value)||0;
-  if(monto<=0){ showToast('Monto inválido','warn'); return; }
+  calcPago();
+  const c=window._rpCalc||{};
+  if(!c.total||c.total<=0){ showToast('Total inválido','warn'); return; }
   const shopNombre=decodeURIComponent(opt.dataset.nombre||'');
-  const moneda=document.getElementById('rpMoneda').value;
   const plan=opt.dataset.plan||'pro';
-  const baseUsd=plan==='elite'?79:plan==='pro'?29:monto;
+  const baseUsd=plan==='elite'?79:plan==='pro'?29:0;
+  const motivo=document.getElementById('rpDescMotivo').value.trim();
   try{
-    // Generar/asegurar la factura del período ANTES de registrar (para que el pago la vincule)
-    await sbRpc('obtener_o_crear_factura',{p_shop_id:sel.value,p_shop_nombre:shopNombre,p_plan:plan,p_monto_usd:baseUsd});
+    // 1. Asegurar la factura del período
+    const fact=await sbRpc('obtener_o_crear_factura',{p_shop_id:sel.value,p_shop_nombre:shopNombre,p_plan:plan,p_monto_usd:baseUsd});
+    // 2. Guardar en la factura TODO lo aplicado (moneda, tasa, descuento, motivo, total)
+    if(fact&&fact.id){
+      await sbRpc('guardar_factura_cobro',{p_id:fact.id,p_moneda:c.moneda,p_tasa:c.factor,p_subtotal:c.subtotal,p_descuento:c.desc,p_motivo:motivo||null,p_total:c.total});
+    }
+    // 3. Registrar el pago con el total final
     const p=await sbRpc('registrar_pago',{
       p_shop_id:sel.value, p_shop_nombre:shopNombre, p_plan:plan,
-      p_monto:monto, p_moneda:moneda, p_metodo:document.getElementById('rpMetodo').value,
+      p_monto:c.total, p_moneda:c.moneda, p_metodo:document.getElementById('rpMetodo').value,
       p_banco_origen:document.getElementById('rpBanco').value.trim(),
       p_referencia:document.getElementById('rpRef').value.trim(),
       p_nota:document.getElementById('rpNota').value.trim(),
       p_fecha_pago:document.getElementById('rpFecha').value
     });
-    showToast('Pago registrado ✓ · Factura '+(p&&p.factura_numero?p.factura_numero:'generada')+' lista para imprimir','success');
-    try { await logSuperadminAction('registrar_pago',`${shopNombre}: ${monto} ${moneda}`); } catch(e){}
+    showToast('Pago registrado ✓ · Factura '+(p&&p.factura_numero?p.factura_numero:'generada')+' lista','success');
+    try { await logSuperadminAction('registrar_pago',`${shopNombre}: ${c.total} ${c.moneda}`); } catch(e){}
     closeModal('modalRegistrarPago');
     loadPayments();
   }catch(e){ showToast('Error: '+e.message,'error'); }
@@ -4065,7 +4114,7 @@ async function imprimirFactura(shopId, shopNombreEnc, shopSlug, plan, createdAt)
         </select>
         <div id="rateWrap" style="display:none;align-items:center;gap:6px;">
           <span style="font-size:0.72rem;color:#666;white-space:nowrap;">Tasa RD$</span>
-          <input id="curRate" type="number" min="1" step="0.01" value="60" oninput="aplicarDescuento()"
+          <input id="curRate" type="number" min="1" step="0.01" value="58.75" oninput="aplicarDescuento()"
             style="width:84px;padding:10px 12px;border:1px solid #ccc;border-radius:7px;font-size:0.9rem;font-weight:700;color:#111;outline:none;">
         </div>
       </div>
@@ -4127,6 +4176,10 @@ async function imprimirFactura(shopId, shopNombreEnc, shopSlug, plan, createdAt)
   var FACT_ID = '${factId}';
   var NUMERO  = '${numFactura}';
   var SLUG    = '${shopSlug || 'factura'}';
+  var INIT_MONEDA = ${JSON.stringify(fact.moneda === 'DOP' ? 'RD' : 'USD')};
+  var INIT_RATE   = ${Number(fact.tasa) > 1 ? Number(fact.tasa) : 58.75};
+  var INIT_DESC   = ${Number(fact.descuento) || 0};
+  var INIT_MOTIVO = ${JSON.stringify(fact.descuento_motivo || '')};
   var ultimoCalc = { code:'USD', factor:1, subtotal:MONTO, desc:0, total:MONTO };
 
   function setDesc(v, tipo){
@@ -4203,7 +4256,11 @@ async function imprimirFactura(shopId, shopNombreEnc, shopSlug, plan, createdAt)
 
   function imprimir(){ guardarCobro(); setTimeout(function(){ window.print(); }, 200); }
 
-  // Inicializar valores mostrados
+  // Pre-cargar lo aplicado al registrar el pago (moneda, tasa, descuento, motivo)
+  document.getElementById('curTipo').value = INIT_MONEDA;
+  document.getElementById('curRate').value = INIT_RATE;
+  if(INIT_DESC > 0){ document.getElementById('descAmount').value = INIT_DESC; document.getElementById('descTipo').value = 'amount'; }
+  document.getElementById('descMotivo').value = INIT_MOTIVO;
   aplicarDescuento();
 <\/script>
 
