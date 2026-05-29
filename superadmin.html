@@ -3670,7 +3670,7 @@ async function imprimirFactura(shopId, shopNombreEnc, shopSlug, plan, createdAt)
 <head>
 <meta charset="UTF-8">
 <title>Factura ${numFactura} — ${shopNombre}</title>
-<scr'+'ipt src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></scr'+'ipt>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"><\/script>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;}
   body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#111;font-size:14px;}
@@ -3935,7 +3935,7 @@ async function imprimirFactura(shopId, shopNombreEnc, shopSlug, plan, createdAt)
   </div>
 
 </div>
-<scr'+'ipt>
+<script>
   var MONTO  = ${monto};   // precio base en USD
   var SB_URL = '${SUPABASE_URL}';
   var SB_KEY = '${SUPABASE_KEY}';
@@ -4020,7 +4020,7 @@ async function imprimirFactura(shopId, shopNombreEnc, shopSlug, plan, createdAt)
 
   // Inicializar valores mostrados
   aplicarDescuento();
-</scr'+'ipt>
+<\/script>
 
 <!-- Modal: Editar Shop (Meta/Twilio/Config) -->
 </body>
