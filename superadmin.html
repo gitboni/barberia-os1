@@ -1026,22 +1026,38 @@ tr:hover td{background:rgba(255,255,255,0.016);}
       <div class="payments-grid">
         <div class="payment-card" style="border-top:2px solid var(--green)"><div class="payment-label">Ingresos este mes</div><div class="payment-amount" id="pay-mrr">$0</div><div style="font-size:0.54rem;color:var(--muted)" id="pay-subs">0 suscripciones</div></div>
         <div class="payment-card" style="border-top:2px solid var(--gold)"><div class="payment-label">Proyección anual</div><div class="payment-amount" id="pay-anual">$0</div><div style="font-size:0.54rem;color:var(--muted)">Con clientes actuales</div></div>
-        <div class="payment-card" style="border-top:2px solid var(--blue)"><div class="payment-label">Próximo cobro estimado</div><div class="payment-amount" id="pay-next">$0</div><div style="font-size:0.54rem;color:var(--muted)">En 30 días</div></div>
+        <div class="payment-card" style="border-top:2px solid var(--blue)"><div class="payment-label">Suscripciones al día</div><div class="payment-amount" id="pay-next">0</div><div style="font-size:0.54rem;color:var(--muted)" id="pay-next-sub">0 por cobrar</div></div>
       </div>
+      <!-- Transferencia bancaria (método principal) -->
+      <div class="payment-card" style="margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+          <div style="font-size:1.4rem;">🏦</div>
+          <div><div style="font-size:0.78rem;">Transferencia bancaria</div><div style="font-size:0.48rem;color:var(--muted);">MÉTODO PRINCIPAL</div></div>
+          <div style="margin-left:auto;display:flex;gap:8px;">
+            <button class="btn btn-ghost" onclick="abrirConfigTransfer()" style="font-size:0.58rem;padding:5px 12px;">✎ Editar datos</button>
+            <button class="btn btn-primary" onclick="abrirRegistrarPago()" style="font-size:0.58rem;padding:5px 12px;">+ Registrar pago</button>
+          </div>
+        </div>
+        <div id="transferDatos" style="font-size:0.6rem;color:var(--muted);">Cargando…</div>
+      </div>
+
+      <!-- Pasarelas (próximamente) -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;">
-        <div class="payment-card">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;"><div style="font-size:1.4rem;">💳</div><div><div style="font-size:0.78rem;">Stripe</div><div style="font-size:0.48rem;color:var(--muted);">TARJETAS</div></div><div style="margin-left:auto;color:var(--orange);font-size:0.56rem;">⚠ Por configurar</div></div>
-          <div style="font-size:0.58rem;color:var(--muted);margin-bottom:12px;">2.9% + $0.30 por transacción.</div>
-          <button class="btn btn-primary" id="stripeBtn">CONFIGURAR STRIPE</button>
+        <div class="payment-card" style="opacity:.5;">
+          <div style="display:flex;align-items:center;gap:10px;"><div style="font-size:1.2rem;">💳</div><div><div style="font-size:0.72rem;">Stripe</div><div style="font-size:0.46rem;color:var(--muted);">TARJETAS · PRÓXIMAMENTE</div></div><div style="margin-left:auto;color:var(--muted);font-size:0.52rem;">○ No disponible</div></div>
         </div>
-        <div class="payment-card">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;"><div style="font-size:1.4rem;">🅿️</div><div><div style="font-size:0.78rem;">PayPal</div><div style="font-size:0.48rem;color:var(--muted);">PAGOS GLOBALES</div></div><div style="margin-left:auto;color:var(--orange);font-size:0.56rem;">⚠ Por configurar</div></div>
-          <div style="font-size:0.58rem;color:var(--muted);margin-bottom:12px;">Popular en RD. 3.49% + tarifa fija.</div>
-          <button class="btn btn-primary" id="paypalBtn">CONFIGURAR PAYPAL</button>
+        <div class="payment-card" style="opacity:.5;">
+          <div style="display:flex;align-items:center;gap:10px;"><div style="font-size:1.2rem;">🅿️</div><div><div style="font-size:0.72rem;">PayPal</div><div style="font-size:0.46rem;color:var(--muted);">GLOBAL · PRÓXIMAMENTE</div></div><div style="margin-left:auto;color:var(--muted);font-size:0.52rem;">○ No disponible</div></div>
         </div>
       </div>
-      <div class="section-header"><div class="section-title">Historial de Pagos</div></div>
-      <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Barbería</th><th>Plan</th><th>Monto</th><th>Estado</th></tr></thead><tbody id="paymentsTable"></tbody></table></div>
+
+      <!-- Suscripciones + estado de cobro -->
+      <div class="section-header"><div class="section-title">Suscripciones</div></div>
+      <div class="table-wrap"><table><thead><tr><th>Barbería</th><th>Plan</th><th>Monto</th><th>Estado cobro</th><th>Acción</th></tr></thead><tbody id="paymentsTable"></tbody></table></div>
+
+      <!-- Historial de pagos recibidos -->
+      <div class="section-header" style="margin-top:22px;"><div class="section-title">Historial de pagos recibidos</div></div>
+      <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Barbería</th><th>Método</th><th>Monto</th><th>Referencia</th><th>Factura</th></tr></thead><tbody id="pagosHistTable"></tbody></table></div>
     </div>
 
     <!-- FACTURACIÓN -->
@@ -1600,6 +1616,40 @@ tr:hover td{background:rgba(255,255,255,0.016);}
     <div class="security-box"><strong>🔐 Client Secret → Vercel ENV VARS.</strong> Solo el Client ID va en el frontend.</div>
     <div class="form-group"><label class="form-label">Client ID</label><input class="form-input" id="paypalClientId" placeholder="AXxx..."></div>
     <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modalPaypal')">CANCELAR</button><button class="btn btn-primary" onclick="showToast('Instrucciones recibidas','info');closeModal('modalPaypal')">ENTENDIDO</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalTransferConfig">
+  <div class="modal">
+    <div class="modal-title">Datos de transferencia bancaria</div>
+    <div class="form-info">Estos datos se muestran para que las barberías te paguen.</div>
+    <div class="form-group"><label class="form-label">Banco</label><input class="form-input" id="tcBanco" placeholder="Banco Popular"></div>
+    <div class="form-group"><label class="form-label">Tipo de cuenta</label><input class="form-input" id="tcTipo" placeholder="Ahorros / Corriente"></div>
+    <div class="form-group"><label class="form-label">Número de cuenta</label><input class="form-input" id="tcNumero" placeholder="000-0000000-0"></div>
+    <div class="form-group"><label class="form-label">Beneficiario</label><input class="form-input" id="tcBenef" placeholder="Nombre del titular"></div>
+    <div class="form-group"><label class="form-label">Moneda</label><select class="form-input" id="tcMoneda"><option value="RD$">RD$ (Peso)</option><option value="USD">USD (Dólar)</option></select></div>
+    <div class="form-group"><label class="form-label">Instrucciones (opcional)</label><textarea class="form-input" id="tcInstr" rows="2" placeholder="Enviar comprobante a..."></textarea></div>
+    <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modalTransferConfig')">CANCELAR</button><button class="btn btn-primary" onclick="guardarConfigTransfer()">GUARDAR</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalRegistrarPago">
+  <div class="modal">
+    <div class="modal-title">Registrar pago recibido</div>
+    <div class="form-group"><label class="form-label">Barbería</label><select class="form-input" id="rpShop"></select></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="form-group"><label class="form-label">Monto</label><input class="form-input" id="rpMonto" type="number" min="0" step="0.01"></div>
+      <div class="form-group"><label class="form-label">Moneda</label><select class="form-input" id="rpMoneda"><option value="USD">USD</option><option value="DOP">RD$ (DOP)</option></select></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="form-group"><label class="form-label">Método</label><select class="form-input" id="rpMetodo"><option value="transferencia">Transferencia</option><option value="efectivo">Efectivo</option><option value="otro">Otro</option></select></div>
+      <div class="form-group"><label class="form-label">Fecha de pago</label><input class="form-input" id="rpFecha" type="date"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Banco origen (opcional)</label><input class="form-input" id="rpBanco" placeholder="Banco del que transfirieron"></div>
+    <div class="form-group"><label class="form-label"># Referencia / comprobante</label><input class="form-input" id="rpRef" placeholder="TRX-..."></div>
+    <div class="form-group"><label class="form-label">Nota (opcional)</label><input class="form-input" id="rpNota" placeholder="Ej. pago mes de mayo"></div>
+    <div class="form-info">Se vinculará automáticamente con la factura del mes si existe.</div>
+    <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modalRegistrarPago')">CANCELAR</button><button class="btn btn-primary" onclick="registrarPagoSubmit()">REGISTRAR PAGO</button></div>
   </div>
 </div>
 
@@ -3597,25 +3647,152 @@ async function loadPayments() {
   const mrr=active.reduce((a,s)=>a+(s.plan==='pro'?PLAN_PRICES.pro:s.plan==='elite'?PLAN_PRICES.elite:0),0);
   document.getElementById('pay-mrr').textContent='$'+mrr;
   document.getElementById('pay-anual').textContent='$'+(mrr*12).toLocaleString();
-  document.getElementById('pay-next').textContent='$'+mrr;
   document.getElementById('pay-subs').textContent=`${active.filter(s=>s.plan!=='free').length} suscripciones activas`;
-  // Mejora #4: tabla con cambio de plan real + vencimiento
-  document.getElementById('paymentsTable').innerHTML=active.map(s=>`
-    <tr>
-      <td style="color:var(--muted)">${new Date(s.created_at||Date.now()).toLocaleDateString('es')}</td>
+
+  // Datos bancarios
+  let cfg=null;
+  try { const r=await sbGet('config_pagos','select=*&id=eq.1'); cfg=r&&r[0]; } catch(e){}
+  window._cfgPago=cfg||{};
+  renderTransferDatos(cfg);
+
+  // Pagos reales
+  let pagos=[];
+  try { pagos=await sbGet('pagos','select=*&order=fecha_pago.desc&limit=200'); } catch(e){ pagos=[]; }
+
+  // Map shop → última vigencia
+  const hoy=new Date(); hoy.setHours(0,0,0,0);
+  const vigMap={};
+  for(const p of pagos){
+    const v=p.vigente_hasta?new Date(p.vigente_hasta+'T00:00:00'):null;
+    if(v && (!vigMap[p.shop_id]||v>vigMap[p.shop_id])) vigMap[p.shop_id]=v;
+  }
+  function estadoCobro(shopId, plan){
+    if(plan==='free') return {txt:'—',color:'var(--muted)'};
+    const v=vigMap[shopId];
+    if(!v) return {txt:'Sin pago',color:'var(--orange)'};
+    const dias=Math.round((v-hoy)/86400000);
+    if(dias<0)  return {txt:'Vencida',color:'#F87171'};
+    if(dias<=7) return {txt:`Por vencer (${dias}d)`,color:'var(--gold)'};
+    return {txt:'Al día',color:'var(--green)'};
+  }
+
+  // Tabla de suscripciones
+  let alDia=0, porCobrar=0;
+  document.getElementById('paymentsTable').innerHTML=active.map(s=>{
+    const monto=s.plan==='pro'?PLAN_PRICES.pro:s.plan==='elite'?PLAN_PRICES.elite:0;
+    const est=estadoCobro(s.id,s.plan);
+    if(s.plan!=='free'){ if(est.txt==='Al día'||est.txt.indexOf('Por vencer')===0) alDia++; else porCobrar++; }
+    return `<tr>
       <td style="color:var(--text);font-weight:700;">${s.nombre}</td>
       <td>
-        <select style="background:var(--surface3);border:1px solid var(--border2);color:var(--text);padding:3px 6px;font-size:0.6rem;cursor:pointer;" 
+        <select style="background:var(--surface3);border:1px solid var(--border2);color:var(--text);padding:3px 6px;font-size:0.6rem;cursor:pointer;"
           onchange="changePlan('${s.id}','${s.nombre}',this.value)">
           <option value="free" ${s.plan==='free'?'selected':''}>Free — $0</option>
           <option value="pro" ${s.plan==='pro'?'selected':''}>Pro — $29</option>
           <option value="elite" ${s.plan==='elite'?'selected':''}>Elite — $79</option>
         </select>
       </td>
-      <td style="color:var(--gold)">$${s.plan==='pro'?PLAN_PRICES.pro:s.plan==='elite'?PLAN_PRICES.elite:0}.00/mes</td>
-      <td class="${s.plan!=='free'?'status-active':'status-pending'}">${s.plan!=='free'?'● Pago':'○ Free'}</td>
-      <td><span style="color:${s.aprobado?'var(--green)':'var(--orange)'};font-size:0.6rem;">${s.aprobado?'✓ Aprobada':'⚠ Pendiente'}</span></td>
-    </tr>`).join('')||'<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:22px;">Sin barberías</td></tr>';
+      <td style="color:var(--gold)">$${monto}.00/mes</td>
+      <td><span style="color:${est.color};font-size:0.62rem;font-weight:700;">● ${est.txt}</span></td>
+      <td>${s.plan!=='free'?`<button class="btn btn-ghost" style="font-size:0.55rem;padding:4px 10px;" onclick="abrirRegistrarPago('${s.id}','${encodeURIComponent(s.nombre||'')}','${s.plan}')">+ Pago</button>`:'—'}</td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:22px;">Sin barberías</td></tr>';
+
+  document.getElementById('pay-next').textContent=alDia;
+  const pn=document.getElementById('pay-next-sub'); if(pn) pn.textContent=`${porCobrar} por cobrar`;
+
+  // Historial de pagos recibidos
+  const fmtMon=(p)=>(p.moneda==='DOP'?'RD$':'$')+Number(p.monto||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('pagosHistTable').innerHTML=pagos.length?pagos.map(p=>`
+    <tr>
+      <td style="color:var(--muted)">${p.fecha_pago?new Date(p.fecha_pago+'T12:00:00').toLocaleDateString('es'):'—'}</td>
+      <td style="color:var(--text)">${p.shop_nombre||'—'}</td>
+      <td style="font-size:0.6rem;color:var(--muted)">${p.metodo||'transferencia'}${p.banco_origen?' · '+p.banco_origen:''}</td>
+      <td style="color:var(--green)">${fmtMon(p)}</td>
+      <td style="font-size:0.6rem;color:var(--muted)">${p.referencia||'—'}</td>
+      <td style="font-size:0.6rem;color:var(--gold)">${p.factura_numero||'—'}</td>
+    </tr>`).join(''):'<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:22px;">Aún no hay pagos registrados</td></tr>';
+}
+
+function renderTransferDatos(cfg){
+  const el=document.getElementById('transferDatos'); if(!el) return;
+  if(!cfg||(!cfg.banco&&!cfg.numero_cuenta)){
+    el.innerHTML='<span style="color:var(--orange);">⚠ Sin configurar.</span> Pulsa "Editar datos" para poner tu cuenta bancaria.';
+    return;
+  }
+  el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;">
+      <div><div style="font-size:0.46rem;color:var(--muted);text-transform:uppercase;">Banco</div><div style="color:var(--text);font-weight:700;">${cfg.banco||'—'}</div></div>
+      <div><div style="font-size:0.46rem;color:var(--muted);text-transform:uppercase;">Cuenta</div><div style="color:var(--text);font-weight:700;">${cfg.numero_cuenta||'—'} <span style="color:var(--muted);font-weight:400;">${cfg.tipo_cuenta||''}</span></div></div>
+      <div><div style="font-size:0.46rem;color:var(--muted);text-transform:uppercase;">Beneficiario</div><div style="color:var(--text);font-weight:700;">${cfg.beneficiario||'—'}</div></div>
+      <div><div style="font-size:0.46rem;color:var(--muted);text-transform:uppercase;">Moneda</div><div style="color:var(--text);font-weight:700;">${cfg.moneda||'—'}</div></div>
+    </div>${cfg.instrucciones?`<div style="margin-top:8px;font-size:0.56rem;color:var(--muted);">${cfg.instrucciones}</div>`:''}`;
+}
+
+function abrirConfigTransfer(){
+  const c=window._cfgPago||{};
+  document.getElementById('tcBanco').value=c.banco||'';
+  document.getElementById('tcTipo').value=c.tipo_cuenta||'';
+  document.getElementById('tcNumero').value=c.numero_cuenta||'';
+  document.getElementById('tcBenef').value=c.beneficiario||'';
+  document.getElementById('tcMoneda').value=c.moneda||'RD$';
+  document.getElementById('tcInstr').value=c.instrucciones||'';
+  openModal('modalTransferConfig');
+}
+
+async function guardarConfigTransfer(){
+  try{
+    await sbRpc('guardar_config_pago',{
+      p_banco:document.getElementById('tcBanco').value.trim(),
+      p_tipo_cuenta:document.getElementById('tcTipo').value.trim(),
+      p_numero_cuenta:document.getElementById('tcNumero').value.trim(),
+      p_beneficiario:document.getElementById('tcBenef').value.trim(),
+      p_moneda:document.getElementById('tcMoneda').value,
+      p_instrucciones:document.getElementById('tcInstr').value.trim()
+    });
+    showToast('Datos bancarios guardados ✓','success');
+    closeModal('modalTransferConfig');
+    loadPayments();
+  }catch(e){ showToast('Error: '+e.message,'error'); }
+}
+
+function abrirRegistrarPago(shopId, shopNombreEnc, plan){
+  const sel=document.getElementById('rpShop');
+  const shops=(_shops||[]).filter(s=>s.activo);
+  sel.innerHTML=shops.map(s=>`<option value="${s.id}" data-plan="${s.plan}" data-nombre="${encodeURIComponent(s.nombre||'')}">${s.nombre} (${s.plan})</option>`).join('');
+  if(shopId) sel.value=shopId;
+  const selPlan=plan||(sel.selectedOptions[0]&&sel.selectedOptions[0].dataset.plan)||'pro';
+  document.getElementById('rpMonto').value=selPlan==='elite'?79:selPlan==='pro'?29:0;
+  document.getElementById('rpMoneda').value='USD';
+  document.getElementById('rpMetodo').value='transferencia';
+  document.getElementById('rpBanco').value='';
+  document.getElementById('rpRef').value='';
+  document.getElementById('rpNota').value='';
+  document.getElementById('rpFecha').value=new Date().toISOString().split('T')[0];
+  openModal('modalRegistrarPago');
+}
+
+async function registrarPagoSubmit(){
+  const sel=document.getElementById('rpShop');
+  const opt=sel.selectedOptions[0];
+  if(!opt){ showToast('Selecciona una barbería','warn'); return; }
+  const monto=parseFloat(document.getElementById('rpMonto').value)||0;
+  if(monto<=0){ showToast('Monto inválido','warn'); return; }
+  const shopNombre=decodeURIComponent(opt.dataset.nombre||'');
+  const moneda=document.getElementById('rpMoneda').value;
+  try{
+    const p=await sbRpc('registrar_pago',{
+      p_shop_id:sel.value, p_shop_nombre:shopNombre, p_plan:opt.dataset.plan||'pro',
+      p_monto:monto, p_moneda:moneda, p_metodo:document.getElementById('rpMetodo').value,
+      p_banco_origen:document.getElementById('rpBanco').value.trim(),
+      p_referencia:document.getElementById('rpRef').value.trim(),
+      p_nota:document.getElementById('rpNota').value.trim(),
+      p_fecha_pago:document.getElementById('rpFecha').value
+    });
+    showToast('Pago registrado ✓'+(p&&p.factura_numero?(' · '+p.factura_numero):''),'success');
+    try { await logSuperadminAction('registrar_pago',`${shopNombre}: ${monto} ${moneda}`); } catch(e){}
+    closeModal('modalRegistrarPago');
+    loadPayments();
+  }catch(e){ showToast('Error: '+e.message,'error'); }
 }
 
 async function changePlan(shopId, shopNombre, newPlan) {
@@ -3629,8 +3806,6 @@ async function changePlan(shopId, shopNombre, newPlan) {
     renderDashboard();
   } catch(e) { showToast('Error: '+e.message,'error'); }
 }
-document.getElementById('stripeBtn').addEventListener('click',()=>openModal('modalStripe'));
-document.getElementById('paypalBtn').addEventListener('click',()=>openModal('modalPaypal'));
 
 // ════════════════════════════════════════════
 
