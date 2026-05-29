@@ -1270,8 +1270,11 @@ tr:hover td{background:rgba(255,255,255,0.016);}
           </div>
         </div>
         <div class="chart-card">
-          <div class="chart-title">🔴 Errores recientes</div>
-          <div id="bs-errors-list" style="display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div class="chart-title" style="margin-bottom:0;">🔴 Errores recientes</div>
+            <button id="bs-alert-btn" class="btn btn-ghost" onclick="enviarAlertaAdmin()" style="font-size:0.52rem;padding:4px 10px;border-color:rgba(248,113,113,.3);color:#F87171;display:none;">📧 Alertar Admin</button>
+          </div>
+          <div id="bs-errors-list" style="display:flex;flex-direction:column;gap:6px;max-height:260px;overflow-y:auto;">
             <div style="color:var(--muted);font-size:0.6rem;padding:8px;">Cargando...</div>
           </div>
         </div>
@@ -2628,6 +2631,20 @@ async function loadBotSalud() {
     // ── Recent errors ──
     const errors = logs.filter(l => !l.success && l.error_msg).slice(0, 15);
     const errBox = document.getElementById('bs-errors-list');
+
+    // Mostrar/ocultar botón de alerta manual según si hay errores
+    const alertBtn = document.getElementById('bs-alert-btn');
+    if (alertBtn) alertBtn.style.display = errors.length > 0 ? 'block' : 'none';
+
+    // Guardar snapshot de errores para la función de alerta manual
+    window._bsLastErrors = errors.length > 0 ? {
+      shop_nombre: shopNames[errors[0].shop_id] || 'Varias',
+      error_count: totalFail,
+      error_msg: (errors[0].error_msg || '').substring(0, 200),
+      telefono: errors[0].telefono || '—',
+      response_time_ms: errors[0].response_time_ms || 0
+    } : null;
+
     errBox.innerHTML = errors.length === 0
       ? '<div style="color:var(--green);font-size:0.6rem;padding:8px;">Sin errores en el período</div>'
       : errors.map(e => {
@@ -2647,6 +2664,31 @@ async function loadBotSalud() {
   } catch(e) {
     console.error('loadBotSalud error:', e);
     document.getElementById('bs-tabla-body').innerHTML = `<tr><td colspan="7" style="padding:20px;text-align:center;color:var(--red);">Error: ${e.message}</td></tr>`;
+  }
+}
+
+/* ══ ALERTA MANUAL AL ADMIN ══════════════════════════════════════════════════ */
+async function enviarAlertaAdmin() {
+  const btn = document.getElementById('bs-alert-btn');
+  const data = window._bsLastErrors;
+  if (!data) { toast('No hay errores para reportar','info'); return; }
+  const orig = btn.textContent;
+  btn.textContent = '⏳ Enviando...';
+  btn.disabled = true;
+  try {
+    const r = await fetch(`${SB_FUNC_URL}/bot-alert-email`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_KEY}` },
+      body: JSON.stringify(data)
+    });
+    const res = await r.json();
+    if (!r.ok) throw new Error(res.error || 'HTTP ' + r.status);
+    toast('📧 Alerta enviada al admin ✓', 'success');
+  } catch(e) {
+    toast('Error al enviar alerta: ' + e.message, 'error');
+  } finally {
+    btn.textContent = orig;
+    btn.disabled = false;
   }
 }
 
@@ -3618,7 +3660,8 @@ function imprimirFactura(shopId, shopNombreEnc, shopSlug, plan, createdAt) {
   /* HEADER */
   .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:48px;padding-bottom:28px;border-bottom:3px solid #111;}
   .logo-area{display:flex;align-items:center;gap:14px;}
-  .logo-icon{width:52px;height:52px;background:#111;display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:#C9A84C;flex-shrink:0;}
+  .logo-icon{width:62px;height:62px;background:#0d0d0d;border:1px solid rgba(201,168,76,0.35);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 10px rgba(0,0,0,0.15);}
+  .logo-icon svg{width:42px;height:42px;}
   .logo-text{font-size:1.8rem;font-weight:900;letter-spacing:0.06em;color:#111;line-height:1;}
   .logo-sub{font-size:0.58rem;color:#888;letter-spacing:0.3em;text-transform:uppercase;margin-top:3px;}
   .factura-badge{text-align:right;}
@@ -3683,7 +3726,35 @@ function imprimirFactura(shopId, shopNombreEnc, shopSlug, plan, createdAt) {
   <!-- HEADER -->
   <div class="header">
     <div class="logo-area">
-      <div class="logo-icon">✂</div>
+      <div class="logo-icon">
+        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="auraGold" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#F6E9B8"/>
+              <stop offset="0.38" stop-color="#C9A84C"/>
+              <stop offset="0.68" stop-color="#9C7B28"/>
+              <stop offset="1" stop-color="#EAD89C"/>
+            </linearGradient>
+            <linearGradient id="auraSilver" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#FBFBFB"/>
+              <stop offset="0.5" stop-color="#B6B6B6"/>
+              <stop offset="1" stop-color="#EDEDED"/>
+            </linearGradient>
+          </defs>
+          <!-- Letra A en oro metálico -->
+          <path d="M50 15 L83 91 L67 91 L60.5 73 L39.5 73 L33 91 L17 91 Z" fill="url(#auraGold)"/>
+          <path d="M43 61 L57 61 L50 41 Z" fill="#0d0d0d"/>
+          <!-- Navaja como travesaño -->
+          <rect x="29" y="55.5" width="42" height="5" rx="2.5" transform="rotate(-8 50 58)" fill="url(#auraSilver)"/>
+          <!-- Tijeras en plata -->
+          <g stroke="url(#auraSilver)" stroke-width="3.6" fill="none" stroke-linecap="round">
+            <circle cx="71" cy="25" r="5.5"/>
+            <circle cx="84" cy="32" r="5.5"/>
+            <path d="M67 29 L45 51"/>
+            <path d="M80 36 L58 58"/>
+          </g>
+        </svg>
+      </div>
       <div>
         <div class="logo-text">AuraOS</div>
         <div class="logo-sub">Sistema de Gestión · SaaS</div>
@@ -3753,7 +3824,7 @@ function imprimirFactura(shopId, shopNombreEnc, shopSlug, plan, createdAt) {
           <td><span class="plan-badge">${plan.toUpperCase()}</span></td>
           <td style="color:#666;font-size:0.8rem;">${fechaEmision}<br>→ ${fechaVence}</td>
           <td style="text-align:center;">1</td>
-          <td>$${monto}.00</td>
+          <td id="f-lineprice">$${monto}.00</td>
         </tr>
       </tbody>
     </table>
@@ -3762,10 +3833,10 @@ function imprimirFactura(shopId, shopNombreEnc, shopSlug, plan, createdAt) {
   <!-- TOTALES -->
   <div class="totals">
     <div class="totals-box">
-      <div class="totals-row"><span>Subtotal</span><span>$${monto}.00</span></div>
-      <div class="totals-row"><span>Descuento</span><span>$0.00</span></div>
+      <div class="totals-row"><span>Subtotal</span><span id="f-subtotal">$${monto}.00</span></div>
+      <div class="totals-row"><span>Descuento <span id="f-desc-label" style="color:#C9A84C;font-weight:700;"></span></span><span id="f-descuento">-$0.00</span></div>
       <div class="totals-row"><span style="color:#888;font-size:0.75rem;">ITBIS (18%)</span><span style="color:#888;font-size:0.75rem;">Exento</span></div>
-      <div class="totals-row total"><span>TOTAL</span><span>$${monto}.00 USD</span></div>
+      <div class="totals-row total"><span>TOTAL</span><span id="f-total">$${monto}.00 USD</span></div>
     </div>
   </div>
 
@@ -3776,14 +3847,52 @@ function imprimirFactura(shopId, shopNombreEnc, shopSlug, plan, createdAt) {
     Para soporte técnico contactar: <strong>contacto@auraos.app</strong>
   </div>
 
-  <!-- BOTÓN IMPRIMIR (no se imprime) -->
-  <div class="no-print" style="text-align:center;margin-bottom:32px;">
-    <button onclick="window.print()" style="background:#111;color:#C9A84C;border:2px solid #C9A84C;padding:12px 40px;font-size:0.85rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;">
-      🖨 IMPRIMIR / GUARDAR PDF
-    </button>
-    <button onclick="window.close()" style="background:transparent;color:#888;border:1px solid #ddd;padding:12px 24px;font-size:0.8rem;cursor:pointer;margin-left:12px;">
-      CERRAR
-    </button>
+  <!-- CONTROLES (no se imprimen) -->
+  <div class="no-print" style="margin-bottom:32px;">
+    <!-- Moneda -->
+    <div style="max-width:420px;margin:0 auto 12px;background:#f8f8f8;border:1px solid #e2e2e2;border-radius:10px;padding:16px 20px;">
+      <div style="font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:#888;font-weight:700;margin-bottom:10px;">Moneda</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <select id="curTipo" onchange="aplicarDescuento()"
+          style="flex:1;padding:10px 12px;border:1px solid #ccc;border-radius:7px;font-size:0.85rem;font-weight:700;color:#111;cursor:pointer;background:#fff;">
+          <option value="USD">🇺🇸 US Dólar ($)</option>
+          <option value="RD">🇩🇴 RD Peso (RD$)</option>
+        </select>
+        <div id="rateWrap" style="display:none;align-items:center;gap:6px;">
+          <span style="font-size:0.72rem;color:#666;white-space:nowrap;">Tasa RD$</span>
+          <input id="curRate" type="number" min="1" step="0.01" value="60" oninput="aplicarDescuento()"
+            style="width:84px;padding:10px 12px;border:1px solid #ccc;border-radius:7px;font-size:0.9rem;font-weight:700;color:#111;outline:none;">
+        </div>
+      </div>
+    </div>
+
+    <!-- Descuento -->
+    <div style="max-width:420px;margin:0 auto 18px;background:#f8f8f8;border:1px solid #e2e2e2;border-radius:10px;padding:16px 20px;">
+      <div style="font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:#888;font-weight:700;margin-bottom:10px;">Aplicar descuento</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input id="descAmount" type="number" min="0" step="0.01" value="0" oninput="aplicarDescuento()"
+          style="flex:1;padding:10px 12px;border:1px solid #ccc;border-radius:7px;font-size:0.9rem;font-weight:700;color:#111;outline:none;">
+        <select id="descTipo" onchange="aplicarDescuento()"
+          style="padding:10px 12px;border:1px solid #ccc;border-radius:7px;font-size:0.85rem;font-weight:700;color:#111;cursor:pointer;background:#fff;">
+          <option value="amount">$ USD</option>
+          <option value="percent">% Porcentaje</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:10px;">
+        <button type="button" onclick="setDesc(10,'percent')" style="flex:1;padding:7px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;font-size:0.72rem;color:#444;">10%</button>
+        <button type="button" onclick="setDesc(20,'percent')" style="flex:1;padding:7px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;font-size:0.72rem;color:#444;">20%</button>
+        <button type="button" onclick="setDesc(50,'percent')" style="flex:1;padding:7px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;font-size:0.72rem;color:#444;">50%</button>
+        <button type="button" onclick="setDesc(0,'amount')" style="flex:1;padding:7px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;font-size:0.72rem;color:#444;">Quitar</button>
+      </div>
+    </div>
+    <div style="text-align:center;">
+      <button onclick="window.print()" style="background:#111;color:#C9A84C;border:2px solid #C9A84C;padding:12px 40px;font-size:0.85rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;">
+        🖨 IMPRIMIR / GUARDAR PDF
+      </button>
+      <button onclick="window.close()" style="background:transparent;color:#888;border:1px solid #ddd;padding:12px 24px;font-size:0.8rem;cursor:pointer;margin-left:12px;">
+        CERRAR
+      </button>
+    </div>
   </div>
 
   <!-- FOOTER -->
@@ -3802,8 +3911,41 @@ function imprimirFactura(shopId, shopNombreEnc, shopSlug, plan, createdAt) {
 
 </div>
 <scr'+'ipt>
-  // Auto-print al abrir
-  window.onload = () => setTimeout(() => window.print(), 800);
+  var MONTO = ${monto};   // precio base en USD
+  function setDesc(v, tipo){
+    document.getElementById('descAmount').value = v;
+    document.getElementById('descTipo').value = tipo;
+    aplicarDescuento();
+  }
+  function aplicarDescuento(){
+    // Moneda
+    var cur  = document.getElementById('curTipo').value;          // 'USD' | 'RD'
+    var rate = parseFloat(document.getElementById('curRate').value) || 1;
+    if(rate < 1) rate = 1;
+    var factor = cur === 'RD' ? rate : 1;
+    var sym    = cur === 'RD' ? 'RD$' : '$';
+    var code   = cur === 'RD' ? 'DOP' : 'USD';
+    document.getElementById('rateWrap').style.display = cur === 'RD' ? 'flex' : 'none';
+
+    var subtotal = MONTO * factor;   // todo el cálculo en la moneda mostrada
+
+    // Descuento (el monto fijo se interpreta en la moneda seleccionada)
+    var amt  = parseFloat(document.getElementById('descAmount').value) || 0;
+    var tipo = document.getElementById('descTipo').value;
+    if(amt < 0) amt = 0;
+    var desc = tipo === 'percent' ? subtotal * (amt/100) : amt;
+    if(desc > subtotal) desc = subtotal;
+    var total = subtotal - desc;
+
+    function fmt(n){ return sym + n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+
+    document.getElementById('f-lineprice').textContent = fmt(subtotal);
+    document.getElementById('f-subtotal').textContent  = fmt(subtotal);
+    document.getElementById('f-descuento').textContent = '-' + fmt(desc);
+    document.getElementById('f-total').textContent     = fmt(total) + ' ' + code;
+    document.getElementById('f-desc-label').textContent =
+      (tipo === 'percent' && amt > 0) ? '(' + amt + '%)' : '';
+  }
 </scr'+'ipt>
 
 <!-- Modal: Editar Shop (Meta/Twilio/Config) -->
