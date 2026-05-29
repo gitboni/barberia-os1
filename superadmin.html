@@ -3710,7 +3710,7 @@ async function loadPayments() {
       <td style="font-size:0.6rem;color:var(--muted)">${p.metodo||'transferencia'}${p.banco_origen?' · '+p.banco_origen:''}</td>
       <td style="color:var(--green)">${fmtMon(p)}</td>
       <td style="font-size:0.6rem;color:var(--muted)">${p.referencia||'—'}</td>
-      <td style="font-size:0.6rem;color:var(--gold)">${p.factura_numero||'—'}</td>
+      <td style="font-size:0.6rem;">${p.factura_numero?`<button class="btn btn-ghost" style="font-size:0.52rem;padding:3px 9px;color:var(--gold);border-color:var(--gold);" onclick="imprimirFacturaPorShop('${p.shop_id}')">🖨 ${p.factura_numero}</button>`:'—'}</td>
     </tr>`).join(''):'<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:22px;">Aún no hay pagos registrados</td></tr>';
 }
 
@@ -3726,6 +3726,12 @@ function renderTransferDatos(cfg){
       <div><div style="font-size:0.46rem;color:var(--muted);text-transform:uppercase;">Beneficiario</div><div style="color:var(--text);font-weight:700;">${cfg.beneficiario||'—'}</div></div>
       <div><div style="font-size:0.46rem;color:var(--muted);text-transform:uppercase;">Moneda</div><div style="color:var(--text);font-weight:700;">${cfg.moneda||'—'}</div></div>
     </div>${cfg.instrucciones?`<div style="margin-top:8px;font-size:0.56rem;color:var(--muted);">${cfg.instrucciones}</div>`:''}`;
+}
+
+function imprimirFacturaPorShop(shopId){
+  const s=(_shops||[]).find(x=>x.id===shopId);
+  if(!s){ showToast('Barbería no encontrada','warn'); return; }
+  imprimirFactura(s.id, encodeURIComponent(s.nombre||''), s.slug||'factura', s.plan, s.created_at||new Date().toISOString());
 }
 
 function abrirConfigTransfer(){
@@ -3779,16 +3785,20 @@ async function registrarPagoSubmit(){
   if(monto<=0){ showToast('Monto inválido','warn'); return; }
   const shopNombre=decodeURIComponent(opt.dataset.nombre||'');
   const moneda=document.getElementById('rpMoneda').value;
+  const plan=opt.dataset.plan||'pro';
+  const baseUsd=plan==='elite'?79:plan==='pro'?29:monto;
   try{
+    // Generar/asegurar la factura del período ANTES de registrar (para que el pago la vincule)
+    await sbRpc('obtener_o_crear_factura',{p_shop_id:sel.value,p_shop_nombre:shopNombre,p_plan:plan,p_monto_usd:baseUsd});
     const p=await sbRpc('registrar_pago',{
-      p_shop_id:sel.value, p_shop_nombre:shopNombre, p_plan:opt.dataset.plan||'pro',
+      p_shop_id:sel.value, p_shop_nombre:shopNombre, p_plan:plan,
       p_monto:monto, p_moneda:moneda, p_metodo:document.getElementById('rpMetodo').value,
       p_banco_origen:document.getElementById('rpBanco').value.trim(),
       p_referencia:document.getElementById('rpRef').value.trim(),
       p_nota:document.getElementById('rpNota').value.trim(),
       p_fecha_pago:document.getElementById('rpFecha').value
     });
-    showToast('Pago registrado ✓'+(p&&p.factura_numero?(' · '+p.factura_numero):''),'success');
+    showToast('Pago registrado ✓ · Factura '+(p&&p.factura_numero?p.factura_numero:'generada')+' lista para imprimir','success');
     try { await logSuperadminAction('registrar_pago',`${shopNombre}: ${monto} ${moneda}`); } catch(e){}
     closeModal('modalRegistrarPago');
     loadPayments();
