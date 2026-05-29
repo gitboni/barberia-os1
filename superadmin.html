@@ -1024,7 +1024,7 @@ tr:hover td{background:rgba(255,255,255,0.016);}
     <!-- PAGOS -->
     <div class="page" id="page-pagos">
       <div class="payments-grid">
-        <div class="payment-card" style="border-top:2px solid var(--green)"><div class="payment-label">Ingresos este mes</div><div class="payment-amount" id="pay-mrr">$0</div><div style="font-size:0.54rem;color:var(--muted)" id="pay-subs">0 suscripciones</div></div>
+        <div class="payment-card" style="border-top:2px solid var(--green)"><div class="payment-label">Cobrado este mes (USD)</div><div class="payment-amount" id="pay-mrr">$0</div><div style="font-size:0.54rem;color:var(--muted)" id="pay-subs">RD$0 · 0 pagos</div></div>
         <div class="payment-card" style="border-top:2px solid var(--gold)"><div class="payment-label">Proyección anual</div><div class="payment-amount" id="pay-anual">$0</div><div style="font-size:0.54rem;color:var(--muted)">Con clientes actuales</div></div>
         <div class="payment-card" style="border-top:2px solid var(--blue)"><div class="payment-label">Suscripciones al día</div><div class="payment-amount" id="pay-next">0</div><div style="font-size:0.54rem;color:var(--muted)" id="pay-next-sub">0 por cobrar</div></div>
       </div>
@@ -1056,8 +1056,8 @@ tr:hover td{background:rgba(255,255,255,0.016);}
       <div class="table-wrap"><table><thead><tr><th>Barbería</th><th>Plan</th><th>Monto</th><th>Estado cobro</th><th>Acción</th></tr></thead><tbody id="paymentsTable"></tbody></table></div>
 
       <!-- Historial de pagos recibidos -->
-      <div class="section-header" style="margin-top:22px;"><div class="section-title">Historial de pagos recibidos</div></div>
-      <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Barbería</th><th>Método</th><th>Monto</th><th>Referencia</th><th>Factura</th></tr></thead><tbody id="pagosHistTable"></tbody></table></div>
+      <div class="section-header" style="margin-top:22px;"><div class="section-title">Historial de pagos recibidos</div><button class="btn btn-ghost" onclick="exportPagosCSV()">↓ Exportar CSV</button></div>
+      <div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Barbería</th><th>Método</th><th>Monto</th><th>Referencia</th><th>Factura</th><th>Acciones</th></tr></thead><tbody id="pagosHistTable"></tbody></table></div>
     </div>
 
     <!-- FACTURACIÓN -->
@@ -1629,6 +1629,11 @@ tr:hover td{background:rgba(255,255,255,0.016);}
     <div class="form-group"><label class="form-label">Beneficiario</label><input class="form-input" id="tcBenef" placeholder="Nombre del titular"></div>
     <div class="form-group"><label class="form-label">Moneda</label><select class="form-input" id="tcMoneda"><option value="RD$">RD$ (Peso)</option><option value="USD">USD (Dólar)</option></select></div>
     <div class="form-group"><label class="form-label">Instrucciones (opcional)</label><textarea class="form-input" id="tcInstr" rows="2" placeholder="Enviar comprobante a..."></textarea></div>
+    <div style="border-top:1px solid var(--border2);margin:6px 0 12px;padding-top:12px;font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;">Datos fiscales (opcional — para NCF)</div>
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:10px;">
+      <div class="form-group"><label class="form-label">RNC emisor</label><input class="form-input" id="tcRnc" placeholder="1-31-12345-6"></div>
+      <div class="form-group"><label class="form-label">Prefijo NCF</label><input class="form-input" id="tcNcfPrefijo" placeholder="B02"></div>
+    </div>
     <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modalTransferConfig')">CANCELAR</button><button class="btn btn-primary" onclick="guardarConfigTransfer()">GUARDAR</button></div>
   </div>
 </div>
@@ -1652,6 +1657,7 @@ tr:hover td{background:rgba(255,255,255,0.016);}
       <div style="display:flex;justify-content:space-between;padding:3px 0;color:var(--muted);"><span>Descuento</span><span id="rpDescVal">-$0.00</span></div>
       <div style="display:flex;justify-content:space-between;padding:6px 0 0;border-top:1px solid var(--border2);margin-top:4px;font-weight:800;color:var(--gold);font-size:0.82rem;"><span>TOTAL A PAGAR</span><span id="rpTotal">$29.00</span></div>
     </div>
+    <div class="form-group"><label class="form-label">Monto recibido <span style="color:var(--muted);font-weight:400;">(deja igual al total, o menor para abono parcial)</span></label><input class="form-input" id="rpMontoRecibido" type="number" min="0" step="0.01" oninput="calcSaldoRp()"><div id="rpSaldoInfo" style="font-size:0.58rem;color:var(--muted);margin-top:4px;"></div></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
       <div class="form-group"><label class="form-label">Método</label><select class="form-input" id="rpMetodo"><option value="transferencia">Transferencia</option><option value="efectivo">Efectivo</option><option value="otro">Otro</option></select></div>
       <div class="form-group"><label class="form-label">Fecha de pago</label><input class="form-input" id="rpFecha" type="date"></div>
@@ -1659,8 +1665,39 @@ tr:hover td{background:rgba(255,255,255,0.016);}
     <div class="form-group"><label class="form-label">Banco origen (opcional)</label><input class="form-input" id="rpBanco" placeholder="Banco del que transfirieron"></div>
     <div class="form-group"><label class="form-label"># Referencia / comprobante</label><input class="form-input" id="rpRef" placeholder="TRX-..."></div>
     <div class="form-group"><label class="form-label">Nota (opcional)</label><input class="form-input" id="rpNota" placeholder="Ej. pago mes de mayo"></div>
+    <div style="display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center;background:var(--surface3);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;margin-bottom:12px;">
+      <label style="display:flex;align-items:center;gap:6px;font-size:0.62rem;color:var(--text);cursor:pointer;white-space:nowrap;"><input type="checkbox" id="rpNcf" style="cursor:pointer;"> Comprobante fiscal (NCF)</label>
+      <input class="form-input" id="rpRncCliente" placeholder="RNC cliente (opcional)" style="font-size:0.7rem;">
+    </div>
     <div class="form-info">Al registrar se genera la factura con la moneda y el descuento ya aplicados.</div>
     <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modalRegistrarPago')">CANCELAR</button><button class="btn btn-primary" onclick="registrarPagoSubmit()">REGISTRAR + FACTURAR</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalEditarPago">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-title">Editar pago</div>
+    <input type="hidden" id="epId">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="form-group"><label class="form-label">Monto</label><input class="form-input" id="epMonto" type="number" min="0" step="0.01"></div>
+      <div class="form-group"><label class="form-label">Moneda</label><select class="form-input" id="epMoneda"><option value="USD">USD</option><option value="DOP">RD$ (DOP)</option></select></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="form-group"><label class="form-label">Método</label><select class="form-input" id="epMetodo"><option value="transferencia">Transferencia</option><option value="efectivo">Efectivo</option><option value="otro">Otro</option></select></div>
+      <div class="form-group"><label class="form-label">Fecha de pago</label><input class="form-input" id="epFecha" type="date"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Banco origen</label><input class="form-input" id="epBanco"></div>
+    <div class="form-group"><label class="form-label"># Referencia</label><input class="form-input" id="epRef"></div>
+    <div class="form-group"><label class="form-label">Nota</label><input class="form-input" id="epNota"></div>
+    <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modalEditarPago')">CANCELAR</button><button class="btn btn-primary" onclick="editarPagoSubmit()">GUARDAR CAMBIOS</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalMovimientos">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-title" id="movTitulo">Movimientos</div>
+    <div id="movBody" style="max-height:420px;overflow-y:auto;font-size:0.66rem;">Cargando…</div>
+    <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modalMovimientos')">CERRAR</button></div>
   </div>
 </div>
 
@@ -3656,35 +3693,38 @@ async function loadPayments() {
   const shops=usingDemo?_shops:await sbGet('shops','select=*&order=created_at.desc').catch(()=>_shops);
   const active=shops.filter(s=>s.activo);
   const mrr=active.reduce((a,s)=>a+(s.plan==='pro'?PLAN_PRICES.pro:s.plan==='elite'?PLAN_PRICES.elite:0),0);
-  document.getElementById('pay-mrr').textContent='$'+mrr;
   document.getElementById('pay-anual').textContent='$'+(mrr*12).toLocaleString();
-  document.getElementById('pay-subs').textContent=`${active.filter(s=>s.plan!=='free').length} suscripciones activas`;
 
-  // Datos bancarios
+  // Datos bancarios + fiscal
   let cfg=null;
   try { const r=await sbGet('config_pagos','select=*&id=eq.1'); cfg=r&&r[0]; } catch(e){}
   window._cfgPago=cfg||{};
   renderTransferDatos(cfg);
 
-  // Pagos reales
-  let pagos=[];
-  try { pagos=await sbGet('pagos','select=*&order=fecha_pago.desc&limit=200'); } catch(e){ pagos=[]; }
+  // Período actual (zona Santo Domingo)
+  const periodoActual=new Date().toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'}).slice(0,7);
 
-  // Map shop → última vigencia
-  const hoy=new Date(); hoy.setHours(0,0,0,0);
-  const vigMap={};
-  for(const p of pagos){
-    const v=p.vigente_hasta?new Date(p.vigente_hasta+'T00:00:00'):null;
-    if(v && (!vigMap[p.shop_id]||v>vigMap[p.shop_id])) vigMap[p.shop_id]=v;
-  }
+  // Pagos + facturas del período
+  let pagos=[], facturas=[];
+  try { pagos=await sbGet('pagos','select=*&order=fecha_pago.desc&limit=300'); } catch(e){ pagos=[]; }
+  try { facturas=await sbGet('facturas',`select=id,shop_id,total,moneda,numero&periodo=eq.${periodoActual}`); } catch(e){ facturas=[]; }
+  window._pagos=pagos;
+
+  const pagosActivos=pagos.filter(p=>!p.anulado);
+  const factByShop={}; for(const f of facturas) factByShop[f.shop_id]=f;
+  const pagadoByFact={}; for(const p of pagosActivos){ if(p.factura_id) pagadoByFact[p.factura_id]=(pagadoByFact[p.factura_id]||0)+Number(p.monto||0); }
+
+  const money=(n,m)=>(m==='DOP'?'RD$':'$')+Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  // Estado de cobro por barbería (con abonos/saldo)
   function estadoCobro(shopId, plan){
-    if(plan==='free') return {txt:'—',color:'var(--muted)'};
-    const v=vigMap[shopId];
-    if(!v) return {txt:'Sin pago',color:'var(--orange)'};
-    const dias=Math.round((v-hoy)/86400000);
-    if(dias<0)  return {txt:'Vencida',color:'#F87171'};
-    if(dias<=7) return {txt:`Por vencer (${dias}d)`,color:'var(--gold)'};
-    return {txt:'Al día',color:'var(--green)'};
+    if(plan==='free') return {txt:'—',color:'var(--muted)',k:'free'};
+    const f=factByShop[shopId];
+    if(!f) return {txt:'Pendiente',color:'var(--orange)',k:'pend'};
+    const total=Number(f.total||0), pagado=pagadoByFact[f.id]||0;
+    if(total>0 && pagado>=total) return {txt:'Al día',color:'var(--green)',k:'ok'};
+    if(pagado>0) return {txt:'Abono · saldo '+money(total-pagado,f.moneda),color:'var(--gold)',k:'abono'};
+    return {txt:'Pendiente',color:'var(--orange)',k:'pend'};
   }
 
   // Tabla de suscripciones
@@ -3692,7 +3732,7 @@ async function loadPayments() {
   document.getElementById('paymentsTable').innerHTML=active.map(s=>{
     const monto=s.plan==='pro'?PLAN_PRICES.pro:s.plan==='elite'?PLAN_PRICES.elite:0;
     const est=estadoCobro(s.id,s.plan);
-    if(s.plan!=='free'){ if(est.txt==='Al día'||est.txt.indexOf('Por vencer')===0) alDia++; else porCobrar++; }
+    if(s.plan!=='free'){ if(est.k==='ok') alDia++; else porCobrar++; }
     return `<tr>
       <td style="color:var(--text);font-weight:700;">${s.nombre}</td>
       <td>
@@ -3705,24 +3745,32 @@ async function loadPayments() {
       </td>
       <td style="color:var(--gold)">$${monto}.00/mes</td>
       <td><span style="color:${est.color};font-size:0.62rem;font-weight:700;">● ${est.txt}</span></td>
-      <td>${s.plan!=='free'?`<button class="btn btn-ghost" style="font-size:0.55rem;padding:4px 10px;" onclick="abrirRegistrarPago('${s.id}','${encodeURIComponent(s.nombre||'')}','${s.plan}')">+ Pago</button>`:'—'}</td>
+      <td style="white-space:nowrap;">${s.plan!=='free'?`<button class="btn btn-ghost" style="font-size:0.55rem;padding:4px 9px;" onclick="abrirRegistrarPago('${s.id}','${encodeURIComponent(s.nombre||'')}','${s.plan}')">+ Pago</button> `:''}<button class="btn btn-ghost" style="font-size:0.55rem;padding:4px 8px;" title="Ver movimientos" onclick="verMovimientos('${s.id}','${encodeURIComponent(s.nombre||'')}')">👁</button></td>
     </tr>`;
   }).join('')||'<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:22px;">Sin barberías</td></tr>';
 
   document.getElementById('pay-next').textContent=alDia;
   const pn=document.getElementById('pay-next-sub'); if(pn) pn.textContent=`${porCobrar} por cobrar`;
 
-  // Historial de pagos recibidos
-  const fmtMon=(p)=>(p.moneda==='DOP'?'RD$':'$')+Number(p.monto||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-  document.getElementById('pagosHistTable').innerHTML=pagos.length?pagos.map(p=>`
-    <tr>
+  // KPI: cobrado este mes por moneda (solo pagos activos del período)
+  let usdMes=0, dopMes=0, nMes=0;
+  for(const p of pagosActivos){ if(p.periodo===periodoActual){ nMes++; if(p.moneda==='DOP') dopMes+=Number(p.monto||0); else usdMes+=Number(p.monto||0); } }
+  document.getElementById('pay-mrr').textContent='$'+usdMes.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('pay-subs').textContent=`RD$${dopMes.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})} · ${nMes} pagos`;
+
+  // Historial de pagos recibidos (con editar/anular)
+  document.getElementById('pagosHistTable').innerHTML=pagos.length?pagos.map(p=>{
+    const anul=p.anulado;
+    return `<tr style="${anul?'opacity:.45;':''}">
       <td style="color:var(--muted)">${p.fecha_pago?new Date(p.fecha_pago+'T12:00:00').toLocaleDateString('es'):'—'}</td>
-      <td style="color:var(--text)">${p.shop_nombre||'—'}</td>
+      <td style="color:var(--text)">${p.shop_nombre||'—'}${anul?' <span style="color:#F87171;font-size:0.5rem;font-weight:700;">ANULADO</span>':''}</td>
       <td style="font-size:0.6rem;color:var(--muted)">${p.metodo||'transferencia'}${p.banco_origen?' · '+p.banco_origen:''}</td>
-      <td style="color:var(--green)">${fmtMon(p)}</td>
+      <td style="color:var(--green);${anul?'text-decoration:line-through;':''}">${money(p.monto,p.moneda)}</td>
       <td style="font-size:0.6rem;color:var(--muted)">${p.referencia||'—'}</td>
       <td style="font-size:0.6rem;">${p.factura_numero?`<button class="btn btn-ghost" style="font-size:0.52rem;padding:3px 9px;color:var(--gold);border-color:var(--gold);" onclick="imprimirFacturaPorShop('${p.shop_id}')">🖨 ${p.factura_numero}</button>`:'—'}</td>
-    </tr>`).join(''):'<tr><td colspan="6" style="color:var(--muted);text-align:center;padding:22px;">Aún no hay pagos registrados</td></tr>';
+      <td style="white-space:nowrap;">${anul?'<span style="color:#F87171;font-size:0.52rem;">anulado</span>':`<button class="btn btn-ghost" style="font-size:0.52rem;padding:3px 7px;" title="Editar" onclick="abrirEditarPago('${p.id}')">✎</button> <button class="btn btn-ghost" style="font-size:0.52rem;padding:3px 7px;color:#F87171;border-color:#F87171;" title="Anular" onclick="anularPago('${p.id}')">✕</button>`}</td>
+    </tr>`;
+  }).join(''):'<tr><td colspan="7" style="color:var(--muted);text-align:center;padding:22px;">Aún no hay pagos registrados</td></tr>';
 }
 
 function renderTransferDatos(cfg){
@@ -3753,6 +3801,8 @@ function abrirConfigTransfer(){
   document.getElementById('tcBenef').value=c.beneficiario||'';
   document.getElementById('tcMoneda').value=c.moneda||'RD$';
   document.getElementById('tcInstr').value=c.instrucciones||'';
+  document.getElementById('tcRnc').value=c.rnc_emisor||'';
+  document.getElementById('tcNcfPrefijo').value=c.ncf_prefijo||'B02';
   openModal('modalTransferConfig');
 }
 
@@ -3766,7 +3816,11 @@ async function guardarConfigTransfer(){
       p_moneda:document.getElementById('tcMoneda').value,
       p_instrucciones:document.getElementById('tcInstr').value.trim()
     });
-    showToast('Datos bancarios guardados ✓','success');
+    await sbRpc('guardar_config_fiscal',{
+      p_rnc_emisor:document.getElementById('tcRnc').value.trim(),
+      p_ncf_prefijo:document.getElementById('tcNcfPrefijo').value.trim()||'B02'
+    });
+    showToast('Datos guardados ✓','success');
     closeModal('modalTransferConfig');
     loadPayments();
   }catch(e){ showToast('Error: '+e.message,'error'); }
@@ -3799,6 +3853,19 @@ function calcPago(){
   document.getElementById('rpDescVal').textContent='-'+f(desc);
   document.getElementById('rpTotal').textContent=f(total);
   window._rpCalc={moneda:cur,factor:factor,subtotal:subtotal,desc:desc,total:total};
+  const mr=document.getElementById('rpMontoRecibido'); if(mr) mr.value=total.toFixed(2);
+  calcSaldoRp();
+}
+
+function calcSaldoRp(){
+  const c=window._rpCalc||{total:0,moneda:'USD'};
+  const sym=c.moneda==='DOP'?'RD$':'$';
+  const recibido=parseFloat(document.getElementById('rpMontoRecibido').value)||0;
+  const saldo=(c.total||0)-recibido;
+  const el=document.getElementById('rpSaldoInfo'); if(!el) return;
+  if(saldo>0.005) el.innerHTML=`Abono parcial · saldo pendiente <strong style="color:var(--gold)">${sym}${saldo.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</strong>`;
+  else if(saldo<-0.005) el.innerHTML='<span style="color:#F87171;">El monto recibido supera el total</span>';
+  else el.innerHTML='<span style="color:var(--green);">Pago completo</span>';
 }
 
 function abrirRegistrarPago(shopId, shopNombreEnc, plan){
@@ -3816,6 +3883,8 @@ function abrirRegistrarPago(shopId, shopNombreEnc, plan){
   document.getElementById('rpRef').value='';
   document.getElementById('rpNota').value='';
   document.getElementById('rpFecha').value=new Date().toISOString().split('T')[0];
+  document.getElementById('rpNcf').checked=false;
+  document.getElementById('rpRncCliente').value='';
   onRpShopChange();
   openModal('modalRegistrarPago');
 }
@@ -3827,31 +3896,119 @@ async function registrarPagoSubmit(){
   calcPago();
   const c=window._rpCalc||{};
   if(!c.total||c.total<=0){ showToast('Total inválido','warn'); return; }
+  const recibido=parseFloat(document.getElementById('rpMontoRecibido').value)||c.total;
+  if(recibido<=0){ showToast('Monto recibido inválido','warn'); return; }
   const shopNombre=decodeURIComponent(opt.dataset.nombre||'');
   const plan=opt.dataset.plan||'pro';
   const baseUsd=plan==='elite'?79:plan==='pro'?29:0;
   const motivo=document.getElementById('rpDescMotivo').value.trim();
+  const rncCli=document.getElementById('rpRncCliente').value.trim();
+  const conNcf=document.getElementById('rpNcf').checked;
   try{
     // 1. Asegurar la factura del período
     const fact=await sbRpc('obtener_o_crear_factura',{p_shop_id:sel.value,p_shop_nombre:shopNombre,p_plan:plan,p_monto_usd:baseUsd});
     // 2. Guardar en la factura TODO lo aplicado (moneda, tasa, descuento, motivo, total)
+    let ncfTxt='';
     if(fact&&fact.id){
       await sbRpc('guardar_factura_cobro',{p_id:fact.id,p_moneda:c.moneda,p_tasa:c.factor,p_subtotal:c.subtotal,p_descuento:c.desc,p_motivo:motivo||null,p_total:c.total});
+      if(rncCli) await sbRpc('guardar_factura_rnc',{p_id:fact.id,p_rnc:rncCli});
+      if(conNcf){ try{ const n=await sbRpc('asignar_ncf',{p_factura_id:fact.id}); if(n) ncfTxt=' · NCF '+n; }catch(e){} }
     }
-    // 3. Registrar el pago con el total final
+    // 3. Registrar el pago con el monto recibido (puede ser abono parcial)
     const p=await sbRpc('registrar_pago',{
       p_shop_id:sel.value, p_shop_nombre:shopNombre, p_plan:plan,
-      p_monto:c.total, p_moneda:c.moneda, p_metodo:document.getElementById('rpMetodo').value,
+      p_monto:recibido, p_moneda:c.moneda, p_metodo:document.getElementById('rpMetodo').value,
       p_banco_origen:document.getElementById('rpBanco').value.trim(),
       p_referencia:document.getElementById('rpRef').value.trim(),
       p_nota:document.getElementById('rpNota').value.trim(),
       p_fecha_pago:document.getElementById('rpFecha').value
     });
-    showToast('Pago registrado ✓ · Factura '+(p&&p.factura_numero?p.factura_numero:'generada')+' lista','success');
-    try { await logSuperadminAction('registrar_pago',`${shopNombre}: ${c.total} ${c.moneda}`); } catch(e){}
+    const abono = recibido < (c.total-0.005);
+    showToast((abono?'Abono registrado ✓':'Pago registrado ✓')+' · Factura '+(p&&p.factura_numero?p.factura_numero:'generada')+ncfTxt,'success');
+    try { await logSuperadminAction('registrar_pago',`${shopNombre}: ${recibido} ${c.moneda}${conNcf?' (NCF)':''}`); } catch(e){}
     closeModal('modalRegistrarPago');
     loadPayments();
   }catch(e){ showToast('Error: '+e.message,'error'); }
+}
+
+// ── Editar pago ──
+function abrirEditarPago(pagoId){
+  const p=(window._pagos||[]).find(x=>x.id===pagoId);
+  if(!p){ showToast('Pago no encontrado','warn'); return; }
+  document.getElementById('epId').value=p.id;
+  document.getElementById('epMonto').value=p.monto||0;
+  document.getElementById('epMoneda').value=p.moneda||'USD';
+  document.getElementById('epMetodo').value=p.metodo||'transferencia';
+  document.getElementById('epFecha').value=(p.fecha_pago||'').slice(0,10);
+  document.getElementById('epBanco').value=p.banco_origen||'';
+  document.getElementById('epRef').value=p.referencia||'';
+  document.getElementById('epNota').value=p.nota||'';
+  openModal('modalEditarPago');
+}
+async function editarPagoSubmit(){
+  const id=document.getElementById('epId').value;
+  const monto=parseFloat(document.getElementById('epMonto').value)||0;
+  if(monto<=0){ showToast('Monto inválido','warn'); return; }
+  try{
+    await sbRpc('editar_pago',{
+      p_id:id, p_monto:monto, p_moneda:document.getElementById('epMoneda').value,
+      p_metodo:document.getElementById('epMetodo').value,
+      p_banco_origen:document.getElementById('epBanco').value.trim(),
+      p_referencia:document.getElementById('epRef').value.trim(),
+      p_nota:document.getElementById('epNota').value.trim(),
+      p_fecha_pago:document.getElementById('epFecha').value
+    });
+    showToast('Pago actualizado ✓','success');
+    try { await logSuperadminAction('editar_pago',`${id}: ${monto}`); } catch(e){}
+    closeModal('modalEditarPago');
+    loadPayments();
+  }catch(e){ showToast('Error: '+e.message,'error'); }
+}
+async function anularPago(pagoId){
+  const motivo=prompt('Motivo de la anulación:');
+  if(motivo===null) return;
+  if(!confirm('¿Anular este pago? Quedará registrado como anulado (no se borra).')) return;
+  try{
+    await sbRpc('anular_pago',{p_id:pagoId,p_motivo:motivo.trim()||'Sin motivo'});
+    showToast('Pago anulado','success');
+    try { await logSuperadminAction('anular_pago',`${pagoId}: ${motivo}`); } catch(e){}
+    loadPayments();
+  }catch(e){ showToast('Error: '+e.message,'error'); }
+}
+
+// ── Historial por barbería ──
+async function verMovimientos(shopId, shopNombreEnc){
+  const nombre=decodeURIComponent(shopNombreEnc||'');
+  document.getElementById('movTitulo').textContent='Movimientos — '+nombre;
+  document.getElementById('movBody').innerHTML='Cargando…';
+  openModal('modalMovimientos');
+  let facturas=[], pagos=[];
+  try{ facturas=await sbGet('facturas',`select=*&shop_id=eq.${shopId}&order=created_at.desc&limit=50`); }catch(e){}
+  try{ pagos=await sbGet('pagos',`select=*&shop_id=eq.${shopId}&order=fecha_pago.desc&limit=100`); }catch(e){}
+  const money=(n,m)=>(m==='DOP'?'RD$':'$')+Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const fFac=facturas.length?facturas.map(f=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);">
+      <span style="color:var(--gold);font-weight:700;">${f.numero}${f.ncf?` · NCF ${f.ncf}`:''}</span>
+      <span style="color:var(--muted);">${f.periodo||''} · ${money(f.total,f.moneda)}</span>
+    </div>`).join(''):'<div style="color:var(--muted);padding:6px 0;">Sin facturas</div>';
+  const fPag=pagos.length?pagos.map(p=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);${p.anulado?'opacity:.45;text-decoration:line-through;':''}">
+      <span style="color:var(--text);">${p.fecha_pago?new Date(p.fecha_pago+'T12:00:00').toLocaleDateString('es'):''} · ${p.metodo||''}${p.referencia?' · '+p.referencia:''}</span>
+      <span style="color:var(--green);">${money(p.monto,p.moneda)}</span>
+    </div>`).join(''):'<div style="color:var(--muted);padding:6px 0;">Sin pagos</div>';
+  document.getElementById('movBody').innerHTML=
+    `<div style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin:4px 0 6px;">Facturas (${facturas.length})</div>${fFac}
+     <div style="font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin:14px 0 6px;">Pagos (${pagos.length})</div>${fPag}`;
+}
+
+// ── Export CSV de pagos ──
+function exportPagosCSV(){
+  const pagos=window._pagos||[];
+  if(!pagos.length){ showToast('Sin pagos para exportar','warn'); return; }
+  const esc=s=>'"'+String(s==null?'':s).replace(/"/g,'""')+'"';
+  const head='Fecha,Barbería,Plan,Método,Monto,Moneda,Banco,Referencia,Factura,Estado,Nota';
+  const rows=pagos.map(p=>[p.fecha_pago||'',p.shop_nombre||'',p.plan||'',p.metodo||'',p.monto||0,p.moneda||'',p.banco_origen||'',p.referencia||'',p.factura_numero||'',p.anulado?'ANULADO':'OK',p.nota||''].map(esc).join(','));
+  const csv=head+'\n'+rows.join('\n');
+  downloadCSV(csv,'pagos_'+new Date().toISOString().split('T')[0]+'.csv');
+  showToast('CSV exportado ✓','success');
 }
 
 async function changePlan(shopId, shopNombre, newPlan) {
@@ -3898,6 +4055,12 @@ async function imprimirFactura(shopId, shopNombreEnc, shopSlug, plan, createdAt)
   const fechaEmision = fmtFechaF(fact.fecha_emision);
   const fechaVence   = fmtFechaF(fact.fecha_proximo_cobro);
   const inicio       = fmtFechaF(fact.fecha_inicio);
+
+  // Datos fiscales (opcionales)
+  let cfgF=null; try{ const r=await sbGet('config_pagos','select=rnc_emisor&id=eq.1'); cfgF=r&&r[0]; }catch(e){}
+  const rncEmisor  = (cfgF && cfgF.rnc_emisor) ? cfgF.rnc_emisor : '';
+  const ncf        = fact.ncf || '';
+  const rncCliente = fact.rnc_cliente || '';
 
   const html = `<!DOCTYPE html>
 <html lang="es">
@@ -4016,6 +4179,7 @@ async function imprimirFactura(shopId, shopNombreEnc, shopSlug, plan, createdAt)
     <div class="factura-badge">
       <div class="titulo">Factura</div>
       <div class="num">${numFactura}</div>
+      ${ncf ? `<div class="num" style="color:#111;">NCF: ${ncf}</div>` : ''}
       <div class="estado">● Pagada</div>
     </div>
   </div>
@@ -4029,6 +4193,7 @@ async function imprimirFactura(shopId, shopNombreEnc, shopSlug, plan, createdAt)
         <div class="value-muted">Sistema de gestión para barberías</div>
         <div class="value-muted">contacto@auraos.app</div>
         <div class="value-muted">auraos.vercel.app</div>
+        ${rncEmisor ? `<div class="value-muted">RNC: ${rncEmisor}</div>` : ''}
       </div>
     </div>
     <div>
@@ -4038,6 +4203,7 @@ async function imprimirFactura(shopId, shopNombreEnc, shopSlug, plan, createdAt)
         <div class="value-muted">Slug: ${shopSlug}</div>
         <div class="value-muted">Plan: ${plan.toUpperCase()}</div>
         <div class="value-muted">Cliente desde: ${inicio}</div>
+        ${rncCliente ? `<div class="value-muted">RNC: ${rncCliente}</div>` : ''}
       </div>
     </div>
     <div>
