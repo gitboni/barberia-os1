@@ -4199,7 +4199,7 @@ function renderVentas(){
     const totalMov = parseFloat(m.total || (m.cantidad * m.precio_unitario) || 0);
     return `<tr>
       <td style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);">${m.fecha}</td>
-      <td style="font-weight:600;">${prod?esc(prod.nombre):'—'}</td>
+      <td style="font-weight:600;">${prod?esc(prod.nombre + (prod.variante ? ' · ' + prod.variante : '')):'—'}</td>
       <td style="font-family:'DM Mono',monospace;text-align:right;">${m.cantidad}</td>
       <td style="font-family:'DM Mono',monospace;text-align:right;color:var(--green);font-weight:700;">$${totalMov.toLocaleString()}</td>
       <td style="font-size:0.72rem;color:var(--gold);">${barb?esc(barb.nombre):'—'}</td>
@@ -4410,7 +4410,7 @@ function addToCarrito(productoId){
     }
     _ventasCarrito.push({
       productoId,
-      nombre: prod.nombre,
+      nombre: prod.nombre + (prod.variante ? ' · ' + prod.variante : ''),
       cantidad: 1,
       precioUnit: parseFloat(prod.precio_venta||0),
       subtotal: parseFloat(prod.precio_venta||0)
