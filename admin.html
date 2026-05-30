@@ -1090,7 +1090,7 @@ function renderPage(){
   else if(currentPage==='gastos'){el.innerHTML=renderGastos();}
   else if(currentPage==='marketplace'){el.innerHTML=renderMarketplace();setTimeout(initMarketplacePage,100);}
   else if(currentPage==='reseñas'){el.innerHTML='<div style="padding:20px;color:var(--muted);font-size:0.75rem;">Cargando reseñas…</div>';loadReseñas();}
-  else if(currentPage==='caja'){try{el.innerHTML=renderCaja();}catch(err){console.error('renderCaja error:',err);el.innerHTML='<div style="padding:40px;text-align:center;color:var(--red);"><h3>Error al cargar Cierre de Caja</h3><pre style="font-size:0.7rem;color:var(--muted);margin-top:10px;">'+esc(err.message)+'</pre></div>';}}
+  else if(currentPage==='caja'){try{el.innerHTML=renderCaja();setTimeout(cajaCargarArqueo,30);}catch(err){console.error('renderCaja error:',err);el.innerHTML='<div style="padding:40px;text-align:center;color:var(--red);"><h3>Error al cargar Cierre de Caja</h3><pre style="font-size:0.7rem;color:var(--muted);margin-top:10px;">'+esc(err.message)+'</pre></div>';}}
   else if(currentPage==='inventario'){el.innerHTML=renderInventario();}
   else if(currentPage==='credito'){try{el.innerHTML=renderCredito();}catch(err){console.error('renderCredito error:',err);el.innerHTML='<div style="padding:40px;text-align:center;color:var(--red);"><h3>Error al cargar Créditos</h3><pre style="font-size:0.7rem;color:var(--muted);margin-top:10px;">'+esc(err.message)+'</pre></div>';}}
   else if(currentPage==='ventas'){try{el.innerHTML=renderVentas();setTimeout(initVentasPage,80);}catch(err){console.error('renderVentas error:',err);el.innerHTML='<div style="padding:40px;text-align:center;color:var(--red);"><h3>Error al cargar Ventas</h3><pre style="font-size:0.7rem;color:var(--muted);margin-top:10px;">'+esc(err.message)+'</pre></div>';}}
@@ -1179,7 +1179,7 @@ function nowStr(){return new Date().toISOString().split('T')[0];}
 function _buildDashProductWidget(){
   if(!S.movimientos || !S.movimientos.length) return '';
   const hoy = getHoyRD();
-  const ventasHoy = S.movimientos.filter(m => m.tipo==='venta' && m.fecha===hoy);
+  const ventasHoy = S.movimientos.filter(m => m.tipo==='venta' && !m.anulado && m.fecha===hoy);
   if(!ventasHoy.length && !S.productos.some(p=>p.categoria==='Venta')) return '';
   const totalHoy = ventasHoy.reduce((a,m) => a + parseFloat(m.total || (m.cantidad * m.precio_unitario) || 0), 0);
   const cantHoy = ventasHoy.reduce((a,m) => a + parseFloat(m.cantidad||0), 0);
@@ -1189,7 +1189,7 @@ function _buildDashProductWidget(){
     const d = new Date(); d.setDate(d.getDate()-i);
     const ds = d.toISOString().split('T')[0];
     const dayLabel = d.toLocaleDateString('es-DO',{weekday:'short'}).slice(0,2);
-    const dayTotal = S.movimientos.filter(m=>m.tipo==='venta'&&m.fecha===ds).reduce((a,m)=>a+parseFloat(m.total||(m.cantidad*m.precio_unitario)||0),0);
+    const dayTotal = S.movimientos.filter(m=>m.tipo==='venta'&&!m.anulado&&m.fecha===ds).reduce((a,m)=>a+parseFloat(m.total||(m.cantidad*m.precio_unitario)||0),0);
     days.push({label:dayLabel, val:dayTotal});
   }
   const maxVal = Math.max(...days.map(d=>d.val), 1);
@@ -3687,7 +3687,7 @@ function calcValorInventario(){
 function calcVentasProductosMes(){
   const hace30 = new Date(); hace30.setDate(hace30.getDate()-30);
   const corte = hace30.toISOString().split('T')[0];
-  return S.movimientos.filter(m => m.tipo==='venta' && m.fecha >= corte)
+  return S.movimientos.filter(m => m.tipo==='venta' && !m.anulado && m.fecha >= corte)
                       .reduce((a,m) => a + parseFloat(m.total||0), 0);
 }
 
@@ -4023,7 +4023,10 @@ async function saveMovimiento(){
       else if(tipo==='salida'||tipo==='venta') nuevoStock -= cantidad;
       else if(tipo==='ajuste') nuevoStock = cantidad; // ajuste = valor absoluto
       nuevoStock = Math.max(0, nuevoStock);
-      await sbPatch('productos','id=eq.'+productoId,{stock_actual:nuevoStock, updated_at:new Date().toISOString()});
+      const patchProd = {stock_actual:nuevoStock, updated_at:new Date().toISOString()};
+      // En una compra (entrada) con precio, actualizar el costo del producto → valor de inventario correcto
+      if(tipo==='entrada' && precio > 0){ patchProd.precio_costo = precio; prod.precio_costo = precio; }
+      await sbPatch('productos','id=eq.'+productoId,patchProd);
       prod.stock_actual = nuevoStock;
     }
 
@@ -4067,16 +4070,16 @@ function renderVentas(){
   if(!S.movimientos) S.movimientos = [];
   if(!S.productos) S.productos = [];
   // Stats
-  const ventasHoy = S.movimientos.filter(m => m.tipo==='venta' && m.fecha===hoy);
+  const ventasHoy = S.movimientos.filter(m => m.tipo==='venta' && !m.anulado && m.fecha===hoy);
   const totalHoy = ventasHoy.reduce((a,m) => a + parseFloat(m.total||(m.cantidad*m.precio_unitario)||0), 0);
   const cantHoy = ventasHoy.reduce((a,m) => a + parseFloat(m.cantidad||0), 0);
   const hace7 = new Date(); hace7.setDate(hace7.getDate()-7);
   const corte7 = hace7.toLocaleDateString('en-CA', {timeZone: 'America/Santo_Domingo'});
-  const ventasSemana = S.movimientos.filter(m => m.tipo==='venta' && m.fecha >= corte7);
+  const ventasSemana = S.movimientos.filter(m => m.tipo==='venta' && !m.anulado && m.fecha >= corte7);
   const totalSemana = ventasSemana.reduce((a,m) => a + parseFloat(m.total||(m.cantidad*m.precio_unitario)||0), 0);
   const hace30 = new Date(); hace30.setDate(hace30.getDate()-30);
   const corte30 = hace30.toLocaleDateString('en-CA', {timeZone: 'America/Santo_Domingo'});
-  const ventasMes = S.movimientos.filter(m => m.tipo==='venta' && m.fecha >= corte30);
+  const ventasMes = S.movimientos.filter(m => m.tipo==='venta' && !m.anulado && m.fecha >= corte30);
   const totalMes = ventasMes.reduce((a,m) => a + parseFloat(m.total||(m.cantidad*m.precio_unitario)||0), 0);
 
   // Productos de venta (solo los de categoría Venta y con stock > 0)
@@ -4160,14 +4163,15 @@ function renderVentas(){
     const prod = S.productos.find(p=>p.id===m.producto_id);
     const barb = m.barbero_id ? (S.barberos||[]).find(b=>b.id===m.barbero_id) : null;
     const totalMov = parseFloat(m.total || (m.cantidad * m.precio_unitario) || 0);
-    return `<tr>
+    const anul = !!m.anulado;
+    return `<tr style="${anul?'opacity:.5;':''}">
       <td style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);">${m.fecha}</td>
-      <td style="font-weight:600;">${prod?esc(prod.nombre + (prod.variante ? ' · ' + prod.variante : '')):'—'}</td>
+      <td style="font-weight:600;${anul?'text-decoration:line-through;':''}">${prod?esc(prod.nombre + (prod.variante ? ' · ' + prod.variante : '')):'—'}${anul?' <span style="color:var(--red);font-size:0.5rem;font-weight:800;text-decoration:none;">ANULADA</span>':''}</td>
       <td style="font-family:'DM Mono',monospace;text-align:right;">${m.cantidad}</td>
-      <td style="font-family:'DM Mono',monospace;text-align:right;color:var(--green);font-weight:700;">$${totalMov.toLocaleString()}</td>
+      <td style="font-family:'DM Mono',monospace;text-align:right;color:var(--green);font-weight:700;${anul?'text-decoration:line-through;':''}">$${totalMov.toLocaleString()}</td>
       <td style="font-size:0.72rem;color:var(--gold);">${barb?esc(barb.nombre):'—'}</td>
       <td style="font-size:0.72rem;color:var(--muted);">${m.motivo||'Venta directa'}</td>
-      <td><button class="ra-btn" title="Reimprimir factura" onclick="reimprimirFactura('${m.id}')">🖨️</button></td>
+      <td style="white-space:nowrap;">${anul?'<span style="color:var(--muted);font-size:0.55rem;">anulada</span>':`<button class="ra-btn" title="Reimprimir factura" onclick="reimprimirFactura('${m.id}')">🖨️</button> <button class="ra-btn" title="Anular venta (devuelve stock)" onclick="anularVenta('${m.id}')" style="color:var(--red);">✕</button>`}</td>
     </tr>`;
   }).join('') : '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--muted);font-family:\'DM Mono\',monospace;font-size:0.6rem;">Sin ventas en este período.</td></tr>';
 
@@ -4338,7 +4342,7 @@ function initVentasPage(){
   }
   // Update badge
   const hoy = getHoyRD();
-  const ventasHoy = S.movimientos.filter(m => m.tipo==='venta' && m.fecha===hoy);
+  const ventasHoy = S.movimientos.filter(m => m.tipo==='venta' && !m.anulado && m.fecha===hoy);
   const nb = document.getElementById('nb-ventas-hoy');
   if(nb){
     if(ventasHoy.length > 0){ nb.style.display=''; nb.textContent=ventasHoy.length; }
@@ -4804,6 +4808,27 @@ function imprimirFactura(data){
   }
 }
 
+async function anularVenta(movId){
+  const m = S.movimientos.find(x=>x.id===movId);
+  if(!m){ toast('Venta no encontrada','error'); return; }
+  const prod = S.productos.find(p=>p.id===m.producto_id);
+  const nombreProd = prod ? prod.nombre + (prod.variante?(' '+prod.variante):'') : 'producto';
+  const motivo = prompt(`Anular venta de ${m.cantidad}× ${nombreProd}?\n\nEsto devolverá el stock y descontará el monto del cierre de caja.\n\nMotivo (opcional):`);
+  if(motivo===null) return;
+  try{
+    const r=await fetch(SUPABASE_URL+'/rest/v1/rpc/anular_venta',{
+      method:'POST', headers:{...H,'Content-Type':'application/json'},
+      body:JSON.stringify({ p_id:movId, p_motivo:(motivo.trim()||'Sin motivo') })
+    });
+    if(!r.ok) throw new Error(await r.text());
+    // Reflejar en memoria local
+    if(m){ m.anulado=true; m.anulado_motivo=motivo.trim()||'Sin motivo'; }
+    if(prod){ prod.stock_actual = parseFloat(prod.stock_actual||0) + parseFloat(m.cantidad||0); }
+    toast('Venta anulada ✓ · Stock devuelto','success');
+    renderPage();
+  }catch(e){ toast('Error: '+e.message,'error'); }
+}
+
 function reimprimirFactura(movId){
   const m = S.movimientos.find(x=>x.id===movId);
   if(!m){ toast('Movimiento no encontrado','error'); return; }
@@ -4914,7 +4939,7 @@ function exportVentasCSV(){
   let corte = getHoyRD();
   if(_ventasHistRango==='semana'){ const d=new Date();d.setDate(d.getDate()-7);corte=d.toISOString().split('T')[0]; }
   else if(_ventasHistRango==='mes'){ const d=new Date();d.setDate(d.getDate()-30);corte=d.toISOString().split('T')[0]; }
-  const ventas = S.movimientos.filter(m => m.tipo==='venta' && m.fecha >= corte);
+  const ventas = S.movimientos.filter(m => m.tipo==='venta' && !m.anulado && m.fecha >= corte);
   if(!ventas.length){ toast('No hay ventas para exportar','error'); return; }
   const header = 'Fecha,Producto,Cantidad,PrecioUnit,Total,Vendedor,Nota';
   const rows = ventas.map(m => {
@@ -5418,12 +5443,69 @@ async function cajaLoadFecha(fecha){
   try{
     const[citasRes,movsRes,gastosRes]=await Promise.all([
       sbGet('citas','shop_id=eq.'+S.shopId+'&fecha=eq.'+fecha+'&order=hora.asc'),
-      sbGet('inventario_movimientos','shop_id=eq.'+S.shopId+'&fecha=eq.'+fecha+'&tipo=eq.venta&order=created_at.desc'),
+      sbGet('inventario_movimientos','shop_id=eq.'+S.shopId+'&fecha=eq.'+fecha+'&tipo=eq.venta&anulado=eq.false&order=created_at.desc'),
       sbGet('gastos','shop_id=eq.'+S.shopId+'&fecha=eq.'+fecha)
     ]);
     _cajaCitas=citasRes||[];_cajaMovs=movsRes||[];_cajaGastos=gastosRes||[];
   }catch(e){toast('Error cargando datos: '+e.message,'error');_cajaCitas=[];_cajaMovs=[];_cajaGastos=[];}
   renderPage();
+}
+
+function cajaCalcArqueo(){
+  const a=window._cajaArqueo; if(!a) return;
+  const fondo=parseFloat(document.getElementById('arqFondo')?.value)||0;
+  const esperado=(a.efectivoEsperadoBase||0)+fondo;
+  const elEsp=document.getElementById('arqEsperado'); if(elEsp) elEsp.textContent='$'+esperado.toLocaleString();
+  const raw=document.getElementById('arqContado')?.value;
+  const el=document.getElementById('arqDescuadre'); if(!el) return;
+  if(raw===''||raw==null){ el.textContent='—'; el.style.color='var(--muted)'; return; }
+  const contado=parseFloat(raw)||0;
+  const desc=Math.round(contado-esperado);
+  if(desc===0){ el.textContent='✓ Cuadra'; el.style.color='var(--green)'; }
+  else if(desc>0){ el.textContent='+$'+desc.toLocaleString()+' (sobra)'; el.style.color='#F59E0B'; }
+  else { el.textContent='−$'+Math.abs(desc).toLocaleString()+' (falta)'; el.style.color='var(--red)'; }
+}
+
+async function cajaCargarArqueo(){
+  const a=window._cajaArqueo; if(!a) return;
+  cajaCalcArqueo();
+  try{
+    const rows=await sbGet('cierres_caja','shop_id=eq.'+S.shopId+'&fecha=eq.'+a.fecha+'&limit=1');
+    if(rows&&rows[0]){
+      const c=rows[0];
+      const f=document.getElementById('arqFondo'); if(f) f.value=c.fondo_apertura||0;
+      const ct=document.getElementById('arqContado'); if(ct) ct.value=c.efectivo_contado||0;
+      const n=document.getElementById('arqNotas'); if(n) n.value=c.notas||'';
+      cajaCalcArqueo();
+      const est=document.getElementById('arqueoEstado');
+      if(est){ const h=new Date(c.updated_at||c.created_at).toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit'}); est.textContent='🔒 Cerrada · '+h+(c.cerrado_por?(' · '+c.cerrado_por):''); est.style.color='var(--green)'; }
+    }
+  }catch(e){ console.warn('cajaCargarArqueo',e); }
+}
+
+async function guardarCierreCaja(){
+  const a=window._cajaArqueo; if(!a){ toast('Recarga la página','error'); return; }
+  const fondo=parseFloat(document.getElementById('arqFondo').value)||0;
+  const raw=document.getElementById('arqContado').value;
+  if(raw===''||raw==null){ toast('Cuenta el efectivo físico primero','warn'); return; }
+  const contado=parseFloat(raw)||0;
+  const esperado=(a.efectivoEsperadoBase||0)+fondo;
+  const descuadre=Math.round(contado-esperado);
+  try{
+    const r=await fetch(SUPABASE_URL+'/rest/v1/rpc/guardar_cierre_caja',{
+      method:'POST', headers:{...H,'Content-Type':'application/json'},
+      body:JSON.stringify({
+        p_shop_id:S.shopId, p_fecha:a.fecha, p_fondo:fondo, p_esperado:esperado, p_contado:contado,
+        p_descuadre:descuadre, p_ing_serv:a.ingServ, p_ing_prod:a.ingProd, p_gastos:a.gastos,
+        p_comisiones:a.comisiones, p_utilidad:a.utilidad, p_mp_efec:a.mpEfec, p_mp_tarj:a.mpTarj,
+        p_mp_trans:a.mpTrans, p_mp_cred:a.mpCred, p_cobros:a.cobros,
+        p_notas:(document.getElementById('arqNotas').value.trim()||null), p_cerrado_por:(S.shopData?.nombre||'Admin')
+      })
+    });
+    if(!r.ok) throw new Error(await r.text());
+    toast('Caja cerrada ✓ '+(descuadre===0?'· Cuadra perfecto':('· Descuadre $'+descuadre.toLocaleString())), descuadre===0?'success':'warn');
+    cajaCargarArqueo();
+  }catch(e){ toast('Error: '+e.message,'error'); }
 }
 
 function renderCaja(){
@@ -5435,7 +5517,7 @@ function renderCaja(){
   const svcMap={};(S.servicios||[]).forEach(s=>{svcMap[s.nombre?.trim().toUpperCase()]=parseFloat(s.precio||0);});
   const ingresosServicios=citasDia.reduce((a,c)=>a+(svcMap[(c.servicio||'').trim().toUpperCase()]||0),0);
 
-  const ventasDia=esHoy?(S.movimientos||[]).filter(m=>m.tipo==='venta'&&m.fecha===fecha):(_cajaMovs||[]);
+  const ventasDia=esHoy?(S.movimientos||[]).filter(m=>m.tipo==='venta'&&!m.anulado&&m.fecha===fecha):(_cajaMovs||[]);
   const ingresosProductos=ventasDia.reduce((a,m)=>a+parseFloat(m.total||(m.cantidad*m.precio_unitario)||0),0);
   const unidadesVendidas=ventasDia.reduce((a,m)=>a+parseFloat(m.cantidad||0),0);
 
@@ -5506,6 +5588,15 @@ function renderCaja(){
 
   const fechaDisplay=new Date(fecha+'T12:00:00').toLocaleDateString('es-DO',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 
+  // Arqueo de efectivo: esperado = ventas efectivo + cobros crédito − gastos (+ fondo apertura)
+  const efectivoEsperadoBase = mpEfec + totalCobrosDia - totalGastos;
+  window._cajaArqueo = {
+    fecha, esHoy, efectivoEsperadoBase,
+    ingServ: ingresosServicios, ingProd: ingresosProductos, gastos: totalGastos,
+    comisiones: totalComisiones, utilidad,
+    mpEfec, mpTarj, mpTrans, mpCred, cobros: totalCobrosDia,
+  };
+
   return `<div style="display:flex;flex-direction:column;gap:16px;">
     <!-- Header con navegación -->
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
@@ -5522,6 +5613,37 @@ function renderCaja(){
       <div style="display:flex;gap:10px;">
         <button class="btn-sm btn-dark" onclick="exportCSV_caja()">⬇ CSV</button>
         <button class="btn-sm btn-gold" onclick="enviarResumenWA()">💬 Enviar por WhatsApp</button>
+      </div>
+    </div>
+
+    <!-- ARQUEO DE EFECTIVO -->
+    <div class="card" id="arqueoCard" style="border:1px solid rgba(201,168,76,.35);">
+      <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="card-title">🧮 Arqueo de efectivo</div>
+        <span id="arqueoEstado" style="font-family:'DM Mono',monospace;font-size:.6rem;color:var(--muted);"></span>
+      </div>
+      <div style="padding:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;">
+        <div>
+          <label style="font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Fondo de apertura</label>
+          <input type="number" id="arqFondo" value="0" min="0" step="1" oninput="cajaCalcArqueo()" style="width:100%;margin-top:4px;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:9px 11px;border-radius:8px;font-size:.95rem;font-weight:700;">
+        </div>
+        <div>
+          <label style="font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Efectivo esperado</label>
+          <div id="arqEsperado" style="margin-top:4px;padding:9px 11px;font-size:1.05rem;font-weight:800;color:var(--gold);">$0</div>
+          <small style="font-size:.52rem;color:var(--muted);">ventas efec. + cobros − gastos + fondo</small>
+        </div>
+        <div>
+          <label style="font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Efectivo contado (físico)</label>
+          <input type="number" id="arqContado" placeholder="Cuenta el dinero" min="0" step="1" oninput="cajaCalcArqueo()" style="width:100%;margin-top:4px;background:var(--bg3);border:1px solid var(--gold);color:var(--text);padding:9px 11px;border-radius:8px;font-size:.95rem;font-weight:700;">
+        </div>
+        <div>
+          <label style="font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Descuadre</label>
+          <div id="arqDescuadre" style="margin-top:4px;padding:9px 11px;font-size:1.05rem;font-weight:800;color:var(--muted);">—</div>
+        </div>
+      </div>
+      <div style="padding:0 16px 16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <input type="text" id="arqNotas" placeholder="Notas del cierre (opcional)" style="flex:1;min-width:180px;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:9px 11px;border-radius:8px;font-size:.78rem;">
+        <button class="btn-sm btn-gold" onclick="guardarCierreCaja()" style="padding:10px 20px;">🔒 Cerrar caja y guardar</button>
       </div>
     </div>
 
@@ -5679,7 +5801,7 @@ function exportCSV_caja(){
   const svcMap={};(S.servicios||[]).forEach(s=>{svcMap[s.nombre?.trim().toUpperCase()]=parseFloat(s.precio||0);});
   const citasDia=esHoy?(S.citas||[]).filter(c=>c.estado==='Completada'):(_cajaCitas||[]).filter(c=>c.estado==='Completada');
   const svcRows=citasDia.map(c=>`${c.hora},"${c.nombre}","${c.servicio}","${c.barbero}","Servicio","${c.metodo_pago||''}",${svcMap[(c.servicio||'').trim().toUpperCase()]||0}`);
-  const ventasDia=esHoy?(S.movimientos||[]).filter(m=>m.tipo==='venta'&&m.fecha===fecha):(_cajaMovs||[]);
+  const ventasDia=esHoy?(S.movimientos||[]).filter(m=>m.tipo==='venta'&&!m.anulado&&m.fecha===fecha):(_cajaMovs||[]);
   const prodRows=ventasDia.map(m=>{
     const barb=(S.barberos||[]).find(b=>b.id===m.barbero_id);
     const mt=(m.motivo||'').toLowerCase();
@@ -5697,7 +5819,7 @@ function enviarResumenWA(){
   const svcMap={};(S.servicios||[]).forEach(s=>{svcMap[s.nombre?.trim().toUpperCase()]=parseFloat(s.precio||0);});
   const citasDia=esHoy?(S.citas||[]).filter(c=>c.estado==='Completada'):(_cajaCitas||[]).filter(c=>c.estado==='Completada');
   const ingServ=citasDia.reduce((a,c)=>a+(svcMap[(c.servicio||'').trim().toUpperCase()]||0),0);
-  const ventasDia=esHoy?(S.movimientos||[]).filter(m=>m.tipo==='venta'&&m.fecha===fecha):(_cajaMovs||[]);
+  const ventasDia=esHoy?(S.movimientos||[]).filter(m=>m.tipo==='venta'&&!m.anulado&&m.fecha===fecha):(_cajaMovs||[]);
   const ingProd=ventasDia.reduce((a,m)=>a+parseFloat(m.total||(m.cantidad*m.precio_unitario)||0),0);
   const unidades=ventasDia.reduce((a,m)=>a+parseFloat(m.cantidad||0),0);
   const gastosDia=esHoy?(S.gastos||[]).filter(g=>g.fecha===fecha && parseFloat(g.monto||0)>0):(_cajaGastos||[]).filter(g=>parseFloat(g.monto||0)>0);
