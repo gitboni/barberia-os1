@@ -568,6 +568,7 @@ input:checked+.slider:before{transform:translateX(22px)}
   <div class="cal-strip" id="statsCalStrip"></div>
   <div class="sec-title" style="margin-top:10px;" id="statsChartTitle">Últimos 7 días</div>
   <div class="card" style="padding:10px;"><div class="bar-chart" id="statsChart"></div></div>
+  <div id="statsVentasProd"></div>
   <div class="sec-title" style="margin-top:4px;">Top servicios</div>
   <div id="statsTopSvcs"></div>
   <div class="sec-title" style="margin-top:4px;">Historial por día</div>
@@ -1970,27 +1971,30 @@ async function renderStats(){
   const porSvc={};datos.forEach(c=>{const k=c.servicio||'Otro';if(!porSvc[k])porSvc[k]={total:0,ing:0};porSvc[k].total++;porSvc[k].ing+=svcMap[k.toLowerCase().trim()]||0;});
   const topSvcs=Object.entries(porSvc).map(([n,v])=>({n,...v})).sort((a,b)=>b.total-a.total).slice(0,5);const mx2=topSvcs[0]?.total||1;
   document.getElementById('statsTopSvcs').innerHTML=topSvcs.map((s,i)=>`<div class="card" style="display:flex;align-items:center;gap:9px;margin-bottom:7px;"><div style="width:22px;font-size:.8rem;font-weight:900;color:${i===0?'var(--accent)':'var(--dim)'};">#${i+1}</div><div style="flex:1;"><div style="display:flex;justify-content:space-between;"><span style="font-weight:800;font-size:.88rem;">${DOMPurify.sanitize(s.n)}</span><span style="font-size:.72rem;color:var(--accent);">${s.total}x</span></div>${s.ing>0?`<div style="font-size:.7rem;color:var(--dim);">$${s.ing.toLocaleString()} total</div>`:''}<div class="prog-wrap" style="margin:3px 0 0;"><div class="prog-fill" style="width:${(s.total/mx2)*100}%;"></div></div></div></div>`).join('');
-  // ── Ventas de productos (si POS activo) ────────────────────────────────
-  if(shop?.feature_pos_barbero){
+  // ── Ventas de productos (solo si módulo POS del barbero está activo) ─────
+  // Usa contenedor dedicado #statsVentasProd con innerHTML (se limpia solo → no duplica)
+  const vpCont=document.getElementById('statsVentasProd');
+  if(vpCont) vpCont.innerHTML='';
+  if(shop?.feature_pos_barbero && vpCont){
     try{
       const{data:ventasProd}=await sb.from('inventario_movimientos')
-        .select('id,producto_id,cantidad,precio_unitario,total,fecha')
+        .select('id,producto_id,cantidad,precio_unitario,total,fecha,anulado')
         .eq('shop_id',barbero.shop_id).eq('barbero_id',barbero.id).eq('tipo','venta')
         .gte('fecha',desdeStr).order('created_at',{ascending:false});
-      const vp=ventasProd||[];
+      const vp=(ventasProd||[]).filter(v=>!v.anulado);
       if(vp.length>0){
         const totalVP=vp.reduce((a,v)=>a+parseFloat(v.total||0),0);
         const cantVP=vp.reduce((a,v)=>a+parseInt(v.cantidad||0),0);
         const comPct=parseFloat(shop.comision_barbero_pct||0);
         const comision=comPct>0?Math.round(totalVP*comPct/100):0;
-        let vpHtml=`<div style="margin-top:14px;"><div class="sec-title">🛒 Ventas de Productos</div>`;
+        let vpHtml=`<div class="sec-title" style="margin-top:4px;">🛒 Ventas de Productos</div>`;
         vpHtml+=`<div class="kpi-grid" style="grid-template-columns:repeat(${comPct>0?'4':'3'},1fr);">`;
         vpHtml+=`<div class="kpi-box"><span class="kpi-val" style="color:var(--green);">$${totalVP.toLocaleString()}</span><span class="kpi-lbl">Vendido</span></div>`;
         vpHtml+=`<div class="kpi-box"><span class="kpi-val">${cantVP}</span><span class="kpi-lbl">Uds.</span></div>`;
         vpHtml+=`<div class="kpi-box"><span class="kpi-val">${vp.length}</span><span class="kpi-lbl">Transacc.</span></div>`;
         if(comPct>0)vpHtml+=`<div class="kpi-box" style="border-color:rgba(46,204,113,.3);"><span class="kpi-val" style="color:var(--green);font-size:${comision>999?'.82':'1.1'}rem;">$${comision.toLocaleString()}</span><span class="kpi-lbl">${comPct}% Comisión</span></div>`;
-        vpHtml+=`</div></div>`;
-        document.getElementById('statsTopSvcs').insertAdjacentHTML('beforebegin',vpHtml);
+        vpHtml+=`</div>`;
+        vpCont.innerHTML=vpHtml;
       }
     }catch(e){/* silent */}
   }
