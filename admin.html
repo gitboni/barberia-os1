@@ -438,6 +438,12 @@ tr:last-child td{border-bottom:none;}
 .pos-top-product{border-color:rgba(201,168,76,0.35);background:linear-gradient(135deg,var(--bg3),rgba(201,168,76,0.06));}
 .pos-fav-badge{position:absolute;top:3px;right:3px;font-size:0.4rem;background:rgba(201,168,76,0.15);color:var(--gold);padding:1px 4px;border-radius:6px;font-weight:700;letter-spacing:0.03em;}
 .pos-product-sku{font-family:'DM Mono',monospace;font-size:0.42rem;color:var(--muted);opacity:0.7;}
+.pos-variant-chips{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;margin:3px 0;}
+.pos-variant-chip{font-family:'DM Mono',monospace;font-size:0.48rem;font-weight:700;padding:2px 7px;border-radius:20px;border:1px solid;transition:all 0.15s;user-select:none;}
+.pos-variant-chip:hover{filter:brightness(1.2);}
+.pos-variant-single{font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--gold);font-weight:700;letter-spacing:0.04em;}
+.pos-product-card-grouped{cursor:default !important;}
+.pos-product-card-grouped:hover{transform:translateY(-2px);}
 .pos-cliente-dd{position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:8px;max-height:140px;overflow-y:auto;z-index:20;box-shadow:0 8px 24px rgba(0,0,0,0.3);}
 .pos-cliente-option{padding:6px 8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background 0.15s;font-size:0.58rem;}
 .pos-cliente-option:hover{background:rgba(201,168,76,0.1);}
@@ -682,7 +688,10 @@ tr:last-child td{border-bottom:none;}
   <div class="modal">
     <h3 id="modal-producto-title">Nuevo Producto</h3>
     <input type="hidden" id="mp-id">
-    <div class="fg"><label>Nombre del producto</label><input type="text" id="mp-nombre" placeholder="Ej: Pomada Matte, Navaja Gillette…"></div>
+    <div class="fg-row">
+      <div class="fg" style="flex:2;"><label>Nombre del producto</label><input type="text" id="mp-nombre" placeholder="Ej: Pomada Matte, Navaja Gillette…"></div>
+      <div class="fg" style="flex:1;"><label>Variante <span style="font-size:0.5rem;color:var(--muted);font-weight:400;">(opcional)</span></label><input type="text" id="mp-variante" placeholder="Ej: 2oz, Negro, Menta…"></div>
+    </div>
     <div class="fg-row">
       <div class="fg" style="flex:2;"><label>Descripción (opcional)</label><input type="text" id="mp-desc" placeholder="Marca, presentación, notas…"></div>
       <div class="fg" style="flex:1;"><label>SKU / Código</label><input type="text" id="mp-sku" placeholder="Ej: GEL-001"></div>
@@ -3894,6 +3903,7 @@ function editProducto(id){
   document.getElementById('modal-producto-title').textContent = 'Editar Producto';
   document.getElementById('mp-id').value = p.id;
   document.getElementById('mp-nombre').value = p.nombre;
+  document.getElementById('mp-variante').value = p.variante || '';
   document.getElementById('mp-desc').value = p.descripcion || '';
   document.getElementById('mp-sku').value = p.sku || '';
   document.getElementById('mp-categoria').value = p.categoria;
@@ -3912,6 +3922,7 @@ async function saveProducto(){
   const p = {
     shop_id:      S.shopId,
     nombre,
+    variante:     document.getElementById('mp-variante').value.trim() || null,
     descripcion:  document.getElementById('mp-desc').value.trim() || null,
     sku:          document.getElementById('mp-sku').value.trim() || null,
     categoria:    document.getElementById('mp-categoria').value,
@@ -4107,22 +4118,55 @@ function renderVentas(){
   const sortedProds = [...productosVenta].sort((a,b) => (ventasCountProd[b.id]||0) - (ventasCountProd[a.id]||0));
 
   // Product grid for quick sale
-  const gridHtml = sortedProds.length ? sortedProds.map((p, idx) => {
-    const sinStock = parseFloat(p.stock_actual) <= 0;
-    const bajo = parseFloat(p.stock_actual) <= parseFloat(p.stock_minimo);
-    const ventas30 = ventasCountProd[p.id] || 0;
-    const isTop = ventas30 > 0 && idx < 3;
-    return `<div class="pos-product-card ${sinStock?'pos-sin-stock':''} ${isTop?'pos-top-product':''}" onclick="${sinStock?'':'addToCarrito(\''+p.id+'\')'}" data-search="${esc((p.nombre||'').toLowerCase()+' '+(p.sku||'').toLowerCase())}">
-      ${isTop ? `<div class="pos-fav-badge">⭐ Top ${idx+1}</div>` : ''}
-      <div class="pos-product-emoji">${p.categoria==='Venta'?'💈':'📦'}</div>
-      <div class="pos-product-name">${esc(p.nombre)}</div>
-      ${p.sku ? `<div class="pos-product-sku">${esc(p.sku)}</div>` : ''}
-      ${p.descripcion ? `<div class="pos-product-desc">${esc(p.descripcion)}</div>` : ''}
-      <div class="pos-product-price">$${parseFloat(p.precio_venta||0).toLocaleString()}</div>
-      <div class="pos-product-stock" style="color:${sinStock?'var(--red)':bajo?'#fbbf24':'var(--muted)'}">
-        ${sinStock?'⛔ Agotado':p.stock_actual+' '+p.unidad}
-      </div>
-    </div>`;
+  // Agrupar productos por nombre para mostrar chips de variante
+  const _grupos = {};
+  sortedProds.forEach((p, idx) => {
+    const key = (p.nombre||'').trim().toLowerCase();
+    if(!_grupos[key]) _grupos[key] = { nombre: p.nombre, items: [], topIdx: idx };
+    _grupos[key].items.push(p);
+  });
+
+  const gridHtml = Object.values(_grupos).length ? Object.values(_grupos).map(g => {
+    const tieneVariantes = g.items.length > 1 || g.items[0].variante;
+    const ventas30 = g.items.reduce((a,p) => a + (ventasCountProd[p.id]||0), 0);
+    const isTop = ventas30 > 0 && g.topIdx < 3;
+    const searchTerms = g.items.map(p => (p.nombre||'').toLowerCase()+' '+(p.variante||'').toLowerCase()+' '+(p.sku||'').toLowerCase()).join(' ');
+
+    if(tieneVariantes && g.items.length > 1) {
+      // Tarjeta agrupada con chips de variante
+      const allSinStock = g.items.every(p => parseFloat(p.stock_actual) <= 0);
+      const chipsHtml = g.items.map(p => {
+        const sin = parseFloat(p.stock_actual) <= 0;
+        const bajo = parseFloat(p.stock_actual) <= parseFloat(p.stock_minimo) && !sin;
+        return `<span class="pos-variant-chip ${sin?'pos-variant-chip-out':''}" onclick="${sin?'':'addToCarrito(\''+p.id+'\')'}" title="${sin?'Agotado':'$'+parseFloat(p.precio_venta||0).toLocaleString()+' · Stock: '+p.stock_actual}" style="cursor:${sin?'not-allowed':'pointer'};opacity:${sin?'0.45':'1'};background:${sin?'rgba(248,113,113,0.08)':bajo?'rgba(251,191,36,0.1)':'rgba(201,168,76,0.1)'};border-color:${sin?'rgba(248,113,113,0.3)':bajo?'rgba(251,191,36,0.4)':'rgba(201,168,76,0.35)'};color:${sin?'var(--red)':bajo?'#fbbf24':'var(--gold)'}">${esc(p.variante||p.sku||'—')}</span>`;
+      }).join('');
+      const precios = [...new Set(g.items.map(p => parseFloat(p.precio_venta||0)))];
+      const precioLabel = precios.length === 1 ? '$'+precios[0].toLocaleString() : '$'+Math.min(...precios).toLocaleString()+'+';
+      return `<div class="pos-product-card ${allSinStock?'pos-sin-stock':''} ${isTop?'pos-top-product':''} pos-product-card-grouped" data-search="${esc(searchTerms)}">
+        ${isTop ? `<div class="pos-fav-badge">⭐ Top</div>` : ''}
+        <div class="pos-product-emoji">${g.items[0].categoria==='Venta'?'💈':'📦'}</div>
+        <div class="pos-product-name">${esc(g.nombre)}</div>
+        <div class="pos-variant-chips">${chipsHtml}</div>
+        <div class="pos-product-price">${precioLabel}</div>
+      </div>`;
+    } else {
+      // Tarjeta simple (sin variantes o variante única)
+      const p = g.items[0];
+      const sinStock = parseFloat(p.stock_actual) <= 0;
+      const bajo = parseFloat(p.stock_actual) <= parseFloat(p.stock_minimo);
+      return `<div class="pos-product-card ${sinStock?'pos-sin-stock':''} ${isTop?'pos-top-product':''}" onclick="${sinStock?'':'addToCarrito(\''+p.id+'\')'}" data-search="${esc(searchTerms)}">
+        ${isTop ? `<div class="pos-fav-badge">⭐ Top</div>` : ''}
+        <div class="pos-product-emoji">${p.categoria==='Venta'?'💈':'📦'}</div>
+        <div class="pos-product-name">${esc(p.nombre)}</div>
+        ${p.variante ? `<div class="pos-variant-single">${esc(p.variante)}</div>` : ''}
+        ${p.sku && !p.variante ? `<div class="pos-product-sku">${esc(p.sku)}</div>` : ''}
+        ${p.descripcion ? `<div class="pos-product-desc">${esc(p.descripcion)}</div>` : ''}
+        <div class="pos-product-price">$${parseFloat(p.precio_venta||0).toLocaleString()}</div>
+        <div class="pos-product-stock" style="color:${sinStock?'var(--red)':bajo?'#fbbf24':'var(--muted)'}">
+          ${sinStock?'⛔ Agotado':p.stock_actual+' '+p.unidad}
+        </div>
+      </div>`;
+    }
   }).join('') : '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);font-size:0.75rem;">No hay productos de venta configurados.<br><br><button class="btn-sm btn-gold" onclick="setPage(\'inventario\',document.getElementById(\'nav-btn-inventario\'))">Ir a Inventario →</button></div>';
 
   const carritoHtml = _ventasCarrito.length ? _ventasCarrito.map((item,i) => `
