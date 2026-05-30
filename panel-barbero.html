@@ -1561,7 +1561,7 @@ function renderCola(lista){
           <div style="font-size:.6rem;color:var(--dim);">${tiempoHasta(c.hora)}</div>
         </div>
       </div>
-      ${!isMañana?`<div class="action-row" style="justify-content:space-between;">
+      <div class="action-row" style="justify-content:space-between;">
         <span onclick="verHistorial(${JSON.stringify(c).replace(/"/g,'&quot;')})" style="font-size:.65rem;color:var(--accent);cursor:pointer;text-decoration:underline;">Ver historial →</span>
         <div style="display:flex;gap:4px;">
           ${i>0?`<div class="action-btn" onclick="moverCola(${c.id},'up')">↑</div>`:''}
@@ -1569,10 +1569,10 @@ function renderCola(lista){
           <div class="action-btn btn-cal" onclick="openModalReagendar(${JSON.stringify(c).replace(/"/g,'&quot;')})">📅</div>
           ${c.telefono&&c.telefono!=='walk-in'?`<div class="action-btn btn-wa" onclick="abrirWhatsApp(${JSON.stringify(c).replace(/"/g,'&quot;')})">💬</div>`:''}
           ${otrosBarberos.length>0?`<div class="action-btn btn-transfer" onclick="openModalTransferir(${JSON.stringify(c).replace(/"/g,'&quot;')})">↪</div>`:''}
-          <div class="action-btn btn-check" onclick="pedirNota(${JSON.stringify(c).replace(/"/g,'&quot;')})">✓</div>
+          ${!isMañana?`<div class="action-btn btn-check" onclick="pedirNota(${JSON.stringify(c).replace(/"/g,'&quot;')})">✓</div>`:''}
           <div class="action-btn btn-x" onclick="cancelarCita(${c.id},'${DOMPurify.sanitize(c.nombre)}')">✕</div>
         </div>
-      </div>`:''}
+      </div>
     </div>`;
   }).join('');
   lista.forEach(c=>addSwipe(`cr-${c.id}`,c));
@@ -1602,7 +1602,7 @@ function addSwipe(id,cita){
   },{passive:true});
   el.addEventListener('touchend',e=>{
     const dx=e.changedTouches[0].clientX-startX;el.style.transform='';el.classList.remove('swipe-right','swipe-left');
-    if(!moved)return;if(dx>70)pedirNota(cita);else if(dx<-70)cancelarCita(cita.id,cita.nombre);
+    if(!moved)return;if(dx>70){if(vistaFecha==='hoy')pedirNota(cita);}else if(dx<-70)cancelarCita(cita.id,cita.nombre);
   },{passive:true});
 }
 
