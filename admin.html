@@ -1494,11 +1494,15 @@ async function completarCita(id){
 }
 async function cancelCita(id){
   if(!confirm('¿Cancelar esta cita?'))return;
-  try{await sbPatch('citas','id=eq.'+id,{estado:'Cancelada'});const c=_findCita(id);if(c)c.estado='Cancelada';toast('Cita cancelada');renderPage();}catch(e){toast('Error','error');}
+  try{await sbPatch('citas','id=eq.'+id,{estado:'Cancelada'});const c=_findCita(id);if(c)c.estado='Cancelada';
+    if(c&&c.fecha){fetch(SUPABASE_URL+'/functions/v1/notificar-lista-espera',{method:'POST',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify({shop_id:S.shopId,fecha:c.fecha,barbero:c.barbero,hora:c.hora,servicio:c.servicio})}).catch(()=>{});}
+    toast('Cita cancelada');renderPage();}catch(e){toast('Error','error');}
 }
 async function noShowCita(id){
   if(!confirm('¿Marcar como No-Show?'))return;
-  try{await sbPatch('citas','id=eq.'+id,{estado:'No-Show'});const c=_findCita(id);if(c)c.estado='No-Show';toast('Cita marcada como No-Show');renderPage();}catch(e){toast('Error','error');}
+  try{await sbPatch('citas','id=eq.'+id,{estado:'No-Show'});const c=_findCita(id);if(c)c.estado='No-Show';
+    if(c&&c.fecha){fetch(SUPABASE_URL+'/functions/v1/notificar-lista-espera',{method:'POST',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify({shop_id:S.shopId,fecha:c.fecha,barbero:c.barbero,hora:c.hora,servicio:c.servicio})}).catch(()=>{});}
+    toast('Cita marcada como No-Show');renderPage();}catch(e){toast('Error','error');}
 }
 async function deleteCita(id){
   if(!confirm('¿ELIMINAR DEFINITIVAMENTE esta cita? Esta acción no se puede deshacer.'))return;
