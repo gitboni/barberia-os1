@@ -1711,6 +1711,13 @@ async function cancelarCita(id,nombre){
     const{data:nueva}=await sb.from('citas').insert({shop_id:cita.shop_id,barbero_id:cita.barbero_id,nombre:cita.nombre.replace(' ⭐',''),telefono:cita.telefono,fecha:cita.fecha,hora:cita.hora,servicio:cita.servicio,barbero:cita.barbero,estado:'Confirmada'}).select().single();
     if(nueva)await sb.from('citas').update({estado}).eq('id',nueva.id);
   }else await sb.from('citas').update({estado}).eq('id',id);
+  // Notificar a lista de espera — se liberó un cupo (cancelación o no-show)
+  if(cita&&cita.fecha){
+    fetch(SB_URL+'/functions/v1/notificar-lista-espera',{
+      method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({shop_id:cita.shop_id||barbero.shop_id,fecha:cita.fecha,barbero:cita.barbero,hora:cita.hora,servicio:cita.servicio})
+    }).catch(()=>{});
+  }
   toast(estado==='No-Show'?'👻 No-Show marcado':'Cita cancelada','info');await cargarDatos();
 }
 function cancelarProximo(){const p=citas.filter(c=>c.estado==='Confirmada')[0];if(p)cancelarCita(p.id,p.nombre);}
