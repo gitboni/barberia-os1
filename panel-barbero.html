@@ -1165,6 +1165,8 @@ async function initApp(){
   document.getElementById('loginScreen').classList.add('hidden');
   document.getElementById('bottomNav').style.display='flex';updateHeaderUI();showScreen('homeScreen');
   await cargarDatos();startPolling();startRealtimeHoy();
+  // Web Push: re-suscribir si ya dio permiso (renueva endpoint en cada login)
+  if(typeof Notification!=='undefined'&&Notification.permission==='granted') setTimeout(()=>suscribirWebPush(),1500);
   // Notificación de stock bajo (si POS está activo)
   setTimeout(()=>posCheckStockBajo(),2000);
 }
@@ -1316,7 +1318,36 @@ async function pedirPermisoNotif(){
   if(Notification.permission==='default'){
     const p=await Notification.requestPermission();
     updateNotifBtn(p);
+    if(p==='granted') suscribirWebPush();
+  } else if(Notification.permission==='granted'){
+    suscribirWebPush();
   }
+}
+
+// ── Web Push real (llega con la PWA cerrada) ──────────────────────────────────
+function urlB64ToUint8(b){
+  const pad='='.repeat((4-b.length%4)%4);
+  const base=(b+pad).replace(/-/g,'+').replace(/_/g,'/');
+  const raw=atob(base);const arr=new Uint8Array(raw.length);
+  for(let i=0;i<raw.length;i++)arr[i]=raw.charCodeAt(i);
+  return arr;
+}
+async function suscribirWebPush(){
+  try{
+    if(!('serviceWorker' in navigator)||!('PushManager' in window)||!usuario?.id)return;
+    const reg=await navigator.serviceWorker.ready;
+    // Obtener la VAPID pública (fuente única = secret del servidor)
+    const vr=await fetch(SB_URL+'/functions/v1/vapid-public',{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
+    const{publicKey}=await vr.json();
+    if(!publicKey){console.warn('[push] VAPID no configurado');return;}
+    let sub=await reg.pushManager.getSubscription();
+    if(!sub){
+      sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlB64ToUint8(publicKey)});
+    }
+    // Guardar suscripción en el usuario (la usa send-web-push)
+    await sb.from('usuarios_app').update({web_push_subscription:sub.toJSON(),web_push_activo:true}).eq('id',usuario.id);
+    console.log('[push] suscrito ✓');
+  }catch(e){console.warn('[push] error suscribiendo',e);}
 }
 function updateNotifBtn(perm){
   const btn=document.getElementById('notifBtn');if(!btn)return;
