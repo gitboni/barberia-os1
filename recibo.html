@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Recibo · AuraOS</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0a0a0f;color:#1a1a1a;padding:16px;display:flex;justify-content:center;min-height:100vh;}
+  .card{background:#fff;max-width:420px;width:100%;border-radius:16px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.4);height:fit-content;}
+  .hd{background:#0d0d0f;padding:26px 24px 22px;text-align:center;}
+  .logo{width:60px;height:60px;margin:0 auto 12px;border:1px solid rgba(201,168,76,.4);border-radius:14px;display:flex;align-items:center;justify-content:center;background:#080809;}
+  .brand{font-size:1.4rem;font-weight:800;color:#fff;letter-spacing:.5px;}
+  .brand .os{color:#C9A84C;font-weight:300;}
+  .shop{font-size:.72rem;color:#C9A84C;letter-spacing:.18em;text-transform:uppercase;margin-top:6px;font-weight:700;}
+  .body{padding:22px 24px;}
+  .meta{font-size:.72rem;color:#777;line-height:1.7;border-bottom:1px dashed #ddd;padding-bottom:14px;margin-bottom:14px;}
+  .meta b{color:#1a1a1a;}
+  table{width:100%;border-collapse:collapse;}
+  thead th{font-size:.58rem;text-transform:uppercase;letter-spacing:.1em;color:#999;text-align:left;padding-bottom:8px;border-bottom:1px solid #eee;}
+  thead th.qty,thead th.pu,thead th.st{text-align:right;}
+  .it{padding:10px 0;border-bottom:1px solid #f3f3f3;}
+  .it-name{font-size:.82rem;font-weight:700;color:#1a1a1a;}
+  .it-var{display:inline-block;font-size:.6rem;font-weight:800;color:#9c7b28;background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.35);border-radius:6px;padding:1px 6px;margin-left:4px;vertical-align:middle;}
+  .it-sku{font-size:.6rem;color:#aaa;font-family:monospace;margin-top:2px;}
+  td.qty,td.pu,td.st{text-align:right;font-size:.78rem;color:#444;vertical-align:top;padding-top:10px;white-space:nowrap;}
+  td.st{font-weight:700;color:#1a1a1a;}
+  .totals{margin-top:16px;}
+  .trow{display:flex;justify-content:space-between;font-size:.8rem;color:#666;padding:4px 0;}
+  .total{display:flex;justify-content:space-between;align-items:center;border-top:2px solid #0d0d0f;margin-top:8px;padding-top:12px;}
+  .total .lbl{font-size:.95rem;font-weight:800;}
+  .total .amt{font-size:1.5rem;font-weight:900;color:#0d0d0f;}
+  .pay{display:inline-block;margin-top:14px;background:#0d0d0f;color:#C9A84C;font-size:.7rem;font-weight:700;padding:6px 14px;border-radius:20px;letter-spacing:.05em;}
+  .ft{text-align:center;padding:18px 24px;background:#fafafa;border-top:1px solid #eee;}
+  .ft .gr{font-size:.82rem;color:#1a1a1a;font-weight:700;}
+  .ft .ph{font-size:.72rem;color:#888;margin-top:4px;}
+  .ft .by{font-size:.58rem;color:#bbb;letter-spacing:.12em;text-transform:uppercase;margin-top:10px;}
+  .state{color:#fff;text-align:center;padding:60px 20px;font-size:.9rem;opacity:.8;}
+</style>
+</head>
+<body>
+<div id="root"><div class="state">Cargando recibo…</div></div>
+<script>
+  const SB_URL = 'https://mmokunpuslcfphalrwot.supabase.co';
+  const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tb2t1bnB1c2xjZnBoYWxyd290Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3NTQ1OTQsImV4cCI6MjA4ODMzMDU5NH0.yKALMgKeUzU1ouRPhuGhZ2JCJs1yRt2Gf78igzkSY14';
+
+  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function money(n){ return '$' + Number(n||0).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:2}); }
+
+  function render(rec){
+    const items = Array.isArray(rec.items) ? rec.items : [];
+    const fecha = new Date(rec.created_at).toLocaleString('es-DO',{ timeZone:'America/Santo_Domingo', weekday:'long', day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    const filas = items.map(it => `
+      <tr>
+        <td class="it">
+          <div class="it-name">${esc(it.nombre)}${it.variante?` <span class="it-var">${esc(it.variante)}</span>`:''}</div>
+          ${it.sku?`<div class="it-sku">${esc(it.sku)}</div>`:''}
+        </td>
+        <td class="qty">${esc(it.cantidad)}</td>
+        <td class="pu">${money(it.precio)}</td>
+        <td class="st">${money((it.precio||0)*(it.cantidad||0))}</td>
+      </tr>`).join('');
+    const descRow = (rec.descuento && rec.descuento>0) ? `
+      <div class="trow"><span>Subtotal</span><span>${money(rec.subtotal)}</span></div>
+      <div class="trow"><span>Descuento ${rec.descuento_pct?'('+rec.descuento_pct+'%)':''}</span><span style="color:#C9A84C">−${money(rec.descuento)}</span></div>` : '';
+
+    document.title = 'Recibo · ' + (rec.shop_nombre || 'AuraOS');
+    document.getElementById('root').innerHTML = `
+    <div class="card">
+      <div class="hd">
+        <div class="logo">
+          <svg viewBox="0 0 100 100" width="38" height="38" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="g" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#F6E9B8"/><stop offset="0.4" stop-color="#C9A84C"/><stop offset="0.7" stop-color="#9C7B28"/><stop offset="1" stop-color="#EAD89C"/>
+              </linearGradient>
+              <linearGradient id="s" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#FBFBFB"/><stop offset="0.5" stop-color="#B6B6B6"/><stop offset="1" stop-color="#EDEDED"/>
+              </linearGradient>
+            </defs>
+            <path d="M50 15 L83 91 L67 91 L60.5 73 L39.5 73 L33 91 L17 91 Z" fill="url(#g)"/>
+            <path d="M43 61 L57 61 L50 41 Z" fill="#080809"/>
+            <rect x="29" y="55.5" width="42" height="5" rx="2.5" transform="rotate(-8 50 58)" fill="url(#s)"/>
+            <g stroke="url(#s)" stroke-width="3.6" fill="none" stroke-linecap="round">
+              <circle cx="71" cy="25" r="5.5"/><circle cx="84" cy="32" r="5.5"/><path d="M67 29 L45 51"/><path d="M80 36 L58 58"/>
+            </g>
+          </svg>
+        </div>
+        <div class="brand">Aura<span class="os">OS</span></div>
+        <div class="shop">${esc(rec.shop_nombre)}</div>
+      </div>
+      <div class="body">
+        <div class="meta">
+          🧾 <b>Comprobante de venta</b><br>
+          📅 ${esc(fecha)}<br>
+          ${rec.folio?`🔖 Folio: ${esc(rec.folio)}<br>`:''}
+          ${rec.barbero_nombre?`✂️ Atendido por: <b>${esc(rec.barbero_nombre)}</b><br>`:''}
+          ${rec.cliente_nombre?`👤 Cliente: <b>${esc(rec.cliente_nombre)}</b>`:''}
+        </div>
+        <table>
+          <thead><tr><th>Producto</th><th class="qty">Cant</th><th class="pu">P/U</th><th class="st">Total</th></tr></thead>
+          <tbody>${filas}</tbody>
+        </table>
+        <div class="totals">
+          ${descRow}
+          <div class="total"><span class="lbl">TOTAL</span><span class="amt">${money(rec.total)}</span></div>
+          <div style="text-align:center"><span class="pay">💳 ${esc(rec.metodo_pago)||'Efectivo'}</span></div>
+        </div>
+      </div>
+      <div class="ft">
+        <div class="gr">¡Gracias por su compra! 💈</div>
+        ${rec.shop_telefono?`<div class="ph">📞 ${esc(rec.shop_telefono)}</div>`:''}
+        <div class="by">Generado por AuraOS</div>
+      </div>
+    </div>`;
+  }
+
+  (async () => {
+    const id = new URLSearchParams(location.search).get('id');
+    if (!id) { document.getElementById('root').innerHTML = '<div class="state">Recibo no especificado.</div>'; return; }
+    try {
+      const r = await fetch(`${SB_URL}/functions/v1/recibo-data?id=${encodeURIComponent(id)}`, {
+        headers: { apikey: SB_ANON, Authorization: 'Bearer ' + SB_ANON },
+      });
+      if (!r.ok) throw new Error('no encontrado');
+      const rec = await r.json();
+      render(rec);
+    } catch (e) {
+      document.getElementById('root').innerHTML = '<div class="state">No se pudo cargar el recibo. Puede haber expirado.</div>';
+    }
+  })();
+</script>
+</body>
+</html>
