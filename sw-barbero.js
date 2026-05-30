@@ -1,4 +1,4 @@
-const CACHE = 'auraos-pro-v1';
+const CACHE = 'auraos-pro-v2';
 
 const PRECACHE = [
   '/panel-barbero.html',
@@ -19,6 +19,38 @@ self.addEventListener('activate', e => {
     caches.keys()
       .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
+  );
+});
+
+// ── Web Push: mostrar notificación aunque la PWA esté cerrada ───────────────
+self.addEventListener('push', e => {
+  let data = {};
+  try { data = e.data ? e.data.json() : {}; }
+  catch (_) { data = { title: 'AuraOS', body: e.data ? e.data.text() : '' }; }
+  const title = data.title || '✂️ AuraOS';
+  const opts = {
+    body:     data.body || '',
+    icon:     data.icon || '/assets/icon.png',
+    badge:    data.badge || '/assets/icon.png',
+    data:     data.data || {},
+    vibrate:  [120, 60, 120],
+    tag:      (data.data && data.data.tipo) || 'auraos-cita',
+    renotify: true,
+    requireInteraction: false,
+  };
+  e.waitUntil(self.registration.showNotification(title, opts));
+});
+
+// ── Click en la notificación → abrir/enfocar la PWA ─────────────────────────
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(cls => {
+      for (const c of cls) {
+        if (c.url.includes('panel-barbero') && 'focus' in c) return c.focus();
+      }
+      if (self.clients.openWindow) return self.clients.openWindow('/panel-barbero.html');
+    })
   );
 });
 
