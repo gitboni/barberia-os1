@@ -801,6 +801,12 @@ input:checked+.slider:before{transform:translateX(22px)}
     <span style="color:var(--accent);" id="horarioToggleIcon">▼</span>
   </div>
   <div id="horarioForm" style="display:none;margin-bottom:10px;"></div>
+  <!-- Servicios: precio y duración (solo dueño / único operador / permiso) -->
+  <div class="card" id="serviciosToggleRow" style="display:none;cursor:pointer;justify-content:space-between;align-items:center;margin-bottom:10px;" onclick="toggleServiciosForm()">
+    <div><div style="font-weight:800;font-size:.9rem;">✂️ Servicios y precios</div><div style="font-size:.72rem;color:var(--dim);margin-top:2px;">Ajusta precio y duración de cada servicio</div></div>
+    <span style="color:var(--accent);" id="serviciosToggleIcon">▼</span>
+  </div>
+  <div id="serviciosForm" style="display:none;margin-bottom:10px;"></div>
   <div class="card" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;" id="passToggleRow" onclick="togglePassForm()">
     <span style="font-weight:800;font-size:.9rem;">🔒 Cambiar contraseña</span><span style="color:var(--accent);" id="passToggleIcon">▼</span>
   </div>
@@ -2136,6 +2142,7 @@ async function renderPerfil(){
   document.getElementById('perfilTel').textContent=usuario?.telefono?`+${usuario.telefono}`:'—';
   document.getElementById('perfilShop').textContent=shop?.nombre||'—';
   initHorarioNegocio();
+  initServiciosNegocio();
   const hoy=hoyStr();const primerMes=new Date();primerMes.setDate(1);
   const[todayRes,mesRes]=await Promise.all([
     sb.from('citas').select('estado,fecha').eq('barbero_id',barbero.id),
@@ -2289,6 +2296,58 @@ async function guardarHorarioNegocio(){
   if(error){toast('Error al guardar el horario','error');return;}
   shop.dias_atencion=_hpEdit.dias;shop.horarios_por_dia=_hpEdit.hpd;
   toast('Horario guardado ✓','success');
+}
+// ── Servicios: precio y duración (dueño / permiso) ────────────────────────
+let _svcEdit=null;
+const _SVC_DUR=[5,10,15,20,25,30,35,40,45,50,55,60,90];
+async function initServiciosNegocio(){
+  const row=document.getElementById('serviciosToggleRow');if(!row)return;
+  let permitido=usuario?.rol==='admin'||!!barbero?.puede_config_servicios;
+  if(!permitido&&shop?.id){
+    try{const{count}=await sb.from('barberos').select('id',{count:'exact',head:true}).eq('shop_id',shop.id).eq('activo',true);permitido=(count||0)===1;}catch(e){permitido=false;}
+  }
+  if(!permitido){row.style.display='none';return;}
+  row.style.display='flex';
+  _svcEdit={items:null,orig:{}};
+}
+async function toggleServiciosForm(){
+  const f=document.getElementById('serviciosForm');const icon=document.getElementById('serviciosToggleIcon');
+  const open=f.style.display!=='none';f.style.display=open?'none':'block';icon.textContent=open?'▼':'▲';
+  if(open)return;
+  if(!_svcEdit.items){
+    f.innerHTML='<div class="card" style="text-align:center;color:var(--dim);">Cargando…</div>';
+    const{data}=await sb.from('servicios').select('id,nombre,precio,duracion_min,activo,orden').eq('shop_id',shop.id).eq('activo',true).order('orden');
+    _svcEdit.items=(data||[]).map(s=>({id:s.id,nombre:s.nombre,precio:Number(s.precio)||0,duracion_min:s.duracion_min||30}));
+    _svcEdit.items.forEach(s=>{_svcEdit.orig[s.id]={precio:s.precio,duracion_min:s.duracion_min};});
+  }
+  renderServiciosEditor();
+}
+function _svcCambiado(s){const o=_svcEdit.orig[s.id];return o&&(o.precio!==s.precio||o.duracion_min!==s.duracion_min);}
+function renderServiciosEditor(){
+  if(!_svcEdit)return;const f=document.getElementById('serviciosForm');
+  if(!_svcEdit.items.length){f.innerHTML='<div class="card" style="color:var(--dim);font-size:.8rem;">No hay servicios activos. Agrégalos desde el panel de administración.</div>';return;}
+  f.innerHTML=_svcEdit.items.map(s=>{
+    const durs=_SVC_DUR.map(d=>`<div onclick="setSvcDur('${s.id}',${d})" style="display:inline-block;padding:5px 10px;margin-right:6px;border-radius:20px;font-size:.72rem;font-weight:600;cursor:pointer;border:1px solid ${s.duracion_min===d?'var(--accent)':'var(--border)'};background:${s.duracion_min===d?'var(--accent)':'var(--bg3)'};color:${s.duracion_min===d?'#000':'var(--text)'};">${d} min</div>`).join('');
+    const ch=_svcCambiado(s);
+    return`<div class="card" style="margin-bottom:10px;">
+      <div style="font-weight:800;font-size:.92rem;margin-bottom:8px;">${DOMPurify.sanitize(s.nombre)}</div>
+      <div style="font-size:.66rem;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;">Precio (RD$)</div>
+      <input type="number" inputmode="numeric" value="${s.precio||''}" oninput="setSvcPrecio('${s.id}',this.value)" class="input" style="margin-bottom:10px;" placeholder="0">
+      <div style="font-size:.66rem;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px;">Duración</div>
+      <div style="overflow-x:auto;white-space:nowrap;margin-bottom:10px;">${durs}</div>
+      <button class="btn-gold" onclick="guardarServicio('${s.id}')" ${ch?'':'disabled'} style="${ch?'':'opacity:.5;'}">${ch?'Guardar':'Sin cambios'}</button>
+    </div>`;
+  }).join('');
+}
+function setSvcPrecio(id,v){const s=_svcEdit?.items.find(x=>x.id===id);if(!s)return;s.precio=parseFloat(v)||0;const btn=document.querySelector(`#serviciosForm button[onclick="guardarServicio('${id}')"]`);if(btn){const ch=_svcCambiado(s);btn.disabled=!ch;btn.style.opacity=ch?'1':'.5';btn.textContent=ch?'Guardar':'Sin cambios';}}
+function setSvcDur(id,d){const s=_svcEdit?.items.find(x=>x.id===id);if(!s)return;s.duracion_min=d;renderServiciosEditor();}
+async function guardarServicio(id){
+  const s=_svcEdit?.items.find(x=>x.id===id);if(!s)return;
+  const{error}=await sb.from('servicios').update({precio:s.precio,duracion_min:s.duracion_min}).eq('id',id);
+  if(error){toast('Error al guardar','error');return;}
+  _svcEdit.orig[id]={precio:s.precio,duracion_min:s.duracion_min};
+  renderServiciosEditor();
+  toast(`${s.nombre} actualizado ✓`,'success');
 }
 function togglePassForm(){const f=document.getElementById('passForm');const icon=document.getElementById('passToggleIcon');const s=f.style.display!=='none';f.style.display=s?'none':'block';icon.textContent=s?'▼':'▲';}
 async function guardarPass(){
