@@ -795,6 +795,12 @@ input:checked+.slider:before{transform:translateX(22px)}
       <button class="btn-gold" onclick="guardarWaTemplate()" style="margin-top:10px;">Guardar plantilla</button>
     </div>
   </div>
+  <!-- Horario del negocio (solo dueño / único operador) -->
+  <div class="card" id="horarioToggleRow" style="display:none;cursor:pointer;justify-content:space-between;align-items:center;margin-bottom:10px;" onclick="toggleHorarioForm()">
+    <div><div style="font-weight:800;font-size:.9rem;">🕐 Horario del negocio</div><div style="font-size:.72rem;color:var(--dim);margin-top:2px;">Días de atención y horas por día</div></div>
+    <span style="color:var(--accent);" id="horarioToggleIcon">▼</span>
+  </div>
+  <div id="horarioForm" style="display:none;margin-bottom:10px;"></div>
   <div class="card" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;" id="passToggleRow" onclick="togglePassForm()">
     <span style="font-weight:800;font-size:.9rem;">🔒 Cambiar contraseña</span><span style="color:var(--accent);" id="passToggleIcon">▼</span>
   </div>
@@ -2129,6 +2135,7 @@ async function renderPerfil(){
   document.getElementById('perfilNombre').textContent=barbero.nombre;
   document.getElementById('perfilTel').textContent=usuario?.telefono?`+${usuario.telefono}`:'—';
   document.getElementById('perfilShop').textContent=shop?.nombre||'—';
+  initHorarioNegocio();
   const hoy=hoyStr();const primerMes=new Date();primerMes.setDate(1);
   const[todayRes,mesRes]=await Promise.all([
     sb.from('citas').select('estado,fecha').eq('barbero_id',barbero.id),
@@ -2209,6 +2216,79 @@ async function guardarWaTemplate(){
   if(error){toast('Error al guardar','error');return;}
   barbero.mensaje_whatsapp=val||null;
   toast('✅ Plantilla WhatsApp guardada','success');
+}
+// ── Horario del negocio (dueño / único operador) ──────────────────────────
+let _hpEdit=null;
+const _HP_DIAS=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const _HP_ORDEN=[1,2,3,4,5,6,0];
+const _HP_HORAS=Array.from({length:20},(_,i)=>i+5);
+const _HP_MINS=[0,15,30,45];
+function _hpFmtHora(h){if(h===12)return'12pm';if(h===0||h===24)return'12am';return h>12?`${h-12}pm`:`${h}am`;}
+function _hpFmt12(s){if(!s)return s;const[hh,mm]=s.split(':');let h=parseInt(hh);const ap=h>=12?'PM':'AM';if(h>12)h-=12;if(h===0)h=12;return`${h}:${mm||'00'} ${ap}`;}
+async function initHorarioNegocio(){
+  const row=document.getElementById('horarioToggleRow');if(!row)return;
+  let esDueno=usuario?.rol==='admin';
+  if(!esDueno&&shop?.id){
+    try{const{count}=await sb.from('barberos').select('id',{count:'exact',head:true}).eq('shop_id',shop.id).eq('activo',true);esDueno=(count||0)===1;}catch(e){esDueno=false;}
+  }
+  if(!esDueno){row.style.display='none';return;}
+  row.style.display='flex';
+  _hpEdit={dias:(shop?.dias_atencion||[1,2,3,4,5,6]).slice(),hpd:JSON.parse(JSON.stringify(shop?.horarios_por_dia||{})),horaIni:shop?.hora_inicio||9,horaFin:shop?.hora_fin||21,pick:null};
+}
+function toggleHorarioForm(){
+  const f=document.getElementById('horarioForm');const icon=document.getElementById('horarioToggleIcon');
+  const open=f.style.display!=='none';f.style.display=open?'none':'block';icon.textContent=open?'▼':'▲';
+  if(!open)renderHorarioEditor();
+}
+function renderHorarioEditor(){
+  if(!_hpEdit)return;const f=document.getElementById('horarioForm');
+  const diasChips=_HP_ORDEN.map(i=>{const on=_hpEdit.dias.includes(i);return`<div onclick="toggleDiaHorario(${i})" style="width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.7rem;font-weight:700;border:1px solid ${on?'var(--accent)':'var(--border)'};background:${on?'var(--accent)':'var(--bg3)'};color:${on?'#000':'var(--dim)'};">${_HP_DIAS[i]}</div>`;}).join('');
+  const rows=_HP_ORDEN.map(i=>{
+    const on=_hpEdit.dias.includes(i);const cfg=_hpEdit.hpd[String(i)];
+    const ini=cfg?.ini||`${String(_hpEdit.horaIni).padStart(2,'0')}:00`;const fin=cfg?.fin||`${String(_hpEdit.horaFin).padStart(2,'0')}:00`;
+    return`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);opacity:${on?1:.35};">
+      <span style="width:42px;font-size:.75rem;font-weight:700;color:${on?'var(--text)':'var(--dim)'};">${_HP_DIAS[i]}</span>
+      <div style="flex:1;display:flex;justify-content:flex-end;align-items:center;gap:5px;">
+        <span onclick="${on?`openHpdPicker(${i},'ini')`:''}" style="padding:4px 9px;border-radius:4px;background:rgba(255,255,255,.04);font-size:.75rem;font-weight:600;color:${on?'var(--text)':'var(--dim)'};cursor:${on?'pointer':'default'};">${_hpFmt12(ini)}</span>
+        <span style="color:var(--dim);font-size:.65rem;">—</span>
+        <span onclick="${on?`openHpdPicker(${i},'fin')`:''}" style="padding:4px 9px;border-radius:4px;background:rgba(255,255,255,.04);font-size:.75rem;font-weight:600;color:${on?'var(--text)':'var(--dim)'};cursor:${on?'pointer':'default'};">${_hpFmt12(fin)}</span>
+      </div>
+    </div>`;}).join('');
+  let picker='';
+  if(_hpEdit.pick){
+    const p=_hpEdit.pick;
+    const horas=_HP_HORAS.map(h=>`<div onclick="setHpdH(${h})" style="display:inline-block;padding:6px 9px;margin-right:6px;border-radius:6px;font-size:.72rem;font-weight:600;cursor:pointer;border:1px solid ${p.h===h?'var(--accent)':'var(--border)'};background:${p.h===h?'var(--accent)':'var(--bg3)'};color:${p.h===h?'#000':'var(--text)'};">${_hpFmtHora(h)}</div>`).join('');
+    const mins=_HP_MINS.map(m=>`<div onclick="setHpdM(${m})" style="display:inline-block;padding:6px 13px;margin-right:8px;border-radius:20px;font-size:.72rem;font-weight:600;cursor:pointer;border:1px solid ${p.m===m?'var(--accent)':'var(--border)'};background:${p.m===m?'var(--accent)':'var(--bg3)'};color:${p.m===m?'#000':'var(--text)'};">${String(m).padStart(2,'0')}</div>`).join('');
+    picker=`<div style="margin-top:12px;padding:10px;background:var(--accent-s);border:1px solid var(--accent-b);border-radius:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><span style="font-size:.66rem;font-weight:800;color:var(--accent);text-transform:uppercase;">${p.tipo==='ini'?'Apertura':'Cierre'} ${_HP_DIAS[p.dia]}</span><span onclick="cancelHpd()" style="color:var(--red);font-size:.72rem;cursor:pointer;">Cancelar</span></div>
+      <div style="font-size:.66rem;color:var(--dim);margin-bottom:5px;">Hora</div><div style="overflow-x:auto;white-space:nowrap;margin-bottom:10px;">${horas}</div>
+      <div style="font-size:.66rem;color:var(--dim);margin-bottom:5px;">Minutos</div><div style="margin-bottom:12px;">${mins}</div>
+      <button class="btn-gold" onclick="confirmHpd()">Confirmar ${_hpFmtHora(p.h)}:${String(p.m).padStart(2,'0')}</button>
+    </div>`;
+  }
+  f.innerHTML=`<div class="card">
+    <div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span style="font-size:.7rem;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Días de atención</span><span style="font-size:.72rem;color:var(--accent);">${_hpEdit.dias.length} día${_hpEdit.dias.length!==1?'s':''}</span></div>
+    <div style="display:flex;gap:5px;flex-wrap:wrap;">${diasChips}</div>
+    <div style="display:flex;justify-content:space-between;margin:16px 0 4px;"><span style="font-size:.7rem;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Horario por día</span><span style="font-size:.72rem;color:var(--accent);">Personalizado</span></div>
+    <div style="font-size:.68rem;color:var(--dim);margin-bottom:6px;">Toca la hora para cambiarla</div>
+    ${rows}
+    ${picker}
+    <button class="btn-gold" onclick="guardarHorarioNegocio()" style="margin-top:14px;">Guardar horario</button>
+  </div>`;
+}
+function toggleDiaHorario(i){if(!_hpEdit)return;const idx=_hpEdit.dias.indexOf(i);if(idx>=0)_hpEdit.dias.splice(idx,1);else _hpEdit.dias.push(i);_hpEdit.dias.sort();renderHorarioEditor();}
+function openHpdPicker(i,tipo){if(!_hpEdit||!_hpEdit.dias.includes(i))return;const cfg=_hpEdit.hpd[String(i)];const str=(tipo==='ini'?cfg?.ini:cfg?.fin)||`${String(tipo==='ini'?_hpEdit.horaIni:_hpEdit.horaFin).padStart(2,'0')}:00`;const[hh,mm]=str.split(':').map(Number);_hpEdit.pick={dia:i,tipo,h:hh,m:mm};renderHorarioEditor();}
+function setHpdH(h){if(_hpEdit&&_hpEdit.pick){_hpEdit.pick.h=h;renderHorarioEditor();}}
+function setHpdM(m){if(_hpEdit&&_hpEdit.pick){_hpEdit.pick.m=m;renderHorarioEditor();}}
+function cancelHpd(){if(_hpEdit){_hpEdit.pick=null;renderHorarioEditor();}}
+function confirmHpd(){if(!_hpEdit||!_hpEdit.pick)return;const p=_hpEdit.pick;const val=`${String(p.h).padStart(2,'0')}:${String(p.m).padStart(2,'0')}`;const cur=_hpEdit.hpd[String(p.dia)]||{ini:`${String(_hpEdit.horaIni).padStart(2,'0')}:00`,fin:`${String(_hpEdit.horaFin).padStart(2,'0')}:00`};cur[p.tipo]=val;_hpEdit.hpd[String(p.dia)]=cur;_hpEdit.pick=null;renderHorarioEditor();}
+async function guardarHorarioNegocio(){
+  if(!_hpEdit||!shop?.id)return;
+  if(_hpEdit.dias.length===0){toast('Selecciona al menos un día','error');return;}
+  const{error}=await sb.from('shops').update({dias_atencion:_hpEdit.dias,horarios_por_dia:_hpEdit.hpd}).eq('id',shop.id);
+  if(error){toast('Error al guardar el horario','error');return;}
+  shop.dias_atencion=_hpEdit.dias;shop.horarios_por_dia=_hpEdit.hpd;
+  toast('Horario guardado ✓','success');
 }
 function togglePassForm(){const f=document.getElementById('passForm');const icon=document.getElementById('passToggleIcon');const s=f.style.display!=='none';f.style.display=s?'none':'block';icon.textContent=s?'▼':'▲';}
 async function guardarPass(){
