@@ -3401,11 +3401,27 @@ async function loadBarberos() {
         <button class="action-btn success" onclick="asignarAccesoApp('${b.id}')" style="background:rgba(201,168,76,0.08);border-color:rgba(201,168,76,0.4);color:var(--gold);">
           ${tieneAcceso?'↻ Actualizar':'+ Asignar'}
         </button>
+        <button class="action-btn" onclick="toggleHorarioBarbero('${b.id}',${!!b.puede_config_horario})" title="Permite que este barbero configure el horario del negocio desde la app/PWA" style="${b.puede_config_horario?'background:rgba(62,207,142,0.12);border-color:rgba(62,207,142,0.45);color:var(--green);':'background:rgba(255,255,255,0.04);border-color:var(--border);color:var(--muted);'}">${b.puede_config_horario?'🕐 Horario ✓':'🕐 Horario'}</button>
         <button class="action-btn ${b.activo?'danger':'success'}" onclick="confirmToggleBarbero('${b.id}',${b.activo},'${b.nombre}')">${b.activo?'Desactivar':'Activar'}</button>
         <button class="action-btn danger" onclick="confirmarEliminarBarbero('${b.id}','${b.nombre}')" style="background:rgba(180,30,30,0.1);border-color:rgba(180,30,30,0.4);color:#e05555;">Eliminar</button>
       </div></td>
     </tr>`;
   }).join('')||'<tr><td colspan="10" style="color:var(--muted);text-align:center;padding:22px;">Sin barberos</td></tr>';
+}
+
+async function toggleHorarioBarbero(barberoId, actual) {
+  const nuevo = !actual;
+  try {
+    if(!usingDemo) await sbPatch('barberos', `id=eq.${barberoId}`, { puede_config_horario: nuevo });
+    const b = _barberos.find(x => x.id === barberoId); if(b) b.puede_config_horario = nuevo;
+    showToast(nuevo ? '🕐 Barbero puede configurar el horario del negocio' : 'Configuración de horario deshabilitada', nuevo ? 'success' : 'info');
+    addLog('OK', `puede_config_horario=${nuevo} barbero:${barberoId}`);
+    logSuperadminAction('toggle_horario_barbero', `${barberoId}: ${nuevo}`);
+    loadBarberos();
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
+    addLog('ERROR', 'toggleHorarioBarbero: ' + e.message);
+  }
 }
 
 async function asignarAccesoApp(barberoId) {
