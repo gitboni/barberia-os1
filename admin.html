@@ -778,6 +778,11 @@ tr:last-child td{border-bottom:none;}
       </label>
       <div style="font-size:0.72rem;color:var(--muted,#888);margin:4px 0 8px;">Se antepone a la 1ª respuesta del bot en cada conversación nueva (ideal para avisos de temporada).</div>
       <textarea id="cfg-difusion-msg" rows="3" placeholder="Ej: 🎄 Por temporada navideña los servicios tienen un ajuste de precio. ¡Gracias por preferirnos!" style="width:100%;resize:vertical;"></textarea>
+      <div class="fg-row" style="margin-top:8px;">
+        <div class="fg"><label style="font-size:0.7rem;">Desde (opcional)</label><input type="date" id="cfg-difusion-desde"></div>
+        <div class="fg"><label style="font-size:0.7rem;">Hasta (opcional)</label><input type="date" id="cfg-difusion-hasta"></div>
+      </div>
+      <div style="font-size:0.66rem;color:var(--muted,#888);">Si pones fechas, el aviso se activa y expira solo en ese rango. Vacío = activo mientras esté encendido.</div>
     </div>
     <div class="modal-actions">
       <button class="btn-full btn-gold" onclick="saveConfig()">💾 Guardar cambios</button>
@@ -3572,7 +3577,7 @@ function openModal(type, reset = false){
     if(type==='cita'){document.getElementById('modal-cita-title').textContent='Nueva Cita';document.getElementById('m-cita-id').value='';document.getElementById('m-nombre').value='';document.getElementById('m-tel').value='';document.getElementById('m-fecha').value=nowStr();document.getElementById('m-hora').value='09:00';document.getElementById('m-estado').value='Confirmada';updateServicioSelect();updateBarberoSelect();}
     if(type==='barbero'){document.getElementById('modal-barbero-title').textContent='Nuevo Barbero';document.getElementById('mb-id').value='';document.getElementById('mb-nombre').value='';document.getElementById('mb-orden').value=S.barberos.length+1;document.getElementById('mb-activo').checked=true;renderBarberoCategories([]);}
     if(type==='cliente'){document.getElementById('modal-cliente-title').textContent='Nuevo Cliente';document.getElementById('mc-id').value='';document.getElementById('mc-nombre').value='';document.getElementById('mc-tel').value='';document.getElementById('mc-notas').value='';}
-    if(type==='config'){const s=S.shopData||{};document.getElementById('cfg-nombre').value=s.nombre||'';document.getElementById('cfg-whatsapp').value=s.whatsapp_dueño||'';document.getElementById('cfg-duracion').value=s.duracion_turno||45;document.getElementById('cfg-timezone').value=s.timezone||'America/Santo_Domingo';document.getElementById('cfg-difusion-activa').checked=s.difusion_activa===true;document.getElementById('cfg-difusion-msg').value=s.difusion_msg||'';buildHpdGrid('cfg',s.dias_atencion,s.horarios_por_dia,s.hora_inicio||9,s.hora_fin||21);}
+    if(type==='config'){const s=S.shopData||{};document.getElementById('cfg-nombre').value=s.nombre||'';document.getElementById('cfg-whatsapp').value=s.whatsapp_dueño||'';document.getElementById('cfg-duracion').value=s.duracion_turno||45;document.getElementById('cfg-timezone').value=s.timezone||'America/Santo_Domingo';document.getElementById('cfg-difusion-activa').checked=s.difusion_activa===true;document.getElementById('cfg-difusion-msg').value=s.difusion_msg||'';document.getElementById('cfg-difusion-desde').value=s.difusion_desde||'';document.getElementById('cfg-difusion-hasta').value=s.difusion_hasta||'';buildHpdGrid('cfg',s.dias_atencion,s.horarios_por_dia,s.hora_inicio||9,s.hora_fin||21);}
     if(type==='producto'){document.getElementById('modal-producto-title').textContent='Nuevo Producto';document.getElementById('mp-id').value='';document.getElementById('mp-nombre').value='';document.getElementById('mp-desc').value='';document.getElementById('mp-sku').value='';document.getElementById('mp-categoria').value='Insumo';document.getElementById('mp-unidad').value='unidades';document.getElementById('mp-stock').value=0;document.getElementById('mp-minimo').value=5;document.getElementById('mp-costo').value=0;document.getElementById('mp-pventa').value=0;}
   }
   document.getElementById('modal-'+type).classList.add('open');
@@ -3582,13 +3587,15 @@ async function saveConfig(){
   const hpd=collectHpd('cfg');
   const difusionActiva=document.getElementById('cfg-difusion-activa').checked;
   const difusionMsg=document.getElementById('cfg-difusion-msg').value.trim();
-  const p={nombre:document.getElementById('cfg-nombre').value.trim(),'whatsapp_dueño':document.getElementById('cfg-whatsapp').value.trim(),hora_inicio:hpd.hora_inicio,hora_fin:hpd.hora_fin,duracion_turno:parseInt(document.getElementById('cfg-duracion').value)||45,timezone:document.getElementById('cfg-timezone').value,dias_atencion:hpd.dias_atencion,horarios_por_dia:hpd.horarios_por_dia,difusion_activa:difusionActiva,difusion_msg:difusionMsg};
+  const difusionDesde=document.getElementById('cfg-difusion-desde').value||null;
+  const difusionHasta=document.getElementById('cfg-difusion-hasta').value||null;
+  const p={nombre:document.getElementById('cfg-nombre').value.trim(),'whatsapp_dueño':document.getElementById('cfg-whatsapp').value.trim(),hora_inicio:hpd.hora_inicio,hora_fin:hpd.hora_fin,duracion_turno:parseInt(document.getElementById('cfg-duracion').value)||45,timezone:document.getElementById('cfg-timezone').value,dias_atencion:hpd.dias_atencion,horarios_por_dia:hpd.horarios_por_dia,difusion_activa:difusionActiva,difusion_msg:difusionMsg||null,difusion_desde:difusionDesde,difusion_hasta:difusionHasta};
   try{
-    const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/update_shop_config`,{method:'POST',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify({p_shop_id:S.shopId,p_nombre:p.nombre,p_whatsapp_dueno:p['whatsapp_dueño'],p_hora_inicio:p.hora_inicio,p_hora_fin:p.hora_fin,p_duracion_turno:p.duracion_turno,p_timezone:p.timezone,p_dias_atencion:p.dias_atencion,p_difusion_activa:difusionActiva,p_difusion_msg:difusionMsg})});
+    const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/update_shop_config`,{method:'POST',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify({p_shop_id:S.shopId,p_nombre:p.nombre,p_whatsapp_dueno:p['whatsapp_dueño'],p_hora_inicio:p.hora_inicio,p_hora_fin:p.hora_fin,p_duracion_turno:p.duracion_turno,p_timezone:p.timezone,p_dias_atencion:p.dias_atencion})});
     const data=await r.json();
     if(data&&data.error){toast('Error: '+data.error,'error');return;}
-    // Guardar horarios_por_dia (columna nueva — no bloquea si aún no existe en BD)
-    await sbPatch('shops','id=eq.'+S.shopId,{horarios_por_dia:hpd.horarios_por_dia}).catch(()=>{});
+    // Difusión + horarios_por_dia (incluye fechas; permite vaciarlas a null)
+    await sbPatch('shops','id=eq.'+S.shopId,{horarios_por_dia:hpd.horarios_por_dia,difusion_activa:difusionActiva,difusion_msg:difusionMsg||null,difusion_desde:difusionDesde,difusion_hasta:difusionHasta}).catch(()=>{});
     Object.assign(S.shopData,p);toast('Configuración guardada');closeModal('config');renderPage();
   }catch(e){toast('Error: '+e.message,'error');}
 }
