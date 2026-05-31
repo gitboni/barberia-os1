@@ -2227,7 +2227,7 @@ function _hpFmtHora(h){if(h===12)return'12pm';if(h===0||h===24)return'12am';retu
 function _hpFmt12(s){if(!s)return s;const[hh,mm]=s.split(':');let h=parseInt(hh);const ap=h>=12?'PM':'AM';if(h>12)h-=12;if(h===0)h=12;return`${h}:${mm||'00'} ${ap}`;}
 async function initHorarioNegocio(){
   const row=document.getElementById('horarioToggleRow');if(!row)return;
-  let esDueno=usuario?.rol==='admin';
+  let esDueno=usuario?.rol==='admin'||!!barbero?.puede_config_horario;
   if(!esDueno&&shop?.id){
     try{const{count}=await sb.from('barberos').select('id',{count:'exact',head:true}).eq('shop_id',shop.id).eq('activo',true);esDueno=(count||0)===1;}catch(e){esDueno=false;}
   }
