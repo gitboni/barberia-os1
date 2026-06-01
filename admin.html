@@ -6087,8 +6087,9 @@ Promise.resolve().then(()=>{
 async function loadVip(){
   const el=document.getElementById('page-content');
   try{
-    // Usar shop_id directo (más simple y confiable que filtrar por barbero_id)
-    const prefs=await sbGet('clientes_preferenciales',`shop_id=eq.${S.shopId}&activo=eq.true&select=id,nombre,telefono,dia_semana,hora,servicio,activo,barbero_id&order=dia_semana.asc,hora.asc`).catch(()=>[]);
+    // RPC SECURITY DEFINER — bypasa RLS (que solo permite leer al barbero autenticado)
+    const rpcRes=await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_preferenciales_by_shop`,{method:'POST',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify({p_shop_id:S.shopId})});
+    const prefs=rpcRes.ok?await rpcRes.json():[];
     // Citas preferenciales generadas esta semana (estado Confirmada, nota contiene ⭐)
     const hoy=new Date();
     const lunes=new Date(hoy);lunes.setDate(hoy.getDate()-((hoy.getDay()+6)%7));
