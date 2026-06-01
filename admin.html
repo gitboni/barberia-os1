@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AuraOS — Panel Admin</title>
 <link rel="icon" type="image/svg+xml" href="/auraos-logo.svg">
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Syne:wght@700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Syne:wght@700;800&family=DM+Mono:wght@400;500&display=swap&font-display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 <style>
@@ -21,8 +21,8 @@ html{font-size:16px;}
 @media(max-width:1440px){html{font-size:15px;}}
 @media(max-width:1200px){html{font-size:14px;}}
 body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;overflow:hidden;margin:0;}
-.app{display:grid;grid-template-columns:240px 1fr;height:100vh;}
-aside{background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-right:1px solid var(--glass-border);display:flex;flex-direction:column;overflow-y:auto;height:100vh;z-index:100;}
+.app{display:grid;grid-template-columns:240px 1fr;height:100dvh;height:100vh;}
+aside{background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-right:1px solid var(--glass-border);display:flex;flex-direction:column;overflow-y:auto;height:100dvh;height:100vh;z-index:100;}
 .aside-brand{padding:20px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
 .brand-mark{width:32px;height:32px;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:1rem;color:var(--bg);}
 .brand-txt{font-size:0.9rem;font-weight:800;letter-spacing:0.04em;}
@@ -42,12 +42,12 @@ aside{background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter
 .barber-mini-dot{width:6px;height:6px;border-radius:50%;}
 .barber-mini-name{font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;}
 .barber-mini-status{margin-left:auto;font-family:'DM Mono',monospace;font-size:0.42rem;}
-main{display:flex;flex-direction:column;overflow:hidden;height:100vh;background-image:radial-gradient(circle at top right, rgba(201,168,76,0.03), transparent 400px);}
+main{display:flex;flex-direction:column;overflow:hidden;height:100dvh;height:100vh;background-image:radial-gradient(circle at top right, rgba(201,168,76,0.03), transparent 400px);}
 .topbar{padding:14px 28px;border-bottom:1px solid var(--glass-border);display:flex;align-items:center;justify-content:space-between;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);flex-shrink:0;z-index:90;}
 .page-title{font-size:1.15rem;font-weight:800;letter-spacing:-0.02em;color:var(--text);}
 .page-date{font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;}
 .topbar-right{display:flex;align-items:center;gap:12px;}
-.btn-sm{padding:10px 20px;font-family:'Syne',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.04em;cursor:pointer;transition:all 0.3s var(--bez);border:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:12px;}
+.btn-sm{padding:10px 20px;font-family:'Syne',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.04em;cursor:pointer;transition:transform 0.3s var(--bez),box-shadow 0.3s var(--bez),background 0.2s,border-color 0.2s;border:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:12px;touch-action:manipulation;}
 .btn-sm:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,0.3);}
 .btn-sm:active{transform:translateY(0);scale:0.98;}
 .btn-dark{background:var(--bg3);color:var(--text);border:1px solid var(--border)!important;}
@@ -110,8 +110,9 @@ tr:last-child td{border-bottom:none;}
 .badge-dot{width:4px;height:4px;border-radius:50%;background:currentColor;}
 .row-actions{display:flex;gap:4px;}
 .ra-btn {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -119,9 +120,14 @@ tr:last-child td{border-bottom:none;}
   border: 1px solid var(--border);
   color: var(--muted);
   cursor: pointer;
-  transition: all 0.2s var(--bez);
+  transition: background 0.2s var(--bez), border-color 0.2s, color 0.2s, transform 0.2s;
   border-radius: 8px;
   padding: 0;
+  touch-action: manipulation;
+}
+/* Touch: área táctil 44px sin cambiar visual */
+@media (pointer: coarse) {
+  .ra-btn { width: 44px; height: 44px; min-width: 44px; border-radius: 10px; }
 }
 .ra-btn:hover {
   background: rgba(255,255,255,0.08);
@@ -306,6 +312,9 @@ tr:last-child td{border-bottom:none;}
 .fg label{display:block;font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:8px;}
 .fg input,.fg select,.fg textarea{width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:12px 16px;font-family:'Syne',sans-serif;font-size:0.9rem;outline:none;transition:all 0.3s var(--bez);border-radius:12px;}
 .fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--gold);background:rgba(201,168,76,0.04);box-shadow:0 0 0 4px rgba(201,168,76,0.1);}
+/* Focus global para inputs/selects generados dinámicamente */
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+button:focus:not(:focus-visible){outline:none;}
 .fg select option{background:var(--bg2);}
 .fg-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .modal-actions{display:flex;gap:8px;margin-top:20px;}
@@ -382,13 +391,30 @@ tr:last-child td{border-bottom:none;}
 .topbar-search-wrap{position:relative;}
 .topbar-search-inner{display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:0 14px;height:34px;}
 .topbar-search-inner input{background:transparent;border:none;color:var(--text);font-family:'Outfit',sans-serif;font-size:.78rem;outline:none;width:160px;}
-.menu-toggle-btn{display:none;background:none;border:1px solid var(--border);color:var(--muted);padding:6px 10px;cursor:pointer;border-radius:8px;}
+.menu-toggle-btn{display:none;background:none;border:1px solid var(--border);color:var(--muted);padding:6px 10px;cursor:pointer;border-radius:8px;touch-action:manipulation;}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:299;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);}
+.sidebar-overlay.visible{display:block;}
 /* ── Responsive mobile ── */
+/* ── TABLET (768–1024px) ── */
+@media(min-width:769px) and (max-width:1024px){
+  html{font-size:13px;}
+  .app{grid-template-columns:200px 1fr;}
+  aside{width:200px;}
+  .nav-item{padding:10px 12px;font-size:0.8rem;}
+  .topbar{padding:10px 18px;}
+  .stats-row{grid-template-columns:repeat(2,1fr);}
+  .two-col{grid-template-columns:1fr;}
+  .stat-card{padding:16px;}
+  .topbar-search-inner input{width:130px;}
+  .table-wrapper{overflow-x:auto;}
+  .ra-btn{width:40px;height:40px;}
+}
+
 @media(max-width:768px){
   .app{grid-template-columns:1fr;}
-  aside{position:fixed;left:-260px;z-index:300;transition:.3s;height:100vh;}
+  aside{position:fixed;left:-260px;z-index:300;transition:.3s;height:100dvh;height:100vh;}
   aside.open{left:0;}
-  main{height:100vh;overflow-y:auto;}
+  main{height:100dvh;height:100vh;overflow-y:auto;}
   .topbar{padding:10px 14px;gap:8px;}
   .stats-row{grid-template-columns:1fr 1fr;}
   .two-col{grid-template-columns:1fr;}
@@ -510,6 +536,7 @@ tr:last-child td{border-bottom:none;}
 </div>
 
 <div class="app" id="main-app" style="display:none;">
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
   <aside>
     <div class="aside-brand">
       <img src="/auraos-logo.svg" alt="L" style="height:32px;width:32px;filter:drop-shadow(0 0 5px rgba(212,160,23,0.3));">
@@ -800,7 +827,7 @@ tr:last-child td{border-bottom:none;}
 <div class="toast" id="toast"></div>
 
 <!-- Walk-in FAB -->
-<button type="button" class="walkin-fab" id="walkin-fab-btn" onclick="openWalkin()" title="Cliente walk-in" aria-label="Agregar cliente walk-in">✂</button>
+<button type="button" class="walkin-fab" id="walkin-fab-btn" onclick="openWalkin()" title="Cliente walk-in" aria-label="Agregar cliente walk-in"><i data-lucide="scissors" style="width:20px;height:20px;stroke-width:2;"></i></button>
 
 <!-- Modal Walk-in -->
 <div class="modal-overlay" id="modal-walkin">
@@ -6055,7 +6082,10 @@ function exportCSV_clientes(){
 
 // ── RESPONSIVE MOBILE SIDEBAR ──
 function toggleSidebar(){
-  document.querySelector('aside').classList.toggle('open');
+  const aside=document.querySelector('aside');
+  const overlay=document.getElementById('sidebar-overlay');
+  const isOpen=aside.classList.toggle('open');
+  if(overlay) overlay.classList.toggle('visible', isOpen);
 }
 
 function updateDate(){document.getElementById('page-date').textContent=new Date().toLocaleDateString('es-DO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});}
