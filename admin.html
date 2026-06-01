@@ -523,6 +523,19 @@ body.kiosk-mode .pos-cart-items{max-height:none;flex:1;}
 body.kiosk-mode .pos-cart-item{padding:10px 0;}
 body.kiosk-mode .pos-qty-btn{width:30px;height:30px;font-size:1rem;touch-action:manipulation;}
 body.kiosk-mode #pos-btn-cobrar{padding:18px!important;font-size:1.1rem!important;}
+body.kiosk-mode #kiosk-tabs{display:flex!important;}
+/* Tarjeta de servicio en curso (kiosco) */
+.svc-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;transition:all 0.2s var(--bez);display:flex;flex-direction:column;gap:6px;position:relative;min-height:120px;touch-action:manipulation;}
+.svc-card:hover{border-color:rgba(201,168,76,0.4);transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,0.3);}
+.svc-card:active{transform:translateY(0);scale:0.98;}
+.svc-card.svc-encurso{border-color:rgba(62,207,142,0.4);background:linear-gradient(135deg,var(--bg3),rgba(62,207,142,0.05));}
+.svc-card-cliente{font-size:0.85rem;font-weight:800;color:var(--text);line-height:1.2;}
+.svc-card-servicio{font-size:0.65rem;color:var(--gold);font-weight:600;}
+.svc-card-barbero{font-size:0.55rem;color:var(--muted);font-family:'DM Mono',monospace;}
+.svc-card-precio{font-family:'DM Mono',monospace;font-size:1rem;font-weight:800;color:var(--green);margin-top:auto;}
+.svc-card-badge{position:absolute;top:8px;right:8px;font-size:0.5rem;font-weight:700;padding:2px 7px;border-radius:6px;}
+.svc-badge-curso{background:rgba(62,207,142,0.15);color:var(--green);}
+.svc-badge-espera{background:rgba(201,168,76,0.15);color:var(--gold);}
 /* Barra kiosco */
 .kiosk-bar{display:none;position:fixed;top:0;left:0;right:0;height:54px;z-index:500;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--glass-border);align-items:center;justify-content:space-between;padding:0 18px;}
 body.kiosk-mode .kiosk-bar{display:flex;}
@@ -4280,9 +4293,16 @@ function renderVentas(){
       <!-- Grilla de productos -->
       <div class="card" style="display:flex;flex-direction:column;min-height:0;">
         <div class="card-header" style="padding:10px 14px;">
-          <div>
-            <div class="card-title" style="font-size:0.8rem;">🛍️ Productos</div>
-            <div style="font-size:0.5rem;color:var(--muted);">Clic para agregar al carrito</div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div>
+              <div class="card-title" style="font-size:0.8rem;" id="pos-grid-title">🛍️ Productos</div>
+              <div style="font-size:0.5rem;color:var(--muted);">Clic para agregar al carrito</div>
+            </div>
+            <!-- Toggle Productos/Servicios (solo kiosco) -->
+            <div class="kiosk-only" id="kiosk-tabs" style="display:none;gap:0;background:var(--bg3);border-radius:8px;overflow:hidden;border:1px solid var(--border);">
+              <button id="kiosk-tab-prod" onclick="kioskTab('productos')" style="font-size:0.62rem;padding:6px 14px;border:none;cursor:pointer;background:var(--gold);color:var(--bg);font-weight:700;">🛍️ Productos</button>
+              <button id="kiosk-tab-serv" onclick="kioskTab('servicios')" style="font-size:0.62rem;padding:6px 14px;border:none;cursor:pointer;background:transparent;color:var(--muted);font-weight:700;">✂️ Servicios</button>
+            </div>
           </div>
           <div style="display:flex;gap:6px;align-items:center;">
             <button class="btn-sm btn-dark" onclick="entrarKiosco()" title="Modo Kiosco (pantalla completa para mostrador)" style="font-size:0.5rem;padding:4px 8px;"><i data-lucide="maximize" style="width:12px;height:12px;"></i> Kiosco</button>
@@ -4294,6 +4314,8 @@ function renderVentas(){
         <div class="pos-grid" id="pos-product-grid">
           ${gridHtml}
         </div>
+        <!-- Grilla de servicios en curso (solo kiosco) -->
+        <div class="pos-grid" id="pos-service-grid" style="display:none;"></div>
       </div>
       <!-- Historial + Reportes -->
       <div class="pos-reportes-tabs">
@@ -6141,6 +6163,7 @@ function entrarKiosco(){
   if(currentPage!=='ventas'){ setPage('ventas', document.getElementById('nav-btn-ventas')); }
   document.body.classList.add('kiosk-mode');
   const nm=document.getElementById('kiosk-shop-name'); if(nm) nm.textContent=S.shopData?.nombre||'AuraOS';
+  setTimeout(()=>kioskTab('productos'),50); // arranca en productos
   // Fullscreen real (si el navegador lo permite)
   const el=document.documentElement;
   if(el.requestFullscreen) el.requestFullscreen().catch(()=>{});
@@ -6170,6 +6193,76 @@ document.addEventListener('fullscreenchange',()=>{
     // (no forzamos salida automática para no bypassear el PIN)
   }
 });
+
+// ── Kiosco: alternar Productos / Servicios ──
+function kioskTab(tab){
+  const prodGrid=document.getElementById('pos-product-grid');
+  const servGrid=document.getElementById('pos-service-grid');
+  const tProd=document.getElementById('kiosk-tab-prod');
+  const tServ=document.getElementById('kiosk-tab-serv');
+  const title=document.getElementById('pos-grid-title');
+  if(!prodGrid||!servGrid)return;
+  if(tab==='servicios'){
+    prodGrid.style.display='none'; servGrid.style.display='grid';
+    tServ.style.background='var(--gold)';tServ.style.color='var(--bg)';
+    tProd.style.background='transparent';tProd.style.color='var(--muted)';
+    if(title)title.textContent='✂️ Servicios en curso';
+    renderServiciosKiosco();
+  }else{
+    prodGrid.style.display='grid'; servGrid.style.display='none';
+    tProd.style.background='var(--gold)';tProd.style.color='var(--bg)';
+    tServ.style.background='transparent';tServ.style.color='var(--muted)';
+    if(title)title.textContent='🛍️ Productos';
+  }
+}
+
+// Mapa de precios de servicios (nombre normalizado → precio)
+function _precioServicio(nombre){
+  const n=(nombre||'').trim().toUpperCase();
+  const s=(S.servicios||[]).find(x=>(x.nombre||'').trim().toUpperCase()===n);
+  return s?(parseFloat(s.precio)||0):0;
+}
+
+function renderServiciosKiosco(){
+  const grid=document.getElementById('pos-service-grid');
+  if(!grid)return;
+  // Citas de hoy aún no completadas/canceladas (en curso o en espera)
+  const pend=(S.citas||[]).filter(c=>c.estado!=='Completada'&&c.estado!=='Cancelada'&&c.estado!=='No-Show');
+  const ahoraMin=(()=>{const d=new Date(new Date().toLocaleString('en-US',{timeZone:S.shopData?.timezone||'America/Santo_Domingo'}));return d.getHours()*60+d.getMinutes();})();
+  if(!pend.length){
+    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);font-size:0.7rem;">No hay servicios pendientes de cobro hoy.</div>';
+    return;
+  }
+  grid.innerHTML=pend.map(c=>{
+    const precio=_precioServicio(c.servicio);
+    const [hh,mm]=(c.hora||'00:00').split(':').map(Number);
+    const ini=hh*60+(mm||0);
+    const enCurso=ahoraMin>=ini && ahoraMin<ini+45;
+    const badge=enCurso?'<span class="svc-card-badge svc-badge-curso">EN CURSO</span>':'<span class="svc-card-badge svc-badge-espera">'+(c.hora||'')+'</span>';
+    return `<div class="svc-card ${enCurso?'svc-encurso':''}" onclick="cobrarServicioKiosco(${c.id})">
+      ${badge}
+      <div class="svc-card-cliente">${esc(c.nombre||'Cliente')}</div>
+      <div class="svc-card-servicio">✂️ ${esc(c.servicio||'Servicio')}</div>
+      <div class="svc-card-barbero">${esc(c.barbero||'—')}</div>
+      <div class="svc-card-precio">${precio>0?'$'+precio.toLocaleString():'Sin precio'}</div>
+    </div>`;
+  }).join('');
+}
+
+async function cobrarServicioKiosco(citaId){
+  const c=_findCita(citaId); if(!c)return;
+  const precio=_precioServicio(c.servicio);
+  const metodo=prompt(`Cobrar servicio de ${c.nombre}\n${c.servicio} · $${precio.toLocaleString()}\n\nMétodo de pago:\n1 = Efectivo\n2 = Tarjeta\n3 = Transferencia`, '1');
+  if(metodo===null)return;
+  const map={'1':'Efectivo','2':'Tarjeta','3':'Transferencia'};
+  const mp=map[metodo.trim()]||'Efectivo';
+  try{
+    await sbPatch('citas','id=eq.'+citaId,{estado:'Completada',metodo_pago:mp});
+    c.estado='Completada'; c.metodo_pago=mp;
+    toast(`✓ ${c.servicio} cobrado · ${mp} · $${precio.toLocaleString()}`,'success');
+    renderServiciosKiosco();
+  }catch(e){toast('Error al cobrar el servicio','error');}
+}
 
 function updateDate(){document.getElementById('page-date').textContent=new Date().toLocaleDateString('es-DO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});}
 setInterval(updateDate,60000);updateDate();
