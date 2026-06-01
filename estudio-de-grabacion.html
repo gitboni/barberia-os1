@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuraOS - Real-Time Demo</title>
+    <!-- Fuente premium -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #020617; /* Slate 950 muy elegante */
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100vh;
+            background-color: var(--bg-color);
+            /* Fondo con gradientes radiales sutiles estilo Vercel/Stripe */
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.15), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.15), transparent 25%);
+            display: flex;
+            flex-direction: column;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            color: white;
+        }
+
+        /* Cabecera Superior Elegante */
+        .demo-header {
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            background: rgba(2, 6, 23, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            z-index: 100;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            font-size: 20px;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-badge {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+            color: white;
+            padding: 4px 12px;
+            border-radius: 100px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Indicador de "En Vivo" */
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            padding: 6px 16px;
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #10b981;
+            animation: pulse-green 2s infinite;
+        }
+
+        /* Espacio de trabajo principal */
+        .workspace {
+            display: flex;
+            flex: 1;
+            position: relative;
+        }
+
+        /* --- Animación de Sincronización en Medio --- */
+        .sync-bridge {
+            position: absolute;
+            top: 50%;
+            left: 450px;
+            right: 0;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sync-data {
+            position: absolute;
+            left: 0;
+            width: 150px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-blue), transparent);
+            animation: sync-flow 2s infinite cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0.8;
+            box-shadow: 0 0 10px var(--accent-blue);
+        }
+
+        .sync-label {
+            background: var(--bg-color);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #e2e8f0;
+            padding: 6px 16px;
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 500;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+        }
+
+        .sync-label svg {
+            width: 14px;
+            height: 14px;
+            color: var(--accent-blue);
+        }
+
+        /* --- Lado Izquierdo: Teléfono --- */
+        .phone-container {
+            width: 450px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            position: relative;
+        }
+
+        .device-label {
+            position: absolute;
+            top: 30px;
+            text-align: center;
+            z-index: 20;
+        }
+
+        .device-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #f8fafc;
+            letter-spacing: 0.5px;
+        }
+
+        .device-subtitle {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        /* Mockup de iPhone ultra-realista */
+        .iphone-frame {
+            width: 375px;
+            height: 812px;
+            background: #000;
+            border-radius: 55px;
+            padding: 14px;
+            box-shadow: 
+                0 0 0 2px #334155, /* Borde gris metálico */
+                0 0 0 6px #0f172a, /* Borde oscuro exterior */
+                0 25px 50px -12px rgba(0, 0, 0, 0.8);
+            position: relative;
+            box-sizing: border-box;
+            transform: scale(0.85); /* Escalar para que quepa bien en pantalla */
+            transition: transform 0.3s ease;
+        }
+
+        .iphone-frame:hover {
+            transform: scale(0.87);
+        }
+
+        .dynamic-island {
+            position: absolute;
+            top: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 35px;
+            background: #000;
+            border-radius: 20px;
+            z-index: 20;
+        }
+
+        .screen {
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            border-radius: 42px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .screen iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* --- Lado Derecho: Admin Panel --- */
+        .admin-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 40px 40px 20px;
+            z-index: 10;
+            position: relative;
+        }
+
+        /* Mockup de Navegador macOS */
+        .admin-frame {
+            width: 100%;
+            max-width: 1200px;
+            height: 85%;
+            background: #ffffff;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 
+                0 0 0 1px rgba(255,255,255,0.1),
+                0 30px 60px -15px rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+        }
+
+        .admin-frame:hover {
+            transform: translateY(-5px);
+        }
+
+        .browser-bar {
+            height: 52px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            position: relative;
+        }
+
+        .mac-dots {
+            display: flex;
+            gap: 8px;
+            position: absolute;
+            left: 20px;
+        }
+
+        .mac-dots span {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .mac-dots span:nth-child(1) { background: #ff5f56; }
+        .mac-dots span:nth-child(2) { background: #ffbd2e; }
+        .mac-dots span:nth-child(3) { background: #27c93f; }
+
+        .browser-address {
+            margin: 0 auto;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 6px 140px;
+            font-size: 13px;
+            color: #64748b;
+            font-family: monospace;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .admin-frame iframe {
+            width: 100%;
+            flex: 1;
+            border: none;
+        }
+
+        /* --- Animaciones Keyframes --- */
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        @keyframes sync-flow {
+            0% { left: 0%; opacity: 0; }
+            10% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { left: 100%; opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Cabecera estilo presentación de producto -->
+    <header class="demo-header">
+        <div class="brand">
+            <!-- Icono genérico minimalista -->
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" color="white"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            AuraOS
+            <span class="brand-badge">Live Demo</span>
+        </div>
+        <div class="status-pill">
+            <div class="status-dot"></div>
+            Real-Time Engine Active
+        </div>
+    </header>
+
+    <div class="workspace">
+        <!-- LÍNEA DE CONEXIÓN VISUAL: Muestra que los dos lados están conectados -->
+        <div class="sync-bridge">
+            <div class="sync-data"></div>
+            <div class="sync-label">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.66 0 3-4.03 3-9s-1.34-9-3-9m0 18c-1.66 0-3-4.03-3-9s1.34-9 3-9"/></svg>
+                Sincronización Supabase
+            </div>
+        </div>
+
+        <!-- Lado Izquierdo: Celular ultra-realista -->
+        <div class="phone-container">
+            <div class="device-label">
+                <div class="device-title">Experiencia del Cliente</div>
+                <div class="device-subtitle">WhatsApp AI Booking</div>
+            </div>
+            <div class="iphone-frame">
+                <!-- Simulación del "Dynamic Island" del iPhone -->
+                <div class="dynamic-island"></div>
+                <div class="screen">
+                    <iframe src="chat-test.html"></iframe>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lado Derecho: Computadora -->
+        <div class="admin-container">
+            <div class="device-label" style="top: 30px;">
+                <div class="device-title">Operaciones del Negocio</div>
+                <div class="device-subtitle">BarberOS Dashboard</div>
+            </div>
+            <div class="admin-frame">
+                <div class="browser-bar">
+                    <!-- Botones de macOS -->
+                    <div class="mac-dots">
+                        <span></span><span></span><span></span>
+                    </div>
+                    <!-- Barra de direcciones limpia -->
+                    <div class="browser-address">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        admin.auraos.app
+                    </div>
+                </div>
+                <iframe src="admin.html"></iframe>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
