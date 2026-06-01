@@ -3523,12 +3523,12 @@
 
     .mq-row {
       display: grid;
-      grid-template-columns: 32px 1fr auto;
+      grid-template-columns: 36px 1fr 1fr auto;
       align-items: center;
       gap: 10px;
-      padding: 12px 16px;
-      border: 0.5px solid rgba(255, 255, 255, 0.12);
-      background: rgba(255, 255, 255, 0.03);
+      padding: 14px 16px;
+      border: 0.5px solid rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.04);
       backdrop-filter: blur(20px) saturate(150%);
       -webkit-backdrop-filter: blur(20px) saturate(150%);
       position: relative;
@@ -3536,14 +3536,15 @@
       animation: item-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
       opacity: 0;
       flex-shrink: 0;
-      min-height: 52px;
+      min-height: 60px;
       border-radius: 20px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
     }
 
     .mq-row.mn {
       border-left: 3px solid var(--gold);
-      background: rgba(255, 214, 0, 0.02);
+      background: rgba(255, 214, 0, 0.04);
+      box-shadow: 0 2px 14px rgba(212,175,55,0.08);
     }
 
     .mq-row.ma {
@@ -3552,14 +3553,14 @@
     }
 
     .mq-row.mw {
-      border-left: 3px solid rgba(0, 245, 255, 0.06);
+      border-left: 3px solid rgba(0, 245, 255, 0.10);
     }
 
     .mq-n {
       font-family: 'Outfit', monospace;
       font-size: 0.9rem;
       font-weight: 700;
-      color: rgba(0, 245, 255, 0.25);
+      color: rgba(0, 245, 255, 0.30);
     }
 
     .mq-row.mn .mq-n {
@@ -3568,8 +3569,8 @@
 
     .mq-info .mq-name {
       font-family: 'Rajdhani', sans-serif;
-      font-size: 0.8rem;
-      font-weight: 600;
+      font-size: 0.85rem;
+      font-weight: 700;
       color: #fff;
       letter-spacing: 0.06em;
       text-transform: uppercase;
@@ -3579,11 +3580,23 @@
     }
 
     .mq-info .mq-svc {
-      font-family: 'Inter', monospace;
-      font-size: 0.38rem;
-      color: rgba(255, 255, 255, 0.18);
-      margin-top: 1px;
+      display: none;
     }
+
+    .mq-svc-center {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.58rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.50);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .mq-row.mn .mq-svc-center { color: rgba(212,175,55,0.70); }
+    .mq-row.mw .mq-svc-center { color: rgba(0,245,255,0.40); }
 
     .mq-r {
       display: flex;
@@ -6762,7 +6775,8 @@
         + (pending.length ? pending.map((c, i) => {
           const pos = i + 2; const eta = calcLiveETA(pos - 1, barber); const cls = i === 0 ? 'mn' : i === 1 ? 'ma' : 'mw'; const num = currentTurn + i + 1;
           return '<div class="mq-row ' + cls + '" style="animation-delay:' + i * 0.04 + 's"><div class="mq-n">' + String(num).padStart(2, '0') + '</div>'
-            + '<div class="mq-info"><div class="mq-name">' + cap(c.name) + '</div><div class="mq-svc">' + cap(c.servicio) + '</div></div>'
+            + '<div class="mq-info"><div class="mq-name">' + cap(c.name) + '</div></div>'
+            + '<div class="mq-svc-center">' + cap(c.servicio) + '</div>'
             + '<div class="mq-r"><div class="mq-time">' + fmt12(c.time) + '</div>' + (eta ? '<div class="mq-eta">⏱' + eta + '</div>' : '')
             // FEATURE: transferir en multi
             + '<button class="btn-transfer" style="font-size:0.36rem;padding:2px 6px;" onclick="openTransferirCita(\'' + c.id + '\',\'' + c.name.replace(/'/g, '\\\'') + '\'  ,\'' + c.time + '\',\'' + barber.replace(/'/g, '\\\'') + '\'  ,' + num + ')">↔</button>'
