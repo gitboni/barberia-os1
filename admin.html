@@ -499,9 +499,47 @@ button:focus:not(:focus-visible){outline:none;}
   .pos-checkout{max-height:none;}
   .pos-reportes-tabs{flex-wrap:wrap;}
 }
+
+/* ══ MODO KIOSCO ══ Tablet/mostrador desatendido, fullscreen táctil */
+body.kiosk-mode aside,
+body.kiosk-mode .topbar,
+body.kiosk-mode .walkin-fab,
+body.kiosk-mode .sidebar-overlay,
+body.kiosk-mode .pos-stats,
+body.kiosk-mode .pos-reportes-tabs,
+body.kiosk-mode .pos-hist-card{display:none!important;}
+body.kiosk-mode .app{grid-template-columns:1fr;}
+body.kiosk-mode .content{padding:0;gap:0;}
+/* Layout kiosco: grilla grande + carrito prominente */
+body.kiosk-mode .pos-layout{grid-template-columns:1fr 380px;gap:0;height:calc(100dvh - 54px);height:calc(100vh - 54px);}
+body.kiosk-mode .pos-layout > div:first-child{gap:0;height:100%;}
+body.kiosk-mode .pos-layout > div:first-child > .card{flex:1;min-height:0;border-radius:0;}
+body.kiosk-mode .pos-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;max-height:none;padding:16px;overflow-y:auto;}
+body.kiosk-mode .pos-product-card{padding:14px 10px;min-height:120px;touch-action:manipulation;}
+body.kiosk-mode .pos-product-name{font-size:0.8rem;}
+body.kiosk-mode .pos-product-price{font-size:0.95rem;}
+body.kiosk-mode .pos-cart-panel{max-height:none;height:100%;border-left:1px solid var(--border);border-radius:0;}
+body.kiosk-mode .pos-cart-items{max-height:none;flex:1;}
+body.kiosk-mode .pos-cart-item{padding:10px 0;}
+body.kiosk-mode .pos-qty-btn{width:30px;height:30px;font-size:1rem;touch-action:manipulation;}
+body.kiosk-mode #pos-btn-cobrar{padding:18px!important;font-size:1.1rem!important;}
+/* Barra kiosco */
+.kiosk-bar{display:none;position:fixed;top:0;left:0;right:0;height:54px;z-index:500;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--glass-border);align-items:center;justify-content:space-between;padding:0 18px;}
+body.kiosk-mode .kiosk-bar{display:flex;}
+body.kiosk-mode .content{padding-top:54px!important;}
+body.kiosk-mode .pos-layout{height:calc(100dvh - 54px);height:calc(100vh - 54px);}
+.kiosk-bar-brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:0.95rem;color:var(--gold);}
+.kiosk-bar-exit{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.25);color:var(--red);border-radius:10px;font-weight:700;font-size:0.72rem;cursor:pointer;touch-action:manipulation;}
+.kiosk-bar-exit:hover{background:rgba(248,113,113,0.16);}
 </style>
 </head>
 <body>
+
+<!-- ══ BARRA MODO KIOSCO ══ -->
+<div class="kiosk-bar" id="kiosk-bar">
+  <div class="kiosk-bar-brand"><i data-lucide="shopping-cart" style="width:18px;height:18px;"></i> <span id="kiosk-shop-name">AuraOS</span> · Venta</div>
+  <button class="kiosk-bar-exit" onclick="salirKiosco()"><i data-lucide="lock" style="width:14px;height:14px;"></i> Salir (PIN)</button>
+</div>
 
 <style>
 .pin-dot{width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.2);background:transparent;transition:all 0.15s;}
@@ -4247,6 +4285,7 @@ function renderVentas(){
             <div style="font-size:0.5rem;color:var(--muted);">Clic para agregar al carrito</div>
           </div>
           <div style="display:flex;gap:6px;align-items:center;">
+            <button class="btn-sm btn-dark" onclick="entrarKiosco()" title="Modo Kiosco (pantalla completa para mostrador)" style="font-size:0.5rem;padding:4px 8px;"><i data-lucide="maximize" style="width:12px;height:12px;"></i> Kiosco</button>
             <button class="btn-sm btn-dark" onclick="imprimirTodasEtiquetas()" title="Imprimir etiquetas QR" style="font-size:0.5rem;padding:4px 8px;">🏷️</button>
             <input type="text" id="pos-search" placeholder="🔍 Buscar…" oninput="filterVentasGrid()"
               style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:8px;font-size:0.68rem;width:140px;">
@@ -6095,6 +6134,42 @@ function toggleSidebar(){
   const isOpen=aside.classList.toggle('open');
   if(overlay) overlay.classList.toggle('visible', isOpen);
 }
+
+// ══ MODO KIOSCO ══
+function entrarKiosco(){
+  // Asegura estar en la pantalla de ventas
+  if(currentPage!=='ventas'){ setPage('ventas', document.getElementById('nav-btn-ventas')); }
+  document.body.classList.add('kiosk-mode');
+  const nm=document.getElementById('kiosk-shop-name'); if(nm) nm.textContent=S.shopData?.nombre||'AuraOS';
+  // Fullscreen real (si el navegador lo permite)
+  const el=document.documentElement;
+  if(el.requestFullscreen) el.requestFullscreen().catch(()=>{});
+  else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+  if(window.lucide) lucide.createIcons();
+  toast('🖥️ Modo Kiosco activo','success');
+}
+
+async function salirKiosco(){
+  // Si hay PIN configurado, pedirlo para salir (evita que un empleado entre al panel)
+  if(_pinHash){
+    const intento=prompt('Ingresa el PIN del administrador para salir del modo kiosco:');
+    if(intento===null) return; // canceló
+    const h=await sha256(intento.trim());
+    if(h!==_pinHash){ toast('PIN incorrecto','error'); return; }
+  }
+  document.body.classList.remove('kiosk-mode');
+  if(document.exitFullscreen) document.exitFullscreen().catch(()=>{});
+  else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
+  toast('Modo kiosco desactivado','info');
+}
+
+// Si el usuario sale de fullscreen con F11/Esc del navegador, mantener coherencia
+document.addEventListener('fullscreenchange',()=>{
+  if(!document.fullscreenElement && document.body.classList.contains('kiosk-mode')){
+    // Salió de fullscreen pero sigue en kiosk visual — re-mostrar barra para que pueda salir con PIN
+    // (no forzamos salida automática para no bypassear el PIN)
+  }
+});
 
 function updateDate(){document.getElementById('page-date').textContent=new Date().toLocaleDateString('es-DO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});}
 setInterval(updateDate,60000);updateDate();
