@@ -6087,16 +6087,26 @@ Promise.resolve().then(()=>{
 async function loadVip(){
   const el=document.getElementById('page-content');
   try{
-    const bIds=S.barberos.map(b=>b.id);
-    if(!bIds.length){el.innerHTML='<div style="padding:20px;color:var(--muted);">Sin barberos registrados.</div>';return;}
-    const prefs=await sbGet('clientes_preferenciales',`barbero_id=in.(${bIds.join(',')})&activo=eq.true&select=id,nombre,telefono,dia_semana,hora,servicio,activo,barbero_id&order=dia_semana.asc,hora.asc`).catch(()=>[]);
+    // Usar shop_id directo (más simple y confiable que filtrar por barbero_id)
+    const prefs=await sbGet('clientes_preferenciales',`shop_id=eq.${S.shopId}&activo=eq.true&select=id,nombre,telefono,dia_semana,hora,servicio,activo,barbero_id&order=dia_semana.asc,hora.asc`).catch(()=>[]);
+    // Citas preferenciales generadas esta semana (estado Confirmada, nota contiene ⭐)
+    const hoy=new Date();
+    const lunes=new Date(hoy);lunes.setDate(hoy.getDate()-((hoy.getDay()+6)%7));
+    const domingo=new Date(lunes);domingo.setDate(lunes.getDate()+6);
+    const fmt=d=>d.toISOString().split('T')[0];
+    const citasVip=await sbGet('citas',`shop_id=eq.${S.shopId}&fecha=gte.${fmt(lunes)}&fecha=lte.${fmt(domingo)}&nota=ilike.*preferencial*&select=nombre,fecha,hora,barbero,estado`).catch(()=>[]);
+    const citasSet=new Set(citasVip.map(c=>`${(c.nombre||'').toLowerCase().trim()}`));
     // badge sidebar
     const badge=document.getElementById('nb-vip');
     if(badge){if(prefs.length>0){badge.textContent=prefs.length;badge.style.display='';}else badge.style.display='none';}
-    // Agrupar por barbero
+    // Agrupar por barbero (usando barbero_id de los prefs + S.barberos para nombre)
+    const barbMap={};for(const b of S.barberos)barbMap[b.id]=b.nombre;
     const byBarb={};
     for(const b of S.barberos) byBarb[b.id]={nombre:b.nombre,items:[]};
-    for(const p of prefs){if(byBarb[p.barbero_id])byBarb[p.barbero_id].items.push(p);}
+    for(const p of prefs){
+      if(!byBarb[p.barbero_id]) byBarb[p.barbero_id]={nombre:barbMap[p.barbero_id]||'Barbero',items:[]};
+      byBarb[p.barbero_id].items.push(p);
+    }
     const dias=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
     let html=`<div style="max-width:860px;">
       <div class="card" style="margin-bottom:18px;border-color:rgba(201,168,76,0.3);">
@@ -6125,14 +6135,21 @@ async function loadVip(){
             <th style="text-align:left;padding:5px 6px;font-size:.55rem;color:var(--muted);font-weight:400;">DÍA</th>
             <th style="text-align:left;padding:5px 6px;font-size:.55rem;color:var(--muted);font-weight:400;">HORA</th>
             <th style="text-align:left;padding:5px 6px;font-size:.55rem;color:var(--muted);font-weight:400;">SERVICIO</th>
+            <th style="text-align:left;padding:5px 6px;font-size:.55rem;color:var(--muted);font-weight:400;">ESTA SEMANA</th>
           </tr></thead><tbody>`;
       for(const p of grp.items){
+        const generada=citasSet.has((p.nombre||'').toLowerCase().trim());
+        const cVip=citasVip.find(c=>(c.nombre||'').toLowerCase().trim()===(p.nombre||'').toLowerCase().trim());
+        const estadoBadge=generada
+          ?`<span style="font-size:.6rem;font-weight:700;color:var(--green);background:rgba(62,207,142,0.1);border:1px solid rgba(62,207,142,0.3);border-radius:4px;padding:2px 7px;">✓ ${(cVip?.fecha||'').slice(5)} ${fmt12b(cVip?.hora||'')}</span>`
+          :`<span style="font-size:.6rem;font-weight:700;color:var(--muted);background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:4px;padding:2px 7px;">Pendiente</span>`;
         html+=`<tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
           <td style="padding:7px 6px;font-size:.72rem;font-weight:600;color:var(--text);">${DOMPurify.sanitize(p.nombre)}</td>
           <td style="padding:7px 6px;font-size:.7rem;color:var(--muted);">${DOMPurify.sanitize(p.telefono||'—')}</td>
           <td style="padding:7px 6px;font-size:.72rem;color:var(--gold);font-weight:700;">${dias[p.dia_semana]||'?'}</td>
           <td style="padding:7px 6px;font-size:.72rem;color:var(--text);">${(p.hora||'').substring(0,5)}</td>
           <td style="padding:7px 6px;font-size:.7rem;color:var(--muted);">${DOMPurify.sanitize(p.servicio||'—')}</td>
+          <td style="padding:7px 6px;">${estadoBadge}</td>
         </tr>`;
       }
       html+=`</tbody></table></div>`;
