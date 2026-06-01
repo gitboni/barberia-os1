@@ -791,8 +791,8 @@ tr:last-child td{border-bottom:none;}
       <button class="btn-full btn-cancel" onclick="closeModal('config')">Cancelar</button>
     </div>
     <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);display:flex;gap:8px;">
-      <button class="btn-full" onclick="cambiarPin()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);font-size:0.65rem;padding:10px;">🔑 Cambiar PIN</button>
-      <button class="btn-full" onclick="sessionStorage.removeItem('barberos_auth_'+SHOP_SLUG);location.reload();" style="background:rgba(248,113,113,0.06);border:1px solid rgba(248,113,113,0.15);color:#F87171;font-size:0.65rem;padding:10px;">🚪 Cerrar sesión</button>
+      <button class="btn-full" onclick="cambiarPin()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);font-size:0.65rem;padding:10px;display:flex;align-items:center;justify-content:center;gap:6px;"><i data-lucide="key-round" style="width:13px;height:13px;"></i> Cambiar PIN</button>
+      <button class="btn-full" onclick="sessionStorage.removeItem('barberos_auth_'+SHOP_SLUG);location.reload();" style="background:rgba(248,113,113,0.06);border:1px solid rgba(248,113,113,0.15);color:#F87171;font-size:0.65rem;padding:10px;display:flex;align-items:center;justify-content:center;gap:6px;"><i data-lucide="log-out" style="width:13px;height:13px;"></i> Cerrar sesión</button>
     </div>
   </div>
 </div>
@@ -1569,11 +1569,11 @@ function renderClientesRows(lista){
       <td><span class="badge ${visitas>5?'badge-green':visitas>0?'badge-blue':'badge-gray'}">${visitas} v.</span></td>
       <td style="font-family:'DM Mono',monospace;font-size:0.66rem;color:var(--muted);">${ult}</td>
       <td><div class="row-actions">
-        <button class="ra-btn" onclick="_clAcc(${i},'hist')">📋</button>
-        <button class="ra-btn success" onclick="_clAcc(${i},'cita')">📅</button>
-        <button class="ra-btn" onclick="_clAcc(${i},'wa')">💬</button>
-        <button class="ra-btn" onclick="_clAcc(${i},'reset')">🔑</button>
-        <button class="ra-btn" onclick="_clAcc(${i},'edit')">✏️</button>
+        <button class="ra-btn" onclick="_clAcc(${i},'hist')" title="Historial"><i data-lucide="clock" style="width:13px;height:13px;"></i></button>
+        <button class="ra-btn success" onclick="_clAcc(${i},'cita')" title="Nueva cita"><i data-lucide="calendar-plus" style="width:13px;height:13px;"></i></button>
+        <button class="ra-btn" onclick="_clAcc(${i},'wa')" title="WhatsApp"><i data-lucide="message-circle" style="width:13px;height:13px;"></i></button>
+        <button class="ra-btn" onclick="_clAcc(${i},'reset')" title="Reset contraseña"><i data-lucide="lock-keyhole" style="width:13px;height:13px;"></i></button>
+        <button class="ra-btn" onclick="_clAcc(${i},'edit')" title="Editar"><i data-lucide="pencil" style="width:13px;height:13px;"></i></button>
       </div></td>
     </tr>`;
   }).join('');
@@ -1591,6 +1591,7 @@ function filterClientes(){
   const q=(document.getElementById('search-clientes').value||'').toLowerCase();
   const f=q?S.clientes.filter(c=>c.nombre.toLowerCase().includes(q)||c.telefono.includes(q)):S.clientes;
   document.getElementById('clientes-tbody').innerHTML=renderClientesRows(f);
+  if(window.lucide) lucide.createIcons();
 }
 function editarCliente(id,nombre,tel,notas,etiqueta){
   document.getElementById('modal-cliente-title').textContent='Editar Cliente';
@@ -5667,7 +5668,7 @@ function renderCaja(){
       </div>
       <div style="padding:0 16px 16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
         <input type="text" id="arqNotas" placeholder="Notas del cierre (opcional)" style="flex:1;min-width:180px;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:9px 11px;border-radius:8px;font-size:.78rem;">
-        <button class="btn-sm btn-gold" onclick="guardarCierreCaja()" style="padding:10px 20px;">🔒 Cerrar caja y guardar</button>
+        <button class="btn-sm btn-gold" onclick="guardarCierreCaja()" style="padding:10px 20px;display:inline-flex;align-items:center;gap:7px;"><i data-lucide="vault" style="width:14px;height:14px;"></i> Cerrar caja y guardar</button>
       </div>
     </div>
 
