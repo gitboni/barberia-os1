@@ -1104,20 +1104,13 @@ tr:hover td{background:rgba(255,255,255,0.016);}
     <div class="page" id="page-simulador">
       <div class="section-header">
         <div class="section-title">🧪 Simulador de Chat WhatsApp</div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <!-- Selector de barbería -->
-          <select id="sim-shop-sel" onchange="loadSimShop(this.value)"
-            style="background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:6px 12px;font-size:0.75rem;border-radius:6px;cursor:pointer;min-width:200px;outline:none;">
-            <option value="">— Todas las barberías —</option>
-          </select>
-          <button class="btn btn-ghost" onclick="window.open('chat-test.html?shop='+(document.getElementById('sim-shop-sel').value||''),'_blank')">↗ Abrir en ventana nueva</button>
-        </div>
+        <button class="btn btn-ghost" onclick="window.open('chat-test.html','_blank')">↗ Abrir en ventana nueva</button>
       </div>
       <div style="background:rgba(37,211,102,0.05);border:1px solid rgba(37,211,102,0.2);border-left:3px solid var(--green);padding:12px 16px;margin-bottom:16px;font-size:0.62rem;color:var(--muted);">
-        💬 <strong style="color:var(--green);">Simulador de Chat</strong> — Prueba flujos de WhatsApp sin consumir créditos ni mensajes reales. Elige una barbería para cargarla directo.
+        💬 <strong style="color:var(--green);">Simulador de Chat</strong> — Prueba flujos de WhatsApp sin consumir créditos ni mensajes reales.
       </div>
       <div style="border:1px solid var(--border);overflow:hidden;height:calc(100vh - 200px);min-height:600px;">
-        <iframe id="sim-frame" src="chat-test.html" style="width:100%;height:100%;border:none;" loading="lazy"></iframe>
+        <iframe src="chat-test.html" style="width:100%;height:100%;border:none;" loading="lazy"></iframe>
       </div>
     </div>
 
@@ -2074,8 +2067,7 @@ function showPage(id, el) {
     grupos:loadGrupos,
     auditoria:loadAuditoria,
     'system-logs':loadSystemLogs,
-    'bot-salud':() => { initBotSaludFilter(); loadBotSalud(); },
-    simulador: populateSimShops
+    'bot-salud':() => { initBotSaludFilter(); loadBotSalud(); }
   };
   if(loaders[id]) loaders[id]();
   if(window.lucide) setTimeout(lucide.createIcons, 100);
@@ -6697,28 +6689,6 @@ async function clearSystemLogs() {
     await fetch(`${SUPABASE_URL}/rest/v1/logs_sistema`, { method:'DELETE', headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${_accessToken||SUPABASE_KEY}`} });
     showToast('Logs eliminados','success'); loadSystemLogs();
   } catch(e) { showToast(e.message,'error'); }
-}
-
-// ── SIMULADOR: selector de barberías ─────────────────────────
-function populateSimShops() {
-  const sel = document.getElementById('sim-shop-sel');
-  if (!sel) return;
-  // Guardar selección actual
-  const current = sel.value;
-  // Limpiar y repoblar con los shops ya cargados en memoria
-  const shops = (_shops || []).slice().sort((a,b) => (a.nombre||'').localeCompare(b.nombre||''));
-  sel.innerHTML = '<option value="">— Todas las barberías —</option>' +
-    shops.map(s => `<option value="${s.id}"${s.id === current ? ' selected' : ''}>${s.nombre}${s.activo === false ? ' (inactiva)' : ''}</option>`).join('');
-}
-
-function loadSimShop(shopId) {
-  const frame = document.getElementById('sim-frame');
-  if (!frame) return;
-  const url = shopId ? `chat-test.html?shop=${encodeURIComponent(shopId)}` : 'chat-test.html';
-  frame.src = url;
-  // También actualizar el botón "abrir en ventana nueva"
-  const shop = (_shops || []).find(s => s.id === shopId);
-  if (shop) addLog('INFO', `Simulador cargado: ${shop.nombre}`);
 }
 
 </script>
