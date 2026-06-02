@@ -1104,13 +1104,20 @@ tr:hover td{background:rgba(255,255,255,0.016);}
     <div class="page" id="page-simulador">
       <div class="section-header">
         <div class="section-title">🧪 Simulador de Chat WhatsApp</div>
-        <button class="btn btn-ghost" onclick="window.open('chat-test.html','_blank')">↗ Abrir en ventana nueva</button>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <!-- Selector de barbería -->
+          <select id="sim-shop-sel" onchange="loadSimShop(this.value)"
+            style="background:var(--bg3);border:1px solid var(--border2);color:var(--text);padding:6px 12px;font-size:0.75rem;border-radius:6px;cursor:pointer;min-width:200px;outline:none;">
+            <option value="">— Todas las barberías —</option>
+          </select>
+          <button class="btn btn-ghost" onclick="window.open('chat-test.html?shop='+(document.getElementById('sim-shop-sel').value||''),'_blank')">↗ Abrir en ventana nueva</button>
+        </div>
       </div>
       <div style="background:rgba(37,211,102,0.05);border:1px solid rgba(37,211,102,0.2);border-left:3px solid var(--green);padding:12px 16px;margin-bottom:16px;font-size:0.62rem;color:var(--muted);">
-        💬 <strong style="color:var(--green);">Simulador de Chat</strong> — Prueba flujos de WhatsApp sin consumir créditos ni mensajes reales.
+        💬 <strong style="color:var(--green);">Simulador de Chat</strong> — Prueba flujos de WhatsApp sin consumir créditos ni mensajes reales. Elige una barbería para cargarla directo.
       </div>
       <div style="border:1px solid var(--border);overflow:hidden;height:calc(100vh - 200px);min-height:600px;">
-        <iframe src="chat-test.html" style="width:100%;height:100%;border:none;" loading="lazy"></iframe>
+        <iframe id="sim-frame" src="chat-test.html" style="width:100%;height:100%;border:none;" loading="lazy"></iframe>
       </div>
     </div>
 
@@ -1719,6 +1726,8 @@ tr:hover td{background:rgba(255,255,255,0.016);}
 
 let SUPABASE_URL = 'https://mmokunpuslcfphalrwot.supabase.co';
 let SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tb2t1bnB1c2xjZnBoYWxyd290Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3NTQ1OTQsImV4cCI6MjA4ODMzMDU5NH0.yKALMgKeUzU1ouRPhuGhZ2JCJs1yRt2Gf78igzkSY14';
+// Fecha de HOY en zona horaria RD (evita el bug de UTC que adelanta el día de noche)
+function hoyRD(){const d=new Date(new Date().toLocaleString('en-US',{timeZone:'America/Santo_Domingo'}));return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 let PLAN_PRICES  = { free: 0, pro: 29, elite: 79 };
 let AUTO_REFRESH_SECS = 300;
 let refreshTimer = null;
@@ -2005,7 +2014,7 @@ window.addEventListener('load', () => {
   // ✅ FIX: Precargar config en el form
   document.getElementById('cfgSupabaseUrl').value = SUPABASE_URL;
   document.getElementById('cfgSupabaseKey').value = SUPABASE_KEY;
-  document.getElementById('citasFecha').value = new Date().toISOString().split('T')[0];
+  document.getElementById('citasFecha').value = hoyRD();
 
   const savedAuth = sessionStorage.getItem('sa_auth') || localStorage.getItem('sa_auth');
   if(savedAuth === 'ok') {
@@ -2061,13 +2070,14 @@ function showPage(id, el) {
     pagos:loadPayments, facturacion:loadFacturacion, whatsapp:loadWebhooks,
     logs:loadLogs, solicitudes:loadSolicitudes, seguridad:loadSeguridad,
     leads:loadLeads, reportes:loadReportesPage,
-    citas:() => { document.getElementById('citasFecha').value=new Date().toISOString().split('T')[0]; loadCitas(); },
+    citas:() => { document.getElementById('citasFecha').value=hoyRD(); loadCitas(); },
     estado:loadEstado,
     broadcast:loadBroadcast,
     grupos:loadGrupos,
     auditoria:loadAuditoria,
     'system-logs':loadSystemLogs,
-    'bot-salud':() => { initBotSaludFilter(); loadBotSalud(); }
+    'bot-salud':() => { initBotSaludFilter(); loadBotSalud(); },
+    simulador: populateSimShops
   };
   if(loaders[id]) loaders[id]();
   if(window.lucide) setTimeout(lucide.createIcons, 100);
@@ -3516,10 +3526,11 @@ async function loadClientesApp() {
 
   // KPIs
   const now = new Date();
-  const hoy = now.toISOString().split('T')[0];
+  const hoy = hoyRD();
   const semanaMs = 7*24*60*60*1000;
   const mesInicio = new Date(now.getFullYear(), now.getMonth(), 1);
-  const nuevosHoy = clientes.filter(c=>c.created_at?.startsWith(hoy)).length;
+  const _fRD=ts=>{try{const d=new Date(new Date(ts).toLocaleString('en-US',{timeZone:'America/Santo_Domingo'}));return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}catch(_){return'';}};
+  const nuevosHoy = clientes.filter(c=>c.created_at&&_fRD(c.created_at)===hoy).length;
   const nuevosSemana = clientes.filter(c=>new Date(c.created_at)>=(new Date(Date.now()-semanaMs))).length;
   const nuevosMes = clientes.filter(c=>new Date(c.created_at)>=mesInicio).length;
   document.getElementById('ca-total').textContent = clientes.length;
@@ -4541,7 +4552,7 @@ async function loadCitas() {
       exportSel.appendChild(opt);
     });
   }
-  const fecha=document.getElementById('citasFecha').value||new Date().toISOString().split('T')[0];
+  const fecha=document.getElementById('citasFecha').value||hoyRD();
   try {
     // ✅ FIX: en Supabase el campo es "nombre" no "nombre_cliente"
     const citas=usingDemo?DEMO.citas:await sbGet('citas',`select=*&fecha=eq.${fecha}&order=hora.asc`);
@@ -6689,6 +6700,28 @@ async function clearSystemLogs() {
     await fetch(`${SUPABASE_URL}/rest/v1/logs_sistema`, { method:'DELETE', headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${_accessToken||SUPABASE_KEY}`} });
     showToast('Logs eliminados','success'); loadSystemLogs();
   } catch(e) { showToast(e.message,'error'); }
+}
+
+// ── SIMULADOR: selector de barberías ─────────────────────────
+function populateSimShops() {
+  const sel = document.getElementById('sim-shop-sel');
+  if (!sel) return;
+  // Guardar selección actual
+  const current = sel.value;
+  // Limpiar y repoblar con los shops ya cargados en memoria
+  const shops = (_shops || []).slice().sort((a,b) => (a.nombre||'').localeCompare(b.nombre||''));
+  sel.innerHTML = '<option value="">— Todas las barberías —</option>' +
+    shops.map(s => `<option value="${s.id}"${s.id === current ? ' selected' : ''}>${s.nombre}${s.activo === false ? ' (inactiva)' : ''}</option>`).join('');
+}
+
+function loadSimShop(shopId) {
+  const frame = document.getElementById('sim-frame');
+  if (!frame) return;
+  const url = shopId ? `chat-test.html?shop=${encodeURIComponent(shopId)}` : 'chat-test.html';
+  frame.src = url;
+  // También actualizar el botón "abrir en ventana nueva"
+  const shop = (_shops || []).find(s => s.id === shopId);
+  if (shop) addLog('INFO', `Simulador cargado: ${shop.nombre}`);
 }
 
 </script>
