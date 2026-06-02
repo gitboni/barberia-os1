@@ -483,7 +483,18 @@ body.kiosk-mode .pos-cart-remove{font-size:0.95rem;padding:8px 10px;}
 /* Kiosco: el panel del carrito usa toda la altura y el checkout no se corta */
 body.kiosk-mode .pos-cart-panel{position:static!important;height:100%;max-height:none;}
 body.kiosk-mode .pos-cart-items{flex:1;max-height:none;}
-body.kiosk-mode .pos-checkout{max-height:none!important;overflow-y:visible;flex-shrink:0;}
+body.kiosk-mode .pos-checkout{max-height:none!important;overflow-y:visible;flex-shrink:0;padding:14px 16px;}
+/* Kiosco: zona de cobro más grande y legible para el mostrador */
+body.kiosk-mode .pos-checkout label{font-size:0.62rem;}
+body.kiosk-mode .pos-checkout select,body.kiosk-mode .pos-checkout input{padding:9px 11px;font-size:0.8rem;border-radius:8px;}
+body.kiosk-mode .pos-checkout .fg{margin-bottom:8px;}
+body.kiosk-mode .pos-checkout-row{gap:10px;}
+body.kiosk-mode #pos-subtotal-val{font-size:0.95rem!important;}
+body.kiosk-mode #pos-total-final{font-size:1.5rem!important;}
+body.kiosk-mode .pos-checkout > div:first-child span{font-size:0.78rem!important;}
+body.kiosk-mode #pos-btn-cobrar{padding:20px!important;font-size:1.25rem!important;border-radius:14px;margin-top:6px;}
+body.kiosk-mode .pos-total-final-row{padding:12px 0!important;}
+body.kiosk-mode .pos-total-label-txt{font-size:1rem!important;}
 .pos-checkout{padding:8px 10px;border-top:1px solid var(--border);overflow-y:auto;max-height:calc(100vh - 280px);}
 .pos-checkout .fg{margin-bottom:4px;}
 .pos-checkout label{font-size:0.5rem;color:var(--muted);}
@@ -4468,8 +4479,8 @@ function renderVentas(){
           <span style="font-size:0.55rem;color:var(--red);font-weight:700;min-width:40px;text-align:right;display:none;" id="pos-desc-display">-$0</span>
         </div>
         <div id="pos-desc-row" style="display:none;"></div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-top:2px solid var(--gold);border-bottom:1px solid var(--border);margin-bottom:5px;">
-          <span style="font-size:0.75rem;font-weight:800;">TOTAL</span>
+        <div class="pos-total-final-row" style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-top:2px solid var(--gold);border-bottom:1px solid var(--border);margin-bottom:5px;">
+          <span class="pos-total-label-txt" style="font-size:0.75rem;font-weight:800;">TOTAL</span>
           <span style="font-size:0.95rem;font-weight:800;color:var(--green);" id="pos-total-final">$${totalCarrito.toLocaleString()}</span>
         </div>
         <!-- Cliente + Vendedor en 2 cols -->
