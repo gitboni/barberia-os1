@@ -456,17 +456,30 @@ body.kiosk-mode .pos-product-card:hover{transform:translateY(-4px);box-shadow:0 
 .pos-cart-panel{display:flex;flex-direction:column;max-height:none;overflow:visible;}
 .pos-cart-panel .card-header{padding:8px 12px;}
 .pos-cart-items{overflow-y:auto;padding:0 8px;max-height:120px;min-height:0;}
-.pos-cart-item{display:flex;align-items:center;gap:5px;padding:5px 0;border-bottom:1px solid var(--border);}
+.pos-cart-item{display:flex;align-items:center;gap:8px;padding:9px 4px;border-bottom:1px solid var(--border);transition:background 0.3s;}
+.pos-cart-item:last-child{border-bottom:none;}
+.pos-cart-item.just-added{animation:cartAdd 0.6s var(--bez);}
+@keyframes cartAdd{0%{background:rgba(201,168,76,0.18);}100%{background:transparent;}}
 .pos-cart-info{flex:1;min-width:0;}
-.pos-cart-name{font-size:0.62rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.pos-cart-unit{font-family:'DM Mono',monospace;font-size:0.46rem;color:var(--muted);}
-.pos-cart-qty{display:flex;align-items:center;gap:2px;}
-.pos-qty-btn{width:18px;height:18px;border-radius:4px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:0.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}
+.pos-cart-name{font-size:0.7rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pos-cart-unit{font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);margin-top:1px;}
+.pos-cart-qty{display:flex;align-items:center;gap:4px;}
+.pos-qty-btn{width:24px;height:24px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:0.85rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s,border-color 0.15s;touch-action:manipulation;}
 .pos-qty-btn:hover{background:rgba(201,168,76,0.15);border-color:var(--gold);}
-.pos-qty-val{font-family:'DM Mono',monospace;font-size:0.65rem;font-weight:700;min-width:16px;text-align:center;}
-.pos-cart-subtotal{font-family:'DM Mono',monospace;font-size:0.62rem;font-weight:700;color:var(--green);min-width:42px;text-align:right;}
-.pos-cart-remove{background:none;border:none;color:var(--red);cursor:pointer;font-size:0.55rem;padding:2px;opacity:0.5;transition:opacity 0.15s;}
+.pos-qty-btn:active{transform:scale(0.92);}
+.pos-qty-val{font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:800;min-width:20px;text-align:center;}
+.pos-cart-subtotal{font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:800;color:var(--green);min-width:48px;text-align:right;}
+.pos-cart-remove{background:none;border:none;color:var(--red);cursor:pointer;font-size:0.7rem;padding:4px 6px;opacity:0.5;transition:opacity 0.15s;touch-action:manipulation;}
 .pos-cart-remove:hover{opacity:1;}
+.pos-cart-empty{text-align:center;padding:36px 12px;color:var(--muted);}
+/* Carrito en kiosco: más grande y táctil */
+body.kiosk-mode .pos-cart-item{padding:13px 6px;gap:10px;}
+body.kiosk-mode .pos-cart-name{font-size:0.85rem;}
+body.kiosk-mode .pos-cart-unit{font-size:0.6rem;}
+body.kiosk-mode .pos-qty-btn{width:38px;height:38px;font-size:1.1rem;border-radius:9px;}
+body.kiosk-mode .pos-qty-val{font-size:0.95rem;min-width:28px;}
+body.kiosk-mode .pos-cart-subtotal{font-size:0.95rem;min-width:64px;}
+body.kiosk-mode .pos-cart-remove{font-size:0.95rem;padding:8px 10px;}
 .pos-checkout{padding:8px 10px;border-top:1px solid var(--border);overflow-y:auto;max-height:calc(100vh - 280px);}
 .pos-checkout .fg{margin-bottom:4px;}
 .pos-checkout label{font-size:0.5rem;color:var(--muted);}
@@ -4271,20 +4284,20 @@ function renderVentas(){
   }).join('') : '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);font-size:0.75rem;">No hay productos de venta configurados.<br><br><button class="btn-sm btn-gold" onclick="setPage(\'inventario\',document.getElementById(\'nav-btn-inventario\'))">Ir a Inventario →</button></div>';
 
   const carritoHtml = _ventasCarrito.length ? _ventasCarrito.map((item,i) => `
-    <div class="pos-cart-item">
+    <div class="pos-cart-item" data-cart-idx="${i}">
       <div class="pos-cart-info">
         <div class="pos-cart-name">${esc(item.nombre)}</div>
-        <div class="pos-cart-unit">$${item.precioUnit.toLocaleString()} c/u</div>
+        <div class="pos-cart-unit">${item.cantidad} × $${item.precioUnit.toLocaleString()}</div>
       </div>
       <div class="pos-cart-qty">
-        <button class="pos-qty-btn" onclick="changeCarritoQty(${i},-1)">−</button>
+        <button class="pos-qty-btn" onclick="changeCarritoQty(${i},-1)" aria-label="Quitar uno">−</button>
         <span class="pos-qty-val">${item.cantidad}</span>
-        <button class="pos-qty-btn" onclick="changeCarritoQty(${i},1)">+</button>
+        <button class="pos-qty-btn" onclick="changeCarritoQty(${i},1)" aria-label="Agregar uno">+</button>
       </div>
       <div class="pos-cart-subtotal">$${item.subtotal.toLocaleString()}</div>
-      <button class="pos-cart-remove" onclick="removeFromCarrito(${i})">✕</button>
+      <button class="pos-cart-remove" onclick="removeFromCarrito(${i})" aria-label="Eliminar">✕</button>
     </div>
-  `).join('') : '<div style="text-align:center;padding:20px 8px;color:var(--muted);font-size:0.65rem;">🛒 Carrito vacío<br><span style="font-size:0.5rem;">Clic en un producto para agregar</span></div>';
+  `).join('') : '<div class="pos-cart-empty"><div style="font-size:2.2rem;opacity:0.4;">🛒</div><div style="font-weight:700;color:var(--muted);margin-top:8px;">Carrito vacío</div><div style="font-size:0.55rem;color:var(--muted);opacity:0.7;margin-top:2px;">Toca un producto para agregarlo</div></div>';
 
   const totalCarrito = _ventasCarrito.reduce((a,item) => a + item.subtotal, 0);
 
@@ -4528,7 +4541,13 @@ function addToCarrito(productoId){
       subtotal: parseFloat(prod.precio_venta||0)
     });
   }
+  const idx=_ventasCarrito.findIndex(it=>it.productoId===productoId);
   renderPage();
+  // Animación: resaltar la fila recién agregada/incrementada
+  requestAnimationFrame(()=>{
+    const row=document.querySelector(`.pos-cart-item[data-cart-idx="${idx}"]`);
+    if(row){ row.classList.add('just-added'); setTimeout(()=>row.classList.remove('just-added'),600); }
+  });
 }
 
 function changeCarritoQty(index, delta){
@@ -4948,6 +4967,11 @@ function imprimirFactura(data){
   if(win){
     win.document.write(html);
     win.document.close();
+    // Auto-imprimir: en kiosco o si el shop tiene impresión automática activa
+    if(document.body.classList.contains('kiosk-mode') || S.autoPrint){
+      win.onload = ()=>{ try{ win.focus(); win.print(); }catch(_){} };
+      setTimeout(()=>{ try{ win.focus(); win.print(); }catch(_){} }, 600);
+    }
   } else {
     toast('El navegador bloqueó la ventana emergente — permite popups para imprimir','warn');
   }
