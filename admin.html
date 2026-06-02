@@ -526,6 +526,13 @@ body.kiosk-mode .pos-checkout{max-height:none!important;overflow-y:visible;flex-
   .pos-reportes-tabs{flex-wrap:wrap;}
 }
 
+/* ── INVENTARIO: pestañas Productos / Movimientos ── */
+.inv-tabs{display:flex;gap:6px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:5px;flex-shrink:0;}
+.inv-tab{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 16px;border:none;background:transparent;color:var(--muted);font-family:'Outfit',sans-serif;font-size:0.82rem;font-weight:700;cursor:pointer;border-radius:9px;transition:background 0.2s,color 0.2s;touch-action:manipulation;}
+.inv-tab:hover{color:var(--text);background:rgba(255,255,255,0.04);}
+.inv-tab.active{background:var(--gold);color:var(--bg);}
+.inv-tab-count{font-family:'DM Mono',monospace;font-size:0.6rem;font-weight:700;padding:2px 7px;border-radius:20px;background:rgba(255,255,255,0.12);}
+.inv-tab.active .inv-tab-count{background:rgba(0,0,0,0.18);}
 /* ── INVENTARIO: filas con altura flexible (anula el height:38px global) ── */
 #inv-productos-body td{height:auto;padding:12px 18px;vertical-align:middle;}
 .inv-prod-name{font-weight:700;font-size:0.85rem;color:var(--text);}
@@ -1079,6 +1086,8 @@ var _ventasFiltro = '';
 var _ventasHistRango = 'hoy';
 var _ventasInvLoaded = false;
 var _ventasTab = 'historial';
+var _invTab = 'productos'; // 'productos' | 'movimientos'
+function setInvTab(t){_invTab=t;renderPage();}
 
 function toast(msg,type='success'){
   const el=document.getElementById('toast');
@@ -3946,10 +3955,17 @@ function renderInventario(){
     </tr>`;
   }).join('') || '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--muted);font-family:\'DM Mono\',monospace;font-size:0.6rem;">Sin movimientos registrados aún.</td></tr>';
 
+  const esProd = _invTab !== 'movimientos';
   return `
   ${statsHtml}
   ${alertasHtml}
+  <!-- Tabs: Productos / Movimientos -->
+  <div class="inv-tabs">
+    <button class="inv-tab ${esProd?'active':''}" onclick="setInvTab('productos')"><i data-lucide="package" style="width:14px;height:14px;"></i> Productos e Inventario <span class="inv-tab-count">${S.productos.length}</span></button>
+    <button class="inv-tab ${!esProd?'active':''}" onclick="setInvTab('movimientos')"><i data-lucide="history" style="width:14px;height:14px;"></i> Últimos movimientos <span class="inv-tab-count">${Math.min(S.movimientos.length,50)}</span></button>
+  </div>
   <div class="card" style="flex:1;display:flex;flex-direction:column;min-height:0;">
+    ${esProd ? `
     <div class="card-header">
       <div>
         <div class="card-title">📦 Productos e Inventario</div>
@@ -3978,8 +3994,7 @@ function renderInventario(){
         <tbody id="inv-productos-body">${productoRows}</tbody>
       </table>
     </div>
-  </div>
-  <div class="card" style="flex:1;display:flex;flex-direction:column;min-height:220px;">
+    ` : `
     <div class="card-header">
       <div class="card-title">🔄 Últimos movimientos</div>
       <span class="card-meta">Últimos 50</span>
@@ -3990,6 +4005,7 @@ function renderInventario(){
         <tbody>${movRows}</tbody>
       </table>
     </div>
+    `}
   </div>`;
 }
 
