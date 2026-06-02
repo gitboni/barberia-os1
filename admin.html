@@ -5779,11 +5779,16 @@ function renderCaja(){
     porBarbero[k].unidades+=parseFloat(m.cantidad||0);
   });
 
-  // Top productos
+  // Top productos — resolver nombre real (+ variante) desde S.productos por producto_id
   const prodRank={};
   ventasDia.forEach(m=>{
-    const pid=m.producto_id;if(!prodRank[pid])prodRank[pid]={nombre:m.producto_nombre||'Producto',cant:0,total:0};
-    prodRank[pid].cant+=parseFloat(m.cantidad||0);prodRank[pid].total+=parseFloat(m.total||(m.cantidad*m.precio_unitario)||0);
+    const pid=m.producto_id;
+    if(!prodRank[pid]){
+      const pr=(S.productos||[]).find(p=>p.id===pid);
+      const nom=pr?(pr.nombre+(pr.variante?' · '+pr.variante:'')):'Producto eliminado';
+      prodRank[pid]={nombre:nom,cant:0,total:0};
+    }
+    prodRank[pid].cant+=parseFloat(m.cantidad||0);prodRank[pid].total+=(parseFloat(m.total)||(parseFloat(m.cantidad||0)*parseFloat(m.precio_unitario||0))||0);
   });
   const topProds=Object.values(prodRank).sort((a,b)=>b.total-a.total).slice(0,5);
 
@@ -6002,12 +6007,14 @@ function exportCSV_caja(){
   const svcMap={};(S.servicios||[]).forEach(s=>{svcMap[s.nombre?.trim().toUpperCase()]=parseFloat(s.precio||0);});
   const citasDia=esHoy?(S.citas||[]).filter(c=>c.estado==='Completada'):(_cajaCitas||[]).filter(c=>c.estado==='Completada');
   const svcRows=citasDia.map(c=>`${c.hora},"${c.nombre}","${c.servicio}","${c.barbero}","Servicio","${c.metodo_pago||''}",${svcMap[(c.servicio||'').trim().toUpperCase()]||0}`);
-  const ventasDia=esHoy?(S.movimientos||[]).filter(m=>m.tipo==='venta'&&!m.anulado&&m.fecha===fecha):(_cajaMovs||[]);
+  const ventasDia=esHoy?(S.movimientos||[]).filter(m=>m.tipo==='venta'&&!m.anulado&&(m.fecha||'').substring(0,10)===fecha):(_cajaMovs||[]);
   const prodRows=ventasDia.map(m=>{
     const barb=(S.barberos||[]).find(b=>b.id===m.barbero_id);
+    const pr=(S.productos||[]).find(p=>p.id===m.producto_id);
+    const nom=pr?(pr.nombre+(pr.variante?' · '+pr.variante:'')):'Producto';
     const mt=(m.motivo||'').toLowerCase();
     const metodo=mt.includes('pago: tarjeta')?'Tarjeta':mt.includes('pago: transferencia')?'Transferencia':'Efectivo';
-    return `${new Date(m.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})},"${m.cliente_nombre||'—'}","${m.producto_nombre||'Producto'}","${barb?.nombre||'—'}","Producto","${metodo}",${parseFloat(m.total||(m.cantidad*m.precio_unitario)||0)}`;
+    return `${new Date(m.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})},"${m.cliente_nombre||'—'}","${nom.replace(/"/g,'""')}","${barb?.nombre||'—'}","Producto","${metodo}",${parseFloat(m.total)||(parseFloat(m.cantidad||0)*parseFloat(m.precio_unitario||0))||0}`;
   });
   const gastosDia=esHoy?(S.gastos||[]).filter(g=>g.fecha===fecha && parseFloat(g.monto||0)>0):(_cajaGastos||[]).filter(g=>parseFloat(g.monto||0)>0);
   const gastoRows=gastosDia.map(g=>`—,"—","${g.descripcion||'—'}","—","Gasto","${g.categoria}",-${parseFloat(g.monto||0)}`);
