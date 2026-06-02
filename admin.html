@@ -480,6 +480,10 @@ body.kiosk-mode .pos-qty-btn{width:38px;height:38px;font-size:1.1rem;border-radi
 body.kiosk-mode .pos-qty-val{font-size:0.95rem;min-width:28px;}
 body.kiosk-mode .pos-cart-subtotal{font-size:0.95rem;min-width:64px;}
 body.kiosk-mode .pos-cart-remove{font-size:0.95rem;padding:8px 10px;}
+/* Kiosco: el panel del carrito usa toda la altura y el checkout no se corta */
+body.kiosk-mode .pos-cart-panel{position:static!important;height:100%;max-height:none;}
+body.kiosk-mode .pos-cart-items{flex:1;max-height:none;}
+body.kiosk-mode .pos-checkout{max-height:none!important;overflow-y:visible;flex-shrink:0;}
 .pos-checkout{padding:8px 10px;border-top:1px solid var(--border);overflow-y:auto;max-height:calc(100vh - 280px);}
 .pos-checkout .fg{margin-bottom:4px;}
 .pos-checkout label{font-size:0.5rem;color:var(--muted);}
@@ -6314,7 +6318,9 @@ function renderServiciosKiosco(){
   const grid=document.getElementById('pos-service-grid');
   if(!grid)return;
   // Citas de hoy aún no completadas/canceladas (en curso o en espera)
-  const pend=(S.citas||[]).filter(c=>c.estado!=='Completada'&&c.estado!=='Cancelada'&&c.estado!=='No-Show');
+  // Excluir las que ya están en el carrito (se "mueven" al carrito) y las no pendientes
+  const enCarritoIds=new Set(_ventasCarrito.filter(it=>it.tipo==='servicio').map(it=>it.citaId));
+  const pend=(S.citas||[]).filter(c=>c.estado!=='Completada'&&c.estado!=='Cancelada'&&c.estado!=='No-Show'&&!enCarritoIds.has(c.id));
   const ahoraMin=(()=>{const d=new Date(new Date().toLocaleString('en-US',{timeZone:S.shopData?.timezone||'America/Santo_Domingo'}));return d.getHours()*60+d.getMinutes();})();
   if(!pend.length){
     grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);font-size:0.7rem;">No hay servicios pendientes de cobro hoy.</div>';
@@ -6327,9 +6333,8 @@ function renderServiciosKiosco(){
     const enCurso=ahoraMin>=ini && ahoraMin<ini+45;
     const inicial=(c.nombre||'C').trim().charAt(0).toUpperCase();
     const badge=enCurso?'<span class="svc-card-badge svc-badge-curso">● EN CURSO</span>':'<span class="svc-card-badge svc-badge-espera">'+(c.hora||'')+'</span>';
-    const enCarrito=_ventasCarrito.some(it=>it.citaId===c.id);
     const precioHtml=precio>0?`<div class="svc-card-precio">$${precio.toLocaleString()}</div>`:`<div class="svc-card-precio sin">Sin precio</div>`;
-    return `<div class="svc-card ${enCurso?'svc-encurso':''} ${enCarrito?'svc-en-carrito':''}" onclick="agregarServicioCarrito(${c.id})">
+    return `<div class="svc-card ${enCurso?'svc-encurso':''}" onclick="agregarServicioCarrito(${c.id})">
       ${badge}
       <div class="svc-card-head">
         <div class="svc-card-avatar">${esc(inicial)}</div>
@@ -6341,7 +6346,7 @@ function renderServiciosKiosco(){
       <div class="svc-card-meta">👤 ${esc(c.barbero||'—')}</div>
       <div class="svc-card-foot">
         ${precioHtml}
-        <button class="svc-card-cobrar" onclick="event.stopPropagation();agregarServicioCarrito(${c.id})">${enCarrito?'<i data-lucide="check" style="width:13px;height:13px;"></i> En carrito':'<i data-lucide="plus" style="width:13px;height:13px;"></i> Agregar'}</button>
+        <button class="svc-card-cobrar" onclick="event.stopPropagation();agregarServicioCarrito(${c.id})"><i data-lucide="plus" style="width:13px;height:13px;"></i> Agregar</button>
       </div>
     </div>`;
   }).join('');
