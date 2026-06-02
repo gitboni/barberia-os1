@@ -524,17 +524,29 @@ body.kiosk-mode .pos-cart-item{padding:10px 0;}
 body.kiosk-mode .pos-qty-btn{width:30px;height:30px;font-size:1rem;touch-action:manipulation;}
 body.kiosk-mode #pos-btn-cobrar{padding:18px!important;font-size:1.1rem!important;}
 body.kiosk-mode #kiosk-tabs{display:flex!important;}
-/* Tarjeta de servicio en curso (kiosco) */
-.svc-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;transition:all 0.2s var(--bez);display:flex;flex-direction:column;gap:6px;position:relative;min-height:120px;touch-action:manipulation;}
-.svc-card:hover{border-color:rgba(201,168,76,0.4);transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,0.3);}
-.svc-card:active{transform:translateY(0);scale:0.98;}
-.svc-card.svc-encurso{border-color:rgba(62,207,142,0.4);background:linear-gradient(135deg,var(--bg3),rgba(62,207,142,0.05));}
-.svc-card-cliente{font-size:0.85rem;font-weight:800;color:var(--text);line-height:1.2;}
-.svc-card-servicio{font-size:0.65rem;color:var(--gold);font-weight:600;}
-.svc-card-barbero{font-size:0.55rem;color:var(--muted);font-family:'DM Mono',monospace;}
-.svc-card-precio{font-family:'DM Mono',monospace;font-size:1rem;font-weight:800;color:var(--green);margin-top:auto;}
-.svc-card-badge{position:absolute;top:8px;right:8px;font-size:0.5rem;font-weight:700;padding:2px 7px;border-radius:6px;}
-.svc-badge-curso{background:rgba(62,207,142,0.15);color:var(--green);}
+/* Tarjeta de servicio en curso (kiosco) — estilo premium */
+.svc-card{background:rgba(26,26,26,0.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:16px;padding:14px 16px 14px 18px;cursor:pointer;transition:transform 0.2s var(--bez),box-shadow 0.2s var(--bez),border-color 0.2s;display:flex;flex-direction:column;gap:8px;position:relative;min-height:150px;touch-action:manipulation;box-shadow:0 4px 20px rgba(0,0,0,0.25);overflow:hidden;}
+.svc-card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,0.45);border-color:rgba(201,168,76,0.5);}
+.svc-card:active{transform:translateY(-1px) scale(0.985);}
+/* En curso: borde verde + glow + pulse sutil */
+.svc-card.svc-encurso{border-left-color:var(--green);background:linear-gradient(135deg,rgba(26,26,26,0.9),rgba(62,207,142,0.06));box-shadow:0 4px 24px rgba(62,207,142,0.12);}
+.svc-card.svc-encurso:hover{box-shadow:0 12px 36px rgba(62,207,142,0.2);}
+/* Header: avatar + cliente */
+.svc-card-head{display:flex;align-items:center;gap:10px;}
+.svc-card-avatar{width:36px;height:36px;border-radius:50%;background:var(--gold);color:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:0.95rem;flex-shrink:0;}
+.svc-card.svc-encurso .svc-card-avatar{background:var(--green);}
+.svc-card-cliente{font-size:0.92rem;font-weight:800;color:var(--text);line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.svc-card-meta{font-size:0.62rem;color:var(--muted);font-family:'DM Mono',monospace;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.svc-card-svc-name{color:var(--gold);font-weight:600;}
+.svc-card.svc-encurso .svc-card-svc-name{color:var(--green);}
+/* Footer: precio protagonista + botón */
+.svc-card-foot{display:flex;align-items:center;justify-content:space-between;margin-top:auto;gap:8px;}
+.svc-card-precio{font-family:'DM Mono',monospace;font-size:1.5rem;font-weight:900;color:var(--green);line-height:1;letter-spacing:-0.02em;}
+.svc-card-precio.sin{font-size:0.75rem;color:var(--muted);font-weight:600;}
+.svc-card-cobrar{display:inline-flex;align-items:center;gap:5px;background:var(--gold);color:var(--bg);border:none;border-radius:10px;padding:9px 14px;font-weight:800;font-size:0.72rem;cursor:pointer;transition:background 0.2s,transform 0.15s;touch-action:manipulation;white-space:nowrap;}
+.svc-card-cobrar:hover{background:var(--gold2);}
+.svc-card-badge{position:absolute;top:10px;right:12px;font-size:0.5rem;font-weight:700;padding:3px 8px;border-radius:7px;letter-spacing:0.05em;}
+.svc-badge-curso{background:rgba(62,207,142,0.18);color:var(--green);box-shadow:0 0 10px rgba(62,207,142,0.25);}
 .svc-badge-espera{background:rgba(201,168,76,0.15);color:var(--gold);}
 /* Barra kiosco */
 .kiosk-bar{display:none;position:fixed;top:0;left:0;right:0;height:54px;z-index:500;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--glass-border);align-items:center;justify-content:space-between;padding:0 18px;}
@@ -6238,15 +6250,26 @@ function renderServiciosKiosco(){
     const [hh,mm]=(c.hora||'00:00').split(':').map(Number);
     const ini=hh*60+(mm||0);
     const enCurso=ahoraMin>=ini && ahoraMin<ini+45;
-    const badge=enCurso?'<span class="svc-card-badge svc-badge-curso">EN CURSO</span>':'<span class="svc-card-badge svc-badge-espera">'+(c.hora||'')+'</span>';
+    const inicial=(c.nombre||'C').trim().charAt(0).toUpperCase();
+    const badge=enCurso?'<span class="svc-card-badge svc-badge-curso">● EN CURSO</span>':'<span class="svc-card-badge svc-badge-espera">'+(c.hora||'')+'</span>';
+    const precioHtml=precio>0?`<div class="svc-card-precio">$${precio.toLocaleString()}</div>`:`<div class="svc-card-precio sin">Sin precio</div>`;
     return `<div class="svc-card ${enCurso?'svc-encurso':''}" onclick="cobrarServicioKiosco(${c.id})">
       ${badge}
-      <div class="svc-card-cliente">${esc(c.nombre||'Cliente')}</div>
-      <div class="svc-card-servicio">✂️ ${esc(c.servicio||'Servicio')}</div>
-      <div class="svc-card-barbero">${esc(c.barbero||'—')}</div>
-      <div class="svc-card-precio">${precio>0?'$'+precio.toLocaleString():'Sin precio'}</div>
+      <div class="svc-card-head">
+        <div class="svc-card-avatar">${esc(inicial)}</div>
+        <div style="min-width:0;flex:1;">
+          <div class="svc-card-cliente">${esc(c.nombre||'Cliente')}</div>
+          <div class="svc-card-meta"><span class="svc-card-svc-name">✂️ ${esc(c.servicio||'Servicio')}</span></div>
+        </div>
+      </div>
+      <div class="svc-card-meta">👤 ${esc(c.barbero||'—')}</div>
+      <div class="svc-card-foot">
+        ${precioHtml}
+        <button class="svc-card-cobrar" onclick="event.stopPropagation();cobrarServicioKiosco(${c.id})"><i data-lucide="banknote" style="width:13px;height:13px;"></i> Cobrar</button>
+      </div>
     </div>`;
   }).join('');
+  if(window.lucide) lucide.createIcons();
 }
 
 async function cobrarServicioKiosco(citaId){
