@@ -526,6 +526,19 @@ body.kiosk-mode .pos-checkout{max-height:none!important;overflow-y:visible;flex-
   .pos-reportes-tabs{flex-wrap:wrap;}
 }
 
+/* ── INVENTARIO: filas con altura flexible (anula el height:38px global) ── */
+#inv-productos-body td{height:auto;padding:12px 18px;vertical-align:middle;}
+.inv-prod-name{font-weight:700;font-size:0.85rem;color:var(--text);}
+.inv-prod-tags{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:3px;}
+.inv-prod-sku{font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--gold);background:rgba(201,168,76,0.1);padding:1px 6px;border-radius:5px;letter-spacing:0.04em;}
+.inv-prod-desc{font-size:0.58rem;color:var(--muted);}
+.inv-cat-chip{font-size:0.6rem;font-weight:700;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:0.04em;}
+.inv-stock-badge{display:inline-flex;align-items:center;gap:4px;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:800;padding:4px 10px;border-radius:8px;}
+.inv-stock-ok{background:rgba(62,207,142,0.1);color:var(--green);}
+.inv-stock-bajo{background:rgba(251,191,36,0.12);color:#fbbf24;}
+.inv-stock-cero{background:rgba(248,113,113,0.12);color:var(--red);}
+.inv-margen{font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--muted);margin-top:1px;}
+
 /* ══ MODO KIOSCO ══ Tablet/mostrador desatendido, fullscreen táctil */
 body.kiosk-mode aside,
 body.kiosk-mode .topbar,
@@ -3882,42 +3895,56 @@ function renderInventario(){
   const catsUnicas = [...new Set(S.productos.map(p=>p.categoria))];
 
   const productoRows = S.productos.length ? S.productos.map(p => {
-    const bajo = parseFloat(p.stock_actual) <= parseFloat(p.stock_minimo);
+    const stock = parseFloat(p.stock_actual)||0;
+    const min = parseFloat(p.stock_minimo)||0;
+    const stockCls = stock<=0 ? 'inv-stock-cero' : (stock<=min ? 'inv-stock-bajo' : 'inv-stock-ok');
+    const stockIcon = stock<=0 ? '⛔' : (stock<=min ? '⚠' : '');
     const catColor = p.categoria==='Venta' ? 'var(--green)' : p.categoria==='Herramienta' ? 'var(--blue)' : 'var(--muted)';
-    const descHtml = p.descripcion ? `<div style="font-size:0.6rem;color:var(--muted);margin-top:1px;">${esc(p.descripcion)}</div>` : '';
-    const skuHtml = p.sku ? `<div style="font-family:'DM Mono',monospace;font-size:0.5rem;color:var(--gold);opacity:0.7;margin-top:1px;">${esc(p.sku)}</div>` : '';
+    const catBg = p.categoria==='Venta' ? 'rgba(62,207,142,0.12)' : p.categoria==='Herramienta' ? 'rgba(96,165,250,0.12)' : 'rgba(255,255,255,0.05)';
+    const tags = [];
+    if(p.variante) tags.push(`<span class="pos-variant-tag">${esc(p.variante)}</span>`);
+    if(p.sku) tags.push(`<span class="inv-prod-sku">${esc(p.sku)}</span>`);
+    if(p.descripcion) tags.push(`<span class="inv-prod-desc">${esc(p.descripcion)}</span>`);
+    const tagsHtml = tags.length ? `<div class="inv-prod-tags">${tags.join('')}</div>` : '';
+    const costo = parseFloat(p.precio_costo||0);
+    const venta = parseFloat(p.precio_venta||0);
+    const margen = venta - costo;
+    const margenPct = venta>0 ? Math.round(margen/venta*100) : 0;
+    const margenHtml = (p.categoria==='Venta' && venta>0) ? `<div class="inv-margen">margen ${margenPct}%</div>` : '';
     return `<tr data-cat="${esc(p.categoria)}">
-      <td><span style="font-weight:600;">${esc(p.nombre)}</span>${skuHtml}${descHtml}</td>
-      <td><span style="font-size:0.65rem;color:${catColor};background:rgba(255,255,255,0.04);padding:3px 8px;border-radius:6px;">${esc(p.categoria)}</span></td>
-      <td style="font-family:'DM Mono',monospace;font-size:0.8rem;color:${bajo?'var(--red)':'var(--text)'};font-weight:700;">${p.stock_actual} <span style="font-size:0.6rem;color:var(--muted);">${p.unidad}</span></td>
-      <td style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);">${p.stock_minimo} ${p.unidad}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--muted);">$${parseFloat(p.precio_costo||0).toLocaleString()}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--green);">$${parseFloat(p.precio_venta||0).toLocaleString()}</td>
+      <td><div class="inv-prod-name">${esc(p.nombre)}</div>${tagsHtml}</td>
+      <td><span class="inv-cat-chip" style="color:${catColor};background:${catBg};">${esc(p.categoria)}</span></td>
+      <td><span class="inv-stock-badge ${stockCls}">${stockIcon} ${stock} <span style="font-weight:400;font-size:0.58rem;opacity:0.7;">${esc(p.unidad)}</span></span></td>
+      <td style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);">${p.stock_minimo}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--muted);">$${costo.toLocaleString()}</td>
+      <td><div style="font-family:'DM Mono',monospace;font-size:0.8rem;color:var(--green);font-weight:700;">$${venta.toLocaleString()}</div>${margenHtml}</td>
       <td><div class="row-actions">
-        <button class="ra-btn" onclick="imprimirEtiquetaQR('${p.id}')" title="Imprimir etiqueta QR">🏷️</button>
-        <button class="ra-btn" onclick="verHistorialProducto('${p.id}')" title="Historial">📋</button>
-        <button class="ra-btn" onclick="openModalMovimiento(null,'${p.id}')">+Mov</button>
-        <button class="ra-btn" onclick="editProducto('${p.id}')">✏️</button>
-        <button class="ra-btn danger" onclick="deleteProducto('${p.id}')">✕</button>
+        <button class="ra-btn" onclick="imprimirEtiquetaQR('${p.id}')" title="Etiqueta QR"><i data-lucide="qr-code" style="width:13px;height:13px;"></i></button>
+        <button class="ra-btn" onclick="verHistorialProducto('${p.id}')" title="Historial"><i data-lucide="clock" style="width:13px;height:13px;"></i></button>
+        <button class="ra-btn" onclick="openModalMovimiento(null,'${p.id}')" title="Movimiento"><i data-lucide="plus" style="width:13px;height:13px;"></i></button>
+        <button class="ra-btn" onclick="editProducto('${p.id}')" title="Editar"><i data-lucide="pencil" style="width:13px;height:13px;"></i></button>
+        <button class="ra-btn danger" onclick="deleteProducto('${p.id}')" title="Eliminar"><i data-lucide="trash-2" style="width:13px;height:13px;"></i></button>
       </div></td>
     </tr>`;
-  }).join('') : '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--muted);font-family:\'DM Mono\',monospace;font-size:0.6rem;">Sin productos. Agrega uno con el boton + Nuevo Producto.</td></tr>';
+  }).join('') : '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--muted);font-family:\'DM Mono\',monospace;font-size:0.6rem;">Sin productos. Agrega uno con el botón <strong style="color:var(--gold);">+ Nuevo Producto</strong>.</td></tr>';
 
   const movRows = S.movimientos.slice(0,50).map(m => {
     const prod = S.productos.find(p=>p.id===m.producto_id);
+    const nom = prod ? (prod.nombre+(prod.variante?' · '+prod.variante:'')) : 'Producto eliminado';
     const barb = m.barbero_id ? (S.barberos||[]).find(b=>b.id===m.barbero_id) : null;
     const tipoColor = {entrada:'var(--blue)',salida:'var(--muted)',venta:'var(--green)',ajuste:'var(--gold)'}[m.tipo]||'var(--muted)';
     const tipoLabel = {entrada:'📦 Entrada',salida:'🔧 Salida',venta:'💰 Venta',ajuste:'⚖️ Ajuste'}[m.tipo]||m.tipo;
+    const tot = parseFloat(m.total)||(parseFloat(m.cantidad||0)*parseFloat(m.precio_unitario||0))||0;
     const barbLabel = barb ? `<span style="font-size:0.6rem;color:var(--gold);">${esc(barb.nombre)}</span>` : '';
     return `<tr>
-      <td style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);">${m.fecha}</td>
-      <td style="font-weight:600;">${prod?esc(prod.nombre):'Producto eliminado'}</td>
-      <td><span style="font-size:0.65rem;color:${tipoColor};">${tipoLabel}</span></td>
+      <td style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);">${(m.fecha||'').substring(0,10)}</td>
+      <td style="font-weight:600;">${esc(nom)}</td>
+      <td><span style="font-size:0.65rem;color:${tipoColor};font-weight:600;">${tipoLabel}</span></td>
       <td style="font-family:'DM Mono',monospace;text-align:right;">${m.cantidad}</td>
-      <td style="font-family:'DM Mono',monospace;color:var(--green);text-align:right;">$${parseFloat(m.total||0).toLocaleString()}</td>
-      <td style="font-size:0.75rem;color:var(--muted);">${barb?barbLabel+' · ':''}${m.motivo||'—'}</td>
+      <td style="font-family:'DM Mono',monospace;color:var(--green);text-align:right;font-weight:700;">$${tot.toLocaleString()}</td>
+      <td style="font-size:0.72rem;color:var(--muted);">${barb?barbLabel+' · ':''}${esc(m.motivo||'—')}</td>
     </tr>`;
-  }).join('') || '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--muted);font-family:\'DM Mono\',monospace;font-size:0.6rem;">Sin movimientos registrados aun.</td></tr>';
+  }).join('') || '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--muted);font-family:\'DM Mono\',monospace;font-size:0.6rem;">Sin movimientos registrados aún.</td></tr>';
 
   return `
   ${statsHtml}
