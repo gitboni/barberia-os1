@@ -578,6 +578,11 @@ body.kiosk-mode #kiosk-tabs{display:flex!important;}
 .svc-badge-espera{background:rgba(201,168,76,0.15);color:var(--gold);}
 .svc-card.svc-en-carrito{opacity:0.6;border-left-color:var(--blue);}
 .svc-card.svc-en-carrito .svc-card-cobrar{background:var(--bg3);color:var(--green);border:1px solid rgba(62,207,142,0.4);}
+/* Listo para cobrar (barbero ya terminó) — el más destacado */
+.svc-card.svc-listo{border-left-color:var(--green);background:linear-gradient(135deg,rgba(26,26,26,0.9),rgba(62,207,142,0.10));box-shadow:0 4px 24px rgba(62,207,142,0.18);}
+.svc-card.svc-listo .svc-card-avatar{background:var(--green);}
+.svc-card.svc-listo .svc-card-svc-name{color:var(--green);}
+.svc-badge-listo{background:rgba(62,207,142,0.22);color:var(--green);box-shadow:0 0 12px rgba(62,207,142,0.35);}
 /* Barra kiosco */
 .kiosk-bar{display:none;position:fixed;top:0;left:0;right:0;height:54px;z-index:500;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--glass-border);align-items:center;justify-content:space-between;padding:0 18px;}
 body.kiosk-mode .kiosk-bar{display:flex;}
@@ -4787,8 +4792,11 @@ async function procesarVentaPOS(){
       const descItem = subtotal > 0 ? (subtotalItem / subtotal) * descMonto : 0;
       const totalFinal = subtotalItem - descItem;
 
+      // 'total' es columna generada (cantidad*precio_unitario) → NO se inserta.
+      // El descuento prorrateado se anota en el motivo.
+      if(descItem > 0) motivoParts.push('(neto $'+Math.round(totalFinal).toLocaleString()+')');
       const mov = {
-        shop_id: S.shopId, producto_id: item.productoId, tipo: 'venta', cantidad: item.cantidad, precio_unitario: item.precioUnit, total: totalFinal, motivo: motivoParts.join(' • ') || null, fecha, ...(barberoId ? { barbero_id: barberoId } : {})
+        shop_id: S.shopId, producto_id: item.productoId, tipo: 'venta', cantidad: item.cantidad, precio_unitario: item.precioUnit, motivo: motivoParts.join(' • ') || null, fecha, ...(barberoId ? { barbero_id: barberoId } : {})
       };
 
       const res = await sbPost('inventario_movimientos', mov);
@@ -6317,10 +6325,16 @@ function _precioServicio(nombre){
 function renderServiciosKiosco(){
   const grid=document.getElementById('pos-service-grid');
   if(!grid)return;
-  // Citas de hoy aún no completadas/canceladas (en curso o en espera)
-  // Excluir las que ya están en el carrito (se "mueven" al carrito) y las no pendientes
+  // "Listos para cobrar" = servicios que el barbero terminó (Completada SIN método de pago)
+  // + los que aún no terminó (Confirmada/En curso). Se excluyen los ya cobrados y los que están en el carrito.
   const enCarritoIds=new Set(_ventasCarrito.filter(it=>it.tipo==='servicio').map(it=>it.citaId));
-  const pend=(S.citas||[]).filter(c=>c.estado!=='Completada'&&c.estado!=='Cancelada'&&c.estado!=='No-Show'&&!enCarritoIds.has(c.id));
+  const pend=(S.citas||[]).filter(c=>{
+    if(c.estado==='Cancelada'||c.estado==='No-Show')return false;
+    if(enCarritoIds.has(c.id))return false;
+    // Ya cobrada (tiene método de pago real) → fuera
+    if(c.estado==='Completada' && c.metodo_pago && c.metodo_pago!=='Sin especificar')return false;
+    return true;
+  });
   const ahoraMin=(()=>{const d=new Date(new Date().toLocaleString('en-US',{timeZone:S.shopData?.timezone||'America/Santo_Domingo'}));return d.getHours()*60+d.getMinutes();})();
   if(!pend.length){
     grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);font-size:0.7rem;">No hay servicios pendientes de cobro hoy.</div>';
@@ -6331,10 +6345,13 @@ function renderServiciosKiosco(){
     const [hh,mm]=(c.hora||'00:00').split(':').map(Number);
     const ini=hh*60+(mm||0);
     const enCurso=ahoraMin>=ini && ahoraMin<ini+45;
+    const listo=c.estado==='Completada'; // terminado por el barbero, falta cobrar
     const inicial=(c.nombre||'C').trim().charAt(0).toUpperCase();
-    const badge=enCurso?'<span class="svc-card-badge svc-badge-curso">● EN CURSO</span>':'<span class="svc-card-badge svc-badge-espera">'+(c.hora||'')+'</span>';
+    const badge=listo
+      ?'<span class="svc-card-badge svc-badge-listo">✓ LISTO P/ COBRAR</span>'
+      :(enCurso?'<span class="svc-card-badge svc-badge-curso">● EN CURSO</span>':'<span class="svc-card-badge svc-badge-espera">'+(c.hora||'')+'</span>');
     const precioHtml=precio>0?`<div class="svc-card-precio">$${precio.toLocaleString()}</div>`:`<div class="svc-card-precio sin">Sin precio</div>`;
-    return `<div class="svc-card ${enCurso?'svc-encurso':''}" onclick="agregarServicioCarrito(${c.id})">
+    return `<div class="svc-card ${listo?'svc-listo':(enCurso?'svc-encurso':'')}" onclick="agregarServicioCarrito(${c.id})">
       ${badge}
       <div class="svc-card-head">
         <div class="svc-card-avatar">${esc(inicial)}</div>
