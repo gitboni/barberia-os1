@@ -440,6 +440,11 @@ button:focus:not(:focus-visible){outline:none;}
 .pos-product-card:active{transform:translateY(0) scale(0.97);}
 .pos-sin-stock{opacity:0.4;cursor:not-allowed;pointer-events:none;}
 .pos-product-emoji{font-size:1.6rem;line-height:1;margin-bottom:2px;}
+/* Foto real del producto — estilo Tesla (fondo oscuro, imagen protagonista) */
+.pos-product-foto{width:100%;aspect-ratio:1/1;max-height:64px;border-radius:10px;overflow:hidden;background:radial-gradient(circle at 50% 35%,rgba(255,255,255,0.06),rgba(0,0,0,0.2));display:flex;align-items:center;justify-content:center;margin-bottom:4px;}
+.pos-product-foto img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.4));}
+body.kiosk-mode .pos-product-foto{max-height:120px;border-radius:14px;}
+body.kiosk-mode .pos-product-foto img{padding:6px;}
 .pos-product-name{font-size:0.66rem;font-weight:700;color:var(--text);line-height:1.15;}
 .pos-product-desc{font-size:0.46rem;color:var(--muted);line-height:1.15;max-height:1.3em;overflow:hidden;}
 .pos-product-price{font-family:'DM Mono',monospace;font-size:0.85rem;font-weight:800;color:var(--green);margin-top:2px;letter-spacing:-0.01em;}
@@ -556,6 +561,8 @@ body.kiosk-mode .pos-total-label-txt{font-size:1rem!important;}
 .inv-stock-bajo{background:rgba(251,191,36,0.12);color:#fbbf24;}
 .inv-stock-cero{background:rgba(248,113,113,0.12);color:var(--red);}
 .inv-margen{font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--muted);margin-top:1px;}
+.inv-prod-thumb{width:38px;height:38px;border-radius:8px;object-fit:cover;flex-shrink:0;background:var(--bg3);border:1px solid var(--border);}
+.inv-prod-thumb-ph{display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
 
 /* ══ MODO KIOSCO ══ Tablet/mostrador desatendido, fullscreen táctil */
 body.kiosk-mode aside,
@@ -872,6 +879,20 @@ body.kiosk-mode .pos-layout{height:calc(100dvh - 54px);height:calc(100vh - 54px)
     <div class="fg-row">
       <div class="fg"><label>Precio de costo (RD$)</label><input type="number" id="mp-costo" value="0" min="0" step="0.01"></div>
       <div class="fg"><label>Precio de venta (RD$)</label><input type="number" id="mp-pventa" value="0" min="0" step="0.01"></div>
+    </div>
+    <div class="fg">
+      <label>Foto del producto <span style="font-size:0.5rem;color:var(--muted);font-weight:400;">(opcional)</span></label>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:4px;">
+        <div id="mp-foto-preview" style="width:64px;height:64px;border-radius:12px;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">
+          <span style="font-size:1.6rem;opacity:0.4;">🛍️</span>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+          <input type="file" id="mp-foto-file" accept="image/*" style="display:none;" onchange="subirFotoProducto(this)">
+          <input type="hidden" id="mp-foto-url">
+          <button type="button" class="btn-sm btn-dark" onclick="document.getElementById('mp-foto-file').click()" style="font-size:0.65rem;padding:8px 14px;"><i data-lucide="image-up" style="width:13px;height:13px;"></i> <span id="mp-foto-btn-txt">Subir foto</span></button>
+          <button type="button" id="mp-foto-quitar" onclick="quitarFotoProducto()" style="display:none;font-size:0.55rem;padding:4px;background:none;border:none;color:var(--red);cursor:pointer;text-align:left;">✕ Quitar foto</button>
+        </div>
+      </div>
     </div>
     <div class="modal-actions">
       <button class="btn-full btn-gold" onclick="saveProducto()">Guardar Producto</button>
@@ -3748,9 +3769,10 @@ function openModal(type, reset = false){
     if(type==='barbero'){document.getElementById('modal-barbero-title').textContent='Nuevo Barbero';document.getElementById('mb-id').value='';document.getElementById('mb-nombre').value='';document.getElementById('mb-orden').value=S.barberos.length+1;document.getElementById('mb-activo').checked=true;renderBarberoCategories([]);}
     if(type==='cliente'){document.getElementById('modal-cliente-title').textContent='Nuevo Cliente';document.getElementById('mc-id').value='';document.getElementById('mc-nombre').value='';document.getElementById('mc-tel').value='';document.getElementById('mc-notas').value='';}
     if(type==='config'){const s=S.shopData||{};document.getElementById('cfg-nombre').value=s.nombre||'';document.getElementById('cfg-whatsapp').value=s.whatsapp_dueño||'';document.getElementById('cfg-duracion').value=s.duracion_turno||45;document.getElementById('cfg-timezone').value=s.timezone||'America/Santo_Domingo';document.getElementById('cfg-difusion-activa').checked=s.difusion_activa===true;document.getElementById('cfg-difusion-msg').value=s.difusion_msg||'';document.getElementById('cfg-difusion-desde').value=s.difusion_desde||'';document.getElementById('cfg-difusion-hasta').value=s.difusion_hasta||'';buildHpdGrid('cfg',s.dias_atencion,s.horarios_por_dia,s.hora_inicio||9,s.hora_fin||21);}
-    if(type==='producto'){document.getElementById('modal-producto-title').textContent='Nuevo Producto';document.getElementById('mp-id').value='';document.getElementById('mp-nombre').value='';document.getElementById('mp-desc').value='';document.getElementById('mp-sku').value='';document.getElementById('mp-categoria').value='Insumo';document.getElementById('mp-unidad').value='unidades';document.getElementById('mp-stock').value=0;document.getElementById('mp-minimo').value=5;document.getElementById('mp-costo').value=0;document.getElementById('mp-pventa').value=0;}
+    if(type==='producto'){document.getElementById('modal-producto-title').textContent='Nuevo Producto';document.getElementById('mp-id').value='';document.getElementById('mp-nombre').value='';document.getElementById('mp-variante').value='';document.getElementById('mp-desc').value='';document.getElementById('mp-sku').value='';document.getElementById('mp-categoria').value='Insumo';document.getElementById('mp-unidad').value='unidades';document.getElementById('mp-stock').value=0;document.getElementById('mp-minimo').value=5;document.getElementById('mp-costo').value=0;document.getElementById('mp-pventa').value=0;_setFotoProductoPreview('');}
   }
   document.getElementById('modal-'+type).classList.add('open');
+  if(window.lucide) lucide.createIcons();
 }
 function closeModal(type){document.getElementById('modal-'+type).classList.remove('open');}
 async function saveConfig(){
@@ -3931,8 +3953,11 @@ function renderInventario(){
     const margen = venta - costo;
     const margenPct = venta>0 ? Math.round(margen/venta*100) : 0;
     const margenHtml = (p.categoria==='Venta' && venta>0) ? `<div class="inv-margen">margen ${margenPct}%</div>` : '';
+    const thumbHtml = p.foto_url
+      ? `<img src="${esc(p.foto_url)}" class="inv-prod-thumb" alt="" loading="lazy" onerror="this.style.display='none'">`
+      : `<div class="inv-prod-thumb inv-prod-thumb-ph">${_emojiProducto(p.nombre)}</div>`;
     return `<tr data-cat="${esc(p.categoria)}">
-      <td><div class="inv-prod-name">${esc(p.nombre)}</div>${tagsHtml}</td>
+      <td><div style="display:flex;align-items:center;gap:10px;">${thumbHtml}<div><div class="inv-prod-name">${esc(p.nombre)}</div>${tagsHtml}</div></div></td>
       <td><span class="inv-cat-chip" style="color:${catColor};background:${catBg};">${esc(p.categoria)}</span></td>
       <td><span class="inv-stock-badge ${stockCls}">${stockIcon} ${stock} <span style="font-weight:400;font-size:0.58rem;opacity:0.7;">${esc(p.unidad)}</span></span></td>
       <td style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);">${p.stock_minimo}</td>
@@ -4119,7 +4144,43 @@ function editProducto(id){
   document.getElementById('mp-minimo').value = p.stock_minimo;
   document.getElementById('mp-costo').value = p.precio_costo;
   document.getElementById('mp-pventa').value = p.precio_venta;
+  _setFotoProductoPreview(p.foto_url||'');
   openModal('producto');
+}
+
+// ── Foto de producto (Supabase Storage) ──
+function _setFotoProductoPreview(url){
+  const prev=document.getElementById('mp-foto-preview');
+  const hid=document.getElementById('mp-foto-url');
+  const quitar=document.getElementById('mp-foto-quitar');
+  const btnTxt=document.getElementById('mp-foto-btn-txt');
+  if(hid) hid.value=url||'';
+  if(prev) prev.innerHTML = url
+    ? `<img src="${esc(url)}" style="width:100%;height:100%;object-fit:cover;">`
+    : '<span style="font-size:1.6rem;opacity:0.4;">🛍️</span>';
+  if(quitar) quitar.style.display = url ? 'block' : 'none';
+  if(btnTxt) btnTxt.textContent = url ? 'Cambiar foto' : 'Subir foto';
+}
+function quitarFotoProducto(){ _setFotoProductoPreview(''); }
+async function subirFotoProducto(input){
+  const file=input.files&&input.files[0]; if(!file) return;
+  if(file.size>5*1024*1024){ toast('La imagen supera 5MB','error'); return; }
+  const btnTxt=document.getElementById('mp-foto-btn-txt');
+  if(btnTxt) btnTxt.textContent='Subiendo…';
+  try{
+    const ext=(file.name.split('.').pop()||'jpg').toLowerCase();
+    const path=S.shopId+'/'+Date.now()+'.'+ext;
+    const up=await fetch(`${SUPABASE_URL}/storage/v1/object/productos/${path}`,{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+SUPABASE_KEY,'apikey':SUPABASE_KEY,'Content-Type':file.type,'x-upsert':'true'},
+      body:file
+    });
+    if(!up.ok) throw new Error('No se pudo subir ('+up.status+')');
+    const url=`${SUPABASE_URL}/storage/v1/object/public/productos/${path}`;
+    _setFotoProductoPreview(url);
+    toast('Foto cargada ✓','success');
+  }catch(e){ toast('Error al subir foto: '+e.message,'error'); if(btnTxt) btnTxt.textContent='Subir foto'; }
+  finally{ input.value=''; }
 }
 
 async function saveProducto(){
@@ -4138,6 +4199,7 @@ async function saveProducto(){
     stock_minimo: parseFloat(document.getElementById('mp-minimo').value) || 5,
     precio_costo: parseFloat(document.getElementById('mp-costo').value) || 0,
     precio_venta: parseFloat(document.getElementById('mp-pventa').value) || 0,
+    foto_url:     document.getElementById('mp-foto-url').value || null,
     activo:       true,
   };
   try {
@@ -4335,9 +4397,12 @@ function renderVentas(){
     const isTop = ventas30 > 0 && idx < 3;
     const searchTerms = (p.nombre||'').toLowerCase()+' '+(p.variante||'').toLowerCase()+' '+(p.sku||'').toLowerCase();
     const emoji=_emojiProducto(p.nombre);
+    const fotoHtml = p.foto_url
+      ? `<div class="pos-product-foto"><img src="${esc(p.foto_url)}" alt="${esc(p.nombre)}" loading="lazy" onerror="this.parentElement.innerHTML='<span class=&quot;pos-product-emoji&quot;>${emoji}</span>'"></div>`
+      : `<div class="pos-product-emoji">${emoji}</div>`;
     return `<div class="pos-product-card ${sinStock?'pos-sin-stock':''} ${isTop?'pos-top-product':''}" onclick="${sinStock?'':'addToCarrito(\''+p.id+'\')'}" data-search="${esc(searchTerms)}">
       ${isTop ? `<div class="pos-fav-badge">⭐ Top ${idx+1}</div>` : ''}
-      <div class="pos-product-emoji">${emoji}</div>
+      ${fotoHtml}
       <div class="pos-product-name">${esc(p.nombre)}${p.variante ? ` <span class="pos-variant-tag">${esc(p.variante)}</span>` : ''}</div>
       ${p.sku ? `<div class="pos-product-sku">${esc(p.sku)}</div>` : ''}
       ${p.descripcion ? `<div class="pos-product-desc">${esc(p.descripcion)}</div>` : ''}
