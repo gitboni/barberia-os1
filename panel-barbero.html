@@ -2386,7 +2386,7 @@ async function posInit(){
 // ── Cargar productos de venta ────────────────────────────────────────────
 async function posLoadProductos(){
   const{data}=await sb.from('productos')
-    .select('id,nombre,variante,precio_venta,stock_actual,sku,categoria,activo')
+    .select('id,nombre,variante,precio_venta,stock_actual,sku,categoria,activo,unidad,foto_url')
     .eq('shop_id',barbero.shop_id).eq('categoria','Venta').eq('activo',true).order('nombre');
   _posProductos=data||[];
 }
