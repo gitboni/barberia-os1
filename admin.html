@@ -1238,7 +1238,7 @@ function renderPage(){
   else if(currentPage==='gastos'){el.innerHTML=renderGastos();}
   else if(currentPage==='marketplace'){el.innerHTML=renderMarketplace();setTimeout(initMarketplacePage,100);}
   else if(currentPage==='reseñas'){el.innerHTML='<div style="padding:20px;color:var(--muted);font-size:0.75rem;">Cargando reseñas…</div>';loadReseñas();}
-  else if(currentPage==='caja'){try{el.innerHTML=renderCaja();setTimeout(cajaCargarArqueo,30);}catch(err){console.error('renderCaja error:',err);el.innerHTML='<div style="padding:40px;text-align:center;color:var(--red);"><h3>Error al cargar Cierre de Caja</h3><pre style="font-size:0.7rem;color:var(--muted);margin-top:10px;">'+esc(err.message)+'</pre></div>';}}
+  else if(currentPage==='caja'){try{el.innerHTML=renderCaja();setTimeout(cajaCargarArqueo,30);if(cajaEsHoy()&&getFeatures().inventario){loadInventario().then(()=>{if(currentPage==='caja')el.innerHTML=renderCaja();setTimeout(cajaCargarArqueo,30);if(window.lucide)lucide.createIcons();}).catch(()=>{});}}catch(err){console.error('renderCaja error:',err);el.innerHTML='<div style="padding:40px;text-align:center;color:var(--red);"><h3>Error al cargar Cierre de Caja</h3><pre style="font-size:0.7rem;color:var(--muted);margin-top:10px;">'+esc(err.message)+'</pre></div>';}}
   else if(currentPage==='inventario'){el.innerHTML=renderInventario();}
   else if(currentPage==='credito'){try{el.innerHTML=renderCredito();}catch(err){console.error('renderCredito error:',err);el.innerHTML='<div style="padding:40px;text-align:center;color:var(--red);"><h3>Error al cargar Créditos</h3><pre style="font-size:0.7rem;color:var(--muted);margin-top:10px;">'+esc(err.message)+'</pre></div>';}}
   else if(currentPage==='ventas'){try{el.innerHTML=renderVentas();setTimeout(initVentasPage,80);}catch(err){console.error('renderVentas error:',err);el.innerHTML='<div style="padding:40px;text-align:center;color:var(--red);"><h3>Error al cargar Ventas</h3><pre style="font-size:0.7rem;color:var(--muted);margin-top:10px;">'+esc(err.message)+'</pre></div>';}}
@@ -5718,8 +5718,8 @@ function renderCaja(){
   const svcMap={};(S.servicios||[]).forEach(s=>{svcMap[s.nombre?.trim().toUpperCase()]=parseFloat(s.precio||0);});
   const ingresosServicios=citasDia.reduce((a,c)=>a+(svcMap[(c.servicio||'').trim().toUpperCase()]||0),0);
 
-  const ventasDia=esHoy?(S.movimientos||[]).filter(m=>m.tipo==='venta'&&!m.anulado&&m.fecha===fecha):(_cajaMovs||[]);
-  const ingresosProductos=ventasDia.reduce((a,m)=>a+parseFloat(m.total||(m.cantidad*m.precio_unitario)||0),0);
+  const ventasDia=esHoy?(S.movimientos||[]).filter(m=>m.tipo==='venta'&&!m.anulado&&(m.fecha||'').substring(0,10)===fecha):(_cajaMovs||[]);
+  const ingresosProductos=ventasDia.reduce((a,m)=>a+(parseFloat(m.total)||(parseFloat(m.cantidad||0)*parseFloat(m.precio_unitario||0))||0),0);
   const unidadesVendidas=ventasDia.reduce((a,m)=>a+parseFloat(m.cantidad||0),0);
 
   const ingresosBrutos=ingresosServicios+ingresosProductos;
