@@ -2459,7 +2459,9 @@ function posRenderQuick(){
   grid.innerHTML=prods.map(p=>{
     const sinStock=p.stock_actual<=0;
     const stockColor=sinStock?'var(--red)':p.stock_actual<=3?'#F59E0B':'var(--green)';
+    const fotoQ=p.foto_url?`<img src="${DOMPurify.sanitize(p.foto_url)}" style="width:44px;height:44px;border-radius:10px;object-fit:cover;margin:0 auto 6px;background:var(--bg3);" onerror="this.outerHTML='<div style=\\'width:44px;height:44px;border-radius:10px;background:var(--bg3);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:1.2rem;\\'>🛍️</div>'">`:`<div style="width:44px;height:44px;border-radius:10px;background:var(--bg3);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:1.2rem;">🛍️</div>`;
     return`<div class="card" style="text-align:center;padding:10px 6px;cursor:pointer;${sinStock?'opacity:.35;':''}" onclick="${sinStock?'':'posAddToCart(\''+p.id+'\')'}"">
+      ${fotoQ}
       <div style="font-size:.78rem;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${DOMPurify.sanitize(p.nombre)}</div>
       ${p.variante?`<div style="display:inline-block;font-size:.55rem;font-weight:800;color:var(--accent);background:rgba(201,168,76,.14);border:1px solid rgba(201,168,76,.3);border-radius:6px;padding:1px 6px;margin-bottom:3px;">${DOMPurify.sanitize(p.variante)}</div>`:''}
       <div style="font-size:1rem;font-weight:900;color:var(--accent);">$${Number(p.precio_venta).toLocaleString()}</div>
@@ -2485,7 +2487,9 @@ function posBuscarProducto(){
     const disponible=p.stock_actual-enCarrito;
     const sinStock=disponible<=0;
     const stockColor=sinStock?'var(--red)':p.stock_actual<=3?'#F59E0B':'var(--green)';
+    const fotoB=p.foto_url?`<img src="${DOMPurify.sanitize(p.foto_url)}" style="width:38px;height:38px;border-radius:8px;object-fit:cover;background:var(--bg3);flex-shrink:0;" onerror="this.style.display='none'">`:`<div style="width:38px;height:38px;border-radius:8px;background:var(--bg3);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1rem;">🛍️</div>`;
     return`<div class="card" style="display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;${sinStock?'opacity:.4;':''}" onclick="${sinStock?'':'posAddToCart(\''+p.id+'\')'}">
+      ${fotoB}
       <div style="flex:1;">
         <div style="font-weight:700;font-size:.88rem;">${DOMPurify.sanitize(p.nombre)}${p.variante?` <span style="font-size:.55rem;font-weight:800;color:var(--accent);background:rgba(201,168,76,.14);border:1px solid rgba(201,168,76,.3);border-radius:6px;padding:1px 5px;vertical-align:middle;">${DOMPurify.sanitize(p.variante)}</span>`:''}</div>
         <div style="font-size:.7rem;color:var(--dim);">${p.sku||'Sin SKU'} · Stock: <span style="color:${stockColor};font-weight:700;">${p.stock_actual}${enCarrito>0?' ('+disponible+' disp.)':''}</span></div>
@@ -2679,7 +2683,7 @@ function posProcessQR(data){
     if(prod){posAddToCart(prod.id);posCerrarScanner();}
     else{
       // Buscar en BD
-      sb.from('productos').select('id,nombre,precio_venta,stock_actual,sku,categoria,activo')
+      sb.from('productos').select('id,nombre,variante,precio_venta,stock_actual,sku,categoria,activo,foto_url')
         .eq('id',prodId).eq('shop_id',barbero.shop_id).single().then(({data:p})=>{
           if(p&&p.activo&&p.categoria==='Venta'){
             _posProductos.push(p);posAddToCart(p.id);
@@ -2996,7 +3000,7 @@ function posRenderHistorial(){
 async function posRenderInventario(){
   // Recargar productos frescos
   const{data}=await sb.from('productos')
-    .select('id,nombre,precio_venta,stock_actual,stock_minimo,sku,categoria,activo,unidad')
+    .select('id,nombre,variante,precio_venta,stock_actual,stock_minimo,sku,categoria,activo,unidad,foto_url')
     .eq('shop_id',barbero.shop_id).eq('activo',true).order('nombre');
   const productos=data||[];
   _posProductos=productos.filter(p=>p.categoria==='Venta'); // Actualizar lista POS también
