@@ -572,6 +572,8 @@ body.kiosk-mode #kiosk-tabs{display:flex!important;}
 .svc-card-badge{position:absolute;top:10px;right:12px;font-size:0.5rem;font-weight:700;padding:3px 8px;border-radius:7px;letter-spacing:0.05em;}
 .svc-badge-curso{background:rgba(62,207,142,0.18);color:var(--green);box-shadow:0 0 10px rgba(62,207,142,0.25);}
 .svc-badge-espera{background:rgba(201,168,76,0.15);color:var(--gold);}
+.svc-card.svc-en-carrito{opacity:0.6;border-left-color:var(--blue);}
+.svc-card.svc-en-carrito .svc-card-cobrar{background:var(--bg3);color:var(--green);border:1px solid rgba(62,207,142,0.4);}
 /* Barra kiosco */
 .kiosk-bar{display:none;position:fixed;top:0;left:0;right:0;height:54px;z-index:500;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--glass-border);align-items:center;justify-content:space-between;padding:0 18px;}
 body.kiosk-mode .kiosk-bar{display:flex;}
@@ -4553,6 +4555,12 @@ function addToCarrito(productoId){
 function changeCarritoQty(index, delta){
   const item = _ventasCarrito[index];
   if(!item) return;
+  // Los servicios son cantidad fija = 1 (1 cita). Solo se pueden quitar.
+  if(item.tipo==='servicio'){
+    if(delta<0){ _ventasCarrito.splice(index,1); renderPage(); }
+    else toast('Un servicio es una unidad','info');
+    return;
+  }
   const prod = S.productos.find(p=>p.id===item.productoId);
   const newQty = item.cantidad + delta;
   if(newQty <= 0){
@@ -4743,8 +4751,20 @@ async function procesarVentaPOS(){
   let totalVenta = subtotal - descMonto;
   let itemsDesc = [];
 
+  const metodoFinal = isSplit ? metodoDisplay : metodo;
   try {
     for(const item of _ventasCarrito){
+      // ── SERVICIO: marcar la cita como Completada (no toca inventario) ──
+      if(item.tipo==='servicio' && item.citaId){
+        try{
+          const mpServ = metodo==='efectivo'?'Efectivo':metodo==='tarjeta'?'Tarjeta':metodo==='transferencia'?'Transferencia':'Mixto';
+          await sbPatch('citas','id=eq.'+item.citaId,{estado:'Completada',metodo_pago:mpServ});
+          const cc=_findCita(item.citaId); if(cc){cc.estado='Completada';cc.metodo_pago=mpServ;}
+        }catch(e){ console.warn('No se pudo completar la cita',e); }
+        itemsDesc.push(item.nombre.replace('✂️ ','')+' x1');
+        continue;
+      }
+
       const prod = S.productos.find(p=>p.id===item.productoId);
       if(!prod){ toast('Producto no encontrado: '+item.nombre,'error'); continue; }
 
@@ -6307,8 +6327,9 @@ function renderServiciosKiosco(){
     const enCurso=ahoraMin>=ini && ahoraMin<ini+45;
     const inicial=(c.nombre||'C').trim().charAt(0).toUpperCase();
     const badge=enCurso?'<span class="svc-card-badge svc-badge-curso">● EN CURSO</span>':'<span class="svc-card-badge svc-badge-espera">'+(c.hora||'')+'</span>';
+    const enCarrito=_ventasCarrito.some(it=>it.citaId===c.id);
     const precioHtml=precio>0?`<div class="svc-card-precio">$${precio.toLocaleString()}</div>`:`<div class="svc-card-precio sin">Sin precio</div>`;
-    return `<div class="svc-card ${enCurso?'svc-encurso':''}" onclick="cobrarServicioKiosco(${c.id})">
+    return `<div class="svc-card ${enCurso?'svc-encurso':''} ${enCarrito?'svc-en-carrito':''}" onclick="agregarServicioCarrito(${c.id})">
       ${badge}
       <div class="svc-card-head">
         <div class="svc-card-avatar">${esc(inicial)}</div>
@@ -6320,26 +6341,35 @@ function renderServiciosKiosco(){
       <div class="svc-card-meta">👤 ${esc(c.barbero||'—')}</div>
       <div class="svc-card-foot">
         ${precioHtml}
-        <button class="svc-card-cobrar" onclick="event.stopPropagation();cobrarServicioKiosco(${c.id})"><i data-lucide="banknote" style="width:13px;height:13px;"></i> Cobrar</button>
+        <button class="svc-card-cobrar" onclick="event.stopPropagation();agregarServicioCarrito(${c.id})">${enCarrito?'<i data-lucide="check" style="width:13px;height:13px;"></i> En carrito':'<i data-lucide="plus" style="width:13px;height:13px;"></i> Agregar'}</button>
       </div>
     </div>`;
   }).join('');
   if(window.lucide) lucide.createIcons();
 }
 
-async function cobrarServicioKiosco(citaId){
+// Agrega un servicio (cita) al carrito para cobrarlo junto con productos
+function agregarServicioCarrito(citaId){
   const c=_findCita(citaId); if(!c)return;
+  if(_ventasCarrito.some(it=>it.citaId===citaId)){
+    toast('Ese servicio ya está en el carrito','info');
+    return;
+  }
   const precio=_precioServicio(c.servicio);
-  const metodo=prompt(`Cobrar servicio de ${c.nombre}\n${c.servicio} · $${precio.toLocaleString()}\n\nMétodo de pago:\n1 = Efectivo\n2 = Tarjeta\n3 = Transferencia`, '1');
-  if(metodo===null)return;
-  const map={'1':'Efectivo','2':'Tarjeta','3':'Transferencia'};
-  const mp=map[metodo.trim()]||'Efectivo';
-  try{
-    await sbPatch('citas','id=eq.'+citaId,{estado:'Completada',metodo_pago:mp});
-    c.estado='Completada'; c.metodo_pago=mp;
-    toast(`✓ ${c.servicio} cobrado · ${mp} · $${precio.toLocaleString()}`,'success');
-    renderServiciosKiosco();
-  }catch(e){toast('Error al cobrar el servicio','error');}
+  _ventasCarrito.push({
+    tipo:'servicio',
+    citaId:citaId,
+    productoId:null,
+    nombre:'✂️ '+(c.servicio||'Servicio')+' — '+(c.nombre||'Cliente'),
+    cantidad:1,
+    precioUnit:precio,
+    subtotal:precio,
+    barbero:c.barbero||''
+  });
+  toast(`✂️ ${c.servicio} agregado al carrito`,'success');
+  renderPage();
+  // Vuelve a mostrar la pestaña de servicios y resalta el carrito
+  setTimeout(()=>{ if(document.body.classList.contains('kiosk-mode')) kioskTab('servicios'); },30);
 }
 
 function updateDate(){document.getElementById('page-date').textContent=new Date().toLocaleDateString('es-DO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});}
