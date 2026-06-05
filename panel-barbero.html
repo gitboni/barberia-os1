@@ -23,7 +23,7 @@
   --text:#fff;--dim:#a0a0a0;--muted:rgba(255,255,255,.35);
   --green:#2ECC71;--green-s:rgba(46,204,113,.15);
   --red:#E74C3C;--red-s:rgba(231,76,60,.1);
-  --glass:rgba(255,255,255,.05);--border:rgba(255,255,255,.1);
+  --glass:rgba(255,255,255,.05);--border:rgba(255,255,255,.06);
   --safe-top:env(safe-area-inset-top,0px);
   --safe-bottom:env(safe-area-inset-bottom,0px);
   --r:16px;--r-lg:22px;--r-xl:28px;
@@ -160,12 +160,17 @@ input:checked+.slider:before{transform:translateX(21px)}
 .cola-row{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r-lg);padding:11px 12px;margin-bottom:7px;position:relative;overflow:hidden;touch-action:pan-y}
 .cola-row.swipe-right{background:rgba(46,204,113,.15);border-color:var(--green)}
 .cola-row.swipe-left{background:var(--red-s);border-color:var(--red)}
+.cola-row.next{border-color:rgba(201,168,76,.28);border-left:3px solid var(--accent);box-shadow:0 4px 14px rgba(201,168,76,.10)}
+.cola-row.late{border-color:rgba(248,113,113,.28);border-left:3px solid var(--red)}
+.cola-row.calm{border-left:3px solid rgba(255,255,255,.18)}
+.cola-num.tarde{background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.5);color:var(--red)}
 .cola-num{width:30px;height:30px;border-radius:50%;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:900;flex-shrink:0}
 .cola-num.actual{background:var(--accent);color:#000}
 .cola-hint{font-size:.63rem;color:var(--dim);text-align:center;margin-bottom:6px}
 /* Actions */
 .action-row{display:flex;gap:5px;margin-top:9px;padding-top:9px;border-top:1px solid var(--border)}
 .action-btn{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:var(--bg4);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.82rem;flex-shrink:0}
+.action-btn svg{width:16px;height:16px}
 .btn-check{background:var(--green-s);border-color:rgba(46,204,113,.3)}
 .btn-x{background:var(--red-s);border-color:rgba(231,76,60,.3)}
 .btn-wa{background:rgba(37,211,102,.1);border-color:rgba(37,211,102,.3)}
@@ -1555,9 +1560,12 @@ function renderCola(lista){
     const precio=svcMap[(c.servicio||'').toLowerCase().trim()]||0;
     const dur=durMap[(c.servicio||'').toLowerCase().trim()]||30;
     const esPrimero=i===0&&vistaFecha==='hoy';const isMañana=vistaFecha==='manana';
-    return`<div class="cola-row" id="cr-${c.id}">
+    const esTarde=!isMañana&&minutosHasta(c.hora)<0;
+    const rowAccent=esPrimero?'next':esTarde?'late':'calm';
+    const numAccent=esPrimero?' actual':esTarde?' tarde':'';
+    return`<div class="cola-row ${rowAccent}" id="cr-${c.id}">
       <div style="display:flex;align-items:center;gap:9px;">
-        <div class="cola-num${esPrimero?' actual':''}">${i+1}</div>
+        <div class="cola-num${numAccent}">${i+1}</div>
         <div style="flex:1;min-width:0;cursor:pointer;" onclick="verHistorial(${JSON.stringify(c).replace(/"/g,'&quot;')})">
           <div style="font-weight:800;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${DOMPurify.sanitize(c.nombre)}</div>
           <div style="font-size:.72rem;display:flex;gap:5px;align-items:center;flex-wrap:wrap;">
@@ -1578,9 +1586,9 @@ function renderCola(lista){
         <div style="display:flex;gap:4px;">
           ${i>0?`<div class="action-btn" onclick="moverCola(${c.id},'up')">↑</div>`:''}
           ${i<lista.length-1?`<div class="action-btn" onclick="moverCola(${c.id},'down')">↓</div>`:''}
-          <div class="action-btn btn-cal" onclick="openModalReagendar(${JSON.stringify(c).replace(/"/g,'&quot;')})">📅</div>
-          ${c.telefono&&c.telefono!=='walk-in'?`<div class="action-btn btn-wa" onclick="abrirWhatsApp(${JSON.stringify(c).replace(/"/g,'&quot;')})">💬</div>`:''}
-          ${otrosBarberos.length>0?`<div class="action-btn btn-transfer" onclick="openModalTransferir(${JSON.stringify(c).replace(/"/g,'&quot;')})">↪</div>`:''}
+          <div class="action-btn btn-cal" onclick="openModalReagendar(${JSON.stringify(c).replace(/"/g,'&quot;')})"><i data-lucide="calendar"></i></div>
+          ${c.telefono&&c.telefono!=='walk-in'?`<div class="action-btn btn-wa" onclick="abrirWhatsApp(${JSON.stringify(c).replace(/"/g,'&quot;')})"><i data-lucide="message-circle"></i></div>`:''}
+          ${otrosBarberos.length>0?`<div class="action-btn btn-transfer" onclick="openModalTransferir(${JSON.stringify(c).replace(/"/g,'&quot;')})"><i data-lucide="corner-up-right"></i></div>`:''}
           ${!isMañana?`<div class="action-btn btn-check" onclick="pedirNota(${JSON.stringify(c).replace(/"/g,'&quot;')})">✓</div>`:''}
           <div class="action-btn btn-x" onclick="cancelarCita(${c.id},'${DOMPurify.sanitize(c.nombre)}')">✕</div>
         </div>
@@ -1588,6 +1596,7 @@ function renderCola(lista){
     </div>`;
   }).join('');
   lista.forEach(c=>addSwipe(`cr-${c.id}`,c));
+  lucide.createIcons(); // renderizar los íconos lucide de las filas recién insertadas
 }
 
 function renderBloqueos(lista){
