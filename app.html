@@ -811,18 +811,28 @@ async function loadColaHome(citasHoy) {
     const miIdx = cola.findIndex(c=>c.usuario_id===user?.id||(c.telefono&&c.telefono===user?.telefono));
     const miPos = miIdx>=0 ? miIdx+1 : null;
     if (!miPos) { cards.innerHTML=''; return; }
+    const isTurno   = miPos===1;
+    const pillBg    = isTurno ? 'rgba(62,207,142,0.08)' : 'rgba(201,168,76,0.07)';
+    const pillBdr   = isTurno ? 'rgba(62,207,142,0.4)'  : 'rgba(201,168,76,0.35)';
+    const pillColor = isTurno ? 'var(--green)' : 'var(--accent)';
+    const statusTxt = isTurno ? '¡Es tu turno!' : miPos===2 ? '¡Prepárate ya!' : 'Tu turno en cola';
+    const subTxt    = miPos-1===0 ? '¡Ahora mismo!' : miPos-1===1 ? 'Falta 1 persona' : `Faltan ${miPos-1} personas`;
     cards.innerHTML = `
-      <div class="card-gold" onclick="showScreen('colaScreen')" style="cursor:pointer">
-        <div class="flex" style="justify-content:space-between;align-items:center">
-          <div>
-            <div class="muted mb-sm" style="font-size:.7rem;text-transform:uppercase;letter-spacing:.08em">Tu posición</div>
-            <div class="outfit" style="font-size:2.4rem;font-weight:900;color:var(--accent);line-height:1">#${miPos}</div>
-            <div class="muted" style="font-size:.78rem">${miPos-1===0?'¡Es tu turno!':miPos-1===1?'Falta 1 persona':`Faltan ${miPos-1} personas`}</div>
+      <div onclick="showScreen('colaScreen')" style="cursor:pointer;background:${pillBg};border:1.5px solid ${pillBdr};border-radius:22px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px">
+        <div style="width:46px;height:46px;border-radius:50%;border:2px solid ${pillColor};background:rgba(0,0,0,.2);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
+          <span style="font-size:1.15rem;font-weight:900;color:${pillColor};line-height:1.1">${miPos}</span>
+          <span style="font-size:.52rem;text-transform:uppercase;font-weight:700;color:${pillColor};opacity:.7;letter-spacing:.05em">pos</span>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.88rem;font-weight:800;color:${pillColor};margin-bottom:3px">${statusTxt}</div>
+          <div style="font-size:.72rem;color:var(--dim);display:flex;align-items:center;gap:5px">
+            <i data-lucide="clock" size="11"></i>
+            <span>${subTxt} · ${cola.length} en cola</span>
           </div>
-          <div style="text-align:right">
-            <div style="font-size:.75rem;color:var(--dim);margin-bottom:4px">${cita.shops?.nombre||''}</div>
-            <div class="tag tag-gold">${fmt12(cita.hora)}</div>
-          </div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-weight:800;font-size:.85rem;color:${pillColor}">${fmt12(cita.hora)}</div>
+          <i data-lucide="chevron-right" size="14" style="color:${pillColor};opacity:.6;display:block;margin-top:2px"></i>
         </div>
       </div>`;
     lucide.createIcons();
