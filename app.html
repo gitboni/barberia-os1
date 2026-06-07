@@ -5,9 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>AuraOS | Cliente</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="AuraOS">
+  <meta name="application-name" content="AuraOS">
+  <meta name="theme-color" content="#000000">
+  <link rel="manifest" href="/manifest-app.json">
   <link rel="apple-touch-icon" href="/assets/icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/icon.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="/assets/icon.png">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -309,6 +315,43 @@
         <div style="font-size:1.2rem;font-weight:800" id="perfilNombre">—</div>
         <div class="muted" style="font-size:.85rem" id="perfilTel">—</div>
       </div>
+      <!-- Card: Notificaciones push -->
+      <div class="card mb-md" id="notifCard">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:.95rem;font-weight:700;display:flex;align-items:center;gap:7px">
+              <i data-lucide="bell" size="16" style="color:var(--accent)"></i>
+              <span>Notificaciones</span>
+            </div>
+            <div class="muted" style="font-size:.75rem;margin-top:3px" id="notifSubtext">Activa para recibir recordatorios y avisos de tu turno.</div>
+          </div>
+          <button id="notifToggleBtn" class="btn-sm" onclick="pedirPermisoNotif()" style="flex-shrink:0">Activar</button>
+        </div>
+      </div>
+
+      <!-- Card: Instalar app (visible solo si se puede instalar) -->
+      <div class="card mb-md hidden" id="installCard" style="border-color:var(--accent-b);background:linear-gradient(135deg,rgba(201,168,76,.06),transparent)">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:42px;height:42px;border-radius:12px;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.3);display:flex;align-items:center;justify-content:center;color:var(--accent);flex-shrink:0">
+            <i data-lucide="download" size="20"></i>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:.92rem;font-weight:800">Instalar como app</div>
+            <div class="muted" style="font-size:.72rem;margin-top:2px">Acceso rápido desde tu pantalla de inicio.</div>
+          </div>
+          <button class="btn-gold" style="width:auto;padding:8px 14px;font-size:.8rem" onclick="instalarApp()">Instalar</button>
+        </div>
+      </div>
+
+      <!-- Card: Cómo instalar en iOS (solo iOS Safari) -->
+      <div class="card mb-md hidden" id="iosInstallHint" style="border-color:var(--accent-b);background:linear-gradient(135deg,rgba(201,168,76,.06),transparent)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <i data-lucide="download" size="18" style="color:var(--accent)"></i>
+          <span style="font-weight:800;font-size:.92rem">Instalar en iPhone/iPad</span>
+        </div>
+        <div class="muted" style="font-size:.78rem;line-height:1.5">1. Toca el botón <strong style="color:var(--text)">Compartir</strong> abajo<br>2. Elige <strong style="color:var(--text)">"Añadir a inicio"</strong> <i data-lucide="square-plus" size="11"></i></div>
+      </div>
+
       <div class="card mb-md">
         <div style="font-size:.72rem;color:var(--dim);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;font-weight:700">Cambiar contraseña</div>
         <input type="password" id="pass1" placeholder="Nueva contraseña (mín. 8 caracteres)" class="input">
@@ -808,44 +851,110 @@ function renderShops(shops) {
 }
 
 async function loadColaHome(citasHoy) {
-  if (!citasHoy.length) { document.getElementById('colaHomeSection').classList.add('hidden'); return; }
-  // Usar la primera cita del usuario hoy para mostrar su posición
-  const cita = citasHoy[0];
-  document.getElementById('colaHomeSection').classList.remove('hidden');
+  const section = document.getElementById('colaHomeSection');
   const cards = document.getElementById('colaHomeCards');
+  let shopId, barbero, miCitaHoy = null, modoEspectador = false;
+
+  if (citasHoy.length > 0) {
+    miCitaHoy = citasHoy[0];
+    shopId = miCitaHoy.shop_id;
+    barbero = miCitaHoy.barbero;
+  } else if (misShops.length > 0) {
+    // Modo espectador: cola en vivo de la barbería favorita
+    shopId = misShops[0].id;
+    const { data: barbs } = await sb.from('barberos').select('nombre').eq('shop_id', shopId).eq('activo', true).order('orden').limit(1);
+    if (!barbs || !barbs[0]) { section.classList.add('hidden'); return; }
+    barbero = barbs[0].nombre;
+    modoEspectador = true;
+  } else {
+    section.classList.add('hidden'); return;
+  }
+
+  section.classList.remove('hidden');
   cards.innerHTML = '<div class="card"><div class="skeleton" style="height:50px"></div></div>';
+
   try {
-    const { data } = await sb.rpc('get_cola_con_duraciones', { p_shop_id:cita.shop_id, p_barbero:cita.barbero, p_fecha:hoyRD() });
+    const { data } = await sb.rpc('get_cola_con_duraciones', { p_shop_id: shopId, p_barbero: barbero, p_fecha: hoyRD() });
     const cola = (data||[]);
-    const miIdx = cola.findIndex(c=>c.usuario_id===user?.id||(c.telefono&&c.telefono===user?.telefono));
+    const miIdx = modoEspectador ? -1 : cola.findIndex(c=>c.usuario_id===user?.id||(c.telefono&&c.telefono===user?.telefono));
     const miPos = miIdx>=0 ? miIdx+1 : null;
-    if (!miPos) { cards.innerHTML=''; return; }
-    const isTurno   = miPos===1;
-    const pillBg    = isTurno ? 'rgba(62,207,142,0.08)' : 'rgba(201,168,76,0.07)';
-    const pillBdr   = isTurno ? 'rgba(62,207,142,0.4)'  : 'rgba(201,168,76,0.35)';
-    const pillColor = isTurno ? 'var(--green)' : 'var(--accent)';
-    const statusTxt = isTurno ? '¡Es tu turno!' : miPos===2 ? '¡Prepárate ya!' : 'Tu turno en cola';
-    const subTxt    = miPos-1===0 ? '¡Ahora mismo!' : miPos-1===1 ? 'Falta 1 persona' : `Faltan ${miPos-1} personas`;
-    cards.innerHTML = `
-      <div onclick="showScreen('colaScreen')" style="cursor:pointer;background:${pillBg};border:1.5px solid ${pillBdr};border-radius:22px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px">
-        <div style="width:46px;height:46px;border-radius:50%;border:2px solid ${pillColor};background:rgba(0,0,0,.2);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
-          <span style="font-size:1.15rem;font-weight:900;color:${pillColor};line-height:1.1">${miPos}</span>
-          <span style="font-size:.52rem;text-transform:uppercase;font-weight:700;color:${pillColor};opacity:.7;letter-spacing:.05em">pos</span>
-        </div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:.88rem;font-weight:800;color:${pillColor};margin-bottom:3px">${statusTxt}</div>
-          <div style="font-size:.72rem;color:var(--dim);display:flex;align-items:center;gap:5px">
-            <i data-lucide="clock" size="11"></i>
-            <span>${subTxt} · ${cola.length} en cola</span>
+
+    let pillHTML = '';
+    if (modoEspectador) {
+      // Resumen modo espectador
+      const esperaMin = cola.reduce((acc,c)=>acc+(c.duracion_min||25), 0);
+      const esperaTxt = esperaMin===0 ? '¡Sin espera!' : esperaMin<60 ? `${esperaMin} min de espera` : `${Math.floor(esperaMin/60)}h ${esperaMin%60}m de espera`;
+      pillHTML = `
+        <div onclick="showScreen('colaScreen')" style="cursor:pointer;background:rgba(201,168,76,0.07);border:1.5px solid rgba(201,168,76,0.35);border-radius:22px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px">
+          <div style="width:46px;height:46px;border-radius:50%;border:2px solid var(--accent);background:rgba(0,0,0,.2);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
+            <span style="font-size:1.15rem;font-weight:900;color:var(--accent);line-height:1.1">${cola.length}</span>
+            <span style="font-size:.52rem;text-transform:uppercase;font-weight:700;color:var(--accent);opacity:.7;letter-spacing:.05em">cola</span>
           </div>
-        </div>
-        <div style="text-align:right;flex-shrink:0">
-          <div style="font-weight:800;font-size:.85rem;color:${pillColor}">${fmt12(cita.hora)}</div>
-          <i data-lucide="chevron-right" size="14" style="color:${pillColor};opacity:.6;display:block;margin-top:2px"></i>
-        </div>
-      </div>`;
+          <div style="flex:1;min-width:0">
+            <div style="font-size:.88rem;font-weight:800;color:var(--accent);margin-bottom:3px">Cola en vivo · ${barbero}</div>
+            <div style="font-size:.72rem;color:var(--dim);display:flex;align-items:center;gap:5px">
+              <i data-lucide="clock" size="11"></i>
+              <span>${esperaTxt}</span>
+            </div>
+          </div>
+          <i data-lucide="chevron-right" size="14" style="color:var(--accent);opacity:.6;flex-shrink:0"></i>
+        </div>`;
+    } else if (miPos) {
+      const isTurno   = miPos===1;
+      const pillBg    = isTurno ? 'rgba(62,207,142,0.08)' : 'rgba(201,168,76,0.07)';
+      const pillBdr   = isTurno ? 'rgba(62,207,142,0.4)'  : 'rgba(201,168,76,0.35)';
+      const pillColor = isTurno ? 'var(--green)' : 'var(--accent)';
+      const statusTxt = isTurno ? '¡Es tu turno!' : miPos===2 ? '¡Prepárate ya!' : 'Tu turno en cola';
+      const subTxt    = miPos-1===0 ? '¡Ahora mismo!' : miPos-1===1 ? 'Falta 1 persona' : `Faltan ${miPos-1} personas`;
+      pillHTML = `
+        <div onclick="showScreen('colaScreen')" style="cursor:pointer;background:${pillBg};border:1.5px solid ${pillBdr};border-radius:22px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px">
+          <div style="width:46px;height:46px;border-radius:50%;border:2px solid ${pillColor};background:rgba(0,0,0,.2);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
+            <span style="font-size:1.15rem;font-weight:900;color:${pillColor};line-height:1.1">${miPos}</span>
+            <span style="font-size:.52rem;text-transform:uppercase;font-weight:700;color:${pillColor};opacity:.7;letter-spacing:.05em">pos</span>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:.88rem;font-weight:800;color:${pillColor};margin-bottom:3px">${statusTxt}</div>
+            <div style="font-size:.72rem;color:var(--dim);display:flex;align-items:center;gap:5px">
+              <i data-lucide="clock" size="11"></i>
+              <span>${subTxt} · ${cola.length} en cola</span>
+            </div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-weight:800;font-size:.85rem;color:${pillColor}">${fmt12(miCitaHoy.hora)}</div>
+            <i data-lucide="chevron-right" size="14" style="color:${pillColor};opacity:.6;display:block;margin-top:2px"></i>
+          </div>
+        </div>`;
+    }
+
+    // Lista de cola (igual que en Mi Turno)
+    let listHTML = '';
+    if (cola.length > 0) {
+      listHTML = `
+        <div class="card" style="padding:14px">
+          <div style="font-size:.7rem;color:var(--dim);text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:10px">Cola del día (${cola.length})</div>
+          ${cola.map((c,i)=>{
+            const esMio = !modoEspectador && ((user?.id&&c.usuario_id===user.id)||(user?.telefono&&c.telefono===user.telefono));
+            const numCls = esMio?'mio':i===0?'prox':'';
+            const leftBorder = esMio?'var(--accent)':i===0?'var(--green)':'rgba(255,255,255,.12)';
+            return `
+              <div class="cola-row" style="border-left:3px solid ${leftBorder};padding-left:10px">
+                <div class="cola-num ${numCls}">${i+1}</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-weight:700;font-size:.85rem${esMio?';color:var(--accent)':''}">${esMio?'Tú':'Cliente '+(i+1)}</div>
+                  <div class="muted" style="font-size:.7rem">${esMio?c.servicio+' · '+c.duracion_min+' min':'••••'}</div>
+                </div>
+                <div style="text-align:right;flex-shrink:0">
+                  <div style="font-size:.8rem;font-weight:700${esMio?';color:var(--accent)':';color:var(--dim)'}">${fmt12(c.hora)}</div>
+                  ${i===0?'<span class="tag tag-green" style="font-size:.6rem">Próximo</span>':''}
+                </div>
+              </div>`;
+          }).join('')}
+        </div>`;
+    }
+
+    cards.innerHTML = pillHTML + listHTML;
     lucide.createIcons();
-  } catch(_) { cards.innerHTML=''; }
+  } catch(e) { console.error('loadColaHome error:', e); cards.innerHTML=''; }
 }
 
 async function repetirUltimaCita() {
@@ -1091,6 +1200,9 @@ function loadPerfil() {
   document.getElementById('perfilAvatar').textContent = ini;
   document.getElementById('perfilNombre').textContent = user.nombre||'—';
   document.getElementById('perfilTel').textContent = user.telefono?'+'+user.telefono:'Sin teléfono';
+  // Refrescar estado de notificaciones e instalación cada vez que se ve Perfil
+  updateNotifUI();
+  updateInstallUI();
   lucide.createIcons();
 }
 
@@ -1549,14 +1661,176 @@ function cerrarScanner(){
 // ══════════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════════
+// PWA: SERVICE WORKER + INSTALL + NOTIFICACIONES PUSH
+// ══════════════════════════════════════════════════════════
+let deferredInstallPrompt = null;
+let citaProximaCache = null; // para detectar cambios de estado
+
+// Registrar SW
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw-app.js')
+      .then(reg => { console.log('[sw] registrado', reg.scope); })
+      .catch(err => { console.warn('[sw] error registrando', err); });
+  });
+}
+
+// Capturar evento beforeinstallprompt (Chrome/Edge Android)
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  // Mostrar el card de instalar si el usuario está en Perfil
+  const card = document.getElementById('installCard');
+  if (card) card.classList.remove('hidden');
+});
+
+// Detectar PWA ya instalada
+window.addEventListener('appinstalled', () => {
+  deferredInstallPrompt = null;
+  const card = document.getElementById('installCard');
+  if (card) card.classList.add('hidden');
+  toast('¡App instalada! 🎉', 'success');
+});
+
+function isIOSSafari() {
+  const ua = navigator.userAgent;
+  return /iPad|iPhone|iPod/.test(ua) && !window.MSStream && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua);
+}
+
+function isStandalone() {
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+
+async function instalarApp() {
+  if (!deferredInstallPrompt) {
+    toast('Abre el menú del navegador y elige "Instalar app" o "Añadir a pantalla de inicio".', 'info');
+    return;
+  }
+  deferredInstallPrompt.prompt();
+  const { outcome } = await deferredInstallPrompt.userChoice;
+  if (outcome === 'accepted') toast('Instalando…', 'success');
+  deferredInstallPrompt = null;
+  document.getElementById('installCard')?.classList.add('hidden');
+}
+
+// ── Notificaciones browser + Web Push ─────────────────────────────────
+function urlB64ToUint8(b) {
+  const pad  = '='.repeat((4 - b.length % 4) % 4);
+  const base = (b + pad).replace(/-/g, '+').replace(/_/g, '/');
+  const raw  = atob(base);
+  const arr  = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+  return arr;
+}
+
+async function pedirPermisoNotif() {
+  if (!('Notification' in window)) {
+    toast('Tu navegador no soporta notificaciones', 'error');
+    return;
+  }
+  if (!user?.id) { toast('Inicia sesión para activar notificaciones', 'info'); return; }
+  if (Notification.permission === 'denied') {
+    toast('Notificaciones bloqueadas. Cambia el permiso en los ajustes del navegador.', 'error');
+    return;
+  }
+  let perm = Notification.permission;
+  if (perm === 'default') {
+    perm = await Notification.requestPermission();
+  }
+  if (perm === 'granted') {
+    await suscribirWebPush();
+    updateNotifUI();
+    toast('🔔 Notificaciones activadas', 'success');
+  } else {
+    updateNotifUI();
+  }
+}
+
+async function suscribirWebPush() {
+  try {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !user?.id) return;
+    const reg = await navigator.serviceWorker.ready;
+    // VAPID pública (fuente única = secret del servidor)
+    const vr = await fetch(SB_URL + '/functions/v1/vapid-public', { headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY } });
+    const { publicKey } = await vr.json();
+    if (!publicKey) { console.warn('[push] VAPID no configurado'); return; }
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToUint8(publicKey) });
+    }
+    await sb.from('usuarios_app').update({ web_push_subscription: sub.toJSON(), web_push_activo: true }).eq('id', user.id);
+    console.log('[push] suscrito ✓');
+  } catch (e) { console.warn('[push] error suscribiendo', e); }
+}
+
+function updateNotifUI() {
+  const btn = document.getElementById('notifToggleBtn');
+  const sub = document.getElementById('notifSubtext');
+  if (!btn || !sub) return;
+  if (!('Notification' in window)) {
+    btn.textContent = 'No disponible'; btn.disabled = true;
+    sub.textContent = 'Tu navegador no soporta notificaciones.';
+    return;
+  }
+  const p = Notification.permission;
+  if (p === 'granted') {
+    btn.textContent = '✓ Activas';
+    btn.style.background = 'rgba(62,207,142,.12)';
+    btn.style.color = 'var(--green)';
+    sub.textContent = 'Recibirás avisos de tu turno aunque la app esté cerrada.';
+  } else if (p === 'denied') {
+    btn.textContent = 'Bloqueadas';
+    btn.style.background = 'rgba(248,113,113,.12)';
+    btn.style.color = 'var(--red)';
+    sub.textContent = 'Cambia el permiso en los ajustes del navegador para activarlas.';
+  } else {
+    btn.textContent = 'Activar';
+    btn.style.background = '';
+    btn.style.color = '';
+    sub.textContent = 'Activa para recibir recordatorios y avisos de tu turno.';
+  }
+}
+
+function updateInstallUI() {
+  // En iOS Safari no hay beforeinstallprompt — mostrar instrucciones
+  const iosHint = document.getElementById('iosInstallHint');
+  if (!iosHint) return;
+  if (isStandalone()) {
+    iosHint.classList.add('hidden');
+    document.getElementById('installCard')?.classList.add('hidden');
+    return;
+  }
+  if (isIOSSafari()) {
+    iosHint.classList.remove('hidden');
+  }
+}
+
+// Notificación local cuando cambia tu posición/cita (realtime ya activo en pantalla cola)
+function notificacionLocal(title, body, tag) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  try {
+    new Notification(title, { body, icon: '/assets/icon.png', badge: '/assets/icon.png', tag: tag || 'auraos', renotify: true });
+  } catch (_) {}
+}
+
+// ══════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', async()=>{
   lucide.createIcons();
   await initAuth();
   await loadHome();
+  updateNotifUI();
+  updateInstallUI();
   // Autodetectar shop desde URL
   const sp=new URLSearchParams(window.location.search);
   const sid=sp.get('shop')||sp.get('id');
   if(sid) setTimeout(()=>startBooking(sid),800);
+  // Hash navigation (shortcuts del manifest: #cola, #historial, #reservar)
+  const hash = window.location.hash.replace('#','');
+  if (hash==='cola') setTimeout(()=>showScreen('colaScreen'), 300);
+  else if (hash==='historial') setTimeout(()=>showScreen('historialScreen'), 300);
+  else if (hash==='reservar') setTimeout(()=>startBooking(), 300);
 });
 
 // Resiliencia al volver al tab/PWA — equivalente al AppState 'active' de la app RN.
