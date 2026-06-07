@@ -6714,7 +6714,7 @@ async function guardarVipEdit(){
   try{
     const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/update_preferencial_admin`,{
       method:'POST',headers:{...H,'Content-Type':'application/json'},
-      body:JSON.stringify({p_id:id,p_dia:dia,p_hora:hora,p_servicio:servicio,p_nombre:nombre,p_telefono:telefono})
+      body:JSON.stringify({p_id:id,p_shop_id:S.shopId,p_dia:dia,p_hora:hora,p_servicio:servicio,p_nombre:nombre,p_telefono:telefono})
     });
     const data=await r.json();
     if(!r.ok||!data||data.ok!==true){
