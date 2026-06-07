@@ -1092,6 +1092,35 @@ body.kiosk-mode .pos-layout{height:calc(100dvh - 54px);height:calc(100vh - 54px)
   </div>
 </div>
 
+<!-- MODAL EDITAR CLIENTE VIP / PREFERENCIAL -->
+<div class="modal-overlay" id="modal-vip" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal">
+    <h3>Editar cliente VIP</h3>
+    <input type="hidden" id="mv-id">
+    <div class="fg"><label>Nombre</label><input type="text" id="mv-nombre" placeholder="Carlos Martínez"></div>
+    <div class="fg"><label>Teléfono</label><input type="text" id="mv-tel" placeholder="+18091234567"></div>
+    <div class="fg-row">
+      <div class="fg"><label>Día de la semana</label>
+        <select id="mv-dia">
+          <option value="1">Lunes</option>
+          <option value="2">Martes</option>
+          <option value="3">Miércoles</option>
+          <option value="4">Jueves</option>
+          <option value="5">Viernes</option>
+          <option value="6">Sábado</option>
+          <option value="0">Domingo</option>
+        </select>
+      </div>
+      <div class="fg"><label>Hora</label><input type="time" id="mv-hora"></div>
+    </div>
+    <div class="fg"><label>Servicio</label><select id="mv-servicio"></select></div>
+    <div class="modal-actions">
+      <button class="btn-full btn-gold" onclick="guardarVipEdit()">Guardar</button>
+      <button class="btn-full btn-cancel" onclick="closeModal('vip')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const SUPABASE_URL='https://mmokunpuslcfphalrwot.supabase.co';
 const SUPABASE_KEY='sb_publishable_aETz_9ECH5RcBMjmRhUnfw_g71zRdwT';
@@ -6552,6 +6581,7 @@ async function loadVip(){
     // RPC SECURITY DEFINER — bypasa RLS (que solo permite leer al barbero autenticado)
     const rpcRes=await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_preferenciales_by_shop`,{method:'POST',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify({p_shop_id:S.shopId})});
     const prefs=rpcRes.ok?await rpcRes.json():[];
+    window._vipPrefs={}; for(const p of prefs) window._vipPrefs[p.id]=p;
     // Citas preferenciales generadas esta semana (estado Confirmada, nota contiene ⭐)
     const hoy=new Date();
     const lunes=new Date(hoy);lunes.setDate(hoy.getDate()-((hoy.getDay()+6)%7));
@@ -6599,6 +6629,7 @@ async function loadVip(){
             <th style="text-align:left;padding:5px 6px;font-size:.55rem;color:var(--muted);font-weight:400;">HORA</th>
             <th style="text-align:left;padding:5px 6px;font-size:.55rem;color:var(--muted);font-weight:400;">SERVICIO</th>
             <th style="text-align:left;padding:5px 6px;font-size:.55rem;color:var(--muted);font-weight:400;">ESTA SEMANA</th>
+            <th style="text-align:right;padding:5px 6px;font-size:.55rem;color:var(--muted);font-weight:400;"></th>
           </tr></thead><tbody>`;
       for(const p of grp.items){
         const generada=citasSet.has((p.nombre||'').toLowerCase().trim());
@@ -6613,6 +6644,7 @@ async function loadVip(){
           <td style="padding:7px 6px;font-size:.72rem;color:var(--text);">${(p.hora||'').substring(0,5)}</td>
           <td style="padding:7px 6px;font-size:.7rem;color:var(--muted);">${DOMPurify.sanitize(p.servicio||'—')}</td>
           <td style="padding:7px 6px;">${estadoBadge}</td>
+          <td style="padding:7px 6px;text-align:right;"><button onclick="editarVip('${p.id}')" style="background:rgba(201,168,76,0.1);color:var(--gold);border:1px solid rgba(201,168,76,0.3);border-radius:6px;padding:4px 10px;font-size:.62rem;font-weight:700;cursor:pointer;">Editar</button></td>
         </tr>`;
       }
       html+=`</tbody></table></div>`;
@@ -6653,6 +6685,46 @@ async function generarVip(){
   }finally{
     btn.textContent='▶ Generar citas ahora'; btn.disabled=false;
   }
+}
+
+function editarVip(id){
+  const p=(window._vipPrefs||{})[id];
+  if(!p){ toast('No se encontró el cliente','error'); return; }
+  document.getElementById('mv-id').value=p.id;
+  document.getElementById('mv-nombre').value=p.nombre||'';
+  document.getElementById('mv-tel').value=p.telefono||'';
+  document.getElementById('mv-dia').value=String(p.dia_semana);
+  document.getElementById('mv-hora').value=(p.hora||'').substring(0,5);
+  // Poblar servicios desde S.servicios + asegurar que el actual esté presente
+  const sel=document.getElementById('mv-servicio');
+  const svcs=(S.servicios||[]).map(s=>s.nombre);
+  if(p.servicio && !svcs.includes(p.servicio)) svcs.unshift(p.servicio);
+  sel.innerHTML=svcs.map(n=>`<option value="${DOMPurify.sanitize(n)}" ${n===p.servicio?'selected':''}>${DOMPurify.sanitize(n)}</option>`).join('')||'<option value="">— Sin servicios —</option>';
+  document.getElementById('modal-vip').classList.add('open');
+}
+
+async function guardarVipEdit(){
+  const id=document.getElementById('mv-id').value;
+  const nombre=document.getElementById('mv-nombre').value.trim();
+  const telefono=document.getElementById('mv-tel').value.trim();
+  const dia=parseInt(document.getElementById('mv-dia').value,10);
+  const hora=document.getElementById('mv-hora').value;
+  const servicio=document.getElementById('mv-servicio').value;
+  if(!nombre||!telefono||!hora){ toast('Completa nombre, teléfono y hora','error'); return; }
+  try{
+    const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/update_preferencial_admin`,{
+      method:'POST',headers:{...H,'Content-Type':'application/json'},
+      body:JSON.stringify({p_id:id,p_dia:dia,p_hora:hora,p_servicio:servicio,p_nombre:nombre,p_telefono:telefono})
+    });
+    const data=await r.json();
+    if(!r.ok||!data||data.ok!==true){
+      const errMap={slot_ocupado:'Ya hay un cliente VIP en ese día y hora con este barbero',no_autorizado:'No tienes permiso para editar este cliente',no_existe:'El cliente ya no existe',hora_invalida:'Hora inválida',dia_invalido:'Día inválido'};
+      toast(errMap[data&&data.error]||'No se pudo guardar','error'); return;
+    }
+    toast('Cliente VIP actualizado','success');
+    closeModal('vip');
+    loadVip();
+  }catch(e){ toast('Error: '+e.message,'error'); }
 }
 
 </script>
