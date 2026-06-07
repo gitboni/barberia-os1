@@ -90,6 +90,13 @@
     .fecha-chip.active .fl{color:#000}
     .fecha-chip .fs{font-size:.65rem;color:var(--dim);margin-top:2px}
     .fecha-chip.active .fs{color:rgba(0,0,0,.7)}
+    /* Servicio card (Apple style) */
+    .svc-card{display:flex;align-items:center;gap:12px;background:var(--bg2);border-radius:18px;border:1px solid var(--border);padding:14px;margin-bottom:9px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.18);transition:transform .12s ease, background .15s ease}
+    .svc-card:active{transform:scale(.98);background:#1f1f1f}
+    .svc-icon{width:38px;height:38px;border-radius:12px;background:rgba(201,168,76,.10);border:1px solid rgba(201,168,76,.22);display:flex;align-items:center;justify-content:center;color:var(--accent);flex-shrink:0}
+    .svc-name{font-size:.95rem;font-weight:700;color:var(--text);letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .svc-meta{display:flex;align-items:center;gap:4px;margin-top:2px;font-size:.72rem;color:var(--dim);font-weight:500}
+    .svc-meta-dot{width:3px;height:3px;border-radius:50%;background:var(--dim);opacity:.5;margin:0 3px}
     /* Slots */
     .slots-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
     .slot{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:11px;text-align:center;font-size:.88rem;font-weight:700;color:var(--accent);cursor:pointer;transition:all .15s}
@@ -1200,9 +1207,20 @@ async function cargarServicios(shopId) {
 }
 
 function svcCard(s) {
-  return `<div class="card" onclick="bSelectServicio('${s.id}')" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:12px 14px;margin-bottom:8px">
-    <div><div style="font-weight:700">${san(s.nombre)}</div><div class="muted" style="font-size:.75rem">${s.duracion_min} min${s.descripcion?` · ${san(s.descripcion).substring(0,40)}`:''}</div></div>
-    ${s.precio>0?`<div style="font-weight:900;color:var(--accent)">$${parseFloat(s.precio).toLocaleString()}</div>`:''}
+  const desc = s.descripcion ? ` · ${san(s.descripcion).substring(0,40)}` : '';
+  const price = s.precio>0 ? `
+      <div style="text-align:right;line-height:1">
+        <div style="font-size:.6rem;color:var(--accent);font-weight:700;letter-spacing:.05em;opacity:.75">RD$</div>
+        <div style="font-size:1.15rem;font-weight:900;color:var(--accent);letter-spacing:-.02em;font-variant-numeric:tabular-nums">${parseFloat(s.precio).toLocaleString()}</div>
+      </div>` : '';
+  return `<div class="svc-card" onclick="bSelectServicio('${s.id}')">
+    <div class="svc-icon"><i data-lucide="scissors" size="16"></i></div>
+    <div style="flex:1;min-width:0">
+      <div class="svc-name">${san(s.nombre)}</div>
+      <div class="svc-meta"><i data-lucide="clock" size="10"></i><span>${s.duracion_min} min</span>${desc?`<span class="svc-meta-dot"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${desc.substring(3)}</span>`:''}</div>
+    </div>
+    ${price}
+    <i data-lucide="chevron-right" size="14" style="color:var(--dim);opacity:.5;flex-shrink:0"></i>
   </div>`;
 }
 
@@ -1503,6 +1521,23 @@ document.addEventListener('DOMContentLoaded', async()=>{
   const sp=new URLSearchParams(window.location.search);
   const sid=sp.get('shop')||sp.get('id');
   if(sid) setTimeout(()=>startBooking(sid),800);
+});
+
+// Resiliencia al volver al tab/PWA — equivalente al AppState 'active' de la app RN.
+// Re-autentica el websocket con el token vigente y recrea la suscripción de la
+// pantalla activa. Sin esto, tras un rato en background el realtime queda muerto.
+document.addEventListener('visibilitychange', async () => {
+  if (document.visibilityState !== 'visible') return;
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session?.access_token) {
+      try { sb.realtime.setAuth(session.access_token); } catch (_) {}
+    }
+  } catch (_) {}
+  // Refetch + re-suscribir la pantalla activa
+  if (currentScreen === 'colaScreen') loadCola();
+  else if (currentScreen === 'historialScreen') loadHistorial();
+  else if (currentScreen === 'homeScreen') loadHome();
 });
 </script>
 </body>
