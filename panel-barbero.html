@@ -1445,6 +1445,17 @@ function updateHeaderUI(){
   document.getElementById('maxTurnosVal').textContent=maxTurnos;
   document.getElementById('activoSwitch').checked=barbero.activo;
   renderStatusText(barbero.activo);
+  // Si es el ÚNICO barbero activo del local, ocultar el toggle: siempre disponible
+  // (el bot filtra por activo=true y la barbería quedaría sin poder reservar).
+  const _unicoBarbero=(otrosBarberos||[]).length===0;
+  const _toggleCard=document.getElementById('toggleCard');
+  if(_toggleCard)_toggleCard.style.display=_unicoBarbero?'none':'';
+  if(_unicoBarbero){
+    renderStatusText(true);
+    if(barbero.activo===false){
+      sb.from('barberos').update({activo:true}).eq('id',barbero.id).then(()=>{barbero.activo=true;});
+    }
+  }
   // Feature-gate: Monitor PWA, Stats y POS Barbero controlados por superadmin
   const showMonitor=shop?.feature_monitor_pwa??false;
   const showStats=shop?.feature_stats_barbero??false;
