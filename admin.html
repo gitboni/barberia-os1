@@ -1097,11 +1097,12 @@ body.kiosk-mode .pos-layout{height:calc(100dvh - 54px);height:calc(100vh - 54px)
   <div class="modal">
     <h3>Editar cliente VIP</h3>
     <input type="hidden" id="mv-id">
+    <input type="hidden" id="mv-barbero">
     <div class="fg"><label>Nombre</label><input type="text" id="mv-nombre" placeholder="Carlos Martínez"></div>
     <div class="fg"><label>Teléfono</label><input type="text" id="mv-tel" placeholder="+18091234567"></div>
     <div class="fg-row">
       <div class="fg"><label>Día de la semana</label>
-        <select id="mv-dia">
+        <select id="mv-dia" onchange="refreshVipHoras()">
           <option value="1">Lunes</option>
           <option value="2">Martes</option>
           <option value="3">Miércoles</option>
@@ -1111,9 +1112,9 @@ body.kiosk-mode .pos-layout{height:calc(100dvh - 54px);height:calc(100vh - 54px)
           <option value="0">Domingo</option>
         </select>
       </div>
-      <div class="fg"><label>Hora</label><input type="time" id="mv-hora"></div>
+      <div class="fg"><label>Hora</label><select id="mv-hora"></select></div>
     </div>
-    <div class="fg"><label>Servicio</label><select id="mv-servicio"></select></div>
+    <div class="fg"><label>Servicio</label><select id="mv-servicio" onchange="refreshVipHoras()"></select></div>
     <div class="modal-actions">
       <button class="btn-full btn-gold" onclick="guardarVipEdit()">Guardar</button>
       <button class="btn-full btn-cancel" onclick="closeModal('vip')">Cancelar</button>
@@ -6671,8 +6672,15 @@ async function generarVip(){
     if(res){
       res.style.display='block';
       if(data.ok){
-        res.style.background='rgba(62,207,142,0.08)'; res.style.color='var(--green)'; res.style.border='1px solid rgba(62,207,142,0.2)';
-        res.textContent=`✅ ${data.created} cita${data.created!==1?'s':''} generada${data.created!==1?'s':''} · ${data.skipped} ya existían${data.errores?` · ⚠️ ${data.errores} error(es)`:''}`;
+        const choques=Array.isArray(data.conflictos)?data.conflictos:[];
+        if(choques.length){
+          res.style.background='rgba(248,113,113,0.08)'; res.style.color='var(--red)'; res.style.border='1px solid rgba(248,113,113,0.2)';
+          const lista=choques.map(c=>`• ${DOMPurify.sanitize(c.nombre)} (${fmt12b(c.hora)}) choca`).join('<br>');
+          res.innerHTML=`✅ ${data.created} generada${data.created!==1?'s':''} · ${data.skipped} ya existían<br><b>⚠️ ${choques.length} no se pudo generar por solape:</b><br>${lista}<br><span style="opacity:.8">Edita su hora con el botón Editar para liberar el choque.</span>`;
+        }else{
+          res.style.background='rgba(62,207,142,0.08)'; res.style.color='var(--green)'; res.style.border='1px solid rgba(62,207,142,0.2)';
+          res.textContent=`✅ ${data.created} cita${data.created!==1?'s':''} generada${data.created!==1?'s':''} · ${data.skipped} ya existían${data.errores?` · ⚠️ ${data.errores} error(es)`:''}`;
+        }
       }else{
         res.style.background='rgba(248,113,113,0.08)'; res.style.color='var(--red)'; res.style.border='1px solid rgba(248,113,113,0.2)';
         res.textContent='❌ Error: '+(data.error||'desconocido');
@@ -6687,30 +6695,82 @@ async function generarVip(){
   }
 }
 
+// ── Horario del shop (en minutos) para un día de semana, respetando horarios_por_dia ──
+function _vipHorarioDia(diaSemana){
+  const s=S.shopData||{};
+  const globalIni=(s.hora_inicio??9), globalFin=(s.hora_fin??21);
+  const hpd=s.horarios_por_dia;
+  const ov=hpd?(hpd[diaSemana]??hpd[String(diaSemana)]):null;
+  const tmins=(v,fh)=>{ if(typeof v==='number')return v*60; if(typeof v==='string'&&v.includes(':')){const[h,m]=v.split(':').map(Number);return (h||0)*60+(m||0);} return (parseInt(v)||fh)*60; };
+  const ini=ov?tmins(ov.inicio??ov.ini,globalIni):globalIni*60;
+  const fin=ov?tmins(ov.fin,globalFin):globalFin*60;
+  return [ini,fin];
+}
+
+// ── Horas disponibles por DURACIÓN de servicio (igual que el bot y la app) ──
+function _vipHorasDisp(barberoId, diaSemana, servicioNombre, excludeId){
+  const dur={}; (S.servicios||[]).forEach(s=>{dur[(s.nombre||'').toLowerCase().trim()]=s.duracion_min||S.shopData?.duracion_turno||30;});
+  const durSel=dur[(servicioNombre||'').toLowerCase().trim()]||S.shopData?.duracion_turno||30;
+  const [iniMin,finMin]=_vipHorarioDia(diaSemana);
+  const bloques=Object.values(window._vipPrefs||{})
+    .filter(p=>p.barbero_id===barberoId && p.dia_semana===diaSemana && p.activo!==false && p.id!==excludeId)
+    .map(p=>{const[h,m]=(p.hora||'').slice(0,5).split(':').map(Number);const ini=h*60+m;const d=dur[(p.servicio||'').toLowerCase().trim()]||S.shopData?.duracion_turno||30;return [ini,ini+d];})
+    .sort((a,b)=>a[0]-b[0]);
+  const out=[]; let min=iniMin;
+  while(min+durSel<=finMin){
+    const choca=bloques.find(b=>min<b[1]-0.5 && min+durSel>b[0]+0.5);
+    if(!choca){const h=Math.floor(min/60),m=min%60;out.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);min+=durSel;}
+    else min=Math.ceil(choca[1]/5)*5;
+  }
+  return out;
+}
+
+// Repuebla el <select> de horas según barbero+día+servicio actuales del modal
+function refreshVipHoras(preferHora){
+  const sel=document.getElementById('mv-hora');
+  if(!sel)return;
+  const barberoId=document.getElementById('mv-barbero').value;
+  const dia=parseInt(document.getElementById('mv-dia').value,10);
+  const servicio=document.getElementById('mv-servicio').value;
+  const id=document.getElementById('mv-id').value;
+  const horas=_vipHorasDisp(barberoId,dia,servicio,id);
+  const actual=preferHora||sel.value;
+  if(!horas.length){ sel.innerHTML='<option value="">— Sin horarios libres —</option>'; return; }
+  // Selecciona la hora actual si sigue siendo válida; si no, la primera libre
+  const selected=horas.includes(actual)?actual:horas[0];
+  sel.innerHTML=horas.map(h=>`<option value="${h}" ${h===selected?'selected':''}>${fmt12b(h)}</option>`).join('');
+}
+
 function editarVip(id){
   const p=(window._vipPrefs||{})[id];
   if(!p){ toast('No se encontró el cliente','error'); return; }
   document.getElementById('mv-id').value=p.id;
+  document.getElementById('mv-barbero').value=p.barbero_id||'';
   document.getElementById('mv-nombre').value=p.nombre||'';
   document.getElementById('mv-tel').value=p.telefono||'';
   document.getElementById('mv-dia').value=String(p.dia_semana);
-  document.getElementById('mv-hora').value=(p.hora||'').substring(0,5);
   // Poblar servicios desde S.servicios + asegurar que el actual esté presente
   const sel=document.getElementById('mv-servicio');
   const svcs=(S.servicios||[]).map(s=>s.nombre);
   if(p.servicio && !svcs.includes(p.servicio)) svcs.unshift(p.servicio);
   sel.innerHTML=svcs.map(n=>`<option value="${DOMPurify.sanitize(n)}" ${n===p.servicio?'selected':''}>${DOMPurify.sanitize(n)}</option>`).join('')||'<option value="">— Sin servicios —</option>';
+  refreshVipHoras((p.hora||'').substring(0,5));
   document.getElementById('modal-vip').classList.add('open');
 }
 
 async function guardarVipEdit(){
   const id=document.getElementById('mv-id').value;
+  const barberoId=document.getElementById('mv-barbero').value;
   const nombre=document.getElementById('mv-nombre').value.trim();
   const telefono=document.getElementById('mv-tel').value.trim();
   const dia=parseInt(document.getElementById('mv-dia').value,10);
   const hora=document.getElementById('mv-hora').value;
   const servicio=document.getElementById('mv-servicio').value;
   if(!nombre||!telefono||!hora){ toast('Completa nombre, teléfono y hora','error'); return; }
+  // Validar que la hora no choque (misma lógica que la app del barbero)
+  if(!_vipHorasDisp(barberoId,dia,servicio,id).includes(hora)){
+    toast('Ese horario choca con otro cliente VIP o está fuera del horario','error'); return;
+  }
   try{
     const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/update_preferencial_admin`,{
       method:'POST',headers:{...H,'Content-Type':'application/json'},
