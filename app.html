@@ -880,20 +880,35 @@ async function renderCola() {
   const { data: misCitas } = await sb.from('citas').select('shop_id,barbero,hora,servicio')
     .or(filtro).eq('fecha',hoy).eq('estado','Confirmada').order('hora').limit(1);
 
-  const miCitaHoy = misCitas?.[0]||null;
+  let miCitaHoy = misCitas?.[0]||null;
+  let modoEspectador = false;
+  let barberoEspectador = null;
 
   if (!miCitaHoy) {
-    document.getElementById('colaNombreShop').textContent = 'Mi turno';
-    document.getElementById('colaMainContent').innerHTML = `
-      <div class="card text-center" style="padding:30px">
-        <i data-lucide="scissors" size="40" style="color:var(--dim);margin-bottom:12px"></i>
-        <div style="font-size:1rem;font-weight:700;margin-bottom:6px">Sin cita hoy</div>
-        <p class="muted mb-md" style="font-size:.85rem">No tienes ninguna cita reservada para hoy.</p>
-        <button class="btn-gold" onclick="startBooking()"><i data-lucide="plus" size="14"></i> Reservar turno</button>
-      </div>`;
-    document.getElementById('colaListSection').classList.add('hidden');
-    document.getElementById('colaUpdateTag').textContent = 'Sin citas hoy';
-    lucide.createIcons(); return;
+    // No tiene cita hoy → mostrar la cola EN VIVO de su barbería favorita (modo espectador)
+    if (misShops.length > 0) {
+      const shopFav = misShops[0];
+      // Buscar el barbero con más citas confirmadas hoy en esa shop (el más activo)
+      const { data: barbs } = await sb.from('barberos').select('nombre').eq('shop_id', shopFav.id).eq('activo', true).order('orden').limit(1);
+      if (barbs && barbs[0]) {
+        modoEspectador = true;
+        barberoEspectador = barbs[0].nombre;
+        miCitaHoy = { shop_id: shopFav.id, barbero: barbs[0].nombre, hora: null, servicio: null };
+      }
+    }
+    if (!miCitaHoy) {
+      document.getElementById('colaNombreShop').textContent = 'Mi turno';
+      document.getElementById('colaMainContent').innerHTML = `
+        <div class="card text-center" style="padding:30px">
+          <i data-lucide="scissors" size="40" style="color:var(--dim);margin-bottom:12px"></i>
+          <div style="font-size:1rem;font-weight:700;margin-bottom:6px">Sin cita hoy</div>
+          <p class="muted mb-md" style="font-size:.85rem">No tienes ninguna cita reservada para hoy y no tienes negocios favoritos.</p>
+          <button class="btn-gold" onclick="startBooking()"><i data-lucide="plus" size="14"></i> Reservar turno</button>
+        </div>`;
+      document.getElementById('colaListSection').classList.add('hidden');
+      document.getElementById('colaUpdateTag').textContent = 'Sin citas hoy';
+      lucide.createIcons(); return;
+    }
   }
 
   const { data: colaData } = await sb.rpc('get_cola_con_duraciones', {
@@ -902,46 +917,67 @@ async function renderCola() {
   const cola = (colaData||[]);
   const { data: shopData } = await sb.from('shops').select('nombre').eq('id',miCitaHoy.shop_id).single();
   document.getElementById('colaNombreShop').textContent = shopData?.nombre||'Mi turno';
+  if (modoEspectador) document.querySelector('#colaScreen .hdr p').textContent = 'Cola en vivo · sin cita';
 
-  const miIdx = cola.findIndex(c=>(user.id&&c.usuario_id===user.id)||(user.telefono&&c.telefono===user.telefono));
+  const miIdx = modoEspectador ? -1 : cola.findIndex(c=>(user.id&&c.usuario_id===user.id)||(user.telefono&&c.telefono===user.telefono));
   const miPos = miIdx>=0 ? miIdx+1 : null;
   const total  = cola.length;
 
   const now = minutosAhoraRD();
-  const [hh,mm] = miCitaHoy.hora.split(':').map(Number);
-  const citaMin = hh*60+mm;
-  const diffMin = citaMin-now;
-  const esMiTurno = miPos===1 && diffMin<=15;
-
   let mainHTML='';
-  if (esMiTurno) {
-    mainHTML=`
-      <div class="mi-turno-card">
-        <i data-lucide="scissors" size="48" style="color:var(--green);margin-bottom:12px"></i>
-        <div class="outfit" style="font-size:1.8rem;font-weight:900;color:var(--green);margin-bottom:6px">¡Es tu turno!</div>
-        <p class="muted">El barbero te está esperando</p>
-        <p style="color:var(--green);margin-top:4px;font-size:.9rem">${miCitaHoy.servicio}</p>
-      </div>`;
-  } else if (miPos) {
-    let ctLabel='';
-    if (diffMin>0) ctLabel = diffMin<60?`${diffMin} min`:`${Math.floor(diffMin/60)}h ${diffMin%60}m`;
-    else ctLabel='¡Ya es tu hora!';
-    mainHTML=`
+
+  if (modoEspectador) {
+    // Modo espectador — sin cita propia, ver cola en vivo del barbero
+    const esperaMin = cola.reduce((acc,c)=>acc+(c.duracion_min||25), 0);
+    const esperaTxt = esperaMin<60 ? `${esperaMin} min` : `${Math.floor(esperaMin/60)}h ${esperaMin%60}m`;
+    mainHTML = `
       <div class="countdown-card">
-        <i data-lucide="time" size="36" style="color:var(--accent);margin-bottom:8px"></i>
-        <div class="muted mb-sm" style="font-size:.72rem;text-transform:uppercase;letter-spacing:.1em">Tu cita en</div>
-        <div class="countdown-num">${ctLabel}</div>
-        <div style="margin-top:8px;color:var(--accent);font-size:.88rem">${fmt12(miCitaHoy.hora)} · ${miCitaHoy.servicio}</div>
-        <div style="margin-top:14px;display:flex;gap:10px;justify-content:center;align-items:center">
-          <div style="width:64px;height:64px;border-radius:50%;border:2px solid var(--accent);display:flex;flex-direction:column;align-items:center;justify-content:center">
-            <span class="outfit" style="font-size:1.6rem;font-weight:900;color:var(--accent);line-height:1">${miPos}</span>
-            <span class="muted" style="font-size:.6rem;text-transform:uppercase">posición</span>
-          </div>
-          <div class="muted" style="font-size:.82rem;text-align:left">${miPos-1===0?'¡Siguiente!':miPos-1===1?'1 persona antes':''+( miPos-1)+' personas antes'}</div>
-        </div>
+        <i data-lucide="users" size="36" style="color:var(--accent);margin-bottom:8px"></i>
+        <div class="muted mb-sm" style="font-size:.72rem;text-transform:uppercase;letter-spacing:.1em">Cola actual con ${barberoEspectador}</div>
+        <div class="countdown-num">${cola.length}</div>
+        <div style="margin-top:4px;color:var(--accent);font-size:.88rem">${cola.length===0?'¡Sin espera!':cola.length===1?'persona en cola':'personas en cola'}</div>
+        ${cola.length>0 ? `<div style="margin-top:14px;padding:8px 14px;border-radius:14px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.22);display:inline-flex;align-items:center;gap:6px">
+          <i data-lucide="clock" size="13" style="color:var(--accent)"></i>
+          <span style="color:var(--accent);font-size:.82rem;font-weight:700">Espera estimada: ${esperaTxt}</span>
+        </div>` : ''}
+        <button class="btn-gold" style="margin-top:18px;max-width:240px;margin-left:auto;margin-right:auto" onclick="startBooking('${miCitaHoy.shop_id}')">
+          <i data-lucide="plus" size="14"></i> Reservar mi turno
+        </button>
       </div>`;
   } else {
-    mainHTML=`<div class="card text-center" style="padding:20px"><p class="muted" style="font-size:.85rem">Tienes cita a las ${fmt12(miCitaHoy.hora)} con ${miCitaHoy.barbero}</p></div>`;
+    const [hh,mm] = miCitaHoy.hora.split(':').map(Number);
+    const citaMin = hh*60+mm;
+    const diffMin = citaMin-now;
+    const esMiTurno = miPos===1 && diffMin<=15;
+    if (esMiTurno) {
+      mainHTML=`
+        <div class="mi-turno-card">
+          <i data-lucide="scissors" size="48" style="color:var(--green);margin-bottom:12px"></i>
+          <div class="outfit" style="font-size:1.8rem;font-weight:900;color:var(--green);margin-bottom:6px">¡Es tu turno!</div>
+          <p class="muted">El barbero te está esperando</p>
+          <p style="color:var(--green);margin-top:4px;font-size:.9rem">${miCitaHoy.servicio}</p>
+        </div>`;
+    } else if (miPos) {
+      let ctLabel='';
+      if (diffMin>0) ctLabel = diffMin<60?`${diffMin} min`:`${Math.floor(diffMin/60)}h ${diffMin%60}m`;
+      else ctLabel='¡Ya es tu hora!';
+      mainHTML=`
+        <div class="countdown-card">
+          <i data-lucide="clock" size="36" style="color:var(--accent);margin-bottom:8px"></i>
+          <div class="muted mb-sm" style="font-size:.72rem;text-transform:uppercase;letter-spacing:.1em">Tu cita en</div>
+          <div class="countdown-num">${ctLabel}</div>
+          <div style="margin-top:8px;color:var(--accent);font-size:.88rem">${fmt12(miCitaHoy.hora)} · ${miCitaHoy.servicio}</div>
+          <div style="margin-top:14px;display:flex;gap:10px;justify-content:center;align-items:center">
+            <div style="width:64px;height:64px;border-radius:50%;border:2px solid var(--accent);display:flex;flex-direction:column;align-items:center;justify-content:center">
+              <span class="outfit" style="font-size:1.6rem;font-weight:900;color:var(--accent);line-height:1">${miPos}</span>
+              <span class="muted" style="font-size:.6rem;text-transform:uppercase">posición</span>
+            </div>
+            <div class="muted" style="font-size:.82rem;text-align:left">${miPos-1===0?'¡Siguiente!':miPos-1===1?'1 persona antes':''+(miPos-1)+' personas antes'}</div>
+          </div>
+        </div>`;
+    } else {
+      mainHTML=`<div class="card text-center" style="padding:20px"><p class="muted" style="font-size:.85rem">Tienes cita a las ${fmt12(miCitaHoy.hora)} con ${miCitaHoy.barbero}</p></div>`;
+    }
   }
 
   document.getElementById('colaMainContent').innerHTML = mainHTML;
