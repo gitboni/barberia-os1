@@ -4707,34 +4707,31 @@ async function verChatConversacion(chatId) {
   container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted);font-size:0.6rem;">Cargando historial...</div>';
   openModal('modalChatConversacion');
 
+  const esc = (s) => (s || '—').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
   try {
-    const cleanTarget = chatId.replace(/\D/g, '');
-    const rows = await sbGet('auditoria_ia', `order=created_at.desc&limit=100`);
-    const history = rows.filter(r => {
-      const cleanRowId = (r.chat_id || '').replace(/\D/g, '');
-      return cleanRowId.endsWith(cleanTarget.slice(-10));
-    }).sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
+    // Historial real desde la tabla `mensajes` (in = cliente, out = bot)
+    let rows = await sbGet('mensajes', `chat_id=eq.${encodeURIComponent(chatId)}&order=created_at.asc,id.asc&limit=400`);
+    // Fallback por teléfono (por si el chat_id quedó en otro formato)
+    if(!rows.length) {
+      const tel = chatId.replace(/\D/g,'').slice(-10);
+      if(tel) rows = await sbGet('mensajes', `telefono=like.*${tel}&order=created_at.asc,id.asc&limit=400`);
+    }
 
-    if(!history.length) {
-      container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted);font-size:0.6rem;">No se encontró historial en auditoría.</div>';
+    if(!rows.length) {
+      container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--muted);font-size:0.6rem;">Sin mensajes guardados todavía para este chat.</div>';
       return;
     }
 
-    container.innerHTML = history.map(r => `
-      <div class="msg-bubble msg-client">
-        <div style="font-size:0.45rem;color:var(--gold);margin-bottom:3px;text-transform:uppercase;">Cliente</div>
-        ${(r.prompt || '—').replace(/\n/g,'<br>')}
-        <div class="msg-meta"><span>${new Date(r.created_at).toLocaleTimeString()}</span></div>
-      </div>
-      <div class="msg-bubble msg-bot">
-        <div style="font-size:0.45rem;color:var(--muted);margin-bottom:3px;text-transform:uppercase;">Bot</div>
-        ${(r.respuesta || '—').replace(/\n/g,'<br>')}
-        <div class="msg-meta">
-          <span style="color:var(--purple);">${r.modelo?.split('-').slice(-2).join('-') || 'AI'}</span>
-          <span>${new Date(r.created_at).toLocaleTimeString()}</span>
-        </div>
-      </div>
-    `).join('');
+    container.innerHTML = rows.map(r => {
+      const esCliente = r.direccion === 'in';
+      const hora = new Date(r.created_at).toLocaleTimeString();
+      return `
+      <div class="msg-bubble ${esCliente ? 'msg-client' : 'msg-bot'}">
+        <div style="font-size:0.45rem;color:${esCliente ? 'var(--gold)' : 'var(--muted)'};margin-bottom:3px;text-transform:uppercase;">${esCliente ? 'Cliente' : 'Bot'}</div>
+        ${esc(r.texto)}
+        <div class="msg-meta"><span>${hora}</span></div>
+      </div>`;
+    }).join('');
     container.scrollTop = container.scrollHeight;
   } catch(e) { container.innerHTML = '<div style="color:var(--red);padding:20px;">Error al cargar.</div>'; }
 }
