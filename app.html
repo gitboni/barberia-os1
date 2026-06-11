@@ -1032,6 +1032,16 @@ async function renderCola() {
   const miPos = miIdx>=0 ? miIdx+1 : null;
   const total  = cola.length;
 
+  // ── Notificación local cuando cambia tu posición (solo si la pestaña no es visible) ──
+  if (miPos !== null && _prevMiPos !== null && miPos !== _prevMiPos && miPos < _prevMiPos) {
+    if (miPos === 1) {
+      notificacionLocal('✂️ ¡Es tu turno!', 'El barbero te está esperando.', 'cola');
+    } else if (miPos === 2) {
+      notificacionLocal('⏰ ¡Prepárate!', 'Eres el siguiente — falta 1 turno antes que tú.', 'cola');
+    }
+  }
+  _prevMiPos = miPos;
+
   const now = minutosAhoraRD();
   let mainHTML='';
 
@@ -1468,7 +1478,7 @@ async function cargarSlots() {
     if(min<ahoraMin){min+=5;continue;}
     const choca=bloques.find(([ini,fin])=>min<fin-0.5&&min+paso>ini+0.5);
     if(!choca){ const h=Math.floor(min/60).toString().padStart(2,'0'); const m=(min%60).toString().padStart(2,'0'); disponibles.push(`${h}:${m}`); min+=paso; }
-    else{ min=Math.ceil(choca[1]/5)*5; }
+    else{ min=choca[1]; } // Salto EXACTO al final de la cita anterior (igual que el bot)
   }
 
   bSlotsDisp=disponibles;
@@ -1665,6 +1675,7 @@ function cerrarScanner(){
 // ══════════════════════════════════════════════════════════
 let deferredInstallPrompt = null;
 let citaProximaCache = null; // para detectar cambios de estado
+let _prevMiPos = null;       // tracking de cambios de posición en cola para notificar
 
 // Registrar SW
 if ('serviceWorker' in navigator) {
