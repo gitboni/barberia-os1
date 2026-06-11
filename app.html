@@ -1464,7 +1464,7 @@ async function cargarSlots() {
 
   const [horaInicio,horaFin] = resolverHorario(shop,fecha);
   const esHoy  = fecha===hoyRD();
-  const ahoraMin = esHoy ? minutosAhoraRD()+2 : 0;
+  const ahoraMin = esHoy ? minutosAhoraRD() : 0; // hora exacta, sin buffer (igual que el bot)
 
   const bloques=[];
   citasFecha.forEach(c=>{ const[hh,mm]=c.hora.split(':').map(Number); const ini=hh*60+mm; const sKey=(c.servicio||'').toLowerCase().trim(); const dur=durMap[sKey]??(shop.duracion_turno??30); bloques.push([ini,ini+dur]); });
@@ -1473,9 +1473,8 @@ async function cargarSlots() {
 
   const paso=duracion;
   const disponibles=[];
-  let min=horaInicio;
+  let min=Math.max(horaInicio,ahoraMin); // arranca en "ahora" exacto (sin grilla de 5), igual que el bot
   while(min+paso<=horaFin) {
-    if(min<ahoraMin){min+=5;continue;}
     const choca=bloques.find(([ini,fin])=>min<fin-0.5&&min+paso>ini+0.5);
     if(!choca){ const h=Math.floor(min/60).toString().padStart(2,'0'); const m=(min%60).toString().padStart(2,'0'); disponibles.push(`${h}:${m}`); min+=paso; }
     else{ min=choca[1]; } // Salto EXACTO al final de la cita anterior (igual que el bot)
