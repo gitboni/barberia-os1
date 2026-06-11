@@ -40,6 +40,7 @@
     .screen.active{display:block}
     /* Cards */
     .card{background:var(--bg2);border-radius:var(--r-lg);padding:16px;border:1px solid var(--border);margin-bottom:12px}
+    .card.glass{background:rgba(255,255,255,0.055);border-color:rgba(255,255,255,0.14);backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%)}
     .card-gold{background:var(--bg2);border-radius:var(--r-lg);padding:16px;border:1px solid var(--accent-b);border-left:3px solid var(--accent);margin-bottom:12px}
     .card-green{background:var(--green-s);border:1.5px solid rgba(62,207,142,.4);border-radius:var(--r-lg);padding:16px;margin-bottom:12px}
     /* Buttons */
@@ -92,6 +93,8 @@
     .fechas-scroll::-webkit-scrollbar{display:none}
     .fecha-chip{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:8px 14px;text-align:center;min-width:58px;cursor:pointer;flex-shrink:0}
     .fecha-chip.active{background:var(--accent);border-color:var(--accent)}
+    .fecha-chip.rapida{background:rgba(201,168,76,0.06);border-color:rgba(201,168,76,0.45)}
+    .fecha-chip.rapida .fl{color:var(--accent)}
     .fecha-chip .fl{font-size:.82rem;font-weight:700;color:var(--text)}
     .fecha-chip.active .fl{color:#000}
     .fecha-chip .fs{font-size:.65rem;color:var(--dim);margin-top:2px}
@@ -190,6 +193,16 @@
       </div>
     </div>
 
+    <!-- Banner recordatorio in-app (cita en <2h) -->
+    <div id="reminderBanner" class="hidden" style="display:flex;align-items:center;gap:12px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.45);border-radius:16px;padding:14px;margin-bottom:16px">
+      <div id="reminderDot" style="width:10px;height:10px;border-radius:5px;background:var(--accent);flex-shrink:0"></div>
+      <div style="flex:1;min-width:0">
+        <div id="reminderTxt" style="font-size:.95rem;font-weight:800;color:var(--accent);margin-bottom:2px">—</div>
+        <div id="reminderSub" class="muted" style="font-size:.75rem">—</div>
+      </div>
+      <i data-lucide="clock" size="20" style="color:var(--accent);flex-shrink:0"></i>
+    </div>
+
     <!-- Próxima cita -->
     <div id="proximaSection" class="hidden">
       <div class="sec-title" id="proximaSectionTitle">Tu próxima cita</div>
@@ -247,7 +260,7 @@
 
     <!-- Mis negocios -->
     <div class="sec-title">Mis negocios</div>
-    <div class="card" id="shopsCard">
+    <div class="card glass" id="shopsCard">
       <div id="shopsList">
         <div class="flex gap-md" style="padding:8px 0">
           <div class="skeleton" style="width:50px;height:50px;border-radius:14px;flex-shrink:0"></div>
@@ -577,6 +590,35 @@ function fmt12(h24) {
   return `${h%12||12}:${String(m).padStart(2,'0')} ${ap}`;
 }
 
+// Banner recordatorio in-app (cita HOY a menos de 2h, hasta 15 min después)
+let _reminderProxima = null;
+function actualizarReminder(proxima) {
+  if (proxima !== undefined) _reminderProxima = proxima;
+  const p = _reminderProxima;
+  const el = document.getElementById('reminderBanner');
+  if (!el) return;
+  if (!p || p.fecha !== hoyRD()) { el.classList.add('hidden'); return; }
+  const [hh, mm] = (p.hora || '0:0').split(':').map(Number);
+  const horaCita = hh*60 + mm;
+  const diff = horaCita - minutosAhoraRD();
+  if (diff < -15 || diff > 120) { el.classList.add('hidden'); return; }
+  const txt = diff <= 0
+    ? `Tu cita es AHORA con ${p.barbero}`
+    : diff < 60
+      ? `En ${diff} min con ${p.barbero}`
+      : `En ${Math.floor(diff/60)}h ${diff%60} min con ${p.barbero}`;
+  const urgente = diff <= 30;
+  el.style.background = urgente ? 'rgba(248,113,113,0.08)' : 'rgba(201,168,76,0.08)';
+  el.style.borderColor = urgente ? 'rgba(248,113,113,0.5)' : 'rgba(201,168,76,0.45)';
+  document.getElementById('reminderDot').style.background = urgente ? 'var(--red, #F87171)' : 'var(--accent)';
+  document.getElementById('reminderTxt').style.color = urgente ? 'var(--red, #F87171)' : 'var(--accent)';
+  document.getElementById('reminderTxt').textContent = txt;
+  document.getElementById('reminderSub').textContent = `${fmt12(p.hora)} · ${p.servicio}`;
+  el.classList.remove('hidden');
+}
+// Tick cada 60s para que el banner se actualice solo
+setInterval(() => actualizarReminder(), 60000);
+
 function telToEmail(t) {
   if (t.includes('@')) return t.trim();
   let tel = t.replace(/\D/g,'');
@@ -610,9 +652,9 @@ function generarFechas(n=14) {
     const d = new Date();
     d.setDate(d.getDate()+i);
     const fecha = d.toLocaleDateString('en-CA', { timeZone: TZ });
-    const label = i===0 ? 'Hoy' : d.toLocaleDateString('es-DO', { weekday:'short', timeZone: TZ });
+    const label = i===0 ? 'Hoy' : i===1 ? 'Mañana' : d.toLocaleDateString('es-DO', { weekday:'short', timeZone: TZ });
     const sub   = d.toLocaleDateString('es-DO', { day:'numeric', month:'short', timeZone: TZ });
-    res.push({ fecha, label, sub });
+    res.push({ fecha, label, sub, rapida: i===0 || i===1 });
   }
   return res;
 }
@@ -796,6 +838,9 @@ async function loadHome() {
     document.getElementById('proximaSection').classList.add('hidden');
     document.getElementById('sinCitaSection').style.display='block';
   }
+
+  // Banner recordatorio in-app (cita HOY a menos de 2h, hasta 15 min después)
+  actualizarReminder(proxima);
 
   // Repetir última cita / botón reservar
   const { data: ultima } = await sb.from('citas').select('*, shops(id,nombre)').or(filtro)
@@ -1424,10 +1469,14 @@ async function bSelectBarbero(id) {
 // Paso SLOT
 function renderFechas() {
   const fechas = generarFechas(14);
-  document.getElementById('bFechasScroll').innerHTML = fechas.map(f=>`
-    <div class="fecha-chip${f.fecha===bFecha?' active':''}" onclick="bCambiarFecha('${f.fecha}')">
+  document.getElementById('bFechasScroll').innerHTML = fechas.map(f=>{
+    const activa = f.fecha===bFecha;
+    const destacada = f.rapida && !activa; // resalta Hoy/Mañana cuando no están activas
+    return `
+    <div class="fecha-chip${activa?' active':''}${destacada?' rapida':''}" onclick="bCambiarFecha('${f.fecha}')">
       <div class="fl">${f.label}</div><div class="fs">${f.sub}</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
   document.getElementById('bSlotMeta').textContent = 'con '+bBarbero?.nombre+' · '+bServicio?.nombre;
 }
 
