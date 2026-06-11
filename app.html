@@ -110,6 +110,18 @@
     .slots-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
     .slot{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:11px;text-align:center;font-size:.88rem;font-weight:700;color:var(--accent);cursor:pointer;transition:all .15s}
     .slot:active,.slot.active{background:var(--accent);color:#000;border-color:var(--accent)}
+    /* Tarjeta "otros servicios disponibles antes" (estilo bot/app) */
+    .alt-card{margin-top:8px;background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.35);border-radius:16px;padding:14px;margin-bottom:16px}
+    .alt-head{margin-bottom:8px;border-bottom:1px solid rgba(201,168,76,0.25);padding-bottom:8px}
+    .alt-title{color:var(--accent);font-size:.85rem;font-weight:700;letter-spacing:.2px}
+    .alt-sub{color:var(--dim);font-size:.7rem;margin-top:3px}
+    .alt-row{display:flex;align-items:center;gap:12px;padding:8px 0;cursor:pointer;transition:opacity .15s}
+    .alt-row:active{opacity:.6}
+    .alt-row + .alt-row{border-top:1px solid rgba(201,168,76,0.15)}
+    .alt-nombre{color:var(--text);font-size:.88rem;font-weight:600}
+    .alt-dur{color:var(--dim);font-size:.7rem;margin-top:2px}
+    .alt-slot{color:var(--accent);font-size:.92rem;font-weight:800}
+    .alt-cta{color:var(--accent);font-size:.7rem;font-weight:700;opacity:.75}
     /* Progress bar */
     .prog-bar{display:flex;gap:5px;margin-bottom:20px}
     .prog-step{flex:1;height:3px;border-radius:2px;background:var(--border)}
@@ -563,6 +575,8 @@ let bSlot        = null;
 let bPasos       = [];
 let bPasoIdx     = 0;
 let bSlotsDisp   = [];
+let bServiciosAll = []; // lista completa de servicios del shop (para sugerir alternativas más cortas)
+let bAlternativas = []; // [{nombre, slot, duracion}] - servicios más cortos disponibles ANTES
 let bShowWait    = false;
 let bMotivo      = null;
 let bFechaSug    = null;
@@ -1299,7 +1313,7 @@ async function guardarRating() {
 function startBooking(shopId, expressBarbero, expressServicio) {
   // Reset state
   bShop=null; bServicio=null; bBarbero=null; bFecha=hoyRD(); bSlot=null;
-  bSlotsDisp=[]; bShowWait=false; bMotivo=null; bFechaSug=null; bSlotInvalid=false;
+  bSlotsDisp=[]; bShowWait=false; bMotivo=null; bFechaSug=null; bSlotInvalid=false; bAlternativas=[]; bServiciosAll=[];
   bNombre=user?.nombre||'';
 
   if (shopId) {
@@ -1390,6 +1404,7 @@ async function bSelectShop(id) {
 async function cargarServicios(shopId) {
   const { data } = await sb.from('servicios').select('*').eq('shop_id',shopId).eq('activo',true).order('orden');
   const svcs = (data||[]);
+  bServiciosAll = svcs; // guardamos para sugerir alternativas más cortas en slots
   document.getElementById('bServicioShopNombre').textContent = (bShop?.icono||'✂️')+' '+bShop?.nombre;
   // Agrupar por categoría si hay ≥2 distintas
   const cats = [...new Set(svcs.map(s=>s.categoria).filter(Boolean))];
@@ -1530,6 +1545,46 @@ async function cargarSlots() {
   }
 
   bSlotsDisp=disponibles;
+
+  // ── Alternativas de servicios MÁS CORTOS que caben ANTES (igual que app/bot) ──
+  // Reusa los mismos bloques/durMap/horaInicio,horaFin/ahoraMin (sin queries extra).
+  const _calcPrimerSlot = (dur) => {
+    let m = Math.max(horaInicio, ahoraMin);
+    while (m + dur <= horaFin) {
+      const choca = bloques.find(([ini,fin]) => m < fin - 0.5 && m + dur > ini + 0.5);
+      if (!choca) { return `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`; }
+      m = choca[1];
+    }
+    return null;
+  };
+  const svcElegidoNomLow = (bServicio?.nombre||'').toLowerCase().trim();
+  let limiteEnMin = null;
+  if (disponibles.length > 0) {
+    const [hh,mm] = disponibles[0].split(':').map(Number);
+    limiteEnMin = hh*60 + mm;
+  }
+  const _alts = [];
+  const candidatos = (bServiciosAll||[])
+    .filter(s => {
+      if ((s.nombre||'').toLowerCase().trim() === svcElegidoNomLow) return false;
+      const d = s.duracion_min ?? duracion;
+      return d > 0 && d <= duracion;
+    })
+    .sort((a,b) => (a.duracion_min ?? duracion) - (b.duracion_min ?? duracion))
+    .slice(0, 4);
+  for (const sv of candidatos) {
+    const dAlt = sv.duracion_min ?? duracion;
+    const slotAlt = _calcPrimerSlot(dAlt);
+    if (!slotAlt) continue;
+    const [hh,mm] = slotAlt.split(':').map(Number);
+    const slotMin = hh*60 + mm;
+    if (limiteEnMin === null || slotMin < limiteEnMin) {
+      _alts.push({ nombre: sv.nombre, slot: slotAlt, duracion: dAlt, precio: sv.precio, categoria: sv.categoria });
+    }
+    if (_alts.length >= 2) break;
+  }
+  bAlternativas = _alts;
+
   if(disponibles.length===0){
     bMotivo='lleno'; bShowWait=true;
     buscarFechaAlternativa();
@@ -1553,7 +1608,41 @@ function renderSlots() {
     html+=`</div>`;
     el.innerHTML=html; lucide.createIcons(); return;
   }
-  el.innerHTML=`<div class="slots-grid">${bSlotsDisp.map(s=>`<div class="slot" onclick="bSelectSlot('${s}')">${fmt12(s)}</div>`).join('')}</div>`;
+  let html = `<div class="slots-grid">${bSlotsDisp.map(s=>`<div class="slot" onclick="bSelectSlot('${s}')">${fmt12(s)}</div>`).join('')}</div>`;
+  // Tarjeta "¿Te interesa otro servicio antes?" (igual que app/bot)
+  if (bAlternativas.length > 0) {
+    const subTxt = bSlotsDisp.length > 0
+      ? `${san(bServicio?.nombre||'')} disponible desde ${fmt12(bSlotsDisp[0])}`
+      : `${san(bServicio?.nombre||'')} sin huecos hoy`;
+    html += `<div class="alt-card">
+      <div class="alt-head">
+        <div class="alt-title">💡 ¿Te interesa otro servicio antes?</div>
+        <div class="alt-sub">${subTxt}</div>
+      </div>
+      ${bAlternativas.map(a => `
+        <div class="alt-row" onclick="bCambiarAServicioAlt('${a.nombre.replace(/'/g,"\\'")}')">
+          <div style="flex:1;min-width:0">
+            <div class="alt-nombre">${san(a.nombre)}</div>
+            <div class="alt-dur">${a.duracion} min</div>
+          </div>
+          <div class="alt-slot">${fmt12(a.slot)}</div>
+          <div class="alt-cta">Ver →</div>
+        </div>`).join('')}
+    </div>`;
+  }
+  el.innerHTML = html;
+  lucide.createIcons();
+}
+
+// Cambia al servicio alternativo sugerido (mismo barbero/fecha, recalcula slots)
+async function bCambiarAServicioAlt(nombre) {
+  const sv = (bServiciosAll||[]).find(s => (s.nombre||'').toLowerCase().trim() === nombre.toLowerCase().trim());
+  if (!sv || !bBarbero || !bShop) return;
+  bServicio = sv;
+  // refrescar la cabecera del paso slot con el nuevo servicio
+  const meta = document.getElementById('bSlotMeta');
+  if (meta) meta.textContent = 'con '+bBarbero?.nombre+' · '+bServicio?.nombre;
+  await cargarSlots();
 }
 
 function bSelectSlot(slot) {
