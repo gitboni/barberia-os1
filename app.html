@@ -1606,32 +1606,38 @@ function renderSlots() {
     html+=`<button class="btn-gold mb-sm" onclick="anotarseEnEspera()"><i data-lucide="bell" size="14"></i> Avisarme si se libera un turno</button>`;
     if(bFechaSug) html+=`<button class="btn-outline mt-sm" onclick="bCambiarFecha('${bFechaSug}')"><i data-lucide="calendar" size="14"></i> Próxima disponibilidad disponible →</button>`;
     html+=`</div>`;
+    // Aunque esté lleno para ESTE servicio, mostrar alternativas más cortas que sí caigan
+    html += buildAltCardHTML();
     el.innerHTML=html; lucide.createIcons(); return;
   }
   let html = `<div class="slots-grid">${bSlotsDisp.map(s=>`<div class="slot" onclick="bSelectSlot('${s}')">${fmt12(s)}</div>`).join('')}</div>`;
-  // Tarjeta "¿Te interesa otro servicio antes?" (igual que app/bot)
-  if (bAlternativas.length > 0) {
-    const subTxt = bSlotsDisp.length > 0
-      ? `${san(bServicio?.nombre||'')} disponible desde ${fmt12(bSlotsDisp[0])}`
-      : `${san(bServicio?.nombre||'')} sin huecos hoy`;
-    html += `<div class="alt-card">
-      <div class="alt-head">
-        <div class="alt-title">💡 ¿Te interesa otro servicio antes?</div>
-        <div class="alt-sub">${subTxt}</div>
-      </div>
-      ${bAlternativas.map(a => `
-        <div class="alt-row" onclick="bCambiarAServicioAlt('${a.nombre.replace(/'/g,"\\'")}')">
-          <div style="flex:1;min-width:0">
-            <div class="alt-nombre">${san(a.nombre)}</div>
-            <div class="alt-dur">${a.duracion} min</div>
-          </div>
-          <div class="alt-slot">${fmt12(a.slot)}</div>
-          <div class="alt-cta">Ver →</div>
-        </div>`).join('')}
-    </div>`;
-  }
+  html += buildAltCardHTML();
   el.innerHTML = html;
   lucide.createIcons();
+}
+
+// HTML de la tarjeta "¿Te interesa otro servicio antes?" — reusada en ambos casos
+// (con slots disponibles y SIN slots/lleno) para que el cliente vea opciones más cortas.
+function buildAltCardHTML() {
+  if (!bAlternativas.length) return '';
+  const subTxt = bSlotsDisp.length > 0
+    ? `${san(bServicio?.nombre||'')} disponible desde ${fmt12(bSlotsDisp[0])}`
+    : `${san(bServicio?.nombre||'')} sin huecos para esta fecha`;
+  return `<div class="alt-card">
+    <div class="alt-head">
+      <div class="alt-title">💡 ¿Te interesa otro servicio antes?</div>
+      <div class="alt-sub">${subTxt}</div>
+    </div>
+    ${bAlternativas.map(a => `
+      <div class="alt-row" onclick="bCambiarAServicioAlt('${a.nombre.replace(/'/g,"\\'")}')">
+        <div style="flex:1;min-width:0">
+          <div class="alt-nombre">${san(a.nombre)}</div>
+          <div class="alt-dur">${a.duracion} min</div>
+        </div>
+        <div class="alt-slot">${fmt12(a.slot)}</div>
+        <div class="alt-cta">Ver →</div>
+      </div>`).join('')}
+  </div>`;
 }
 
 // Cambia al servicio alternativo sugerido (mismo barbero/fecha, recalcula slots)
