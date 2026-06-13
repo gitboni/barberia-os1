@@ -12,244 +12,829 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://auraos.app/privacidad">
 <meta property="og:locale" content="es_DO">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='48' fill='%230a0a0a' stroke='%23C9A84C' stroke-width='3'/><circle cx='50' cy='50' r='32' fill='none' stroke='%23C9A84C' stroke-width='2'/><circle cx='50' cy='50' r='16' fill='none' stroke='%23C9A84C' stroke-width='2.5'/><circle cx='50' cy='50' r='6' fill='%23C9A84C'/></svg>">
+<link rel="icon" type="image/svg+xml" href="auraos-logo.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&family=DM+Mono:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
 <style>
 :root{
   --bg:#070708;--surface:#0F0F12;--surface2:#141418;
   --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
   --text:#E8E6E0;--muted:#5A5855;--muted2:#8A8885;
-  --gold:#C9A84C;--gold2:#E8C96A;--gold-dim:rgba(201,168,76,0.12);
+  --gold:#D4A017;--gold2:#F5E050;--gold-dim:rgba(212,160,23,0.12);
+  --green:#2ECC71;--red:#E74C3C;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-html{scroll-behavior:smooth;}
-body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-height:100vh;opacity:0;transition:opacity 0.3s ease;}
+html{scroll-behavior:smooth;font-size:16px;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overflow-x:hidden;opacity:0;transition:opacity 0.35s ease;}
 body.loaded{opacity:1;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.45;}
 ::-webkit-scrollbar{width:3px;}
 ::-webkit-scrollbar-track{background:transparent;}
-::-webkit-scrollbar-thumb{background:rgba(201,168,76,0.3);}
+::-webkit-scrollbar-thumb{background:rgba(212,160,23,0.3);}
 
-nav{
-  position:fixed;top:0;left:0;right:0;z-index:100;
-  display:flex;align-items:center;justify-content:space-between;
-  padding:18px 52px;
-  background:rgba(7,7,8,0.92);
-  border-bottom:1px solid var(--border);
-  backdrop-filter:blur(14px);
-}
-.nav-logo{
-  font-family:'Bebas Neue',sans-serif;font-size:1.45rem;
-  letter-spacing:0.15em;
-  background:linear-gradient(135deg,var(--gold),var(--gold2));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  text-decoration:none;
-}
-.nav-back{
-  font-size:0.6rem;letter-spacing:0.15em;color:var(--muted);
-  text-decoration:none;text-transform:uppercase;
-  transition:color 0.2s;
-}
-.nav-back:hover{color:var(--gold);}
+/* Progress bar — igual que index */
+#progress-bar{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--gold2),var(--gold));background-size:200% 100%;z-index:1000;width:0%;transition:width 0.08s linear;animation:shimmer 3s linear infinite;}
+@keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
 
-.page{max-width:720px;margin:0 auto;padding:120px 24px 80px;}
+/* Custom cursor — igual que index */
+.custom-cursor{position:fixed;width:12px;height:12px;background:var(--gold);border-radius:50%;pointer-events:none;z-index:9999;mix-blend-mode:difference;transition:transform 0.15s ease-out;display:none;}
+@media(hover:hover){.custom-cursor{display:block;}}
+.cursor-follower{position:fixed;width:40px;height:40px;border:1px solid var(--gold);border-radius:50%;pointer-events:none;z-index:9998;transition:all 0.3s ease-out;display:none;opacity:0.3;}
+@media(hover:hover){.cursor-follower{display:block;}}
 
-.badge{
-  display:inline-block;
-  border:1px solid rgba(201,168,76,0.3);
-  color:var(--gold);
-  font-size:0.55rem;letter-spacing:0.18em;text-transform:uppercase;
-  padding:4px 14px;margin-bottom:24px;
-}
-h1{
-  font-family:'Bebas Neue',sans-serif;
-  font-size:clamp(2.4rem,6vw,3.6rem);
-  letter-spacing:0.06em;line-height:1;
-  background:linear-gradient(135deg,var(--gold),var(--gold2) 60%,var(--gold));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  margin-bottom:12px;
-}
-.updated{
-  font-size:0.62rem;color:var(--muted);letter-spacing:0.1em;
-  margin-bottom:48px;
-  padding-bottom:32px;
-  border-bottom:1px solid var(--border);
-}
-.intro{
-  font-size:0.8rem;color:var(--muted2);line-height:1.9;
-  margin-bottom:48px;
-}
+/* Nav — igual que index */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:24px 52px;background:rgba(7,7,8,0);border-bottom:1px solid transparent;backdrop-filter:blur(0px);transition:all 0.5s cubic-bezier(0.16,1,0.3,1);}
+nav.scrolled{padding:14px 52px;background:rgba(7,7,8,0.72);border-bottom-color:rgba(255,255,255,0.05);backdrop-filter:blur(24px);box-shadow:0 10px 40px rgba(0,0,0,0.3);}
+.nav-logo{display:flex;align-items:center;gap:10px;font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:0.12em;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none;}
+.nav-logo img{height:32px;width:32px;filter:drop-shadow(0 0 8px rgba(212,160,23,0.3));}
+.nav-links{display:flex;gap:34px;}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;transition:color 0.2s;position:relative;}
+.nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;right:0;height:1px;background:var(--gold);transform:scaleX(0);transition:transform 0.25s ease;transform-origin:left;}
+.nav-links a:hover{color:var(--gold);}
+.nav-links a:hover::after{transform:scaleX(1);}
+.nav-cta{background:var(--gold);color:#000;padding:10px 24px;font-family:'Inter',sans-serif;font-weight:600;font-size:0.62rem;letter-spacing:0.05em;text-transform:uppercase;text-decoration:none;transition:all 0.3s cubic-bezier(0.16,1,0.3,1);border-radius:100px;}
+.nav-cta:hover{background:var(--gold2);transform:scale(1.05);box-shadow:0 0 20px rgba(212,160,23,0.4);}
 
-.seccion{margin-bottom:48px;}
-.sec-titulo{
-  font-size:0.72rem;letter-spacing:0.14em;text-transform:uppercase;
-  color:var(--gold);margin-bottom:16px;
-  display:flex;align-items:center;gap:10px;
-}
-.sec-titulo::before{
-  content:'';display:inline-block;width:24px;height:1px;
-  background:var(--gold);flex-shrink:0;
-}
-.sec-body{
-  font-size:0.75rem;color:var(--muted2);line-height:1.9;
-  margin-bottom:12px;
-}
-.sec-body a{color:var(--gold);text-decoration:underline;}
-ul.items{list-style:none;display:flex;flex-direction:column;gap:10px;}
-ul.items li{
-  font-size:0.75rem;color:var(--muted2);line-height:1.8;
-  padding-left:20px;position:relative;
-}
-ul.items li::before{
-  content:'—';position:absolute;left:0;color:var(--gold);font-size:0.7rem;
-}
-ul.items li strong{color:var(--text);}
+/* ── HERO ── */
+.hero{min-height:78vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:160px 24px 80px;position:relative;overflow:hidden;}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 90% 60% at 50% -10%,rgba(212,160,23,0.09) 0%,transparent 60%),radial-gradient(ellipse 50% 50% at 85% 90%,rgba(212,160,23,0.04) 0%,transparent 50%);z-index:0;}
+.hero-bg::after{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(212,160,23,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(212,160,23,0.02) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 40%,transparent 80%);}
+.hero-mesh{position:absolute;inset:0;z-index:0;overflow:hidden;filter:blur(80px);pointer-events:none;}
+.hero-mesh-1{position:absolute;top:-20%;left:-10%;width:60%;height:60%;background:radial-gradient(circle,rgba(212,160,23,0.12) 0%,transparent 70%);animation:mesh-move 15s infinite alternate;}
+.hero-mesh-2{position:absolute;bottom:-10%;right:-10%;width:70%;height:70%;background:radial-gradient(circle,rgba(212,160,23,0.08) 0%,transparent 70%);animation:mesh-move 20s infinite alternate-reverse;}
+@keyframes mesh-move{0%{transform:translate(0,0) scale(1);}100%{transform:translate(15%,10%) scale(1.1);}}
+.light-rays{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:100%;height:100%;background:radial-gradient(circle,rgba(212,160,23,0.10) 0%,transparent 60%);z-index:0;pointer-events:none;animation:rays-rotate 30s linear infinite;}
+@keyframes rays-rotate{from{transform:translate(-50%,-50%) rotate(0deg);}to{transform:translate(-50%,-50%) rotate(360deg);}}
 
-.divider{height:1px;background:var(--border);margin:48px 0;}
+.hero-badge{display:inline-flex;align-items:center;gap:9px;border:1px solid rgba(212,160,23,0.25);padding:7px 18px;font-size:0.55rem;letter-spacing:0.28em;text-transform:uppercase;color:var(--gold);margin-bottom:30px;animation:fadeIn 0.7s ease both;position:relative;z-index:1;font-family:'DM Mono',monospace;}
+.hero-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 10px var(--gold);}
 
-.contact-box{
-  border:1px solid var(--border2);background:var(--surface);
-  padding:28px 32px;display:flex;align-items:center;justify-content:space-between;
-  gap:16px;flex-wrap:wrap;
-}
-.contact-label{font-size:0.6rem;color:var(--muted);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:6px;}
-.contact-email{font-size:0.85rem;color:var(--gold);}
-.contact-email a{color:inherit;text-decoration:none;}
-.contact-email a:hover{text-decoration:underline;}
+.hero-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(3.4rem,10vw,7.5rem);letter-spacing:0.03em;line-height:0.92;margin-bottom:22px;animation:slideUp 0.8s cubic-bezier(0.16,1,0.3,1) both 0.1s;position:relative;z-index:1;color:var(--text);}
+.hero-title .accent{display:block;background:linear-gradient(135deg,var(--gold) 20%,var(--gold2) 60%,var(--gold));background-size:200% 100%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:text-shimmer 5s linear infinite;}
+@keyframes text-shimmer{0%{background-position:0% 50%;}100%{background-position:200% 50%;}}
+.hero-italic{font-family:'Playfair Display',serif;font-style:italic;font-weight:400;color:var(--gold);}
 
-footer{
-  text-align:center;font-size:0.58rem;color:var(--muted);
-  letter-spacing:0.1em;padding-top:24px;
-  border-top:1px solid var(--border);
-}
+.hero-sub{font-size:0.92rem;color:var(--muted2);max-width:580px;line-height:1.85;margin:0 auto 38px;animation:slideUp 0.8s cubic-bezier(0.16,1,0.3,1) both 0.2s;letter-spacing:0.02em;position:relative;z-index:1;}
+
+.hero-meta{display:flex;gap:32px;justify-content:center;flex-wrap:wrap;position:relative;z-index:1;animation:fadeIn 0.8s ease both 0.4s;}
+.hero-meta-item{display:flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);letter-spacing:0.18em;text-transform:uppercase;}
+.hero-meta-item i{width:13px;height:13px;color:var(--gold);}
+.hero-meta-item strong{color:var(--text);font-weight:400;}
+
+/* ── MARQUEE ── */
+.marquee-container{overflow:hidden;white-space:nowrap;padding:26px 0;background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);position:relative;z-index:1;}
+.marquee-content{display:inline-block;animation:marquee 50s linear infinite;}
+.marquee-item{display:inline-flex;align-items:center;gap:14px;margin-right:64px;font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--muted);opacity:0.4;transition:all 0.3s ease;cursor:default;letter-spacing:0.1em;}
+.marquee-item:hover{opacity:1;color:var(--gold);}
+.marquee-item i{width:16px;height:16px;}
+.marquee-sep{margin-right:64px;color:rgba(212,160,23,0.3);font-size:1rem;}
+@keyframes marquee{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+
+/* ── LAYOUT MAIN ── */
+.layout{max-width:1180px;margin:0 auto;padding:90px 52px 70px;display:grid;grid-template-columns:240px 1fr;gap:80px;position:relative;z-index:1;}
+.page{min-width:0;}
+
+/* ── TOC sticky ── */
+aside.toc{position:sticky;top:110px;align-self:start;max-height:calc(100vh - 140px);overflow-y:auto;padding-right:8px;}
+aside.toc::-webkit-scrollbar{width:2px;}
+.toc-label{font-family:'DM Mono',monospace;font-size:0.5rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+.toc-label::before{content:'';width:14px;height:1px;background:var(--gold);}
+aside.toc ul{list-style:none;display:flex;flex-direction:column;gap:2px;border-left:1px solid var(--border);}
+aside.toc a{font-size:0.66rem;color:var(--muted2);text-decoration:none;transition:all 0.25s;display:block;padding:7px 0 7px 16px;margin-left:-1px;border-left:1px solid transparent;letter-spacing:0.02em;line-height:1.45;}
+aside.toc a:hover{color:var(--text);border-left-color:rgba(212,160,23,0.4);}
+aside.toc a.active{color:var(--gold);border-left-color:var(--gold);font-weight:500;}
+aside.toc a .num{font-family:'DM Mono',monospace;color:var(--muted);font-size:0.55rem;margin-right:8px;letter-spacing:0.1em;}
+aside.toc a.active .num{color:var(--gold);}
+
+/* ── Sección ── */
+.seccion{margin-bottom:80px;scroll-margin-top:110px;opacity:0;transform:translateY(20px);transition:opacity 0.7s ease,transform 0.7s ease;}
+.seccion.visible{opacity:1;transform:translateY(0);}
+.sec-head{display:flex;align-items:flex-start;gap:24px;margin-bottom:28px;position:relative;}
+.sec-num{font-family:'Bebas Neue',sans-serif;font-size:5.5rem;line-height:0.85;color:transparent;-webkit-text-stroke:1px rgba(212,160,23,0.25);letter-spacing:0.02em;flex-shrink:0;margin-top:-8px;transition:color 0.4s,-webkit-text-stroke-color 0.4s;}
+.seccion.visible .sec-num{-webkit-text-stroke-color:rgba(212,160,23,0.5);}
+.sec-titles{flex:1;padding-top:8px;}
+.sec-label{font-family:'DM Mono',monospace;font-size:0.5rem;letter-spacing:0.32em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;display:flex;align-items:center;gap:10px;}
+.sec-label i{width:14px;height:14px;}
+.sec-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(1.7rem,3.2vw,2.5rem);letter-spacing:0.03em;line-height:1.05;color:var(--text);margin-bottom:4px;}
+.sec-title .italic{font-family:'Playfair Display',serif;font-style:italic;font-weight:400;color:var(--gold);}
+.copy-link{position:absolute;top:0;right:0;background:transparent;border:1px solid var(--border);color:var(--muted);padding:7px 12px;font-family:'DM Mono',monospace;font-size:0.5rem;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;transition:all 0.25s;opacity:0;display:flex;align-items:center;gap:6px;}
+.copy-link i{width:11px;height:11px;}
+.seccion:hover .copy-link{opacity:1;}
+.copy-link:hover{border-color:var(--gold);color:var(--gold);}
+.copy-link.copied{border-color:var(--green);color:var(--green);opacity:1;}
+
+.sec-body{font-size:0.78rem;color:var(--muted2);line-height:1.9;margin-bottom:14px;letter-spacing:0.01em;font-weight:300;}
+.sec-body strong{color:var(--text);font-weight:500;}
+.sec-body a{color:var(--gold);text-decoration:none;border-bottom:1px solid rgba(212,160,23,0.3);transition:border-color 0.2s;}
+.sec-body a:hover{border-bottom-color:var(--gold);}
+
+/* ── Lista refinada ── */
+ul.items{list-style:none;display:flex;flex-direction:column;gap:14px;margin-top:8px;}
+ul.items li{font-size:0.76rem;color:var(--muted2);line-height:1.85;padding:14px 18px 14px 22px;position:relative;background:rgba(15,15,18,0.5);border-left:1px solid rgba(212,160,23,0.2);transition:all 0.25s;font-weight:300;letter-spacing:0.01em;}
+ul.items li:hover{background:rgba(15,15,18,0.9);border-left-color:var(--gold);transform:translateX(3px);}
+ul.items li strong{color:var(--text);font-weight:500;display:inline-block;margin-right:4px;}
+
+/* ── Bento grid para "Quién ve" ── */
+.bento{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:20px;}
+.bento-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:24px;transition:all 0.4s cubic-bezier(0.16,1,0.3,1);position:relative;overflow:hidden;}
+.bento-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:0;transition:opacity 0.3s;}
+.bento-card:hover{border-color:rgba(212,160,23,0.3);transform:translateY(-4px);box-shadow:0 18px 40px rgba(0,0,0,0.5);}
+.bento-card:hover::before{opacity:1;}
+.bento-card .b-icon{width:36px;height:36px;border:1px solid rgba(212,160,23,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--gold);margin-bottom:16px;}
+.bento-card .b-icon i{width:16px;height:16px;}
+.bento-card h4{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:0.06em;color:var(--text);margin-bottom:6px;}
+.bento-card p{font-size:0.7rem;color:var(--muted2);line-height:1.7;font-weight:300;}
+
+/* ── Callout (danger) ── */
+.callout{border:1px solid var(--border2);background:linear-gradient(135deg,rgba(231,76,60,0.05) 0%,var(--surface) 60%);padding:24px 28px;border-radius:18px;margin:20px 0;border-left:2px solid var(--red);display:flex;gap:18px;align-items:flex-start;}
+.callout.gold{background:linear-gradient(135deg,rgba(212,160,23,0.05) 0%,var(--surface) 60%);border-left-color:var(--gold);}
+.callout .co-ico{width:38px;height:38px;border:1px solid rgba(231,76,60,0.4);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--red);flex-shrink:0;}
+.callout.gold .co-ico{border-color:rgba(212,160,23,0.4);color:var(--gold);}
+.callout .co-ico i{width:16px;height:16px;}
+.callout .co-title{font-family:'DM Mono',monospace;font-size:0.55rem;letter-spacing:0.28em;text-transform:uppercase;color:var(--red);margin-bottom:6px;}
+.callout.gold .co-title{color:var(--gold);}
+.callout p{font-size:0.74rem;color:var(--muted2);line-height:1.8;font-weight:300;}
+
+/* ── Permisos device — visual grid ── */
+.perm-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:24px 0;}
+.perm-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:22px 18px;text-align:center;transition:all 0.3s;}
+.perm-card:hover{border-color:rgba(212,160,23,0.3);transform:translateY(-3px);}
+.perm-card .p-ico{width:44px;height:44px;border-radius:50%;background:rgba(212,160,23,0.08);border:1px solid rgba(212,160,23,0.3);display:flex;align-items:center;justify-content:center;color:var(--gold);margin:0 auto 12px;}
+.perm-card .p-ico i{width:18px;height:18px;}
+.perm-card h5{font-family:'Bebas Neue',sans-serif;font-size:0.95rem;letter-spacing:0.08em;color:var(--text);margin-bottom:6px;}
+.perm-card p{font-size:0.62rem;color:var(--muted);line-height:1.6;font-weight:300;}
+
+/* ── Pasos eliminar cuenta ── */
+.steps{display:flex;flex-direction:column;gap:10px;margin-top:14px;}
+.step{background:var(--surface);border:1px solid var(--border);padding:16px 20px;display:flex;gap:18px;align-items:center;border-radius:14px;transition:all 0.3s;}
+.step:hover{border-color:rgba(212,160,23,0.3);}
+.step .s-num{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--gold);width:32px;flex-shrink:0;text-align:center;line-height:1;}
+.step .s-txt{font-size:0.74rem;color:var(--muted2);line-height:1.7;font-weight:300;flex:1;}
+.step .s-txt strong{color:var(--text);font-weight:500;}
+
+/* ── Divider ── */
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--border2),transparent);margin:60px 0;border:none;}
+
+/* ── Contact box ── */
+.contact-box{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:40px 44px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;position:relative;overflow:hidden;}
+.contact-box::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.contact-block .c-label{font-family:'DM Mono',monospace;font-size:0.5rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.contact-block .c-val{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:0.04em;color:var(--gold);}
+.contact-block .c-val a{color:inherit;text-decoration:none;transition:color 0.2s;}
+.contact-block .c-val a:hover{color:var(--gold2);}
+.contact-block .c-sub{font-size:0.65rem;color:var(--muted2);margin-top:4px;font-weight:300;}
+
+/* ── CTAs finales ── */
+.cta-row{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:36px;}
+.cta{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:30px 32px;text-decoration:none;color:var(--text);transition:all 0.4s cubic-bezier(0.16,1,0.3,1);display:flex;align-items:center;gap:20px;position:relative;overflow:hidden;}
+.cta::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:0;transition:opacity 0.3s;}
+.cta:hover{border-color:rgba(212,160,23,0.3);transform:translateY(-5px);box-shadow:0 18px 40px rgba(0,0,0,0.4);}
+.cta:hover::before{opacity:1;}
+.cta.danger:hover{border-color:rgba(231,76,60,0.4);box-shadow:0 18px 40px rgba(231,76,60,0.08);}
+.cta .cta-ico{width:48px;height:48px;border:1px solid var(--border2);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--gold);flex-shrink:0;transition:all 0.3s;}
+.cta:hover .cta-ico{border-color:var(--gold);box-shadow:0 0 20px rgba(212,160,23,0.2);}
+.cta.danger .cta-ico{color:var(--red);}
+.cta.danger:hover .cta-ico{border-color:var(--red);box-shadow:0 0 20px rgba(231,76,60,0.15);}
+.cta .cta-ico i{width:20px;height:20px;}
+.cta .cta-lbl{font-family:'DM Mono',monospace;font-size:0.5rem;letter-spacing:0.28em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.cta .cta-txt{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:0.04em;color:var(--text);}
+
+/* ── Footer ── */
+footer{text-align:center;font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--muted);letter-spacing:0.2em;padding:40px 24px;border-top:1px solid var(--border);margin-top:50px;}
 footer a{color:var(--gold);text-decoration:none;}
+footer a:hover{color:var(--gold2);}
 
+/* ── Toast ── */
+.toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface2);border:1px solid var(--gold);color:var(--gold);padding:12px 22px;font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;opacity:0;pointer-events:none;transition:all 0.3s cubic-bezier(0.16,1,0.3,1);z-index:300;display:flex;align-items:center;gap:8px;border-radius:50px;}
+.toast i{width:14px;height:14px;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── Animaciones ── */
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── Responsive ── */
+@media(max-width:960px){
+  .layout{grid-template-columns:1fr;gap:0;padding:70px 32px 50px;}
+  aside.toc{display:none;}
+  .bento,.perm-grid,.cta-row{grid-template-columns:1fr;}
+}
 @media(max-width:600px){
   nav{padding:14px 20px;}
-  .page{padding:100px 20px 60px;}
-  .contact-box{flex-direction:column;align-items:flex-start;}
+  .hero{padding:130px 20px 60px;}
+  section,.layout{padding-left:20px;padding-right:20px;}
+  .sec-head{gap:14px;}
+  .sec-num{font-size:3.8rem;}
+  .contact-box{flex-direction:column;align-items:flex-start;padding:28px;}
+  .nav-links{display:none;}
+  .hero-meta{gap:18px;}
+}
+
+/* ── Print ── */
+@media print{
+  body{background:#fff;color:#000;opacity:1;}
+  body::before,nav,#progress-bar,.custom-cursor,.cursor-follower,.hero-mesh,.hero-bg,.light-rays,.marquee-container,aside.toc,.cta-row,.copy-link,.toast{display:none !important;}
+  .layout{grid-template-columns:1fr;padding:0;max-width:none;}
+  .hero{min-height:auto;padding:0 0 40px;}
+  .hero-title,.sec-title,.contact-block .c-val{color:#000 !important;-webkit-text-fill-color:#000 !important;}
+  .sec-body,ul.items li,.bento-card p,.perm-card p,.step .s-txt,.callout p{color:#333;}
+  .hero-italic,.sec-title .italic,.sec-label,.sec-num,.toc-label{color:#666 !important;-webkit-text-stroke:0 !important;}
+  ul.items li,.bento-card,.perm-card,.step,.callout,.contact-box,.cta{background:#f8f8f8;border:1px solid #ddd;}
 }
 </style>
 </head>
 <body>
 
-<nav>
-  <a class="nav-logo" href="/">AURAOS</a>
-  <a class="nav-back" href="/">← Volver al inicio</a>
+<div id="progress-bar"></div>
+<div class="custom-cursor"></div>
+<div class="cursor-follower"></div>
+
+<nav id="nav">
+  <a class="nav-logo" href="/">
+    <img src="auraos-logo.svg" alt="" onerror="this.style.display='none'">
+    AURAOS
+  </a>
+  <div class="nav-links">
+    <a href="/#features">Producto</a>
+    <a href="/#pricing">Precios</a>
+    <a href="/">Inicio</a>
+  </div>
+  <a class="nav-cta" href="/">← Volver</a>
 </nav>
 
-<div class="page">
-  <div class="badge">Legal</div>
-  <h1>Política de<br>Privacidad</h1>
-  <p class="updated">Última actualización: 28 de marzo de 2026</p>
+<!-- ══════════════ HERO ══════════════ -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="light-rays"></div>
+  <div class="hero-mesh">
+    <div class="hero-mesh-1"></div>
+    <div class="hero-mesh-2"></div>
+  </div>
 
-  <p class="intro">
-    AuraOS ("la App") es un sistema de gestión de turnos para barberías, salones y negocios de belleza.
-    Esta política describe cómo recopilamos, usamos y protegemos tu información personal
-    cuando utilizas nuestra aplicación móvil o plataforma web.
+  <div class="hero-badge">
+    <span>Legal · Documento Vigente</span>
+  </div>
+
+  <h1 class="hero-title">
+    Política de
+    <span class="accent">Privacidad</span>
+  </h1>
+
+  <p class="hero-sub">
+    Cómo recopilamos, usamos y protegemos tu información personal cuando utilizas
+    <strong>AuraOS</strong> — escrito en lenguaje claro, sin letra pequeña que te
+    <span class="hero-italic">esconda nada</span>.
   </p>
 
-  <div class="seccion">
-    <div class="sec-titulo">1. Información que recopilamos</div>
-    <ul class="items">
-      <li><strong>Número de teléfono:</strong> usado como identificador único de cuenta y para notificaciones por WhatsApp.</li>
-      <li><strong>Nombre:</strong> para personalizar tu experiencia y que el barbero te identifique al llegar.</li>
-      <li><strong>Historial de citas:</strong> fecha, servicio, barbero, estado y calificación de cada visita.</li>
-      <li><strong>Token de notificaciones push:</strong> para enviarte recordatorios de citas y avisos de turno en tiempo real.</li>
-      <li><strong>Datos de uso anónimos:</strong> errores e incidencias de la app para mejorar la estabilidad (vía Sentry, sin datos personales).</li>
-    </ul>
+  <div class="hero-meta">
+    <div class="hero-meta-item"><i data-lucide="clock"></i> Última act.: <strong>13 Jun 2026</strong></div>
+    <div class="hero-meta-item"><i data-lucide="book-open"></i> Lectura: <strong>~7 min</strong></div>
+    <div class="hero-meta-item"><i data-lucide="git-commit"></i> Versión <strong>2.0</strong></div>
   </div>
+</section>
 
-  <div class="seccion">
-    <div class="sec-titulo">2. Cómo usamos tu información</div>
-    <ul class="items">
-      <li>Gestionar y confirmar tus reservas de turno.</li>
-      <li>Enviarte notificaciones push y mensajes de WhatsApp sobre tu cita (recordatorios, cambios de estado, aviso de turno).</li>
-      <li>Mostrar tu historial de visitas y estadísticas personales dentro de la app.</li>
-      <li>Mejorar la calidad del servicio mediante calificaciones anónimas.</li>
-    </ul>
+<!-- ══════════════ MARQUEE ══════════════ -->
+<div class="marquee-container">
+  <div class="marquee-content">
+    <span class="marquee-item"><i data-lucide="shield-check"></i> CIFRADO TLS</span>
+    <span class="marquee-sep">·</span>
+    <span class="marquee-item"><i data-lucide="database"></i> ROW LEVEL SECURITY</span>
+    <span class="marquee-sep">·</span>
+    <span class="marquee-item"><i data-lucide="lock"></i> CONTRASEÑAS HASH</span>
+    <span class="marquee-sep">·</span>
+    <span class="marquee-item"><i data-lucide="eye-off"></i> SIN VENTA DE DATOS</span>
+    <span class="marquee-sep">·</span>
+    <span class="marquee-item"><i data-lucide="trash-2"></i> ELIMINACIÓN EN 30D</span>
+    <span class="marquee-sep">·</span>
+    <span class="marquee-item"><i data-lucide="user-check"></i> DERECHOS GDPR</span>
+    <span class="marquee-sep">·</span>
+    <!-- Duplicado para loop seamless -->
+    <span class="marquee-item"><i data-lucide="shield-check"></i> CIFRADO TLS</span>
+    <span class="marquee-sep">·</span>
+    <span class="marquee-item"><i data-lucide="database"></i> ROW LEVEL SECURITY</span>
+    <span class="marquee-sep">·</span>
+    <span class="marquee-item"><i data-lucide="lock"></i> CONTRASEÑAS HASH</span>
+    <span class="marquee-sep">·</span>
+    <span class="marquee-item"><i data-lucide="eye-off"></i> SIN VENTA DE DATOS</span>
+    <span class="marquee-sep">·</span>
+    <span class="marquee-item"><i data-lucide="trash-2"></i> ELIMINACIÓN EN 30D</span>
+    <span class="marquee-sep">·</span>
+    <span class="marquee-item"><i data-lucide="user-check"></i> DERECHOS GDPR</span>
+    <span class="marquee-sep">·</span>
   </div>
-
-  <div class="seccion">
-    <div class="sec-titulo">3. Compartición de datos</div>
-    <p class="sec-body">
-      No vendemos ni compartimos tu información personal con terceros con fines comerciales.
-      Tus datos son compartidos únicamente con la barbería a la que perteneces dentro de la app,
-      para que puedan gestionar tu turno correctamente.
-    </p>
-    <p class="sec-body">Servicios de terceros que procesan datos de forma segura:</p>
-    <ul class="items">
-      <li><strong>Supabase</strong> — base de datos cifrada, alojada en infraestructura segura.</li>
-      <li><strong>Expo Push Notifications</strong> — envío de notificaciones push al dispositivo.</li>
-      <li><strong>Meta / WhatsApp Business API</strong> — envío de recordatorios por WhatsApp.</li>
-      <li><strong>Sentry</strong> — reporte de errores anónimos, sin datos personales identificables.</li>
-    </ul>
-  </div>
-
-  <div class="seccion">
-    <div class="sec-titulo">4. Retención de datos</div>
-    <p class="sec-body">
-      Conservamos tus datos mientras tu cuenta esté activa.
-      Si deseas eliminar tu cuenta y todos tus datos, escríbenos a
-      <a href="mailto:privacidad@barberos.app">privacidad@barberos.app</a>
-      y procesaremos tu solicitud en un plazo de 30 días hábiles.
-    </p>
-  </div>
-
-  <div class="seccion">
-    <div class="sec-titulo">5. Seguridad</div>
-    <p class="sec-body">
-      Todos los datos se transmiten cifrados sobre HTTPS/TLS.
-      Las contraseñas nunca se almacenan en texto plano.
-      El acceso a los datos está protegido por políticas de seguridad a nivel de fila (RLS)
-      en la base de datos, lo que garantiza que cada usuario solo accede a su propia información.
-    </p>
-  </div>
-
-  <div class="seccion">
-    <div class="sec-titulo">6. Menores de edad</div>
-    <p class="sec-body">
-      AuraOS no está dirigida a menores de 13 años.
-      No recopilamos conscientemente información de menores.
-      Si eres padre o tutor y crees que tu hijo ha proporcionado información personal,
-      contáctanos para eliminarla.
-    </p>
-  </div>
-
-  <div class="seccion">
-    <div class="sec-titulo">7. Cambios a esta política</div>
-    <p class="sec-body">
-      Notificaremos cambios importantes a través de la app.
-      El uso continuado de AuraOS tras la notificación implica aceptación de la nueva política.
-      Puedes consultar siempre la versión vigente en esta página.
-    </p>
-  </div>
-
-  <div class="divider"></div>
-
-  <div class="contact-box">
-    <div>
-      <div class="contact-label">Contacto de privacidad</div>
-      <div class="contact-email"><a href="mailto:privacidad@barberos.app">privacidad@barberos.app</a></div>
-    </div>
-    <div>
-      <div class="contact-label">Tiempo de respuesta</div>
-      <div class="contact-email" style="color:var(--text);font-size:0.75rem;">30 días hábiles</div>
-    </div>
-  </div>
-
-  <div class="divider"></div>
-
-  <footer>
-    © 2026 AuraOS. Todos los derechos reservados. &nbsp;·&nbsp;
-    <a href="/">Inicio</a>
-  </footer>
 </div>
+
+<!-- ══════════════ CONTENIDO ══════════════ -->
+<div class="layout">
+
+  <aside class="toc">
+    <div class="toc-label">En esta página</div>
+    <ul>
+      <li><a href="#sec-1"><span class="num">01</span>Información recopilada</a></li>
+      <li><a href="#sec-2"><span class="num">02</span>Cómo usamos tu información</a></li>
+      <li><a href="#sec-3"><span class="num">03</span>Base legal</a></li>
+      <li><a href="#sec-4"><span class="num">04</span>Permisos del dispositivo</a></li>
+      <li><a href="#sec-5"><span class="num">05</span>Almacenamiento local</a></li>
+      <li><a href="#sec-6"><span class="num">06</span>Compartición y terceros</a></li>
+      <li><a href="#sec-7"><span class="num">07</span>WhatsApp y bot</a></li>
+      <li><a href="#sec-8"><span class="num">08</span>Quién ve tus datos</a></li>
+      <li><a href="#sec-9"><span class="num">09</span>Transferencias int.</a></li>
+      <li><a href="#sec-10"><span class="num">10</span>Retención</a></li>
+      <li><a href="#sec-11"><span class="num">11</span>Eliminar cuenta</a></li>
+      <li><a href="#sec-12"><span class="num">12</span>Tus derechos</a></li>
+      <li><a href="#sec-13"><span class="num">13</span>Seguridad</a></li>
+      <li><a href="#sec-14"><span class="num">14</span>Menores</a></li>
+      <li><a href="#sec-15"><span class="num">15</span>Cambios</a></li>
+      <li><a href="#sec-16"><span class="num">16</span>Responsable</a></li>
+    </ul>
+  </aside>
+
+  <div class="page">
+
+    <!-- ── 1 ── -->
+    <div class="seccion" id="sec-1">
+      <div class="sec-head">
+        <div class="sec-num">01</div>
+        <div class="sec-titles">
+          <div class="sec-label"><i data-lucide="user"></i> Datos personales</div>
+          <h2 class="sec-title">Información que <span class="italic">recopilamos</span></h2>
+        </div>
+        <button class="copy-link" data-anchor="sec-1"><i data-lucide="link-2"></i>Copiar</button>
+      </div>
+      <ul class="items">
+        <li><strong>Número de teléfono:</strong> identificador único de cuenta y canal de notificaciones por WhatsApp.</li>
+        <li><strong>Nombre:</strong> para personalizar tu experiencia y que el barbero te identifique al llegar.</li>
+        <li><strong>Contraseña:</strong> almacenada cifrada (hash bcrypt). Nunca la vemos en texto plano.</li>
+        <li><strong>Historial de citas:</strong> fecha, servicio, barbero, estado y calificación de cada visita.</li>
+        <li><strong>Token de notificaciones push:</strong> para enviarte recordatorios y avisos de turno en tiempo real.</li>
+        <li><strong>Mensajes de WhatsApp con el bot:</strong> procesados por nuestro asistente automatizado para gestionar reservas. Conservados para auditoría.</li>
+        <li><strong>Datos técnicos anónimos:</strong> versión de la app, plataforma (iOS/Android), errores de ejecución vía Sentry — sin información personal identificable.</li>
+      </ul>
+    </div>
+
+    <!-- ── 2 ── -->
+    <div class="seccion" id="sec-2">
+      <div class="sec-head">
+        <div class="sec-num">02</div>
+        <div class="sec-titles">
+          <div class="sec-label"><i data-lucide="zap"></i> Uso</div>
+          <h2 class="sec-title">Cómo usamos tu <span class="italic">información</span></h2>
+        </div>
+        <button class="copy-link" data-anchor="sec-2"><i data-lucide="link-2"></i>Copiar</button>
+      </div>
+      <ul class="items">
+        <li>Gestionar y confirmar tus reservas de turno.</li>
+        <li>Enviarte notificaciones push y mensajes de WhatsApp sobre tu cita (recordatorios, cambios de estado, aviso de turno).</li>
+        <li>Mostrar tu historial de visitas y estadísticas personales dentro de la app.</li>
+        <li>Mejorar la calidad del servicio mediante calificaciones anónimas.</li>
+        <li>Detectar y corregir errores técnicos mediante reportes anónimos.</li>
+      </ul>
+    </div>
+
+    <!-- ── 3 ── -->
+    <div class="seccion" id="sec-3">
+      <div class="sec-head">
+        <div class="sec-num">03</div>
+        <div class="sec-titles">
+          <div class="sec-label"><i data-lucide="scale"></i> Marco legal</div>
+          <h2 class="sec-title">Base <span class="italic">legal</span> del tratamiento</h2>
+        </div>
+        <button class="copy-link" data-anchor="sec-3"><i data-lucide="link-2"></i>Copiar</button>
+      </div>
+      <p class="sec-body">Procesamos tus datos personales bajo las siguientes bases legales:</p>
+      <ul class="items">
+        <li><strong>Ejecución de contrato:</strong> para prestarte el servicio de reservas (gestionar tu cuenta, agendar citas, enviarte recordatorios).</li>
+        <li><strong>Consentimiento:</strong> notificaciones push, mensajes promocionales de WhatsApp, acceso a cámara para escanear QR.</li>
+        <li><strong>Interés legítimo:</strong> detección de errores técnicos, prevención de fraude.</li>
+        <li><strong>Obligación legal:</strong> conservación de registros mínimos exigidos por la normativa aplicable.</li>
+      </ul>
+    </div>
+
+    <!-- ── 4 — Permisos visual ── -->
+    <div class="seccion" id="sec-4">
+      <div class="sec-head">
+        <div class="sec-num">04</div>
+        <div class="sec-titles">
+          <div class="sec-label"><i data-lucide="smartphone"></i> Sistema</div>
+          <h2 class="sec-title">Permisos del <span class="italic">dispositivo</span></h2>
+        </div>
+        <button class="copy-link" data-anchor="sec-4"><i data-lucide="link-2"></i>Copiar</button>
+      </div>
+      <div class="perm-grid">
+        <div class="perm-card">
+          <div class="p-ico"><i data-lucide="camera"></i></div>
+          <h5>CÁMARA</h5>
+          <p>Sólo para escanear QR de negocios. No grabamos ni almacenamos imágenes ni video.</p>
+        </div>
+        <div class="perm-card">
+          <div class="p-ico"><i data-lucide="bell"></i></div>
+          <h5>NOTIFICACIONES</h5>
+          <p>Recordatorios de citas y avisos de turno. Puedes desactivarlas en cualquier momento.</p>
+        </div>
+        <div class="perm-card">
+          <div class="p-ico"><i data-lucide="hard-drive"></i></div>
+          <h5>ALMACENAMIENTO</h5>
+          <p>Datos básicos de sesión guardados localmente en el dispositivo. Ver sección 05.</p>
+        </div>
+      </div>
+      <p class="sec-body">
+        Todos los permisos son <strong>opcionales</strong> excepto los necesarios para el funcionamiento básico.
+        Si rechazas un permiso, la función correspondiente queda desactivada — el resto de la app funciona normalmente.
+      </p>
+    </div>
+
+    <!-- ── 5 ── -->
+    <div class="seccion" id="sec-5">
+      <div class="sec-head">
+        <div class="sec-num">05</div>
+        <div class="sec-titles">
+          <div class="sec-label"><i data-lucide="hard-drive"></i> Local</div>
+          <h2 class="sec-title">Almacenamiento <span class="italic">en tu dispositivo</span></h2>
+        </div>
+        <button class="copy-link" data-anchor="sec-5"><i data-lucide="link-2"></i>Copiar</button>
+      </div>
+      <ul class="items">
+        <li><strong>SecureStore (cifrado):</strong> token de sesión para mantenerte conectado entre aperturas. Se elimina al cerrar sesión. Usa Keychain (iOS) / Keystore (Android).</li>
+        <li><strong>AsyncStorage:</strong> caché del perfil (nombre, rol), preferencias y caché de agenda — para que la app abra rápido sin esperar al servidor. No contiene datos sensibles.</li>
+        <li><strong>Sin cookies de seguimiento:</strong> nuestra web no usa cookies de publicidad, analítica de terceros ni rastreadores.</li>
+      </ul>
+    </div>
+
+    <!-- ── 6 ── -->
+    <div class="seccion" id="sec-6">
+      <div class="sec-head">
+        <div class="sec-num">06</div>
+        <div class="sec-titles">
+          <div class="sec-label"><i data-lucide="share-2"></i> Terceros</div>
+          <h2 class="sec-title">Compartición y <span class="italic">proveedores</span></h2>
+        </div>
+        <button class="copy-link" data-anchor="sec-6"><i data-lucide="link-2"></i>Copiar</button>
+      </div>
+      <div class="callout gold">
+        <div class="co-ico"><i data-lucide="ban"></i></div>
+        <div>
+          <div class="co-title">Compromiso</div>
+          <p><strong>No vendemos ni compartimos</strong> tu información personal con terceros con fines comerciales. Tus datos sólo se comparten con la barbería a la que perteneces dentro de la app.</p>
+        </div>
+      </div>
+      <p class="sec-body" style="margin-top:24px;">Proveedores técnicos que procesan datos en nuestro nombre:</p>
+      <ul class="items">
+        <li><strong>Supabase Inc.</strong> (EE.UU./EU) — base de datos cifrada con Row Level Security. <a href="https://supabase.com/privacy" target="_blank" rel="noopener">Política →</a></li>
+        <li><strong>Expo / EAS</strong> — envío de notificaciones push al dispositivo. <a href="https://expo.dev/privacy" target="_blank" rel="noopener">Política →</a></li>
+        <li><strong>Meta — WhatsApp Business Cloud API</strong> — envío y recepción de mensajes. <a href="https://www.whatsapp.com/legal/privacy-policy" target="_blank" rel="noopener">Política →</a></li>
+        <li><strong>Sentry Inc.</strong> — reporte automático de errores anónimos (stack trace, versión, plataforma). Sin PII. <a href="https://sentry.io/privacy/" target="_blank" rel="noopener">Política →</a></li>
+        <li><strong>Resend</strong> — envío de correos transaccionales (eliminación de cuenta, alertas administrativas).</li>
+      </ul>
+    </div>
+
+    <!-- ── 7 ── -->
+    <div class="seccion" id="sec-7">
+      <div class="sec-head">
+        <div class="sec-num">07</div>
+        <div class="sec-titles">
+          <div class="sec-label"><i data-lucide="message-circle"></i> Bot</div>
+          <h2 class="sec-title">WhatsApp y <span class="italic">asistente automatizado</span></h2>
+        </div>
+        <button class="copy-link" data-anchor="sec-7"><i data-lucide="link-2"></i>Copiar</button>
+      </div>
+      <p class="sec-body">
+        Cuando reservas o consultas por WhatsApp, tus mensajes son procesados por un
+        <strong>asistente automatizado (bot)</strong> alojado en nuestra infraestructura.
+        El bot interpreta tu mensaje, gestiona la reserva y te responde. Los mensajes pueden ser
+        revisados manualmente con fines de auditoría, mejora del servicio y resolución de incidencias.
+      </p>
+      <p class="sec-body">
+        <strong>No usamos el contenido</strong> de tus conversaciones para publicidad, perfilado comercial,
+        ni para entrenar modelos de IA de terceros.
+      </p>
+    </div>
+
+    <!-- ── 8 — Bento ── -->
+    <div class="seccion" id="sec-8">
+      <div class="sec-head">
+        <div class="sec-num">08</div>
+        <div class="sec-titles">
+          <div class="sec-label"><i data-lucide="eye"></i> Acceso</div>
+          <h2 class="sec-title">Quién puede <span class="italic">ver tus datos</span></h2>
+        </div>
+        <button class="copy-link" data-anchor="sec-8"><i data-lucide="link-2"></i>Copiar</button>
+      </div>
+      <div class="bento">
+        <div class="bento-card">
+          <div class="b-icon"><i data-lucide="user"></i></div>
+          <h4>TÚ MISMO</h4>
+          <p>Acceso completo a tu perfil, historial de citas y todos tus datos personales.</p>
+        </div>
+        <div class="bento-card">
+          <div class="b-icon"><i data-lucide="scissors"></i></div>
+          <h4>TU BARBERO</h4>
+          <p>Ve tu nombre, teléfono, cita actual e historial dentro del negocio. Para reconocerte y darte mejor servicio.</p>
+        </div>
+        <div class="bento-card">
+          <div class="b-icon"><i data-lucide="briefcase"></i></div>
+          <h4>EL ADMINISTRADOR</h4>
+          <p>Ve la lista de clientes del negocio, sus citas y estadísticas agregadas para la gestión operativa.</p>
+        </div>
+        <div class="bento-card">
+          <div class="b-icon"><i data-lucide="shield"></i></div>
+          <h4>EQUIPO TÉCNICO</h4>
+          <p>Acceso restringido y auditado, únicamente para soporte y resolución de incidencias.</p>
+        </div>
+      </div>
+      <p class="sec-body" style="margin-top:24px;">
+        Cada negocio está aislado por políticas de seguridad (Row Level Security):
+        <strong>un negocio nunca ve datos de clientes de otro negocio</strong>.
+      </p>
+    </div>
+
+    <!-- ── 9 ── -->
+    <div class="seccion" id="sec-9">
+      <div class="sec-head">
+        <div class="sec-num">09</div>
+        <div class="sec-titles">
+          <div class="sec-label"><i data-lucide="globe"></i> Internacional</div>
+          <h2 class="sec-title">Transferencias <span class="italic">internacionales</span></h2>
+        </div>
+        <button class="copy-link" data-anchor="sec-9"><i data-lucide="link-2"></i>Copiar</button>
+      </div>
+      <p class="sec-body">
+        Nuestros proveedores (Supabase, Expo, Meta, Sentry) tienen servidores fuera de República Dominicana,
+        principalmente en <strong>Estados Unidos y la Unión Europea</strong>.
+        Al usar la App, autorizas la transferencia internacional de tus datos a esas jurisdicciones,
+        siempre bajo cláusulas contractuales tipo y estándares de seguridad equivalentes a los del país de origen.
+      </p>
+    </div>
+
+    <!-- ── 10 ── -->
+    <div class="seccion" id="sec-10">
+      <div class="sec-head">
+        <div class="sec-num">10</div>
+        <div class="sec-titles">
+          <div class="sec-label"><i data-lucide="clock"></i> Tiempo</div>
+          <h2 class="sec-title">Retención de <span class="italic">datos</span></h2>
+        </div>
+        <button class="copy-link" data-anchor="sec-10"><i data-lucide="link-2"></i>Copiar</button>
+      </div>
+      <ul class="items">
+        <li><strong>Cuenta activa:</strong> conservamos tus datos mientras tu cuenta esté activa.</li>
+        <li><strong>Cuenta eliminada:</strong> datos personales eliminados en plazo máximo de 30 días.</li>
+        <li><strong>Backups:</strong> respaldos cifrados pueden contener tus datos hasta 90 días adicionales, tras los cuales se sobrescriben automáticamente.</li>
+        <li><strong>Mensajes de WhatsApp:</strong> hasta 12 meses para auditoría, luego se eliminan o anonimizan.</li>
+        <li><strong>Logs de seguridad:</strong> hasta 6 meses, para detección de fraude e incidencias.</li>
+      </ul>
+    </div>
+
+    <!-- ── 11 — Steps ── -->
+    <div class="seccion" id="sec-11">
+      <div class="sec-head">
+        <div class="sec-num">11</div>
+        <div class="sec-titles">
+          <div class="sec-label"><i data-lucide="trash-2"></i> Eliminación</div>
+          <h2 class="sec-title">Cómo <span class="italic">eliminar</span> tu cuenta</h2>
+        </div>
+        <button class="copy-link" data-anchor="sec-11"><i data-lucide="link-2"></i>Copiar</button>
+      </div>
+      <div class="callout">
+        <div class="co-ico"><i data-lucide="alert-triangle"></i></div>
+        <div>
+          <div class="co-title">Acción irreversible</div>
+          <p>Eliminar tu cuenta borra permanentemente: perfil, contraseña, historial de citas, mensajes, calificaciones y preferencias. <strong>No hay forma de recuperarlos</strong>.</p>
+        </div>
+      </div>
+
+      <p class="sec-body" style="margin-top:30px;"><strong style="color:var(--gold);font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.2em;">OPCIÓN A · DESDE LA APP</strong></p>
+      <div class="steps">
+        <div class="step"><div class="s-num">1</div><div class="s-txt">Abre AuraOS → toca <strong>Perfil</strong>.</div></div>
+        <div class="step"><div class="s-num">2</div><div class="s-txt">Desliza al final → <strong>Eliminar mi cuenta</strong>.</div></div>
+        <div class="step"><div class="s-num">3</div><div class="s-txt">Confirma con tu contraseña. La eliminación es <strong>inmediata</strong>. Los backups se purgan en 90 días.</div></div>
+      </div>
+
+      <p class="sec-body" style="margin-top:24px;"><strong style="color:var(--gold);font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.2em;">OPCIÓN B · POR CORREO</strong></p>
+      <p class="sec-body">
+        Escribe a <a href="mailto:privacidad@auraos.app?subject=Eliminar%20mi%20cuenta">privacidad@auraos.app</a>
+        desde el correo o teléfono asociado a tu cuenta.
+        Responderemos en máximo <strong>30 días hábiles</strong>.
+      </p>
+    </div>
+
+    <!-- ── 12 ── -->
+    <div class="seccion" id="sec-12">
+      <div class="sec-head">
+        <div class="sec-num">12</div>
+        <div class="sec-titles">
+          <div class="sec-label"><i data-lucide="user-check"></i> GDPR / LOPD</div>
+          <h2 class="sec-title">Tus <span class="italic">derechos</span></h2>
+        </div>
+        <button class="copy-link" data-anchor="sec-12"><i data-lucide="link-2"></i>Copiar</button>
+      </div>
+      <p class="sec-body">Como titular de los datos, tienes derecho a:</p>
+      <ul class="items">
+        <li><strong>Acceso:</strong> solicitar una copia de los datos que tenemos sobre ti.</li>
+        <li><strong>Rectificación:</strong> corregir datos inexactos o incompletos.</li>
+        <li><strong>Eliminación:</strong> borrar tu cuenta y datos (ver sección 11).</li>
+        <li><strong>Portabilidad:</strong> recibir tus datos en formato estructurado (JSON/CSV) para llevártelos.</li>
+        <li><strong>Oposición:</strong> oponerte a determinados tratamientos (notificaciones, mensajes promocionales).</li>
+        <li><strong>Limitación:</strong> solicitar que paremos el tratamiento mientras revisamos una objeción.</li>
+        <li><strong>Retirar consentimiento:</strong> en cualquier momento, sin afectar tratamientos previos válidos.</li>
+      </ul>
+      <p class="sec-body" style="margin-top:14px;">
+        Para ejercer cualquier derecho, escríbenos a
+        <a href="mailto:privacidad@auraos.app">privacidad@auraos.app</a>.
+        Responderemos en máximo 30 días hábiles.
+      </p>
+    </div>
+
+    <!-- ── 13 ── -->
+    <div class="seccion" id="sec-13">
+      <div class="sec-head">
+        <div class="sec-num">13</div>
+        <div class="sec-titles">
+          <div class="sec-label"><i data-lucide="shield-check"></i> Protección</div>
+          <h2 class="sec-title">Seguridad</h2>
+        </div>
+        <button class="copy-link" data-anchor="sec-13"><i data-lucide="link-2"></i>Copiar</button>
+      </div>
+      <ul class="items">
+        <li>Toda la comunicación se transmite cifrada sobre <strong>HTTPS/TLS</strong>.</li>
+        <li>Las contraseñas se almacenan con <strong>hashing bcrypt</strong> — nunca en texto plano.</li>
+        <li><strong>Row Level Security (RLS)</strong> en la base de datos: cada usuario sólo accede a su propia información.</li>
+        <li>El token de sesión en el dispositivo se guarda en <strong>SecureStore cifrado</strong> (Keychain iOS, Keystore Android).</li>
+        <li>Auditoría continua de accesos administrativos.</li>
+      </ul>
+    </div>
+
+    <!-- ── 14 ── -->
+    <div class="seccion" id="sec-14">
+      <div class="sec-head">
+        <div class="sec-num">14</div>
+        <div class="sec-titles">
+          <div class="sec-label"><i data-lucide="baby"></i> Edad</div>
+          <h2 class="sec-title">Menores de <span class="italic">edad</span></h2>
+        </div>
+        <button class="copy-link" data-anchor="sec-14"><i data-lucide="link-2"></i>Copiar</button>
+      </div>
+      <p class="sec-body">
+        AuraOS no está dirigida a menores de 13 años.
+        No recopilamos conscientemente información de menores.
+        Si eres padre o tutor y crees que tu hijo ha proporcionado información personal,
+        contáctanos para eliminarla en <a href="mailto:privacidad@auraos.app">privacidad@auraos.app</a>.
+      </p>
+    </div>
+
+    <!-- ── 15 ── -->
+    <div class="seccion" id="sec-15">
+      <div class="sec-head">
+        <div class="sec-num">15</div>
+        <div class="sec-titles">
+          <div class="sec-label"><i data-lucide="refresh-cw"></i> Actualizaciones</div>
+          <h2 class="sec-title">Cambios a esta <span class="italic">política</span></h2>
+        </div>
+        <button class="copy-link" data-anchor="sec-15"><i data-lucide="link-2"></i>Copiar</button>
+      </div>
+      <p class="sec-body">
+        Notificaremos cambios sustanciales con al menos <strong>15 días de antelación</strong> a través de la app o por WhatsApp.
+        El uso continuado de AuraOS tras la notificación implica aceptación de la nueva política.
+        Puedes consultar siempre la versión vigente en esta página.
+      </p>
+    </div>
+
+    <!-- ── 16 ── -->
+    <div class="seccion" id="sec-16">
+      <div class="sec-head">
+        <div class="sec-num">16</div>
+        <div class="sec-titles">
+          <div class="sec-label"><i data-lucide="building"></i> Responsable</div>
+          <h2 class="sec-title">Responsable del <span class="italic">tratamiento</span></h2>
+        </div>
+        <button class="copy-link" data-anchor="sec-16"><i data-lucide="link-2"></i>Copiar</button>
+      </div>
+      <p class="sec-body">
+        <strong>AuraOS</strong> — Sistema de gestión de turnos.<br>
+        Operador: <strong>Bonifacio R. Delgado</strong>.<br>
+        Jurisdicción: <strong>República Dominicana</strong>.<br>
+        Contacto de privacidad: <a href="mailto:privacidad@auraos.app">privacidad@auraos.app</a>
+      </p>
+      <p class="sec-body" style="margin-top:14px;">
+        Si consideras que el tratamiento de tus datos no se ajusta a la normativa,
+        puedes acudir a la autoridad de protección de datos correspondiente
+        (en RD: <strong>INDOTEL</strong> / <strong>Pro Consumidor</strong>).
+      </p>
+    </div>
+
+    <hr class="divider">
+
+    <!-- ── Contacto ── -->
+    <div class="contact-box">
+      <div class="contact-block">
+        <div class="c-label">Contacto de privacidad</div>
+        <div class="c-val"><a href="mailto:privacidad@auraos.app">privacidad@auraos.app</a></div>
+        <div class="c-sub">Respondemos consultas legales y de datos personales.</div>
+      </div>
+      <div class="contact-block">
+        <div class="c-label">Tiempo de respuesta</div>
+        <div class="c-val">30 días</div>
+        <div class="c-sub">Hábiles, contados desde la recepción.</div>
+      </div>
+    </div>
+
+    <!-- ── CTAs ── -->
+    <div class="cta-row">
+      <a class="cta" href="/">
+        <span class="cta-ico"><i data-lucide="arrow-left"></i></span>
+        <div>
+          <div class="cta-lbl">Continuar</div>
+          <div class="cta-txt">Volver al inicio</div>
+        </div>
+      </a>
+      <a class="cta danger" href="mailto:privacidad@auraos.app?subject=Eliminar%20mi%20cuenta&body=Hola,%20deseo%20eliminar%20mi%20cuenta%20de%20AuraOS.%0A%0ATel%C3%A9fono%20asociado:%20">
+        <span class="cta-ico"><i data-lucide="trash-2"></i></span>
+        <div>
+          <div class="cta-lbl">Solicitar</div>
+          <div class="cta-txt">Eliminar mi cuenta</div>
+        </div>
+      </a>
+    </div>
+
+    <footer>
+      © 2026 AURAOS · TODOS LOS DERECHOS RESERVADOS · <a href="/">INICIO</a>
+    </footer>
+  </div>
+</div>
+
+<div class="toast" id="toast"><i data-lucide="check-circle"></i>Enlace copiado</div>
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     document.body.classList.add('loaded');
+    if (window.lucide) lucide.createIcons();
+
+    // ── Nav scrolled ──
+    const nav = document.getElementById('nav');
+    const progressBar = document.getElementById('progress-bar');
+    const onScroll = () => {
+      nav.classList.toggle('scrolled', window.scrollY > 40);
+      const h = document.documentElement;
+      const p = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+      progressBar.style.width = Math.min(p, 100) + '%';
+      setActiveToc();
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    // ── Custom cursor ──
+    const cursor = document.querySelector('.custom-cursor');
+    const follower = document.querySelector('.cursor-follower');
+    if (window.matchMedia('(hover:hover)').matches) {
+      document.addEventListener('mousemove', (e) => {
+        cursor.style.left = e.clientX - 6 + 'px';
+        cursor.style.top  = e.clientY - 6 + 'px';
+        follower.style.left = e.clientX - 20 + 'px';
+        follower.style.top  = e.clientY - 20 + 'px';
+      });
+      document.querySelectorAll('a,button,.bento-card,.cta,.perm-card,.step').forEach(el => {
+        el.addEventListener('mouseenter', () => { cursor.style.transform = 'scale(1.6)'; follower.style.transform = 'scale(1.4)'; });
+        el.addEventListener('mouseleave', () => { cursor.style.transform = 'scale(1)'; follower.style.transform = 'scale(1)'; });
+      });
+    }
+
+    // ── Reveal on scroll ──
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.seccion').forEach(s => io.observe(s));
+
+    // ── TOC scrollspy ──
+    const tocLinks = document.querySelectorAll('aside.toc a');
+    function setActiveToc() {
+      let activeId = '';
+      document.querySelectorAll('.seccion').forEach(s => {
+        const r = s.getBoundingClientRect();
+        if (r.top < 180 && r.bottom > 180) activeId = s.id;
+      });
+      tocLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + activeId));
+    }
+    setActiveToc();
+
+    // ── Copy link ──
+    const toast = document.getElementById('toast');
+    let toastT;
+    document.querySelectorAll('.copy-link').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const url = `${location.origin}${location.pathname}#${btn.dataset.anchor}`;
+        try {
+          await navigator.clipboard.writeText(url);
+          btn.classList.add('copied');
+          toast.classList.add('show');
+          clearTimeout(toastT);
+          toastT = setTimeout(() => {
+            toast.classList.remove('show');
+            btn.classList.remove('copied');
+          }, 1800);
+        } catch (_) {}
+      });
+    });
   });
 </script>
 </body>
