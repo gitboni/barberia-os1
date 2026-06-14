@@ -474,6 +474,10 @@
       </button>
     </div>
     <div class="prog-bar" id="bookingProg"></div>
+    <div id="bookingInvitadoBanner" class="hidden" style="display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(212,160,23,0.10);border:1px solid rgba(212,160,23,0.3);color:var(--accent);padding:10px 14px;border-radius:12px;margin-bottom:14px;font-size:.78rem;font-weight:700;letter-spacing:.3px;text-align:center">
+      <i data-lucide="user-plus" size="14"></i>
+      <span id="bookingInvitadoBannerTxt"></span>
+    </div>
 
     <!-- Paso shop -->
     <div id="bStep-shop" class="b-step">
@@ -712,6 +716,8 @@ let bMotivo      = null;
 let bFechaSug    = null;
 let bSlotInvalid = false;
 let bNombre      = '';
+let bColaReservas = []; // turnos ya agregados (invitados) — se insertan junto con la cita actual
+let bEsInvitado   = false; // true cuando el titular ya tiene cita hoy o tras agregar el primer invitado
 
 // ══════════════════════════════════════════════════════════
 // HELPERS
@@ -1531,10 +1537,11 @@ async function guardarRating() {
 // ══════════════════════════════════════════════════════════
 // BOOKING MODAL
 // ══════════════════════════════════════════════════════════
-function startBooking(shopId, expressBarbero, expressServicio) {
+async function startBooking(shopId, expressBarbero, expressServicio) {
   // Reset state
   bShop=null; bServicio=null; bBarbero=null; bFecha=hoyRD(); bSlot=null;
   bSlotsDisp=[]; bShowWait=false; bMotivo=null; bFechaSug=null; bSlotInvalid=false; bAlternativas=[]; bServiciosAll=[];
+  bColaReservas = []; bEsInvitado = false;
   bNombre=user?.nombre||'';
 
   if (shopId) {
@@ -1542,10 +1549,27 @@ function startBooking(shopId, expressBarbero, expressServicio) {
     if (found) bShop=found;
   }
 
+  // ── Detección automática: si el titular ya tiene cita HOY → modo invitado ──
+  if (bShop && user?.telefono) {
+    try {
+      const { count } = await sb.from('citas')
+        .select('id', { count: 'exact', head: true })
+        .eq('shop_id', bShop.id)
+        .eq('telefono', user.telefono)
+        .eq('fecha', hoyRD())
+        .in('estado', ['Pendiente','Confirmada']);
+      if ((count ?? 0) > 0) {
+        bEsInvitado = true;
+        bNombre = ''; // forzar al user a escribir el nombre del invitado
+      }
+    } catch (_) {}
+  }
+
   // Definir pasos
   bPasos = bShop ? ['servicio','barbero','slot','confirmar'] : ['shop','servicio','barbero','slot','confirmar'];
   bPasoIdx=0;
   document.getElementById('bookingModal').classList.add('active');
+  renderBookingBanner();
   renderProg();
   goToStep(bPasos[0]);
 
@@ -1579,6 +1603,7 @@ function renderProg() {
 function goToStep(stepId) {
   document.querySelectorAll('.b-step').forEach(s=>s.classList.add('hidden'));
   document.getElementById('bStep-'+stepId).classList.remove('hidden');
+  if (typeof renderBookingBanner === 'function') renderBookingBanner();
   lucide.createIcons();
 }
 
@@ -1889,37 +1914,164 @@ function bSelectSlot(slot) {
   renderConfirmar();
 }
 
+function renderBookingBanner() {
+  const b = document.getElementById('bookingInvitadoBanner');
+  const t = document.getElementById('bookingInvitadoBannerTxt');
+  if (!b || !t) return;
+  if (!bEsInvitado) { b.classList.add('hidden'); return; }
+  t.textContent = bColaReservas.length === 0
+    ? 'Ya tienes una cita hoy · Esta será para un invitado'
+    : `AGREGANDO INVITADO #${bColaReservas.length + 1}`;
+  b.classList.remove('hidden');
+  if (window.lucide) lucide.createIcons();
+}
+
+function agregarOtroInvitadoBooking() {
+  const nombreActual = bNombre || document.getElementById('bNombreInput')?.value?.trim() || '';
+  if (!nombreActual) { toast('Ingresa el nombre primero','error'); return; }
+  if (!bServicio || !bBarbero || !bSlot) return;
+  if (bColaReservas.length >= 3) { toast('Máximo 4 turnos por reserva','info'); return; }
+  bColaReservas.push({
+    servicio: bServicio, barbero: bBarbero, slot: bSlot, nombre: nombreActual, fecha: bFecha,
+    esTitular: !bEsInvitado,
+  });
+  bEsInvitado = true;
+  bNombre = '';
+  bServicio = null; bSlot = null; bSlotInvalid = false;
+  renderBookingBanner();
+  bPasoIdx = bPasos.indexOf('servicio'); renderProg(); goToStep('servicio');
+}
+
 function renderConfirmar() {
+  renderBookingBanner();
   document.getElementById('bSlotInvalidadoAlert').classList.toggle('hidden',!bSlotInvalid);
   const confirmacion = bShop?.confirmacion_requerida;
   document.getElementById('bConfirmarTitle').textContent = confirmacion?'Enviar reserva':'Confirmar cita';
-  document.getElementById('bResumen').innerHTML=`
-    <div class="row-info"><span class="muted">Servicio</span><span style="font-weight:700">${san(bServicio?.nombre||'')}</span></div>
-    <div class="row-info"><span class="muted">${bShop?.label_profesional||'Barbero'}</span><span style="font-weight:700">${san(bBarbero?.nombre||'')}</span></div>
-    <div class="row-info"><span class="muted">Fecha</span><span style="font-weight:700">${new Date(bFecha+'T12:00:00').toLocaleDateString('es-DO',{weekday:'long',day:'numeric',month:'short'})}</span></div>
-    <div class="row-info"><span class="muted">Hora</span><span style="font-weight:700;color:var(--accent)">${fmt12(bSlot)}</span></div>
-    ${bServicio?.precio>0?`<div class="row-info"><span class="muted">Precio</span><span style="font-weight:700;color:var(--accent)">$${parseFloat(bServicio.precio).toLocaleString()}</span></div>`:''}
+
+  // ── Cola de invitados ya agregados ──
+  const colaHtml = bColaReservas.length > 0 ? `
+    <div style="margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:6px;font-size:.7rem;font-weight:800;color:var(--accent);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:8px;padding-left:2px">
+        <i data-lucide="users" size="13"></i>
+        ${bColaReservas.length + 1} turnos en esta reserva
+      </div>
+      ${bColaReservas.map((c, i) => `
+        <div style="display:flex;align-items:center;gap:12px;background:#161618;border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:11px 12px;margin-bottom:7px">
+          <div style="width:34px;height:34px;border-radius:17px;background:rgba(212,160,23,0.10);border:1px solid rgba(212,160,23,0.25);display:flex;align-items:center;justify-content:center;color:var(--accent);font-weight:800;font-size:14px;flex-shrink:0">${san((c.nombre[0]||'?').toUpperCase())}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:700;font-size:.86rem">${san(c.nombre)}${c.esTitular?'<span style="font-size:9px;font-weight:700;color:var(--accent);letter-spacing:0.8px"> · TITULAR</span>':''}</div>
+            <div class="muted" style="font-size:.72rem">${san(c.servicio.nombre)} · ${fmt12(c.slot)}</div>
+          </div>
+          <button onclick="quitarDeColaBooking(${i})" style="width:28px;height:28px;border-radius:14px;background:rgba(255,255,255,0.04);border:0;cursor:pointer;color:var(--dim);display:flex;align-items:center;justify-content:center"><i data-lucide="x" size="14"></i></button>
+        </div>
+      `).join('')}
+    </div>` : '';
+
+  // ── Header de la card actual ──
+  const labelArriba = bColaReservas.length > 0
+    ? `Turno #${bColaReservas.length + 1} · ${bEsInvitado ? 'INVITADO' : 'TITULAR'}`
+    : `Tu reserva · ${bEsInvitado ? 'INVITADO' : 'TITULAR'}`;
+
+  // ── Card principal ──
+  document.getElementById('bResumen').innerHTML = `
+    ${colaHtml}
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-left:2px">
+      <span style="font-size:.7rem;font-weight:800;color:var(--accent);letter-spacing:1.2px;text-transform:uppercase">${labelArriba}</span>
+    </div>
+    <div style="background:#161618;border:1px solid rgba(255,255,255,0.06);border-radius:18px;overflow:hidden">
+      <!-- Hero servicio + hora -->
+      <div style="display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.05)">
+        <div style="flex:1;padding-right:10px">
+          <div style="font-size:.62rem;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;font-weight:600;margin-bottom:3px">${san(bServicio?.categoria||'Servicio')}</div>
+          <div style="font-size:1.1rem;font-weight:800;letter-spacing:-.3px" title="${san(bServicio?.nombre||'')}">${san(bServicio?.nombre||'—')}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:1.35rem;font-weight:900;color:var(--accent);letter-spacing:-.5px;line-height:1.1">${fmt12(bSlot||'')}</div>
+          <div style="font-size:.62rem;color:var(--dim);margin-top:2px">${bServicio?.duracion_min||0} min</div>
+        </div>
+      </div>
+      <!-- Avatar + nombre editable -->
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(255,255,255,0.015)">
+        <div id="bAvatarLetra" style="width:38px;height:38px;border-radius:19px;background:rgba(212,160,23,0.08);border:1px solid rgba(212,160,23,0.2);display:flex;align-items:center;justify-content:center;color:var(--accent);font-weight:800;font-size:16px;flex-shrink:0">${san(((bNombre||'?')[0]||'?').toUpperCase())}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.62rem;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;font-weight:600;margin-bottom:1px">${bEsInvitado?'Invitado':'Cliente'}</div>
+          <input id="bNombreInput" value="${san(bNombre||'')}" placeholder="${bEsInvitado?'¿Cómo se llama el invitado?':'¿Cómo te llamas?'}" autocapitalize="words" style="background:transparent;border:0;outline:0;color:var(--text);font-size:.95rem;font-weight:700;padding:0;width:100%;font-family:inherit" oninput="bNombre=this.value;document.getElementById('bAvatarLetra').textContent=(this.value[0]||'?').toUpperCase()">
+        </div>
+        <i data-lucide="edit-3" size="14" style="color:var(--dim);flex-shrink:0"></i>
+      </div>
+      <!-- Filas: barbero + fecha -->
+      <div style="display:flex;align-items:center;padding:11px 16px;border-top:1px solid rgba(255,255,255,0.04)">
+        <i data-lucide="scissors" size="14" style="color:var(--accent);margin-right:10px"></i>
+        <span style="font-size:.72rem;color:var(--dim);min-width:70px">${san(bShop?.label_profesional||'Barbero')}</span>
+        <span style="flex:1;font-size:.82rem;font-weight:700;text-align:right">${san(bBarbero?.nombre||'—')}</span>
+      </div>
+      <div style="display:flex;align-items:center;padding:11px 16px">
+        <i data-lucide="calendar" size="14" style="color:var(--accent);margin-right:10px"></i>
+        <span style="font-size:.72rem;color:var(--dim);min-width:70px">Fecha</span>
+        <span style="flex:1;font-size:.82rem;font-weight:700;text-align:right">${new Date(bFecha+'T12:00:00').toLocaleDateString('es-DO',{weekday:'long',day:'numeric',month:'short'})}</span>
+      </div>
+      ${bServicio?.precio>0?`<div style="display:flex;align-items:center;padding:11px 16px;border-top:1px solid rgba(255,255,255,0.04)"><i data-lucide="dollar-sign" size="14" style="color:var(--accent);margin-right:10px"></i><span style="font-size:.72rem;color:var(--dim);min-width:70px">Precio</span><span style="flex:1;font-size:.82rem;font-weight:700;text-align:right;color:var(--accent)">$${parseFloat(bServicio.precio).toLocaleString()}</span></div>`:''}
+    </div>
   `;
-  if(bNombre) {
-    document.getElementById('bNombreSection').classList.add('hidden');
+
+  // ── Botón Agregar invitado / banner máx ──
+  const totalActuales = bColaReservas.length + 1;
+  const disponibles = 4 - totalActuales;
+  let btnInvitadoHtml = '';
+  if (disponibles <= 0) {
+    btnInvitadoHtml = `<div style="display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(212,160,23,0.06);border:1px solid rgba(212,160,23,0.25);border-radius:14px;padding:12px;margin:14px 0;font-size:.78rem;font-weight:700;color:var(--accent)"><i data-lucide="check-circle" size="14"></i> Llegaste al máximo (4 turnos)</div>`;
   } else {
-    document.getElementById('bNombreSection').classList.remove('hidden');
+    btnInvitadoHtml = `<button onclick="agregarOtroInvitadoBooking()" style="display:flex;align-items:center;gap:12px;width:100%;background:rgba(212,160,23,0.05);border:1px dashed rgba(212,160,23,0.30);border-radius:14px;padding:13px 14px;margin:14px 0;cursor:pointer;color:var(--text);font-family:inherit">
+      <span style="width:38px;height:38px;border-radius:19px;background:rgba(212,160,23,0.10);border:1px solid rgba(212,160,23,0.3);display:flex;align-items:center;justify-content:center;color:var(--accent);flex-shrink:0"><i data-lucide="user-plus" size="16"></i></span>
+      <span style="flex:1;text-align:left">
+        <div style="font-size:.82rem;font-weight:700;color:var(--accent)">Agregar otro turno</div>
+        <div style="font-size:.7rem;color:var(--dim);margin-top:2px">Para alguien que viene contigo · ${disponibles} disponible${disponibles===1?'':'s'}</div>
+      </span>
+      <i data-lucide="chevron-right" size="16" style="color:var(--dim)"></i>
+    </button>`;
   }
+
+  // Insertar botón después del resumen
+  const oldInvit = document.getElementById('bInvitadoBtnWrap');
+  if (oldInvit) oldInvit.remove();
+  const wrap = document.createElement('div');
+  wrap.id = 'bInvitadoBtnWrap';
+  wrap.innerHTML = btnInvitadoHtml;
+  document.getElementById('bResumen').after(wrap);
+
+  // Nombre section: oculto (input ya vive dentro de la card)
+  document.getElementById('bNombreSection').classList.add('hidden');
+
+  // Botón confirmar — texto refleja el total
+  const totalReserv = bColaReservas.length + 1;
   document.getElementById('bConfirmarBtn').innerHTML = bSlotInvalid
     ? '<i data-lucide="alert-circle" size="14"></i> Horario no disponible'
-    : `<i data-lucide="check" size="14"></i> Confirmar ${bShop?.confirmacion_requerida?'reserva':'cita'}`;
+    : `<i data-lucide="check" size="14"></i> ${bShop?.confirmacion_requerida?'Enviar':'Confirmar'} ${totalReserv} ${totalReserv===1?'cita':'citas'}`;
   document.getElementById('bConfirmarBtn').disabled = bSlotInvalid;
   lucide.createIcons();
 }
 
+function quitarDeColaBooking(idx) {
+  bColaReservas.splice(idx, 1);
+  if (bColaReservas.length === 0) bEsInvitado = false; // si removió todos los invitados, vuelve a modo titular
+  renderBookingBanner();
+  renderConfirmar();
+}
+
 async function procesarReserva() {
-  const nombre = bNombre || document.getElementById('bNombreInput').value.trim();
-  if (!nombre) { toast('Ingresa tu nombre','error'); return; }
+  const nombreActual = bNombre || document.getElementById('bNombreInput')?.value?.trim() || '';
+  if (!nombreActual) { toast('Ingresa el nombre','error'); return; }
   if (!bShop||!bServicio||!bBarbero||!bSlot) return;
   if (bSlotInvalid) { toast('Ese horario ya no está disponible','error'); bPasoIdx=bPasos.indexOf('slot'); renderProg(); goToStep('slot'); await cargarSlots(); return; }
 
   const btn=document.getElementById('bConfirmarBtn');
   btn.disabled=true; btn.innerHTML='<i data-lucide="loader" size="14"></i> Reservando...';
+
+  // ── Construir lista total: cola de invitados + cita actual ──
+  const todasParaGuardar = [
+    ...bColaReservas,
+    { servicio: bServicio, barbero: bBarbero, slot: bSlot, nombre: nombreActual, fecha: bFecha, esTitular: !bEsInvitado }
+  ];
 
   // ── Límite: máximo 4 citas activas por teléfono por día ─────────────────
   if (user?.telefono) {
@@ -1929,53 +2081,98 @@ async function procesarReserva() {
       .eq('telefono', user.telefono)
       .eq('fecha', bFecha)
       .in('estado', ['Pendiente', 'Confirmada']);
-    if ((yaTieneHoy ?? 0) >= 4) {
-      btn.disabled=false; btn.innerHTML='<i data-lucide="check" size="14"></i> Confirmar cita';
-      toast(`Ya tienes ${yaTieneHoy} citas hoy. Máximo 4 por día.`,'error');
+    if (((yaTieneHoy ?? 0) + todasParaGuardar.length) > 4) {
+      btn.disabled=false;
+      const disp = Math.max(0, 4 - (yaTieneHoy ?? 0));
+      toast(disp===0 ? `Ya tienes 4 citas hoy. Máximo 4 por día.` : `Solo puedes reservar ${disp} cita${disp===1?'':'s'} más hoy.`, 'error');
+      renderConfirmar();
       return;
     }
   }
 
+  // ── Insertar todas las citas (titular + invitados) ──
   const estadoInicial = bShop.confirmacion_requerida ? 'Pendiente' : 'Confirmada';
-  const { error } = await sb.from('citas').insert({
-    shop_id:   bShop.id,
-    usuario_id: user?.id||null,
-    barbero_id: bBarbero.id,
-    nombre:     nombre,
-    telefono:   user?.telefono||'',
-    fecha:      bFecha,
-    hora:       bSlot+':00',
-    servicio:   bServicio.nombre,
-    barbero:    bBarbero.nombre,
-    estado:     estadoInicial
-  });
+  const results = [];
+  for (const c of todasParaGuardar) {
+    const { error } = await sb.from('citas').insert({
+      shop_id:   bShop.id,
+      usuario_id: c.esTitular ? (user?.id||null) : null,
+      barbero_id: c.barbero.id,
+      nombre:     c.nombre,
+      telefono:   user?.telefono||'',
+      fecha:      c.fecha,
+      hora:       c.slot+':00',
+      servicio:   c.servicio.nombre,
+      barbero:    c.barbero.nombre,
+      estado:     estadoInicial
+    });
+    results.push({ c, error });
+  }
 
-  if (error) {
-    const txt = (error.message||'').toLowerCase();
-    const esYaTiene = txt.includes('cliente_dia_nombre_barbero');
-    const esTomado  = txt.includes('slot_unico')||txt.includes('solapa')||error.code==='P0001';
-    btn.disabled=false; btn.innerHTML='<i data-lucide="check" size="14"></i> Confirmar cita';
-    if (esYaTiene) {
+  const txt = (e) => ((e?.message||'')+' '+(e?.details||'')).toLowerCase();
+  const esYaTiene = (e) => txt(e).includes('cliente_dia_nombre_barbero');
+  const esTomado  = (e) => txt(e).includes('slot_unico')||txt(e).includes('solapa')||e?.code==='P0001';
+  const esBloqueo = (e) => esYaTiene(e)||esTomado(e)||e?.code==='23505'||e?.code==='P0001';
+
+  const exitosas = results.filter(r => !r.error);
+  const fallidas = results.filter(r => r.error);
+  const otras = fallidas.filter(r => !esBloqueo(r.error));
+
+  if (otras.length > 0) {
+    btn.disabled=false; renderConfirmar();
+    toast('Error: '+(otras[0].error?.message||'No se pudieron guardar las citas.'), 'error');
+    return;
+  }
+  if (exitosas.length === 0) {
+    btn.disabled=false; renderConfirmar();
+    if (fallidas.some(r => esYaTiene(r.error))) {
       toast(`Ya tienes una cita con ${bBarbero.nombre} para esa fecha`,'info');
-    } else if (esTomado) {
-      bSlotInvalid=true; bSlot=null; toast('Ese horario fue tomado. Elige otro ⚠️','error');
-      bPasoIdx=bPasos.indexOf('slot'); renderProg(); goToStep('slot'); await cargarSlots();
     } else {
-      toast('Error: '+error.message,'error');
+      bSlotInvalid=true; bSlot=null; toast('Ese horario fue tomado. Elige otro.','error');
+      bPasoIdx=bPasos.indexOf('slot'); renderProg(); goToStep('slot'); await cargarSlots();
     }
     return;
   }
+  // Éxito parcial → avisar al usuario
+  if (fallidas.length > 0) {
+    const yaTiene = fallidas.filter(r => esYaTiene(r.error)).length;
+    const tomados = fallidas.length - yaTiene;
+    const partes = [];
+    if (tomados > 0) partes.push(`${tomados} horario(s) ya tomados`);
+    if (yaTiene > 0) partes.push(`${yaTiene} ya tenía(n) cita`);
+    toast(`Se confirmaron ${exitosas.length}. ${partes.join(' · ')}.`, 'info');
+  }
 
-  // Notificar al barbero
+  // Notificar a cada barbero (puede haber varios si fueron invitados con barberos distintos)
   (async()=>{
-    const { data: bu } = await sb.from('usuarios_app').select('push_token,push_activo').eq('barbero_id',bBarbero.id).maybeSingle();
-    if (bu?.push_token&&bu.push_activo) {
-      fetch(`${SB_URL}/functions/v1/send-web-push`, { method:'POST', headers:{'Content-Type':'application/json','apikey':SB_KEY}, body: JSON.stringify({ token:bu.push_token, title: estadoInicial==='Pendiente'?'⏳ Nueva reserva':'✂️ Nueva reserva', body:`${nombre} reservó ${bServicio.nombre} para ${fmt12(bSlot)}` })}).catch(()=>{});
+    for (const r of exitosas) {
+      const c = r.c;
+      const { data: bu } = await sb.from('usuarios_app').select('push_token,push_activo').eq('barbero_id', c.barbero.id).maybeSingle();
+      if (bu?.push_token && bu.push_activo) {
+        fetch(`${SB_URL}/functions/v1/send-web-push`, {
+          method:'POST',
+          headers:{'Content-Type':'application/json','apikey':SB_KEY},
+          body: JSON.stringify({
+            token: bu.push_token,
+            title: estadoInicial==='Pendiente' ? '⏳ Nueva reserva' : '✂️ Nueva reserva',
+            body: `${c.nombre} reservó ${c.servicio.nombre} para ${fmt12(c.slot)}`
+          })
+        }).catch(()=>{});
+      }
     }
   })();
 
   // Éxito
-  document.getElementById('bExitoMsg').textContent = `${bServicio.nombre} con ${bBarbero.nombre} · ${fmt12(bSlot)}`;
+  const principal = exitosas.find(r => r.c.esTitular)?.c || exitosas[0].c;
+  const totalOK = exitosas.length;
+  document.getElementById('bExitoMsg').textContent = totalOK > 1
+    ? `${totalOK} citas confirmadas · ${principal.servicio.nombre} a las ${fmt12(principal.slot)} y más`
+    : `${principal.servicio.nombre} con ${principal.barbero.nombre} · ${fmt12(principal.slot)}`;
+
+  // Reset estado de invitados tras el éxito
+  bColaReservas = [];
+  bEsInvitado = false;
+
   bPasoIdx=bPasos.length-1; renderProg(); goToStep('exito');
   lucide.createIcons();
 }
