@@ -788,8 +788,16 @@ async function handleSignIn() {
   const pass = document.getElementById('loginPass').value;
   if (!tel||!pass) { toast('Completa todos los campos','error'); return; }
   const { error } = await sb.auth.signInWithPassword({ email: telToEmail(tel), password: pass });
-  if (error) { toast('Error: '+error.message,'error'); }
-  else { cerrarAuth(); await loadHome(); }
+  if (error) { toast('Error: '+error.message,'error'); return; }
+  cerrarAuth();
+  await loadHome();
+  // Si venía de un QR → vincular shop (si no estaba) y abrir reserva
+  if (window.__pendingShopAfterAuth && user?.id) {
+    const sid = window.__pendingShopAfterAuth;
+    window.__pendingShopAfterAuth = null;
+    try { await sb.from('cliente_shops').insert({ usuario_id: user.id, shop_id: sid, favorito: false }); } catch (_) {}
+    setTimeout(() => startBooking(sid), 250);
+  }
 }
 
 async function handleSignUp() {
@@ -805,12 +813,25 @@ async function handleSignUp() {
   let telefono = telLimpio;
   if (telefono.length===10&&(telefono.startsWith('8')||telefono.startsWith('9'))) telefono='1'+telefono;
   await sb.from('usuarios_app').upsert({ id:uid, nombre:nom, telefono, rol:'cliente', activo:true }, { onConflict:'id' });
-  if (bShop) {
-    const { data: cl } = await sb.from('clientes').insert({ shop_id:bShop.id, telefono, nombre:nom, visitas:0 }).select().single();
-    await sb.from('cliente_shops').insert({ usuario_id:uid, shop_id:bShop.id, cliente_id:cl?.id||null, favorito:true });
+
+  // Shop pre-seleccionada vía QR (window.__pendingShopAfterAuth) o flujo de booking activo (bShop)
+  const pendingShopId = window.__pendingShopAfterAuth || (bShop && bShop.id);
+  if (pendingShopId) {
+    try {
+      const { data: cl } = await sb.from('clientes').insert({ shop_id:pendingShopId, telefono, nombre:nom, visitas:0 }).select().single();
+      await sb.from('cliente_shops').insert({ usuario_id:uid, shop_id:pendingShopId, cliente_id:cl?.id||null, favorito:true });
+    } catch (_) {}
   }
+
   cerrarAuth();
   await loadHome();
+
+  // Si venía de un QR → abrir el wizard de reserva ya en esa barbería
+  if (window.__pendingShopAfterAuth) {
+    const sid = window.__pendingShopAfterAuth;
+    window.__pendingShopAfterAuth = null;
+    setTimeout(() => startBooking(sid), 250);
+  }
 }
 
 function handleSignOut() {
@@ -1871,19 +1892,91 @@ function goToStep(stepId){
 // SCANNER
 // ══════════════════════════════════════════════════════════
 let qrCode=null;
+
+// Extrae el slug del shop desde cualquier formato de QR conocido:
+//   barberos://registro?shop=elite-cuts
+//   auraos://registro?shop=elite-cuts
+//   https://auraos.app/?shop=elite-cuts
+//   https://barberos.app/shop/elite-cuts
+//   elite-cuts        (slug pelado)
+//   <UUID>            (id directo — legacy)
+function parseShopQr(text) {
+  if (!text) return { slug: null, id: null };
+  const raw = String(text).trim();
+  // Deep link esquema barberos://  o auraos://
+  const dl = raw.match(/^(?:barberos|auraos):\/\/[^?]*\?shop=([^&]+)/i);
+  if (dl) return { slug: decodeURIComponent(dl[1]), id: null };
+  // URL http(s) con ?shop= o ?id=
+  if (/^https?:\/\//i.test(raw)) {
+    try {
+      const u = new URL(raw);
+      const fromQuery = u.searchParams.get('shop') || u.searchParams.get('id');
+      if (fromQuery) {
+        // Si parece UUID, devolver como id
+        if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(fromQuery)) {
+          return { slug: null, id: fromQuery };
+        }
+        return { slug: fromQuery, id: null };
+      }
+      // path /shop/<slug>
+      const m = u.pathname.match(/\/shop\/([^\/?]+)/);
+      if (m) return { slug: decodeURIComponent(m[1]), id: null };
+    } catch (_) {}
+  }
+  // String pelado: UUID o slug
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(raw)) {
+    return { slug: null, id: raw };
+  }
+  if (/^[a-z0-9-]{2,}$/i.test(raw)) return { slug: raw.toLowerCase(), id: null };
+  return { slug: null, id: null };
+}
+
+async function manejarShopDelQr(slugOrId) {
+  // slugOrId = { slug, id }
+  let shopRow = null;
+  if (slugOrId.id) {
+    const { data } = await sb.from('shops').select('id,nombre,slug').eq('id', slugOrId.id).eq('activo', true).maybeSingle();
+    shopRow = data;
+  } else if (slugOrId.slug) {
+    const { data } = await sb.from('shops').select('id,nombre,slug').eq('slug', slugOrId.slug).eq('activo', true).maybeSingle();
+    shopRow = data;
+  }
+  if (!shopRow) {
+    toast('Negocio no encontrado. Pide el código al negocio.', 'error');
+    return;
+  }
+  // Si NO está logueado → abrir signup con shop preseleccionada
+  if (!user) {
+    window.__pendingShopAfterAuth = shopRow.id;
+    abrirAuth();
+    authShow('signup');
+    toast(`Crea tu cuenta para reservar en ${shopRow.nombre}`, 'info');
+    return;
+  }
+  // Si está logueado → asegurar que la shop esté vinculada y abrir reserva
+  try {
+    await sb.from('cliente_shops').insert({
+      usuario_id: user.id, shop_id: shopRow.id, favorito: false
+    });
+  } catch (_) { /* duplicate ok */ }
+  toast(`✓ Reservando en ${shopRow.nombre}`, 'success');
+  startBooking(shopRow.id);
+}
+
 function abrirScanner() {
   document.getElementById('scannerModal').classList.add('active');
   setTimeout(async()=>{
     try {
       if(qrCode) await qrCode.stop().catch(()=>{});
       qrCode=new Html5Qrcode('qrReader');
-      await qrCode.start({facingMode:'environment'},{fps:10,qrbox:{width:240,height:240}},(text)=>{
+      await qrCode.start({facingMode:'environment'},{fps:10,qrbox:{width:240,height:240}}, async (text)=>{
         qrCode.stop().catch(()=>{}); cerrarScanner();
-        let shopId=null;
-        if(text.startsWith('http')){try{const u=new URL(text);shopId=u.searchParams.get('shop')||u.searchParams.get('id');}catch(_){}}
-        else{shopId=text;}
-        if(shopId) startBooking(shopId);
-        else toast('Código no reconocido','error');
+        const parsed = parseShopQr(text);
+        if (!parsed.slug && !parsed.id) {
+          toast('Código no reconocido','error');
+          return;
+        }
+        await manejarShopDelQr(parsed);
       });
     } catch(e){toast('Error al iniciar cámara','error');}
   },300);
