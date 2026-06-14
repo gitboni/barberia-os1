@@ -387,6 +387,15 @@
         <i data-lucide="receipt" size="15"></i> Ver mis citas
       </button>
       <button class="btn-red" style="width:100%;padding:13px;border-radius:var(--r);font-size:.88rem" onclick="handleSignOut()">Cerrar sesión</button>
+
+      <!-- ── Legal + versión ── -->
+      <div style="text-align:center;padding:14px 0 4px;margin-top:14px">
+        <a href="https://barberia-os1.vercel.app/privacidad.html" target="_blank" style="color:var(--dim);text-decoration:underline;font-size:.75rem">Política de privacidad</a>
+      </div>
+      <div style="text-align:center;padding:18px 0 8px">
+        <div style="font-size:.7rem;font-weight:800;color:var(--accent);letter-spacing:2.5px;margin-bottom:4px">AURAOS</div>
+        <div style="font-size:.65rem;color:var(--dim);letter-spacing:0.8px">v1.0 · PWA Cliente</div>
+      </div>
     </div>
     <div id="perfilNoAuth" class="text-center hidden" style="padding:40px 20px">
       <i data-lucide="user" size="48" style="color:var(--dim);margin-bottom:16px"></i>
@@ -660,7 +669,7 @@ function isOpenNow(shop) {
   return min >= ini && min < fin;
 }
 
-function generarFechas(n=14) {
+function generarFechas(n=4) {
   const res = [];
   for (let i=0;i<n;i++) {
     const d = new Date();
@@ -834,6 +843,10 @@ async function loadHome() {
   const tieneCitaHoy = citas.some(c=>c.fecha===hoy);
   document.getElementById('navColaBadge').style.display = tieneCitaHoy ? 'block' : 'none';
 
+  // Mapa shop_id → true si ya hay cita activa HOY (para botón "+ Agregar" verde)
+  window.__citasHoyPorShop = {};
+  citas.filter(c => c.fecha === hoy).forEach(c => { window.__citasHoyPorShop[c.shop_id] = true; });
+
   renderShops(misShops);
 
   // Próxima cita
@@ -893,7 +906,14 @@ function renderShops(shops) {
       : '<p class="muted text-center" style="padding:16px;font-size:.82rem">Escanea el QR de tu barbería o inicia sesión.</p>';
     return;
   }
-  el.innerHTML = shops.map(s=>`
+  const citasHoy = window.__citasHoyPorShop || {};
+  el.innerHTML = shops.map(s=>{
+    const yaTiene = !!citasHoy[s.id];
+    const btnLabel = yaTiene ? '+ Agregar' : 'Reservar';
+    const btnStyle = yaTiene
+      ? 'background:var(--green);color:#000;border-color:var(--green);box-shadow:0 0 14px rgba(62,207,142,0.5);animation:pulseGreen 1.8s ease-in-out infinite'
+      : 'box-shadow:0 0 10px rgba(212,160,23,0.35);animation:pulseGold 1.8s ease-in-out infinite';
+    return `
     <div class="shop-item" onclick="startBooking('${s.id}')" style="cursor:pointer">
       <div class="shop-avt">${s.foto_url?`<img src="${san(s.foto_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:14px">`:san(s.icono||s.nombre?.charAt(0)||'?')}</div>
       <div style="flex:1">
@@ -904,9 +924,20 @@ function renderShops(shops) {
           ${s.rating?`<span class="muted">·</span><span class="gold">★ ${parseFloat(s.rating).toFixed(1)}</span>`:''}
         </div>
       </div>
-      <button class="btn-sm">Reservar</button>
-    </div>
-  `).join('');
+      <button class="btn-sm" style="${btnStyle}">${btnLabel}</button>
+    </div>`;
+  }).join('');
+}
+
+// Animaciones pulse (inyectadas una vez)
+if (!document.getElementById('pulseAnimStyle')) {
+  const st = document.createElement('style');
+  st.id = 'pulseAnimStyle';
+  st.textContent = `
+    @keyframes pulseGold { 0%,100%{box-shadow:0 0 6px rgba(212,160,23,0.3);transform:scale(1)} 50%{box-shadow:0 0 18px rgba(212,160,23,0.7);transform:scale(1.04)} }
+    @keyframes pulseGreen { 0%,100%{box-shadow:0 0 6px rgba(62,207,142,0.3);transform:scale(1)} 50%{box-shadow:0 0 18px rgba(62,207,142,0.8);transform:scale(1.04)} }
+  `;
+  document.head.appendChild(st);
 }
 
 async function loadColaHome(citasHoy) {
@@ -1197,9 +1228,12 @@ async function loadHistorial() {
     lucide.createIcons(); return;
   }
   const filtro = user.telefono?`telefono.eq.${user.telefono},usuario_id.eq.${user.id}`:`usuario_id.eq.${user.id}`;
-  const { data } = await sb.from('citas').select('*,shops(nombre)').or(filtro)
+  const { data } = await sb.from('citas').select('*,shops(nombre,whatsapp)').or(filtro)
     .order('fecha',{ascending:false}).order('hora',{ascending:false}).limit(40);
   const citas = (data||[]);
+  // Guardar mapa para que cancelarCita pueda leer shops.whatsapp
+  window.__citasMap = {};
+  citas.forEach(c => { window.__citasMap[c.id] = c; });
   if (!citas.length) {
     document.getElementById('historialContent').innerHTML = '<div class="card text-center" style="padding:30px"><i data-lucide="receipt" size="40" style="color:var(--dim);margin-bottom:12px"></i><div style="font-weight:700;margin-bottom:6px">Sin citas aún</div><p class="muted mb-md" style="font-size:.85rem">Reserva tu primera cita para verla aquí</p><button class="btn-gold" onclick="startBooking()"><i data-lucide="plus" size="14"></i> Reservar</button></div>';
     lucide.createIcons(); return;
@@ -1241,17 +1275,25 @@ function citaHTML(c, canCancel) {
       <div style="text-align:right;flex-shrink:0">
         <div style="font-weight:700;font-size:.82rem;color:var(--accent)">${fmt12(c.hora)}</div>
         <div class="muted" style="font-size:.72rem">${diasDesde(c.fecha)}</div>
-        ${canCancel?`<button class="btn-red" style="margin-top:4px;font-size:.68rem;padding:4px 8px" onclick="cancelarCita(${c.id},this)">Cancelar</button>`:''}
+        ${canCancel?`<button class="btn-red" style="margin-top:4px;font-size:.68rem;padding:4px 8px" onclick="cancelarCita(${c.id})"><i data-lucide="phone" size="11" style="vertical-align:-2px"></i> Llamar</button>`:''}
       </div>
     </div>`;
 }
 
-async function cancelarCita(id, btn) {
-  if (!confirm('¿Cancelar esta cita?')) return;
-  btn.disabled=true; btn.textContent='...';
-  const { error } = await sb.from('citas').update({estado:'Cancelada'}).eq('id',id);
-  if (error) { toast('Error al cancelar','error'); btn.disabled=false; btn.textContent='Cancelar'; }
-  else { toast('Cita cancelada','info'); loadHistorial(); loadHome(); }
+// Llamar al negocio para cancelar (en vez de cancelar directo)
+window.__citasMap = window.__citasMap || {};
+async function cancelarCita(id) {
+  const c = window.__citasMap[id];
+  const tel = c?.shops?.whatsapp;
+  const nom = c?.shops?.nombre || 'la barbería';
+  if (!tel) {
+    alert(`Llama al negocio\n\n${nom} no tiene un número registrado. Comunícate con la barbería para cancelar tu cita.`);
+    return;
+  }
+  const numero = String(tel).replace(/\D/g,'');
+  if (confirm(`Para cancelar tu cita, comunícate directamente con ${nom}.\n\nEllos confirmarán la cancelación y liberarán el horario.\n\n¿Llamar ahora?`)) {
+    window.location.href = `tel:+${numero}`;
+  }
 }
 
 // ══════════════════════════════════════════════════════════
@@ -1483,7 +1525,7 @@ async function bSelectBarbero(id) {
 
 // Paso SLOT
 function renderFechas() {
-  const fechas = generarFechas(14);
+  const fechas = generarFechas(4);
   document.getElementById('bFechasScroll').innerHTML = fechas.map(f=>{
     const activa = f.fecha===bFecha;
     const destacada = f.rapida && !activa; // resalta Hoy/Mañana cuando no están activas
@@ -1564,22 +1606,26 @@ async function cargarSlots() {
     limiteEnMin = hh*60 + mm;
   }
   const _alts = [];
+  const _slotsUsados = new Set(); // deduplicar: no mostrar 2 servicios en el mismo slot
   const candidatos = (bServiciosAll||[])
     .filter(s => {
       if ((s.nombre||'').toLowerCase().trim() === svcElegidoNomLow) return false;
       const d = s.duracion_min ?? duracion;
-      return d > 0 && d <= duracion;
+      // Estrictamente más corto (igual duración no aporta valor real al cliente)
+      return d > 0 && d < duracion;
     })
     .sort((a,b) => (a.duracion_min ?? duracion) - (b.duracion_min ?? duracion))
-    .slice(0, 4);
+    .slice(0, 6);
   for (const sv of candidatos) {
     const dAlt = sv.duracion_min ?? duracion;
     const slotAlt = _calcPrimerSlot(dAlt);
     if (!slotAlt) continue;
+    if (_slotsUsados.has(slotAlt)) continue; // ya hay otra alt en ese slot — preferir la más corta (vino primero por sort)
     const [hh,mm] = slotAlt.split(':').map(Number);
     const slotMin = hh*60 + mm;
     if (limiteEnMin === null || slotMin < limiteEnMin) {
       _alts.push({ nombre: sv.nombre, slot: slotAlt, duracion: dAlt, precio: sv.precio, categoria: sv.categoria });
+      _slotsUsados.add(slotAlt);
     }
     if (_alts.length >= 2) break;
   }
@@ -1688,6 +1734,21 @@ async function procesarReserva() {
 
   const btn=document.getElementById('bConfirmarBtn');
   btn.disabled=true; btn.innerHTML='<i data-lucide="loader" size="14"></i> Reservando...';
+
+  // ── Límite: máximo 4 citas activas por teléfono por día ─────────────────
+  if (user?.telefono) {
+    const { count: yaTieneHoy } = await sb.from('citas')
+      .select('id', { count: 'exact', head: true })
+      .eq('shop_id', bShop.id)
+      .eq('telefono', user.telefono)
+      .eq('fecha', bFecha)
+      .in('estado', ['Pendiente', 'Confirmada']);
+    if ((yaTieneHoy ?? 0) >= 4) {
+      btn.disabled=false; btn.innerHTML='<i data-lucide="check" size="14"></i> Confirmar cita';
+      toast(`Ya tienes ${yaTieneHoy} citas hoy. Máximo 4 por día.`,'error');
+      return;
+    }
+  }
 
   const estadoInicial = bShop.confirmacion_requerida ? 'Pendiente' : 'Confirmada';
   const { error } = await sb.from('citas').insert({
