@@ -1384,24 +1384,33 @@ async function renderCola() {
     document.getElementById('colaListSection').classList.remove('hidden');
     document.getElementById('colaListTitle').textContent = `Cola del día (${cola.length})`;
     document.getElementById('colaList').innerHTML = cola.map((c,i)=>{
-      const esMio = (user.id&&c.usuario_id===user.id)||(user.telefono&&c.telefono===user.telefono);
+      // Titular (cuenta = tú) o invitado tuyo (mismo teléfono pero usuario_id null)
+      const esTitular  = user.id && c.usuario_id === user.id;
+      const esInvitMio = !c.usuario_id && user.telefono && c.telefono === user.telefono;
+      const esMio      = esTitular || esInvitMio;
       // Calcular hora de fin de cada cita (hora inicio + duracion)
       const [chh, cmm] = (c.hora||'00:00').split(':').map(Number);
       const dur = c.duracion_min || 25;
       const finMin = chh*60 + cmm + dur;
       const finHora = `${String(Math.floor(finMin/60)%24).padStart(2,'0')}:${String(finMin%60).padStart(2,'0')}`;
-      // Estilos: la fila del usuario es DESTACADA en oro; los demás anonimizados
+      // Estilos: filas tuyas (titular o invitado tuyo) destacadas en oro
       const rowBg   = esMio ? 'rgba(212,160,23,0.07)' : 'transparent';
       const rowBdr  = esMio ? '1px solid rgba(212,160,23,0.35)' : '1px solid var(--border)';
       const numBg   = esMio ? 'var(--accent)' : i===0 ? 'var(--green)' : 'rgba(255,255,255,.06)';
       const numCol  = esMio ? '#000' : i===0 ? '#000' : 'var(--dim)';
-      const nameTxt = esMio ? (user?.nombre?.split(' ')[0] || 'Tú') : 'Cliente ' + (i+1);
+      // Nombre real para tus filas (usa c.nombre que se guarda en cada cita), anónimo para los demás
+      const nameTxt = esMio ? (c.nombre || user?.nombre?.split(' ')[0] || 'Tú') : 'Cliente ' + (i+1);
+      const badge   = esTitular
+        ? `<span style="background:rgba(212,160,23,0.18);color:var(--accent);font-size:.55rem;padding:2px 6px;border-radius:5px;font-weight:800;margin-left:4px;letter-spacing:.4px">TÚ</span>`
+        : esInvitMio
+        ? `<span style="background:rgba(212,160,23,0.10);color:var(--accent);font-size:.55rem;padding:2px 6px;border-radius:5px;font-weight:700;margin-left:4px;letter-spacing:.4px;opacity:.85">INVITADO</span>`
+        : '';
       const meta    = esMio ? `${san(c.servicio)} · ${dur} min` : '••••';
       return `
         <div style="display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;background:${rowBg};border:${rowBdr};margin-bottom:6px">
           <div style="width:30px;height:30px;border-radius:15px;background:${numBg};color:${numCol};display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.85rem;flex-shrink:0">${i+1}</div>
           <div style="flex:1;min-width:0">
-            <div style="font-weight:700;font-size:.86rem${esMio?';color:var(--accent)':''}">${san(nameTxt)}${esMio?` <span style="background:rgba(212,160,23,0.18);color:var(--accent);font-size:.55rem;padding:2px 6px;border-radius:5px;font-weight:800;margin-left:4px;letter-spacing:.4px">TÚ</span>`:''}</div>
+            <div style="font-weight:700;font-size:.86rem${esMio?';color:var(--accent)':''}">${san(nameTxt)}${badge}</div>
             <div class="muted" style="font-size:.7rem;margin-top:1px">${meta}</div>
           </div>
           <div style="text-align:right;flex-shrink:0">
