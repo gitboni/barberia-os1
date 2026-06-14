@@ -565,8 +565,15 @@
     <div class="modal-handle"></div>
     <h2 class="outfit mb-sm" style="font-size:1.3rem;font-weight:900">Escanear QR</h2>
     <p class="muted mb-md" style="font-size:.82rem">Apunta la cámara al código de tu barbería para enlazarte al instante.</p>
-    <div id="qrReader" style="border-radius:var(--r-lg);overflow:hidden;border:2px solid var(--accent)"></div>
-    <button class="btn-outline" style="margin-top:16px" onclick="cerrarScanner()">Cerrar cámara</button>
+    <div id="qrReader" style="width:100%;min-height:320px;background:#000;border-radius:var(--r-lg);overflow:hidden;border:2px solid var(--accent);position:relative"></div>
+    <div id="qrReaderHint" class="muted text-center" style="font-size:.72rem;margin-top:8px"></div>
+    <div class="flex gap-sm" style="margin-top:12px">
+      <button class="btn-outline" style="flex:1" onclick="document.getElementById('qrFileInput').click()">
+        <i data-lucide="image" size="14"></i> Subir foto
+      </button>
+      <button class="btn-outline" style="flex:1" onclick="cerrarScanner()">Cerrar</button>
+    </div>
+    <input type="file" id="qrFileInput" accept="image/*" style="display:none" onchange="escanearQrDeArchivo(this.files[0])">
   </div>
 </div>
 
@@ -1963,23 +1970,94 @@ async function manejarShopDelQr(slugOrId) {
   startBooking(shopRow.id);
 }
 
-function abrirScanner() {
+function _setQrHint(txt, color) {
+  const el = document.getElementById('qrReaderHint');
+  if (!el) return;
+  el.textContent = txt || '';
+  el.style.color = color || 'var(--dim)';
+}
+
+async function abrirScanner() {
   document.getElementById('scannerModal').classList.add('active');
-  setTimeout(async()=>{
+  _setQrHint('Iniciando cámara…');
+
+  // Validaciones previas
+  if (typeof Html5Qrcode === 'undefined') {
+    _setQrHint('Librería QR no cargada. Recarga la página.', 'var(--red)');
+    return;
+  }
+  if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+    _setQrHint('La cámara requiere HTTPS. Abre la app desde su URL segura.', 'var(--red)');
+    return;
+  }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    _setQrHint('Tu navegador no soporta cámara. Usa "Subir foto" abajo.', 'var(--red)');
+    return;
+  }
+
+  await new Promise(r => setTimeout(r, 350));
+
+  try {
+    if (qrCode) { try { await qrCode.stop(); } catch (_) {} qrCode = null; }
+    qrCode = new Html5Qrcode('qrReader');
+
+    const onSuccess = async (text) => {
+      try { await qrCode.stop(); } catch (_) {}
+      cerrarScanner();
+      const parsed = parseShopQr(text);
+      if (!parsed.slug && !parsed.id) { toast('Código no reconocido', 'error'); return; }
+      await manejarShopDelQr(parsed);
+    };
+
     try {
-      if(qrCode) await qrCode.stop().catch(()=>{});
-      qrCode=new Html5Qrcode('qrReader');
-      await qrCode.start({facingMode:'environment'},{fps:10,qrbox:{width:240,height:240}}, async (text)=>{
-        qrCode.stop().catch(()=>{}); cerrarScanner();
-        const parsed = parseShopQr(text);
-        if (!parsed.slug && !parsed.id) {
-          toast('Código no reconocido','error');
-          return;
+      await qrCode.start(
+        { facingMode: { exact: 'environment' } },
+        { fps: 10, qrbox: { width: 240, height: 240 }, aspectRatio: 1.0 },
+        onSuccess,
+        () => {} // ignorar errores de cada frame
+      );
+      _setQrHint('Apunta al QR…');
+    } catch (errBack) {
+      // Cámara trasera no disponible → intentar la que sea
+      try {
+        await qrCode.start(
+          { facingMode: 'environment' },
+          { fps: 10, qrbox: { width: 240, height: 240 } },
+          onSuccess,
+          () => {}
+        );
+        _setQrHint('Apunta al QR…');
+      } catch (errAny) {
+        const msg = (errAny && errAny.message) ? errAny.message : String(errAny);
+        if (/permission|denied|NotAllowed/i.test(msg)) {
+          _setQrHint('Permiso de cámara denegado. Habilítalo en los ajustes del navegador.', 'var(--red)');
+        } else if (/NotFound|no.*camera/i.test(msg)) {
+          _setQrHint('No se encontró cámara en este dispositivo. Usa "Subir foto".', 'var(--red)');
+        } else {
+          _setQrHint('Error: ' + msg.slice(0, 80), 'var(--red)');
         }
-        await manejarShopDelQr(parsed);
-      });
-    } catch(e){toast('Error al iniciar cámara','error');}
-  },300);
+      }
+    }
+  } catch (e) {
+    _setQrHint('Error al iniciar la cámara: ' + (e?.message || e), 'var(--red)');
+  }
+}
+
+// Fallback: leer QR desde una foto (cuando la cámara no funciona)
+async function escanearQrDeArchivo(file) {
+  if (!file) return;
+  _setQrHint('Procesando imagen…');
+  try {
+    if (qrCode) { try { await qrCode.stop(); } catch (_) {} qrCode = null; }
+    qrCode = new Html5Qrcode('qrReader');
+    const text = await qrCode.scanFile(file, false);
+    cerrarScanner();
+    const parsed = parseShopQr(text);
+    if (!parsed.slug && !parsed.id) { toast('Código no reconocido en la imagen', 'error'); return; }
+    await manejarShopDelQr(parsed);
+  } catch (e) {
+    _setQrHint('No se detectó QR en la imagen. Prueba otra foto.', 'var(--red)');
+  }
 }
 function cerrarScanner(){
   if(qrCode){qrCode.stop().catch(()=>{});qrCode=null;}
