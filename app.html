@@ -1385,17 +1385,31 @@ async function renderCola() {
     document.getElementById('colaListTitle').textContent = `Cola del día (${cola.length})`;
     document.getElementById('colaList').innerHTML = cola.map((c,i)=>{
       const esMio = (user.id&&c.usuario_id===user.id)||(user.telefono&&c.telefono===user.telefono);
-      const numCls = esMio?'mio':i===0?'prox':'';
+      // Calcular hora de fin de cada cita (hora inicio + duracion)
+      const [chh, cmm] = (c.hora||'00:00').split(':').map(Number);
+      const dur = c.duracion_min || 25;
+      const finMin = chh*60 + cmm + dur;
+      const finHora = `${String(Math.floor(finMin/60)%24).padStart(2,'0')}:${String(finMin%60).padStart(2,'0')}`;
+      // Estilos: la fila del usuario es DESTACADA en oro; los demás anonimizados
+      const rowBg   = esMio ? 'rgba(212,160,23,0.07)' : 'transparent';
+      const rowBdr  = esMio ? '1px solid rgba(212,160,23,0.35)' : '1px solid var(--border)';
+      const numBg   = esMio ? 'var(--accent)' : i===0 ? 'var(--green)' : 'rgba(255,255,255,.06)';
+      const numCol  = esMio ? '#000' : i===0 ? '#000' : 'var(--dim)';
+      const nameTxt = esMio ? (user?.nombre?.split(' ')[0] || 'Tú') : 'Cliente ' + (i+1);
+      const meta    = esMio ? `${san(c.servicio)} · ${dur} min` : '••••';
       return `
-        <div class="cola-row" style="border-left:3px solid ${esMio?'var(--accent)':i===0?'var(--green)':'rgba(255,255,255,.12)'}">
-          <div class="cola-num ${numCls}">${i+1}</div>
-          <div style="flex:1">
-            <div style="font-weight:700;font-size:.88rem${esMio?';color:var(--accent)':''}">${esMio?'Tú':'Cliente '+(i+1)}</div>
-            <div class="muted" style="font-size:.72rem">${esMio?c.servicio+' · '+c.duracion_min+' min':'••••'}</div>
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:12px;background:${rowBg};border:${rowBdr};margin-bottom:6px">
+          <div style="width:30px;height:30px;border-radius:15px;background:${numBg};color:${numCol};display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.85rem;flex-shrink:0">${i+1}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:700;font-size:.86rem${esMio?';color:var(--accent)':''}">${san(nameTxt)}${esMio?` <span style="background:rgba(212,160,23,0.18);color:var(--accent);font-size:.55rem;padding:2px 6px;border-radius:5px;font-weight:800;margin-left:4px;letter-spacing:.4px">TÚ</span>`:''}</div>
+            <div class="muted" style="font-size:.7rem;margin-top:1px">${meta}</div>
           </div>
-          <div style="text-align:right">
-            <div style="font-size:.82rem;font-weight:700${esMio?';color:var(--accent)':';color:var(--dim)'}">${fmt12(c.hora)}</div>
-            ${i===0?'<span class="tag tag-green">Próximo</span>':''}
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:.82rem;font-weight:800${esMio?';color:var(--accent)':';color:var(--text)'}">${fmt12(c.hora)}</div>
+            ${i===0
+              ? '<div style="display:inline-flex;align-items:center;gap:3px;background:rgba(62,207,142,0.12);color:var(--green);font-size:.6rem;padding:2px 7px;border-radius:5px;font-weight:800;margin-top:3px">● PRÓXIMO</div>'
+              : `<div class="muted" style="font-size:.65rem;margin-top:2px">≈ ${fmt12(finHora)}</div>`
+            }
           </div>
         </div>`;
     }).join('');
