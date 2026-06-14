@@ -58,7 +58,9 @@
     .nav-btn.active{color:var(--accent)}
     .nav-btn span{font-size:.62rem;font-weight:700}
     .nav-btn.active::before{content:'';position:absolute;top:-8px;width:16px;height:3px;border-radius:2px;background:var(--accent)}
-    .nav-fab{width:48px;height:48px;border-radius:var(--r-full);background:var(--accent);display:flex;align-items:center;justify-content:center;color:#000;margin-top:-28px;border:4px solid var(--bg);box-shadow:0 8px 20px rgba(201,168,76,.35)}
+    .nav-fab{width:58px;height:58px;border-radius:var(--r-full);background:var(--accent);display:flex;align-items:center;justify-content:center;color:#000;margin-top:-32px;border:5px solid var(--bg);box-shadow:0 8px 22px rgba(201,168,76,.45);transition:transform .15s}
+    .nav-fab:hover{transform:scale(1.06)}
+    .nav-fab:active{transform:scale(.95)}
     /* Modals */
     .modal{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:flex-end;justify-content:center}
     .modal.active{display:flex}
@@ -75,8 +77,9 @@
     /* Section title */
     .sec-title{font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);font-weight:700;margin:18px 0 10px}
     /* Header */
-    .hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
-    .hdr h1{font-size:1.8rem;font-weight:900;font-family:'Outfit',sans-serif}
+    .hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;padding-top:4px}
+    .hdr h1{font-size:1.9rem;font-weight:900;font-family:'Outfit',sans-serif;letter-spacing:-0.5px;line-height:1.1;margin-bottom:4px}
+    .hdr p{font-size:.85rem;color:var(--dim);letter-spacing:0.1px}
     .hdr p{font-size:.85rem;color:var(--dim)}
     .avatar-btn{width:44px;height:44px;border-radius:var(--r-full);background:var(--accent);display:flex;align-items:center;justify-content:center;color:#000;font-weight:900;font-size:1.1rem;cursor:pointer;flex-shrink:0}
     /* Quick grid */
@@ -225,8 +228,8 @@
       <div class="avatar-btn" id="homeAvatar" onclick="abrirAuth()">?</div>
     </div>
 
-    <!-- Banner calificar -->
-    <div id="bannerCalificar" class="card-gold hidden" style="cursor:pointer" onclick="abrirCalificar()">
+    <!-- Banner calificar — OCULTO temporalmente (parity con app RN) -->
+    <div id="bannerCalificar" class="card-gold hidden" style="cursor:pointer;display:none !important" onclick="abrirCalificar()">
       <div class="flex gap-sm">
         <i data-lucide="star" size="20" style="color:var(--accent);flex-shrink:0"></i>
         <div style="flex:1">
@@ -237,8 +240,8 @@
       </div>
     </div>
 
-    <!-- Banner recordatorio in-app (cita en <2h) -->
-    <div id="reminderBanner" class="hidden" style="display:flex;align-items:center;gap:12px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.45);border-radius:16px;padding:14px;margin-bottom:16px">
+    <!-- Banner recordatorio in-app (cita en <2h) — OCULTO temporalmente (parity con app RN) -->
+    <div id="reminderBanner" class="hidden" style="display:none !important;align-items:center;gap:12px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.45);border-radius:16px;padding:14px;margin-bottom:16px">
       <div id="reminderDot" style="width:10px;height:10px;border-radius:5px;background:var(--accent);flex-shrink:0"></div>
       <div style="flex:1;min-width:0">
         <div id="reminderTxt" style="font-size:.95rem;font-weight:800;color:var(--accent);margin-bottom:2px">—</div>
