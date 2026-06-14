@@ -64,7 +64,13 @@
     .modal.active{display:flex}
     .modal-box{width:100%;max-width:500px;background:#111;border-radius:var(--r-xl) var(--r-xl) 0 0;padding:24px 20px calc(40px + var(--safe-bot));max-height:92vh;max-height:92dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);border:1px solid var(--border);border-bottom:0}
     .modal.active .modal-box{transform:translateY(0)}
-    .modal-handle{width:36px;height:4px;background:rgba(255,255,255,.2);border-radius:2px;margin:-8px auto 20px}
+    .modal-handle{width:36px;height:4px;background:rgba(255,255,255,.2);border-radius:2px;margin:-8px auto 12px}
+    .booking-topbar{display:flex;align-items:center;justify-content:space-between;margin:0 -4px 14px;position:sticky;top:-8px;z-index:5;background:#111;padding:6px 0}
+    .topbar-back{display:flex;align-items:center;gap:6px;background:transparent;border:1px solid rgba(255,255,255,.08);color:var(--text);padding:8px 14px 8px 10px;border-radius:100px;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .15s;font-family:inherit}
+    .topbar-back:hover{border-color:var(--accent);color:var(--accent)}
+    .topbar-back:active{transform:scale(.95)}
+    .topbar-close{display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--dim);width:36px;height:36px;border-radius:50%;cursor:pointer;transition:all .15s}
+    .topbar-close:hover{color:var(--red);border-color:rgba(248,113,113,.4)}
     .modal-full .modal-box{max-height:100vh;max-height:100dvh;height:100vh;height:100dvh;border-radius:0}
     /* Section title */
     .sec-title{font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);font-weight:700;margin:18px 0 10px}
@@ -432,6 +438,15 @@
 <div id="bookingModal" class="modal" onclick="if(event.target===this)cerrarBooking()">
   <div class="modal-box">
     <div class="modal-handle"></div>
+    <div class="booking-topbar">
+      <button class="topbar-back" onclick="bBackOrClose()" aria-label="Atrás">
+        <i data-lucide="chevron-left" size="20"></i>
+        <span>Atrás</span>
+      </button>
+      <button class="topbar-close" onclick="cerrarBooking()" aria-label="Cerrar">
+        <i data-lucide="x" size="18"></i>
+      </button>
+    </div>
     <div class="prog-bar" id="bookingProg"></div>
 
     <!-- Paso shop -->
@@ -1386,6 +1401,12 @@ function startBooking(shopId, expressBarbero, expressServicio) {
 }
 
 function cerrarBooking() { document.getElementById('bookingModal').classList.remove('active'); loadHome(); }
+
+// Botón ← Atrás del topbar: retrocede un paso, o cierra si está en el primero
+function bBackOrClose() {
+  if (bPasoIdx > 0) { bPrev(); }
+  else { cerrarBooking(); }
+}
 
 function renderProg() {
   document.getElementById('bookingProg').innerHTML = bPasos.map((_,i)=>`<div class="prog-step${i<=bPasoIdx?' done':''}"></div>`).join('');
