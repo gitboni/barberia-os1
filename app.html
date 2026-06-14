@@ -2245,10 +2245,16 @@ document.addEventListener('DOMContentLoaded', async()=>{
   await loadHome();
   updateNotifUI();
   updateInstallUI();
-  // Autodetectar shop desde URL
-  const sp=new URLSearchParams(window.location.search);
-  const sid=sp.get('shop')||sp.get('id');
-  if(sid) setTimeout(()=>startBooking(sid),800);
+  // Autodetectar shop desde URL (?shop=slug | ?shop=uuid | ?id=uuid)
+  // Esto cubre el flujo: cliente escanea QR del Display → cámara nativa abre esta URL.
+  const sp = new URLSearchParams(window.location.search);
+  const shopParam = sp.get('shop') || sp.get('id');
+  if (shopParam) {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(shopParam);
+    setTimeout(() => manejarShopDelQr(isUuid ? { id: shopParam } : { slug: shopParam.toLowerCase() }), 600);
+    // Limpia el query string para que no se redispare en refresh
+    try { history.replaceState({}, '', window.location.pathname + window.location.hash); } catch (_) {}
+  }
   // Hash navigation (shortcuts del manifest: #cola, #historial, #reservar)
   const hash = window.location.hash.replace('#','');
   if (hash==='cola') setTimeout(()=>showScreen('colaScreen'), 300);
