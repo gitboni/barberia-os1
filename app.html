@@ -852,11 +852,15 @@ function diasDesde(fecha) {
 }
 
 function toast(msg, type='info') {
+  // Limpia cualquier emoji que venga embebido en el mensaje (paridad estilo Apple)
+  const clean = String(msg||'').replace(/[✀-➿\u{1F300}-\u{1F9FF}\u{1F000}-\u{1F0FF}☀-⛿️]/gu, '').trim();
   const el = document.createElement('div');
   const col = type==='error' ? '#F87171' : type==='success' ? '#3ECF8E' : '#C9A84C';
-  el.style.cssText = `position:fixed;bottom:calc(80px + var(--safe-bot));left:50%;transform:translateX(-50%);background:#1C1C1E;border:1px solid ${col}40;color:${col};padding:12px 20px;border-radius:12px;font-size:.85rem;font-weight:700;z-index:9999;max-width:320px;text-align:center;box-shadow:0 8px 20px rgba(0,0,0,.4)`;
-  el.textContent = msg;
+  const ico = type==='error' ? 'alert-circle' : type==='success' ? 'check-circle' : 'info';
+  el.style.cssText = `position:fixed;bottom:calc(80px + var(--safe-bot));left:50%;transform:translateX(-50%);background:#1C1C1E;border:1px solid ${col}40;color:${col};padding:12px 18px;border-radius:12px;font-size:.85rem;font-weight:700;z-index:9999;max-width:340px;display:flex;align-items:center;gap:10px;text-align:left;box-shadow:0 8px 20px rgba(0,0,0,.4)`;
+  el.innerHTML = `<i data-lucide="${ico}" style="width:16px;height:16px;flex-shrink:0"></i><span>${clean.replace(/</g,'&lt;')}</span>`;
   document.body.appendChild(el);
+  if (window.lucide) lucide.createIcons();
   setTimeout(()=>el.remove(), 3500);
 }
 
@@ -1628,7 +1632,8 @@ async function cargarServicios(shopId) {
   const { data } = await sb.from('servicios').select('*').eq('shop_id',shopId).eq('activo',true).order('orden');
   const svcs = (data||[]);
   bServiciosAll = svcs; // guardamos para sugerir alternativas más cortas en slots
-  document.getElementById('bServicioShopNombre').textContent = (bShop?.icono||'✂️')+' '+bShop?.nombre;
+  document.getElementById('bServicioShopNombre').innerHTML = `<i data-lucide="scissors" size="13" style="vertical-align:-2px;color:var(--accent)"></i> ${bShop?.icono ? bShop.icono+' ' : ''}${san(bShop?.nombre||'')}`;
+  if (window.lucide) lucide.createIcons();
   // Agrupar por categoría si hay ≥2 distintas
   const cats = [...new Set(svcs.map(s=>s.categoria).filter(Boolean))];
   const agrupar = cats.length>=2;
@@ -1852,7 +1857,7 @@ function buildAltCardHTML() {
     : `${san(bServicio?.nombre||'')} sin huecos para esta fecha`;
   return `<div class="alt-card">
     <div class="alt-head">
-      <div class="alt-title">💡 ¿Te interesa otro servicio antes?</div>
+      <div class="alt-title" style="display:flex;align-items:center;gap:6px"><i data-lucide="lightbulb" size="14" style="color:var(--accent)"></i> ¿Te interesa otro servicio antes?</div>
       <div class="alt-sub">${subTxt}</div>
     </div>
     ${bAlternativas.map(a => `
