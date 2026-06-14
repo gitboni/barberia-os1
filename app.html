@@ -128,6 +128,32 @@
     .alt-dur{color:var(--dim);font-size:.7rem;margin-top:2px}
     .alt-slot{color:var(--accent);font-size:.92rem;font-weight:800}
     .alt-cta{color:var(--accent);font-size:.7rem;font-weight:700;opacity:.75}
+    /* ── AUTH: brand + glass card + ifield (matching app RN login) ── */
+    .auth-box{padding-top:18px}
+    .auth-brand{text-align:center;margin-bottom:22px}
+    .auth-logo{display:inline-flex;align-items:center;justify-content:center;width:54px;height:54px;border-radius:14px;border:1.5px solid var(--accent);background:#0d0d0f;color:var(--accent);box-shadow:0 0 18px rgba(212,160,23,0.25);margin-bottom:14px;animation:authLogoGlow 2.4s ease-in-out infinite}
+    @keyframes authLogoGlow{0%,100%{box-shadow:0 0 10px rgba(212,160,23,0.18)}50%{box-shadow:0 0 22px rgba(212,160,23,0.55)}}
+    .auth-name{font-family:'Outfit',sans-serif;font-size:2rem;font-weight:800;letter-spacing:0.04em;animation:authFloat 4s ease-in-out infinite}
+    @keyframes authFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+    .auth-name .aura{color:var(--text)}
+    .auth-name .os{color:var(--accent);font-weight:300;margin-left:1px}
+    .auth-tag{font-size:.55rem;color:var(--dim);letter-spacing:4px;margin-top:4px;text-transform:uppercase}
+    .auth-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:20px 18px;box-shadow:0 10px 30px rgba(0,0,0,0.4)}
+    .ifield{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:11px 12px;margin-bottom:12px;transition:border-color .15s}
+    .ifield:focus-within{border-color:rgba(212,160,23,0.45)}
+    .ifield-ico{color:rgba(255,255,255,0.5);flex-shrink:0}
+    .ifield-pref{color:rgba(255,255,255,0.7);font-size:.82rem;font-weight:600}
+    .ifield-div{width:1px;height:16px;background:rgba(255,255,255,0.1);flex-shrink:0}
+    .ifield-input{flex:1;background:transparent;border:0;outline:0;color:var(--text);font-size:.88rem;font-weight:500;letter-spacing:0.02em;font-family:inherit;padding:0}
+    .ifield-input::placeholder{color:var(--dim)}
+    .ifield-check{flex-shrink:0}
+    .ifield-eye{background:transparent;border:0;color:rgba(255,255,255,0.5);cursor:pointer;padding:0;display:flex;align-items:center}
+    .ifield-eye:hover{color:var(--accent)}
+    /* Recuperar contraseña steps */
+    .recup-step{display:flex;align-items:flex-start;gap:12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:.82rem;line-height:1.5}
+    .recup-num{flex-shrink:0;width:24px;height:24px;border-radius:50%;background:var(--accent);color:#000;font-weight:800;font-size:.78rem;display:flex;align-items:center;justify-content:center}
+    .recup-cmd{display:inline-block;background:rgba(212,160,23,0.12);border:1px solid rgba(212,160,23,0.35);color:var(--accent);font-weight:800;letter-spacing:2px;padding:4px 12px;border-radius:6px;margin-top:6px;font-size:.85rem}
+
     /* Progress bar */
     .prog-bar{display:flex;gap:5px;margin-bottom:20px}
     .prog-step{flex:1;height:3px;border-radius:2px;background:var(--border)}
@@ -520,29 +546,102 @@
 
 <!-- ══ MODAL: AUTH ════════════════════════════════════════════════════ -->
 <div id="authModal" class="modal" onclick="if(event.target===this)cerrarAuth()">
-  <div class="modal-box">
+  <div class="modal-box auth-box">
     <div class="modal-handle"></div>
+
+    <!-- Brand (AURAOS animado) -->
+    <div class="auth-brand">
+      <div class="auth-logo">
+        <i data-lucide="scissors" size="22"></i>
+      </div>
+      <div class="auth-name">
+        <span class="aura">Aura</span><span class="os">OS</span>
+      </div>
+      <div class="auth-tag">SISTEMA DE GESTIÓN</div>
+    </div>
+
     <!-- Login -->
-    <div id="authLogin">
-      <h2 class="outfit mb-md" style="font-size:1.5rem;font-weight:900">Inicia sesión</h2>
-      <input type="tel" id="loginTel" placeholder="Teléfono (ej: 8091234567)" class="input">
-      <input type="password" id="loginPass" placeholder="Contraseña" class="input" onkeydown="if(event.key==='Enter')handleSignIn()">
-      <button class="btn-gold mb-md" onclick="handleSignIn()">Entrar</button>
+    <div id="authLogin" class="auth-card">
+      <h2 class="outfit mb-xs" style="font-size:1.3rem;font-weight:800">Iniciar sesión</h2>
+      <p class="muted" style="font-size:.78rem;margin-bottom:18px">Ingresa con tu número de teléfono</p>
+
+      <div class="ifield">
+        <i data-lucide="phone" size="16" class="ifield-ico"></i>
+        <span class="ifield-pref">+1</span>
+        <span class="ifield-div"></span>
+        <input type="tel" id="loginTel" placeholder="809 123 4567" class="ifield-input" inputmode="numeric" autocomplete="tel" oninput="formatTelInput(this)">
+        <i data-lucide="check-circle" size="16" class="ifield-check" id="loginTelCheck" style="display:none;color:#4ade80"></i>
+      </div>
+
+      <div class="ifield">
+        <i data-lucide="lock" size="16" class="ifield-ico"></i>
+        <input type="password" id="loginPass" placeholder="Contraseña" class="ifield-input" autocomplete="current-password" onkeydown="if(event.key==='Enter')handleSignIn()">
+        <button type="button" class="ifield-eye" onclick="togglePass('loginPass',this)" aria-label="Ver contraseña">
+          <i data-lucide="eye" size="16"></i>
+        </button>
+      </div>
+
+      <button class="btn-gold" style="margin-top:6px" onclick="handleSignIn()">Entrar →</button>
+
+      <div class="text-center" style="margin-top:14px">
+        <span class="gold" style="cursor:pointer;font-weight:600;font-size:.78rem" onclick="abrirRecuperarPass()">¿Olvidaste tu contraseña?</span>
+      </div>
+
       <div class="divider"></div>
-      <button class="btn-outline mb-md" onclick="abrirScanner()">
+      <button class="btn-outline mb-sm" onclick="abrirScanner()">
         <i data-lucide="scan" size="15"></i> Escanear QR de Barbería
       </button>
-      <p class="text-center muted" style="font-size:.82rem">¿Eres nuevo? <span class="gold" style="cursor:pointer;font-weight:700" onclick="authShow('signup')">Crea una cuenta</span></p>
+      <p class="text-center muted" style="font-size:.82rem">¿Eres nuevo? <span class="gold" style="cursor:pointer;font-weight:700" onclick="authShow('signup')">Crea una cuenta →</span></p>
     </div>
+
     <!-- Signup -->
-    <div id="authSignup" class="hidden">
-      <h2 class="outfit mb-md" style="font-size:1.5rem;font-weight:900">Crear cuenta</h2>
-      <input type="text" id="regNombre" placeholder="Tu nombre completo" class="input" autocapitalize="words">
-      <input type="tel" id="regTel" placeholder="Teléfono (ej: 8091234567)" class="input">
-      <input type="password" id="regPass" placeholder="Crear contraseña (mín. 8 caracteres)" class="input">
-      <button class="btn-gold mb-md" onclick="handleSignUp()">Registrarse</button>
-      <p class="text-center muted" style="font-size:.82rem">¿Ya tienes cuenta? <span class="gold" style="cursor:pointer;font-weight:700" onclick="authShow('login')">Inicia sesión</span></p>
+    <div id="authSignup" class="auth-card hidden">
+      <h2 class="outfit mb-xs" style="font-size:1.3rem;font-weight:800">Crear cuenta</h2>
+      <p class="muted" style="font-size:.78rem;margin-bottom:18px">Solo necesitamos tu nombre y teléfono</p>
+
+      <div class="ifield">
+        <i data-lucide="user" size="16" class="ifield-ico"></i>
+        <input type="text" id="regNombre" placeholder="Tu nombre completo" class="ifield-input" autocapitalize="words" autocomplete="name">
+      </div>
+
+      <div class="ifield">
+        <i data-lucide="phone" size="16" class="ifield-ico"></i>
+        <span class="ifield-pref">+1</span>
+        <span class="ifield-div"></span>
+        <input type="tel" id="regTel" placeholder="809 123 4567" class="ifield-input" inputmode="numeric" autocomplete="tel" oninput="formatTelInput(this)">
+        <i data-lucide="check-circle" size="16" class="ifield-check" id="regTelCheck" style="display:none;color:#4ade80"></i>
+      </div>
+
+      <div class="ifield">
+        <i data-lucide="lock" size="16" class="ifield-ico"></i>
+        <input type="password" id="regPass" placeholder="Contraseña (mín. 8 caracteres)" class="ifield-input" autocomplete="new-password">
+        <button type="button" class="ifield-eye" onclick="togglePass('regPass',this)" aria-label="Ver contraseña">
+          <i data-lucide="eye" size="16"></i>
+        </button>
+      </div>
+
+      <button class="btn-gold" style="margin-top:6px" onclick="handleSignUp()">Crear cuenta ✓</button>
+
+      <p class="text-center muted" style="font-size:.82rem;margin-top:14px">¿Ya tienes cuenta? <span class="gold" style="cursor:pointer;font-weight:700" onclick="authShow('login')">Inicia sesión</span></p>
     </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: RECUPERAR CONTRASEÑA (instrucciones bot) ══════════════════ -->
+<div id="recupModal" class="modal" onclick="if(event.target===this)cerrarRecuperarPass()">
+  <div class="modal-box" style="max-width:440px">
+    <div class="modal-handle"></div>
+    <h2 class="outfit text-center mb-sm" style="font-size:1.3rem;font-weight:900">
+      <i data-lucide="lock" size="18" style="vertical-align:-3px;color:var(--accent)"></i> Recuperar contraseña
+    </h2>
+    <div class="recup-step"><span class="recup-num">1</span><div>Abre <strong>WhatsApp</strong> y escribe al bot de tu negocio.</div></div>
+    <div class="recup-step"><span class="recup-num">2</span><div>Envía esta palabra:<div class="recup-cmd">CONTRASEÑA</div></div></div>
+    <div class="recup-step"><span class="recup-num">3</span><div>El bot te enviará una <strong>nueva contraseña temporal</strong> al instante.</div></div>
+    <div class="recup-step"><span class="recup-num">4</span><div>Úsala para entrar y luego cámbiala desde tu perfil.</div></div>
+    <p class="text-center muted" style="font-size:.72rem;margin-top:10px">
+      ✓ Solo tú puedes recibir el mensaje — tu número verifica tu identidad.
+    </p>
+    <button class="btn-gold" style="margin-top:14px" onclick="cerrarRecuperarPass()">Entendido</button>
   </div>
 </div>
 
@@ -663,6 +762,39 @@ function actualizarReminder(proxima) {
 }
 // Tick cada 60s para que el banner se actualice solo
 setInterval(() => actualizarReminder(), 60000);
+
+// ── Auth helpers (paridad con app RN) ──────────────────────────────────
+function formatTelInput(input) {
+  const digits = input.value.replace(/\D/g,'').slice(0,10);
+  let out = digits;
+  if (digits.length > 6) out = `${digits.slice(0,3)} ${digits.slice(3,6)} ${digits.slice(6)}`;
+  else if (digits.length > 3) out = `${digits.slice(0,3)} ${digits.slice(3)}`;
+  input.value = out;
+  // Checkmark verde si tiene 10 dígitos
+  const checkId = input.id === 'loginTel' ? 'loginTelCheck' : input.id === 'regTel' ? 'regTelCheck' : null;
+  if (checkId) {
+    const c = document.getElementById(checkId);
+    if (c) c.style.display = digits.length === 10 ? 'inline-block' : 'none';
+  }
+}
+function togglePass(inputId, btn) {
+  const inp = document.getElementById(inputId);
+  if (!inp) return;
+  const showing = inp.type === 'text';
+  inp.type = showing ? 'password' : 'text';
+  const ico = btn.querySelector('i');
+  if (ico) {
+    ico.setAttribute('data-lucide', showing ? 'eye' : 'eye-off');
+    if (window.lucide) lucide.createIcons();
+  }
+}
+function abrirRecuperarPass() {
+  document.getElementById('recupModal').classList.add('active');
+  if (window.lucide) lucide.createIcons();
+}
+function cerrarRecuperarPass() {
+  document.getElementById('recupModal').classList.remove('active');
+}
 
 function telToEmail(t) {
   if (t.includes('@')) return t.trim();
