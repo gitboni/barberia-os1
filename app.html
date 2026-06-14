@@ -2009,24 +2009,40 @@ async function abrirScanner() {
       await manejarShopDelQr(parsed);
     };
 
+    // Config robusto: usa el BarcodeDetector nativo del navegador si está disponible
+    // (Safari 17+, Chrome Android) — mucho mejor con QR invertidos (blanco sobre negro).
+    // qrbox adaptativo según el tamaño del viewport.
+    const qrboxFn = (vw, vh) => {
+      const minEdge = Math.min(vw, vh);
+      const size = Math.max(220, Math.floor(minEdge * 0.78));
+      return { width: size, height: size };
+    };
+    const config = {
+      fps: 15,
+      qrbox: qrboxFn,
+      aspectRatio: 1.0,
+      disableFlip: false, // permite QR reflejados
+      experimentalFeatures: { useBarCodeDetectorIfSupported: true },
+    };
+
     try {
       await qrCode.start(
         { facingMode: { exact: 'environment' } },
-        { fps: 10, qrbox: { width: 240, height: 240 }, aspectRatio: 1.0 },
+        config,
         onSuccess,
-        () => {} // ignorar errores de cada frame
+        () => {}
       );
-      _setQrHint('Apunta al QR…');
+      _setQrHint('Apunta al QR (acércate si no lee)…');
     } catch (errBack) {
       // Cámara trasera no disponible → intentar la que sea
       try {
         await qrCode.start(
           { facingMode: 'environment' },
-          { fps: 10, qrbox: { width: 240, height: 240 } },
+          config,
           onSuccess,
           () => {}
         );
-        _setQrHint('Apunta al QR…');
+        _setQrHint('Apunta al QR (acércate si no lee)…');
       } catch (errAny) {
         const msg = (errAny && errAny.message) ? errAny.message : String(errAny);
         if (/permission|denied|NotAllowed/i.test(msg)) {
