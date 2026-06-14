@@ -1880,6 +1880,24 @@ async function cargarSlots() {
   const bloques=[];
   citasFecha.forEach(c=>{ const[hh,mm]=c.hora.split(':').map(Number); const ini=hh*60+mm; const sKey=(c.servicio||'').toLowerCase().trim(); const dur=durMap[sKey]??(shop.duracion_turno??30); bloques.push([ini,ini+dur]); });
   (bloqueosRes.data||[]).forEach(b=>{ const[bh,bm]=b.hora_inicio.split(':').map(Number); const[eh,em]=b.hora_fin.split(':').map(Number); bloques.push([bh*60+bm,eh*60+em]); });
+
+  // ── Bloques in-memory: turnos ya agregados a la reserva (titular + invitados)
+  // que aún NO se han insertado en BD. Si no los excluimos, el wizard ofrece el
+  // mismo horario del titular al invitado y luego falla en BD por solapamiento.
+  if (Array.isArray(bColaReservas) && bColaReservas.length > 0) {
+    const barbLow2 = barbNombre.toLowerCase().trim();
+    bColaReservas.forEach(rc => {
+      if (rc.fecha !== fecha) return;
+      const sameBarb = (rc.barbero?.id && rc.barbero.id === barbId) ||
+                       ((rc.barbero?.nombre || '').toLowerCase().trim() === barbLow2);
+      if (!sameBarb) return;
+      const [hh, mm] = String(rc.slot).split(':').map(Number);
+      const ini = hh * 60 + mm;
+      const dur = rc.servicio?.duracion_min ?? (shop.duracion_turno ?? 30);
+      bloques.push([ini, ini + dur]);
+    });
+  }
+
   bloques.sort((a,b)=>a[0]-b[0]);
 
   const paso=duracion;
