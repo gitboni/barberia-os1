@@ -2600,7 +2600,7 @@ async function posLoadHistorial(rango){
   const r=rango||_posHistRango;
   const{desde,hasta}=posGetFechaRango(r);
   const{data}=await sb.from('inventario_movimientos')
-    .select('id,producto_id,cantidad,precio_unitario,total,motivo,fecha,created_at')
+    .select('id,producto_id,cantidad,precio_unitario,total,motivo,fecha,created_at,anulado,anulado_motivo,anulado_at')
     .eq('shop_id',barbero.shop_id).eq('barbero_id',barbero.id).eq('tipo','venta')
     .gte('fecha',desde).lte('fecha',hasta)
     .order('created_at',{ascending:false});
@@ -3178,15 +3178,52 @@ function posRenderHistorial(){
     const hoy=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
     const fechaExtra=v.fecha!==hoy?` · ${v.fecha}`:'';
     const descInfo=v.motivo&&v.motivo.includes('Desc:')?`<div style="font-size:.65rem;color:#F59E0B;margin-top:2px;">${v.motivo.split('|').pop().trim()}</div>`:'';
-    return`<div class="card" style="display:flex;align-items:center;gap:8px;padding:10px 12px;">
+    const anulada=v.anulado===true;
+    const badgeAnul=anulada?`<span style="display:inline-block;background:rgba(248,113,113,0.15);border:1px solid rgba(248,113,113,0.4);color:#F87171;font-size:.55rem;font-weight:800;letter-spacing:.4px;padding:2px 6px;border-radius:5px;margin-left:6px;">DEVUELTA</span>`:'';
+    const motivoAnul=anulada&&v.anulado_motivo?`<div style="font-size:.65rem;color:var(--dim);margin-top:2px;font-style:italic;">Motivo: ${DOMPurify.sanitize(v.anulado_motivo)}</div>`:'';
+    const cardStyle=anulada?'display:flex;align-items:center;gap:8px;padding:10px 12px;opacity:.55;border-color:rgba(248,113,113,0.25);':'display:flex;align-items:center;gap:8px;padding:10px 12px;';
+    const tachada=anulada?'text-decoration:line-through;':'';
+    const totalColor=anulada?'var(--dim)':'var(--green)';
+    const btnDevolver=anulada?'':`<button onclick="posDevolver('${v.id}')" style="display:flex;align-items:center;gap:4px;background:rgba(248,113,113,0.10);border:1px solid rgba(248,113,113,0.35);color:#F87171;border-radius:8px;padding:5px 9px;font-size:.7rem;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px;">↶ Devolver</button>`;
+    return`<div class="card" style="${cardStyle}">
       <div style="flex:1;">
-        <div style="font-weight:700;font-size:.85rem;">${DOMPurify.sanitize(v.producto_nombre)}</div>
+        <div style="font-weight:700;font-size:.85rem;${tachada}">${DOMPurify.sanitize(v.producto_nombre)}${badgeAnul}</div>
         <div style="font-size:.7rem;color:var(--dim);">${v.cantidad}x $${Number(v.precio_unitario).toLocaleString()} · ${hora}${fechaExtra}</div>
         ${descInfo}
+        ${motivoAnul}
       </div>
-      <div style="font-weight:900;color:var(--green);font-size:1rem;">$${Number(v.total).toLocaleString()}</div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
+        <div style="font-weight:900;color:${totalColor};font-size:1rem;${tachada}">$${Number(v.total).toLocaleString()}</div>
+        ${btnDevolver}
+      </div>
     </div>`;
   }).join('');
+}
+
+// ── Devolver venta (refund) ─────────────────────────────────────────────
+// Restaura stock + marca movimiento anulado vía RPC SECURITY DEFINER.
+async function posDevolver(movId){
+  const venta=_posHistorial.find(v=>v.id===movId);
+  if(!venta) return;
+  const opciones=[
+    {label:'Cliente cambió de opinión',value:'Cliente cambió de opinión'},
+    {label:'Producto defectuoso',value:'Producto defectuoso'},
+    {label:'Error del barbero',value:'Error del barbero'},
+  ];
+  const motivo=prompt(
+    `¿Devolver "${venta.producto_nombre}"?\n${venta.cantidad}x · $${Number(venta.total).toLocaleString()}\n\nMotivo (escribe 1, 2 o 3):\n1. Cliente cambió de opinión\n2. Producto defectuoso\n3. Error del barbero`,
+    '1'
+  );
+  if(!motivo) return;
+  const idx=parseInt(motivo.trim(),10)-1;
+  const motivoFinal=(idx>=0&&idx<opciones.length)?opciones[idx].value:(motivo.trim()||'Devolución');
+  try{
+    const{data,error}=await sb.rpc('devolver_movimiento_venta',{p_id:movId,p_motivo:motivoFinal});
+    if(error){toast('Error: '+error.message,'error');return;}
+    if(!data||data.ok!==true){toast(data?.error||'No se pudo devolver','error');return;}
+    toast(`✓ Stock restaurado: ${venta.cantidad}x ${venta.producto_nombre}`,'success');
+    await posLoadHistorial();
+  }catch(e){toast('Error: '+String(e),'error');}
 }
 
 // ── Inventario completo (vista para barbero) ────────────────────────────
