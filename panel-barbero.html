@@ -1301,23 +1301,33 @@ function showPolicyModal(type){
 }
 
 async function initApp(){
+  console.log('[initApp] Verificando sesión...');
   const{data:{session}}=await sb.auth.getSession();
-  if(!session){document.getElementById('loginScreen').classList.remove('hidden');return;}
-  const{data:u}=await sb.from('usuarios_app').select('*').eq('id',session.user.id).single();
+  if(!session){console.log('[initApp] Sin sesión');document.getElementById('loginScreen').classList.remove('hidden');return;}
+  console.log('[initApp] Sesión OK, cargando usuario...');
+  const{data:u,error:errU}=await sb.from('usuarios_app').select('*').eq('id',session.user.id).single();
   usuario=u;
-  if(!u||!u.barbero_id){toast('Cuenta no vinculada','error');doLogout();return;}
-  const{data:b}=await sb.from('barberos').select('*,shops(*)').eq('id',u.barbero_id).single();
-  if(!b){toast('Barbero no encontrado','error');doLogout();return;}
+  if(errU){console.error('[initApp] Error cargando usuario:',errU);toast('Error cargando tu cuenta','error');doLogout();return;}
+  if(!u||!u.barbero_id){console.error('[initApp] Cuenta no vinculada, u=',u);toast('Cuenta no vinculada','error');doLogout();return;}
+  console.log('[initApp] Cargando barbero...');
+  const{data:b,error:errB}=await sb.from('barberos').select('*,shops(*)').eq('id',u.barbero_id).single();
+  if(errB){console.error('[initApp] Error cargando barbero:',errB);toast('Error cargando tu perfil','error');doLogout();return;}
+  if(!b){console.error('[initApp] Barbero no encontrado');toast('Barbero no encontrado','error');doLogout();return;}
   barbero=b;shop=b.shops;maxTurnos=b.max_turnos_dia||5;
-  const[{data:svcs},{data:otrosData}]=await Promise.all([
+  console.log('[initApp] Cargando servicios y otros barberos...');
+  const[{data:svcs,error:errSvc},{data:otrosData,error:errOtros}]=await Promise.all([
     sb.from('servicios').select('*').eq('shop_id',b.shop_id).eq('activo',true).order('orden'),
     sb.from('barberos').select('id,nombre,activo,categorias').eq('shop_id',b.shop_id).eq('activo',true).neq('id',b.id)
   ]);
+  if(errSvc) console.warn('[initApp] Error cargando servicios:',errSvc);
+  if(errOtros) console.warn('[initApp] Error cargando otros barberos:',errOtros);
   servicios=svcs||[];
   otrosBarberos=otrosData||[];
   servicios.forEach(s=>{svcMap[s.nombre.toLowerCase().trim()]=parseFloat(s.precio)||0;durMap[s.nombre.toLowerCase().trim()]=s.duracion_min||30;});
+  console.log('[initApp] Mostrando UI...');
   document.getElementById('loginScreen').classList.add('hidden');
   document.getElementById('bottomNav').style.display='flex';updateHeaderUI();showScreen('homeScreen');
+  console.log('[initApp] Cargando datos del día...');
   await cargarDatos();startPolling();startRealtimeHoy();
   // Web Push: re-suscribir si ya dio permiso (renueva endpoint en cada login)
   if(typeof Notification!=='undefined'&&Notification.permission==='granted') setTimeout(()=>suscribirWebPush(),1500);
