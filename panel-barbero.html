@@ -2646,7 +2646,8 @@ function posRenderQuick(){
   }
   document.getElementById('posEmptyState').style.display='none';
   if(!prods.length){wrap.style.display='none';return;}
-  if(_posCarrito.length>0){wrap.style.display='none';return;}
+  // Antes ocultábamos el grid cuando había items en el carrito, lo que impedía
+  // agregar varios productos distintos a una venta. Ahora se mantiene visible.
   wrap.style.display='block';
   grid.innerHTML=prods.map(p=>{
     const sinStock=p.stock_actual<=0;
