@@ -121,6 +121,21 @@ h1,h2,h3,.outfit{font-family:'Outfit',sans-serif}
 }
 .nav-btn.active{color:var(--accent)}
 .nav-btn.active svg{filter:drop-shadow(0 0 5px rgba(212,175,55,.5))}
+/* ══ FAB — botón flotante "nueva cita" (solo en Inicio) ══ */
+.fab{
+  position:fixed;
+  right:18px;
+  bottom:calc(var(--nav-h) + var(--safe-bottom) + 16px);
+  width:56px;height:56px;border-radius:50%;
+  background:var(--accent);color:#000;border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.9rem;font-weight:300;line-height:1;
+  box-shadow:0 6px 20px rgba(212,175,55,.45);
+  z-index:500; /* debajo de modales (600) y toasts (9999) */
+  transition:transform .15s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.fab:active{transform:scale(.92)}
 .nav-btn span{font-size:clamp(.52rem,1.8vw,.62rem);font-weight:700;text-transform:uppercase;letter-spacing:.3px;line-height:1}
 /* Login */
 .login-logo{width:76px;height:76px;border-radius:22px;background:var(--accent-s);border:2px solid var(--accent-b);display:flex;align-items:center;justify-content:center;font-size:1.9rem;margin-bottom:22px}
@@ -338,6 +353,8 @@ input:checked+.slider:before{transform:translateX(22px)}
 @media(min-width:600px){
   #app{max-width:600px;margin:0 auto;box-shadow:0 0 60px rgba(0,0,0,.8)}
   .modal-box{max-width:600px;margin:0 auto}
+  /* App centrada a 600px → anclar el FAB al borde derecho de la columna, no del viewport */
+  .fab{right:calc((100vw - 600px)/2 + 18px)}
 }
 
 /* ══ Landscape iPhone ══ */
@@ -385,10 +402,10 @@ input:checked+.slider:before{transform:translateX(22px)}
       </div>
     </div>
     <div class="barb-header-btns">
-      <div class="icon-btn" id="notifBtn" onclick="pedirPermisoNotif()" title="Activar notificaciones" style="position:relative;">🔔<span id="realtimeDot" style="position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:#F87171;border:1px solid #000;"></span></div>
-      <div class="icon-btn" id="headerMonitorBtn" onclick="showScreen('monitorScreen')">👁</div>
+      <div class="icon-btn" id="notifBtn" onclick="pedirPermisoNotif()" title="Activar notificaciones" style="position:relative;"><i data-lucide="bell" size="20"></i><span id="realtimeDot" style="position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:#F87171;border:1px solid #000;"></span></div>
+      <div class="icon-btn" id="headerMonitorBtn" onclick="showScreen('monitorScreen')" title="Monitor"><i data-lucide="eye" size="20"></i></div>
       <div class="icon-btn" id="headerQrBtn" onclick="openQR()" title="Mi QR para clientes"><i data-lucide="qr-code" size="20"></i></div>
-      <div class="icon-btn" id="headerStatsBtn" onclick="showScreen('statsScreen')">📊</div>
+      <div class="icon-btn" id="headerStatsBtn" onclick="showScreen('statsScreen')" title="Estadísticas"><i data-lucide="bar-chart-2" size="20"></i></div>
     </div>
   </div>
   <div class="card toggle-row" id="toggleCard">
@@ -497,6 +514,10 @@ input:checked+.slider:before{transform:translateX(22px)}
     </div>
     <div id="canceladasList" style="display:none;"></div>
   </div>
+
+  <!-- FAB: nueva cita (misma lógica que "+ Agregar"). Dentro de #homeScreen → solo
+       visible en Inicio. position:fixed queda relativo al viewport (#app no tiene transform). -->
+  <button class="fab" onclick="openModalNuevaCita()" aria-label="Agregar cita" title="Agregar cita">+</button>
 </div>
 
 <!-- MONITOR SCREEN -->
@@ -560,7 +581,7 @@ input:checked+.slider:before{transform:translateX(22px)}
 <!-- STATS SCREEN -->
 <div id="statsScreen" class="screen">
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
-    <div onclick="showScreen('homeScreen')" class="icon-btn">←</div>
+    <div onclick="showScreen('homeScreen')" class="icon-btn" title="Volver"><i data-lucide="arrow-left" size="20"></i></div>
     <h2 style="font-size:1.2rem;font-weight:900;font-family:Outfit,sans-serif;">Estadísticas</h2>
   </div>
   <div class="chip-row" id="statsRangoRow">
@@ -584,7 +605,7 @@ input:checked+.slider:before{transform:translateX(22px)}
 <!-- VIP SCREEN -->
 <div id="vipScreen" class="screen">
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-    <div onclick="showScreen('homeScreen')" class="icon-btn">←</div>
+    <div onclick="showScreen('homeScreen')" class="icon-btn" title="Volver"><i data-lucide="arrow-left" size="20"></i></div>
     <h2 style="font-size:1.2rem;font-weight:900;font-family:Outfit,sans-serif;">Clientes VIP ⭐</h2>
     <div id="vipActivosBadge" style="margin-left:auto;background:var(--accent-s);border:1px solid var(--accent-b);border-radius:20px;padding:3px 10px;font-size:.7rem;font-weight:700;color:var(--accent);"></div>
   </div>
@@ -597,7 +618,7 @@ input:checked+.slider:before{transform:translateX(22px)}
 <!-- VENTAS / POS SCREEN -->
 <div id="ventasScreen" class="screen">
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-    <div onclick="showScreen('homeScreen')" class="icon-btn">←</div>
+    <div onclick="showScreen('homeScreen')" class="icon-btn" title="Volver"><i data-lucide="arrow-left" size="20"></i></div>
     <h2 style="font-size:1.2rem;font-weight:900;font-family:Outfit,sans-serif;">Venta de Productos</h2>
   </div>
 
@@ -745,7 +766,7 @@ input:checked+.slider:before{transform:translateX(22px)}
 <!-- PERFIL SCREEN -->
 <div id="perfilScreen" class="screen">
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
-    <div onclick="showScreen('homeScreen')" class="icon-btn">←</div>
+    <div onclick="showScreen('homeScreen')" class="icon-btn" title="Volver"><i data-lucide="arrow-left" size="20"></i></div>
     <h2 style="font-size:1.2rem;font-weight:900;font-family:Outfit,sans-serif;">Mi Perfil</h2>
   </div>
   <div style="text-align:center;margin-bottom:20px;">
@@ -832,8 +853,8 @@ input:checked+.slider:before{transform:translateX(22px)}
   <div class="nav-btn active" id="nav-home" onclick="showScreen('homeScreen',this)"><i data-lucide="home" size="20"></i><span>Inicio</span></div>
   <div class="nav-btn" id="nav-monitor" onclick="showScreen('monitorScreen',this)"><i data-lucide="monitor" size="20"></i><span>Monitor</span></div>
   <div class="nav-btn" id="nav-stats" onclick="showScreen('statsScreen',this)"><i data-lucide="bar-chart-2" size="20"></i><span>Stats</span></div>
-  <div class="nav-btn" id="nav-ventas" onclick="showScreen('ventasScreen',this)"><i data-lucide="shopping-cart" size="20"></i><span>Vender</span></div>
-  <div class="nav-btn" id="nav-vip" onclick="showScreen('vipScreen',this)"><i data-lucide="star" size="20"></i><span>VIP</span></div>
+  <div class="nav-btn" id="nav-ventas" onclick="showScreen('ventasScreen',this)"><i data-lucide="store" size="20"></i><span>Vender</span></div>
+  <div class="nav-btn" id="nav-vip" onclick="showScreen('vipScreen',this)"><i data-lucide="crown" size="20"></i><span>VIP</span></div>
   <div class="nav-btn" id="nav-perfil" onclick="showScreen('perfilScreen',this)"><i data-lucide="user" size="20"></i><span>Perfil</span></div>
 </nav>
 </div><!-- /app -->
