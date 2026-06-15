@@ -378,13 +378,23 @@ input:checked+.slider:before{transform:translateX(22px)}
 <!-- LOGIN — overlay fijo encima de todo -->
 <div id="loginScreen">
   <div class="login-logo">✂️</div>
-  <h1 class="login-title">Panel Profesional</h1>
-  <p class="login-sub">Inicia sesión con tu número de teléfono</p>
+  <h1 class="login-title">AuraOS Pro</h1>
+  <p class="login-sub">Panel de profesionales</p>
+  <p style="font-size:.8rem;color:var(--dim);text-align:center;margin-bottom:18px;max-width:340px;">Acceso exclusivo para barberos y estilistas. Gestiona citas, servicios e ingresos.</p>
   <div style="width:100%;max-width:360px;display:flex;flex-direction:column;gap:12px;">
-    <input id="loginTel" class="input" type="tel" placeholder="Teléfono (ej: 8091234567)">
-    <input id="loginPass" class="input" type="password" placeholder="Contraseña">
+    <input id="loginTel" class="input" type="tel" placeholder="Teléfono (ej: 8091234567)" autocomplete="tel">
+    <input id="loginPass" class="input" type="password" placeholder="Contraseña" autocomplete="current-password">
+    <label style="display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--dim);cursor:pointer;user-select:none;">
+      <input id="rememberMe" type="checkbox" style="width:18px;height:18px;cursor:pointer;">
+      <span>Recuerda mis datos</span>
+    </label>
     <button class="btn-gold" id="loginBtn" onclick="doLogin()">Entrar →</button>
     <div id="loginError" style="color:var(--red);font-size:.82rem;text-align:center;display:none;"></div>
+  </div>
+  <div style="display:flex;gap:16px;justify-content:center;margin-top:20px;font-size:.75rem;color:var(--dim);">
+    <a href="#" onclick="showPolicyModal('privacy');return false;" style="color:var(--accent);text-decoration:none;cursor:pointer;">Privacidad</a>
+    <span>•</span>
+    <a href="#" onclick="showPolicyModal('terms');return false;" style="color:var(--accent);text-decoration:none;cursor:pointer;">Términos</a>
   </div>
 </div>
 
@@ -845,7 +855,16 @@ input:checked+.slider:before{transform:translateX(22px)}
     </div>
   </div>
   <button class="btn-outline" onclick="showScreen('statsScreen')" style="margin-bottom:9px;display:inline-flex;align-items:center;justify-content:center;gap:8px;"><i data-lucide="bar-chart-2" size="16"></i> Ver estadísticas</button>
-  <button onclick="doLogout()" style="width:100%;padding:13px;border-radius:var(--r);background:transparent;border:1px solid rgba(231,76,60,.3);color:var(--red);font-weight:700;cursor:pointer;margin-bottom:40px;">Cerrar sesión</button>
+  <button onclick="doLogout()" style="width:100%;padding:13px;border-radius:var(--r);background:transparent;border:1px solid rgba(231,76,60,.3);color:var(--red);font-weight:700;cursor:pointer;margin-bottom:20px;" title="Cierra tu sesión">🚪 Cerrar sesión</button>
+  <!-- Footer: Versión + Políticas -->
+  <div style="border-top:1px solid var(--accent-b);padding-top:14px;display:flex;flex-direction:column;align-items:center;gap:8px;font-size:.75rem;color:var(--dim);">
+    <span id="versionTag">AuraOS Pro v1.0.0</span>
+    <div style="display:flex;gap:12px;justify-content:center;">
+      <a href="#" onclick="showPolicyModal('privacy');return false;" style="color:var(--accent);text-decoration:none;cursor:pointer;">Privacidad</a>
+      <span>•</span>
+      <a href="#" onclick="showPolicyModal('terms');return false;" style="color:var(--accent);text-decoration:none;cursor:pointer;">Términos</a>
+    </div>
+  </div>
 </div>
 
 <!-- BOTTOM NAV -->
@@ -1002,6 +1021,20 @@ input:checked+.slider:before{transform:translateX(22px)}
     </div>
     <div class="sec-title" style="margin-bottom:8px;">Seleccionar nuevo profesional</div>
     <div id="transferBarberosList"></div>
+  </div>
+</div>
+
+<!-- MODAL: Políticas de Privacidad y Términos de Servicio -->
+<div id="modalPolicy" class="modal-overlay hidden" onclick="closeModal('modalPolicy')">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:12px;">
+      <div style="flex:1;">
+        <div id="policyTitle" style="font-size:1rem;font-weight:900;font-family:Outfit,sans-serif;">Política</div>
+      </div>
+      <div onclick="closeModal('modalPolicy')" style="cursor:pointer;color:var(--accent);font-size:1.1rem;padding:4px 8px;">✕</div>
+    </div>
+    <div id="policyContent" style="font-size:.85rem;line-height:1.6;color:var(--dim);max-height:60vh;overflow-y:auto;"></div>
   </div>
 </div>
 
@@ -1194,6 +1227,7 @@ function closeModal(id){
 async function doLogin(){
   const tel=document.getElementById('loginTel').value.trim().replace(/\D/g,'');
   const pass=document.getElementById('loginPass').value;
+  const remember=document.getElementById('rememberMe').checked;
   const errEl=document.getElementById('loginError');errEl.style.display='none';
   if(!tel||!pass){errEl.textContent='Completa los campos';errEl.style.display='block';return;}
   const btn=document.getElementById('loginBtn');btn.disabled=true;btn.textContent='Ingresando...';
@@ -1201,7 +1235,69 @@ async function doLogin(){
   const{error}=await sb.auth.signInWithPassword({email:`${telFull}@barberos.app`,password:pass});
   btn.disabled=false;btn.textContent='Entrar →';
   if(error){errEl.textContent='Usuario o contraseña incorrectos';errEl.style.display='block';return;}
+  // Guardar teléfono si marcó "recuerda mis datos"
+  if(remember) localStorage.setItem('barbero_tel_saved',telFull);
+  else localStorage.removeItem('barbero_tel_saved');
   await initApp();
+}
+
+// Cargar teléfono guardado al iniciar la página
+(function loadSavedTel(){
+  const saved=localStorage.getItem('barbero_tel_saved');
+  if(saved) document.getElementById('loginTel').value=saved;
+})();
+
+// ── Políticas de Privacidad y Términos de Servicio ────────────────────────
+const policies={
+  privacy:`<strong>Política de Privacidad</strong>
+
+Tu privacidad es importante para nosotros. Esta política describe cómo recopilamos, usamos y protegemos tus datos.
+
+<strong>Información que recopilamos:</strong>
+• Nombre, teléfono y datos de tu negocio para verificar tu cuenta
+• Información sobre tus citas, clientes y servicios para gestionar tu agenda
+• Datos de uso de la app para mejorar nuestros servicios
+
+<strong>Cómo usamos tu información:</strong>
+• Para proporcionar y mejorar nuestros servicios
+• Para comunicarnos contigo sobre tu cuenta
+• Para cumplir con leyes y regulaciones aplicables
+
+<strong>Protección de datos:</strong>
+Utilizamos encriptación y medidas de seguridad estándar de la industria para proteger tu información personal.
+
+<strong>Cambios a esta política:</strong>
+Podemos actualizar esta política en cualquier momento. Te notificaremos de cambios significativos.`,
+  terms:`<strong>Términos de Servicio</strong>
+
+Al usar AuraOS Pro, aceptas estos términos y condiciones.
+
+<strong>Uso del servicio:</strong>
+• Eres responsable de la precisión de la información que proporciones
+• Usarás el servicio solo para fines legales y autorizados
+• No puedes compartir tu cuenta con otros usuarios
+
+<strong>Contenido:</strong>
+• Eres propietario de tus datos (citas, clientes, servicios)
+• Nos das derecho a usar tus datos para mejorar el servicio
+• No reproduciremos ni compartiremos tus datos sin consentimiento
+
+<strong>Limitación de responsabilidad:</strong>
+No seremos responsables por daños indirectos, incidentales o consecuentes derivados del uso de nuestro servicio.
+
+<strong>Cancelación:</strong>
+Puedes cancelar tu cuenta en cualquier momento. Tus datos se borrarán después de 30 días.
+
+<strong>Cambios a los términos:</strong>
+Nos reservamos el derecho de modificar estos términos. Los cambios serán efectivos inmediatamente.`
+};
+
+function showPolicyModal(type){
+  const title=type==='privacy'?'Política de Privacidad':'Términos de Servicio';
+  const content=policies[type]||'';
+  document.getElementById('policyTitle').textContent=title;
+  document.getElementById('policyContent').innerHTML=content;
+  document.getElementById('modalPolicy').classList.remove('hidden');
 }
 
 async function initApp(){
