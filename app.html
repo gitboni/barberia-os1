@@ -453,8 +453,13 @@
       </button>
       <button class="btn-red" style="width:100%;padding:13px;border-radius:var(--r);font-size:.88rem" onclick="handleSignOut()">Cerrar sesión</button>
 
+      <!-- ── Eliminar cuenta (requisito Google Play / App Store) ── -->
+      <div style="text-align:center;padding:12px 0 2px;margin-top:8px">
+        <span id="btnEliminarCuenta" onclick="eliminarCuenta()" style="color:rgba(248,113,113,0.7);text-decoration:underline;font-size:.75rem;cursor:pointer">Eliminar mi cuenta</span>
+      </div>
+
       <!-- ── Legal + versión ── -->
-      <div style="text-align:center;padding:14px 0 4px;margin-top:14px">
+      <div style="text-align:center;padding:8px 0 4px">
         <a href="https://barberia-os1.vercel.app/privacidad.html" target="_blank" style="color:var(--dim);text-decoration:underline;font-size:.75rem">Política de privacidad</a>
       </div>
       <div style="text-align:center;padding:18px 0 8px">
@@ -1034,6 +1039,32 @@ function handleSignOut() {
   updateUIAuth();
   loadHome();
   showScreen('homeScreen');
+}
+
+// ── Eliminar cuenta (requisito Google Play / App Store) ──────────────────
+async function eliminarCuenta() {
+  if (!user) { toast('Inicia sesión primero','error'); return; }
+  // Doble confirmación
+  if (!confirm('¿Eliminar tu cuenta?\n\nEsto eliminará permanentemente tu perfil, contraseña y datos personales. Tus citas futuras se cancelarán.\n\nEsta acción NO se puede deshacer.')) return;
+  if (!confirm('¿Estás completamente seguro?\n\nPerderás el acceso a tu cuenta de inmediato.')) return;
+  const btn = document.getElementById('btnEliminarCuenta');
+  if (btn) { btn.textContent = 'Eliminando…'; btn.style.pointerEvents = 'none'; }
+  try {
+    const { data, error } = await sb.rpc('eliminar_mi_cuenta');
+    if (error || !data?.ok) {
+      if (btn) { btn.textContent = 'Eliminar mi cuenta'; btn.style.pointerEvents = ''; }
+      toast(error?.message || data?.error || 'No se pudo eliminar la cuenta','error');
+      return;
+    }
+    // Cuenta borrada → cerrar sesión local y volver al inicio
+    await sb.auth.signOut().catch(()=>{});
+    user=null; misShops=[];
+    updateUIAuth(); loadHome(); showScreen('homeScreen');
+    toast('Tu cuenta fue eliminada','success');
+  } catch (e) {
+    if (btn) { btn.textContent = 'Eliminar mi cuenta'; btn.style.pointerEvents = ''; }
+    toast('Error al eliminar: '+String(e),'error');
+  }
 }
 
 async function cambiarPassword() {
