@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Syne:wght@700;800&family=DM+Mono:wght@400;500&display=swap&font-display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -1132,6 +1133,9 @@ let _activeSucursalSlug = SHOP_SLUG;
 let _grupoNombre = null;
 let _grupoSucursales = [];
 const H={'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY};
+// Cliente oficial — necesario para Realtime (postgres_changes). Los helpers sbGet/sbPost
+// abajo siguen usando fetch() plano para no tocar el resto del panel.
+const sbRT = (window.supabase && window.supabase.createClient) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 function normalizarTel(raw){let t=(raw||'').replace(/\D/g,'');if(t.length===10&&(t.startsWith('8')||t.startsWith('9')))t='1'+t;return t;}
 // Sanitiza cualquier string antes de insertarlo en innerHTML (previene XSS)
 function esc(v){return typeof DOMPurify!=='undefined'?DOMPurify.sanitize(String(v??''),{ALLOWED_TAGS:[],ALLOWED_ATTR:[]}):String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -6561,21 +6565,33 @@ setInterval(updateDate,60000);updateDate();
 // FIX: polling 60s → 300s, Realtime maneja cambios en tiempo real
 setInterval(loadAll,300000);
 Promise.resolve().then(()=>{
-  // FIX: Realtime WebSocket para citas y conversaciones
+  // ── Realtime con el SDK oficial (el WebSocket manual anterior usaba la sintaxis
+  // vieja de Realtime v1 — el topic ya no soporta filtros embebidos así, por lo
+  // que el canal "conectaba" pero nunca recibía eventos postgres_changes reales). ──
   function initRealtime(){
-    if(!S.shopId||window._rtChannel)return;
+    if(!S.shopId || window._rtChannel || !sbRT) return;
     try{
-      const ws=new WebSocket('wss://mmokunpuslcfphalrwot.supabase.co/realtime/v1/websocket?apikey='+SUPABASE_KEY+'&vsn=1.0.0');
-      ws.onopen=()=>{
-        ws.send(JSON.stringify({topic:'realtime:public:citas:shop_id=eq.'+S.shopId,event:'phx_join',payload:{},ref:'1'}));
-        ws.send(JSON.stringify({topic:'realtime:public:conversaciones:shop_id=eq.'+S.shopId,event:'phx_join',payload:{},ref:'2'}));
-      };
-      ws.onmessage=(e)=>{
-        try{const m=JSON.parse(e.data);if(m.event==='INSERT'||m.event==='UPDATE'||m.event==='DELETE')loadAll();}catch(_){}
-      };
-      ws.onclose=()=>{window._rtChannel=null;setTimeout(initRealtime,5000);};
-      window._rtChannel=ws;
-    }catch(err){console.log('Realtime: '+err.message);}
+      const ch = sbRT.channel('admin-citas-'+S.shopId)
+        .on('postgres_changes', { event:'*', schema:'public', table:'citas', filter:'shop_id=eq.'+S.shopId }, (payload)=>{
+          if(payload.eventType==='INSERT' && window.di){
+            const c = payload.new || {};
+            window.di({
+              tipo:'g', icono:'calendar-plus',
+              titulo:'Nueva cita: '+(c.nombre||'Cliente'),
+              detalle:(c.servicio||'')+(c.barbero?' · con '+c.barbero:'')+(c.hora?' · '+c.hora.slice(0,5):'')
+            });
+          } else if(payload.eventType==='UPDATE' && window.di && payload.new && payload.old && payload.new.estado!==payload.old.estado){
+            const c = payload.new;
+            if(c.estado==='Cancelada'){
+              window.di({ tipo:'e', icono:'calendar-x', titulo:'Cita cancelada', detalle:(c.nombre||'Cliente')+' · '+(c.servicio||'') });
+            }
+          }
+          loadAll();
+        })
+        .on('postgres_changes', { event:'*', schema:'public', table:'conversaciones', filter:'shop_id=eq.'+S.shopId }, ()=>{ loadAll(); })
+        .subscribe();
+      window._rtChannel = ch;
+    }catch(err){ console.log('Realtime: '+err.message); }
   }
   initRealtime();
 });
@@ -7000,7 +7016,13 @@ initLogin();
   #di-host .di.show .di-row{opacity:1;} #di-host .di.expanded .di-detail{opacity:1;}
   #di-host.out{opacity:0!important;transform:translateX(-50%) translateY(-80px) scale(.6)!important;transition:transform .5s cubic-bezier(0.5,0,0.75,0),opacity .4s!important;}
   @keyframes diNotch{0%{opacity:0;transform:translateX(-50%) scaleX(.25) scaleY(.6)}55%{transform:translateX(-50%) scaleX(1.05) scaleY(1.04);opacity:1}100%{opacity:1;transform:translateX(-50%) scale(1)}}
-  #di-host.in{animation:diNotch .6s cubic-bezier(0.34,1.4,0.5,1) forwards;}
+  @keyframes diDrop{0%{opacity:0;transform:translateX(-50%) translateY(-80px) scale(.6)}60%{transform:translateX(-50%) translateY(8px) scale(1.04);opacity:1}100%{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
+  @keyframes diSlide{0%{opacity:0;transform:translateX(-50%) translateY(-55px)}100%{opacity:1;transform:translateX(-50%) translateY(0)}}
+  @keyframes diBlur{0%{opacity:0;transform:translateX(-50%) translateY(-30px) scale(.85);filter:blur(8px)}100%{opacity:1;transform:translateX(-50%) translateY(0) scale(1);filter:blur(0)}}
+  #di-host.in.e-notch{animation:diNotch .6s cubic-bezier(0.34,1.4,0.5,1) forwards;}
+  #di-host.in.e-drop{animation:diDrop .7s cubic-bezier(0.34,1.56,0.64,1) forwards;}
+  #di-host.in.e-slide{animation:diSlide .45s cubic-bezier(0.22,1,0.36,1) forwards;}
+  #di-host.in.e-blur{animation:diBlur .5s cubic-bezier(0.22,1,0.36,1) forwards;}
   @media (prefers-reduced-motion: reduce){#di-host.in{animation:none!important;opacity:1!important;transform:translateX(-50%)!important;}#di-host .di-pill,#di-host .di-panel,#di-host .di-detail,#di-host .di-row{transition:none!important;}}
 </style>
 <script>
