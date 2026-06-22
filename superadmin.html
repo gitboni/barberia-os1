@@ -115,10 +115,11 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 
 /* KPI */
 .kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:16px;}
-.kpi-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;position:relative;overflow:hidden;transition:all 0.4s var(--bez);cursor:default;}
+.kpi-card{background:linear-gradient(160deg,rgba(255,255,255,0.04),rgba(255,255,255,0) 45%),var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;position:relative;overflow:hidden;transition:all 0.4s var(--bez);cursor:default;}
 .kpi-card:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,0.5);border-color:rgba(201,168,76,0.3);}
 .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent-color,var(--gold));opacity:0.8;}
-.kpi-icon{position:absolute;top:20px;right:20px;font-size:1.8rem;opacity:0.1;filter:grayscale(1) brightness(2);}
+.kpi-icon{position:absolute;top:18px;right:18px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:rgba(201,168,76,0.12);background:color-mix(in srgb,var(--accent-color,var(--gold)) 14%,transparent);color:var(--accent-color,var(--gold));opacity:1;filter:none;}
+.kpi-icon svg{width:17px;height:17px;stroke-width:2px;}
 .kpi-label{font-family:'Outfit',sans-serif;font-size:0.65rem;color:var(--muted);letter-spacing:0.02em;text-transform:uppercase;font-weight:700;margin-bottom:12px;}
 .kpi-value{font-family:'Bebas Neue',sans-serif;font-size:2.8rem;letter-spacing:0.04em;line-height:1;color:var(--text);}
 .kpi-sub{font-size:0.5rem;color:var(--muted);margin-top:6px;opacity:0.75;}
@@ -176,7 +177,7 @@ tr:hover td{background:rgba(255,255,255,0.016);}
 
 /* CHARTS */
 .charts-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:14px;margin-bottom:20px;}
-.chart-card{background:var(--surface);border:1px solid var(--border);padding:22px;position:relative;overflow:hidden;}
+.chart-card{background:linear-gradient(160deg,rgba(255,255,255,0.03),rgba(255,255,255,0) 45%),var(--surface);border:1px solid var(--border);padding:22px;position:relative;overflow:hidden;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.2);}
 .chart-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),transparent);}
 .chart-title{font-size:0.52rem;color:var(--muted);letter-spacing:0.2em;text-transform:uppercase;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;}
 .bar-chart{display:flex;align-items:flex-end;gap:8px;height:140px;}
@@ -313,7 +314,7 @@ tr:hover td{background:rgba(255,255,255,0.016);}
 .lead-meta{font-size:0.55rem;color:var(--muted);margin-top:3px;}
 
 /* REPORT CARDS */
-.card{background:var(--surface);border:1px solid var(--border);padding:18px 20px;margin-bottom:14px;position:relative;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.2);}
+.card{background:linear-gradient(160deg,rgba(255,255,255,0.03),rgba(255,255,255,0) 45%),var(--surface);border:1px solid var(--border);padding:18px 20px;margin-bottom:14px;position:relative;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.2);}
 .card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),transparent);}
 .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);}
 .card-title{font-size:0.58rem;color:var(--gold);letter-spacing:0.18em;text-transform:uppercase;font-weight:600;}
