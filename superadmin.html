@@ -3245,17 +3245,11 @@ async function loadUsers() {
   let shopAdminMap = {};
   if (!usingDemo) {
     try {
-      const [todosUsuarios, links] = await Promise.all([
-        sbGet('usuarios_app', 'select=id,nombre,telefono,rol&activo=eq.true'),
-        sbGet('cliente_shops', 'select=usuario_id,shop_id'),
-      ]);
-      const admins = todosUsuarios.filter(u => u.rol === 'admin');
+      // El admin se vincula directo por usuarios_app.shop_id (cliente_shops tiene RLS y no es legible aquí)
+      const todosUsuarios = await sbGet('usuarios_app', 'select=id,nombre,telefono,rol,shop_id&activo=eq.true');
+      const admins = todosUsuarios.filter(u => u.rol === 'admin' && u.shop_id);
       admins.forEach(admin => {
-        links.forEach(cs => {
-          if (cs.usuario_id === admin.id && !shopAdminMap[cs.shop_id]) {
-            shopAdminMap[cs.shop_id] = admin;
-          }
-        });
+        if (!shopAdminMap[admin.shop_id]) shopAdminMap[admin.shop_id] = admin;
       });
       addLog('OK', `Admins: ${admins.length} — shops con admin: ${Object.keys(shopAdminMap).length}`);
     } catch(e) { addLog('WARN', 'loadUsers admins: '+e.message); }
