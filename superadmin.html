@@ -41,7 +41,7 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .login-bg::before{content:'';position:absolute;width:600px;height:600px;background:radial-gradient(circle,rgba(201,168,76,0.06) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);animation:breathe 6s ease-in-out infinite;}
 .login-bg::after{content:'AURAOS';font-family:'Bebas Neue',sans-serif;font-size:22vw;color:rgba(255,255,255,0.012);position:absolute;bottom:-2vw;left:50%;transform:translateX(-50%);letter-spacing:0.2em;white-space:nowrap;pointer-events:none;}
 @keyframes breathe{0%,100%{transform:translate(-50%,-50%) scale(1);}50%{transform:translate(-50%,-50%) scale(1.15);}}
-.login-box{background:rgba(12,12,20,0.92);border:1px solid var(--border2);padding:42px 40px;width:380px;max-width:92vw;position:relative;z-index:1;backdrop-filter:blur(20px);animation:slideUp 0.5s cubic-bezier(0.16,1,0.3,1) both;}
+.login-box{background:linear-gradient(160deg,rgba(255,255,255,0.05),rgba(255,255,255,0) 40%),rgba(12,12,20,0.92);border:1px solid var(--border2);border-radius:24px;padding:42px 40px;width:380px;max-width:92vw;position:relative;z-index:1;overflow:hidden;backdrop-filter:blur(20px);box-shadow:0 30px 80px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.04);animation:slideUp 0.5s cubic-bezier(0.16,1,0.3,1) both;}
 @keyframes slideUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
 .login-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),var(--gold2),transparent);}
 .login-logo{font-family:'Bebas Neue',sans-serif;font-size:2.4rem;letter-spacing:0.18em;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:2px;}
@@ -134,8 +134,8 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 
 /* BUTTONS */
 .btn{padding:10px 20px;font-family:'Outfit',sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:all 0.3s var(--bez);border:none;outline:none;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;gap:8px;}
-.btn-primary{background:var(--gold);color:var(--bg);box-shadow:0 4px 15px rgba(201,168,76,0.25);}
-.btn-primary:hover{background:var(--gold2);transform:translateY(-2px);box-shadow:0 8px 25px rgba(201,168,76,0.4);}
+.btn-primary{background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--bg);box-shadow:0 4px 15px rgba(201,168,76,0.25);}
+.btn-primary:hover{filter:brightness(1.06);transform:translateY(-2px);box-shadow:0 8px 25px rgba(201,168,76,0.4);}
 .btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--muted);}
 .btn-ghost:hover{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,0.05);}
 .btn-danger{background:transparent;border:1px solid rgba(231,76,60,0.4);color:var(--red);}
@@ -229,8 +229,8 @@ tr:hover td{background:rgba(255,255,255,0.016);}
 .modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:0.1em;margin-bottom:20px;}
 .form-group{margin-bottom:14px;}
 .form-label{font-size:0.48rem;color:var(--muted);letter-spacing:0.2em;text-transform:uppercase;display:block;margin-bottom:6px;}
-.form-input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 12px;font-family:'DM Mono',monospace;font-size:0.7rem;outline:none;transition:border-color 0.2s;}
-.form-input:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(201,168,76,0.08);}
+.form-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:11px 13px;font-family:'DM Mono',monospace;font-size:0.7rem;outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
+.form-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,0.12);}
 .form-select{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 12px;font-family:'DM Mono',monospace;font-size:0.7rem;outline:none;cursor:pointer;}
 .form-select:focus{border-color:var(--gold);}
 .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
