@@ -95,7 +95,7 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .refresh-badge{font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;display:flex;align-items:center;gap:5px;}
 .refresh-dot{width:5px;height:5px;border-radius:50%;background:var(--muted);transition:all 0.3s;}
 .refresh-dot.live{background:var(--green);box-shadow:0 0 6px var(--green);animation:glow-pulse 1.5s infinite;}
-.content{flex:1;overflow-y:auto;overflow-x:auto;padding:20px 18px;height:0;}
+.content{flex:1;overflow-y:auto;overflow-x:auto;padding:24px 28px;height:0;}
 .page{display:none;}.page.active{display:block;animation:fadeIn 0.25s ease;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 
@@ -535,6 +535,10 @@ tr:hover td{background:rgba(255,255,255,0.016);}
     <div class="page active" id="page-dashboard">
       <div class="demo-banner" id="demoBanner" style="display:none">
         🧪 <strong>Modo Demo</strong> — Datos de prueba. Supabase no disponible o sin datos.
+      </div>
+      <div style="margin-bottom:22px;">
+        <div style="font-size:0.7rem;color:var(--gold);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.15em;margin-bottom:6px;font-weight:600;">Centro de Control · AuraOS</div>
+        <div style="font-size:2rem;font-weight:800;letter-spacing:-0.03em;color:var(--text);font-family:'Outfit',sans-serif;line-height:1.05;">Dashboard Ejecutivo</div>
       </div>
       <div class="kpi-grid">
         <div class="kpi-card" style="--accent-color:var(--gold)">
