@@ -157,6 +157,9 @@ th{padding:9px 11px;font-size:0.44rem;letter-spacing:0.2em;text-transform:upperc
 td{padding:10px 11px;font-size:0.62rem;border-bottom:1px solid rgba(255,255,255,0.025);}
 tr:last-child td{border-bottom:none;}
 tr:hover td{background:rgba(255,255,255,0.016);}
+.skeleton{background:linear-gradient(90deg,rgba(255,255,255,0.03) 25%,rgba(255,255,255,0.08) 50%,rgba(255,255,255,0.03) 75%);background-size:200% 100%;animation:sk-load 1.4s infinite var(--bez);border-radius:6px;display:inline-block;}
+.sk-bar{height:11px;width:80%;}
+@keyframes sk-load{from{background-position:200% 0;}to{background-position:-200% 0;}}
 .plan-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;font-size:0.6rem;font-weight:700;letter-spacing:0.02em;text-transform:uppercase;border-radius:20px;}
 .plan-free{background:rgba(255,255,255,0.05);color:var(--muted);border:1px solid var(--border);}
 .plan-pro{background:rgba(201,168,76,0.12);color:var(--gold);border:1px solid rgba(201,168,76,0.25);}
@@ -310,7 +313,7 @@ tr:hover td{background:rgba(255,255,255,0.016);}
 .lead-meta{font-size:0.55rem;color:var(--muted);margin-top:3px;}
 
 /* REPORT CARDS */
-.card{background:var(--surface);border:1px solid var(--border);padding:18px 20px;margin-bottom:14px;position:relative;}
+.card{background:var(--surface);border:1px solid var(--border);padding:18px 20px;margin-bottom:14px;position:relative;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.2);}
 .card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),transparent);}
 .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);}
 .card-title{font-size:0.58rem;color:var(--gold);letter-spacing:0.18em;text-transform:uppercase;font-weight:600;}
@@ -3502,7 +3505,7 @@ let _clientesApp = [];
 async function loadClientesApp() {
   const tbody = document.getElementById('caTable');
   if(!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="7" style="color:var(--muted);text-align:center;padding:22px;">Cargando...</td></tr>';
+  tbody.innerHTML = Array.from({length:6},()=>'<tr>'+'<td><span class="skeleton sk-bar"></span></td>'.repeat(7)+'</tr>').join('');
 
   const shops = usingDemo ? _shops : await sbGet('shops','select=id,nombre').catch(()=>_shops);
 
@@ -3579,7 +3582,7 @@ let _clientesWA = [];
 async function loadClientesWA() {
   const tbody = document.getElementById('cwTable');
   if(!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="8" style="color:var(--muted);text-align:center;padding:22px;">Cargando...</td></tr>';
+  tbody.innerHTML = Array.from({length:6},()=>'<tr>'+'<td><span class="skeleton sk-bar"></span></td>'.repeat(8)+'</tr>').join('');
 
   const shops = usingDemo ? _shops : await sbGet('shops','select=id,nombre').catch(()=>_shops);
   const shopMap = Object.fromEntries(shops.map(s=>[s.id,s.nombre]));
