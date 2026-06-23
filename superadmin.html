@@ -134,6 +134,7 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .kpi-trend.up{color:var(--green);}
 .kpi-trend.down{color:var(--red);}
 .kpi-trend.warn{color:var(--orange);}
+.kpi-card[onclick]:active{transform:scale(0.97);}
 
 /* SECTIONS */
 .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
@@ -545,33 +546,42 @@ tr:hover td{background:rgba(255,255,255,0.016);}
       <div class="demo-banner" id="demoBanner" style="display:none">
         🧪 <strong>Modo Demo</strong> — Datos de prueba. Supabase no disponible o sin datos.
       </div>
-      <div style="margin-bottom:22px;">
-        <div style="font-size:0.7rem;color:var(--gold);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.15em;margin-bottom:6px;font-weight:600;">Centro de Control · AuraOS</div>
-        <div style="font-size:2rem;font-weight:800;letter-spacing:-0.03em;color:var(--text);font-family:'Outfit',sans-serif;line-height:1.05;">Dashboard Ejecutivo</div>
+      <!-- Alert panel -->
+      <div id="alertPanel" style="display:none;margin-bottom:16px;background:linear-gradient(160deg,rgba(231,76,60,0.06),rgba(255,255,255,0) 50%),var(--bg2);border:1px solid rgba(231,76,60,0.18);border-radius:14px;padding:16px 20px;"></div>
+      <div style="margin-bottom:22px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+        <div>
+          <div style="font-size:0.7rem;color:var(--gold);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.15em;margin-bottom:6px;font-weight:600;">Centro de Control · AuraOS</div>
+          <div style="font-size:2rem;font-weight:800;letter-spacing:-0.03em;color:var(--text);font-family:'Outfit',sans-serif;line-height:1.05;">Dashboard Ejecutivo</div>
+        </div>
+        <div style="display:flex;gap:6px;" id="dashPeriodBtns">
+          <button class="btn btn-ghost" style="padding:6px 12px;font-size:0.52rem;" onclick="setDashPeriod('hoy')" data-period="hoy">Hoy</button>
+          <button class="btn btn-ghost" style="padding:6px 12px;font-size:0.52rem;border-color:var(--gold);color:var(--gold);" onclick="setDashPeriod('semana')" data-period="semana">Semana</button>
+          <button class="btn btn-ghost" style="padding:6px 12px;font-size:0.52rem;" onclick="setDashPeriod('mes')" data-period="mes">Mes</button>
+        </div>
       </div>
       <div class="kpi-grid">
-        <div class="kpi-card" style="--accent-color:var(--gold)">
+        <div class="kpi-card" style="--accent-color:var(--gold);cursor:pointer;" onclick="showPage('shops')">
           <i data-lucide="store" class="kpi-icon"></i>
           <div class="kpi-label">Barberías Totales</div>
           <div class="kpi-value" id="kpi-shops">—</div>
           <div class="kpi-sub">Registradas en el sistema</div>
           <div class="kpi-trend up" id="kpi-shops-trend"></div>
         </div>
-        <div class="kpi-card" style="--accent-color:var(--green)">
+        <div class="kpi-card" style="--accent-color:var(--green);cursor:pointer;" onclick="showPage('pagos')">
           <i data-lucide="dollar-sign" class="kpi-icon"></i>
           <div class="kpi-label">MRR</div>
           <div class="kpi-value" id="kpi-mrr">—</div>
           <div class="kpi-sub">Ingresos mensuales recurrentes</div>
-          <div class="kpi-trend up">↑ Creciendo</div>
+          <div class="kpi-trend up" id="kpi-mrr-trend"></div>
         </div>
-        <div class="kpi-card" style="--accent-color:var(--blue)">
+        <div class="kpi-card" style="--accent-color:var(--blue);cursor:pointer;" onclick="showPage('analytics')">
           <i data-lucide="calendar" class="kpi-icon"></i>
           <div class="kpi-label">Citas Hoy (Global)</div>
           <div class="kpi-value" id="kpi-citas">—</div>
           <div class="kpi-sub">En todas las barberías</div>
           <div class="kpi-trend up" id="kpi-citas-trend">↑ Sistema activo</div>
         </div>
-        <div class="kpi-card" style="--accent-color:var(--orange)">
+        <div class="kpi-card" style="--accent-color:var(--orange);cursor:pointer;" onclick="showPage('solicitudes')">
           <i data-lucide="file-text" class="kpi-icon"></i>
           <div class="kpi-label">Solicitudes Pendientes</div>
           <div class="kpi-value" id="kpi-pending">—</div>
@@ -580,7 +590,7 @@ tr:hover td{background:rgba(255,255,255,0.016);}
         </div>
       </div>
       <div class="kpi-grid" style="margin-bottom:16px;">
-        <div class="kpi-card" style="--accent-color:#8B5CF6">
+        <div class="kpi-card" style="--accent-color:#8B5CF6;cursor:pointer;" onclick="showPage('clientes-app')">
           <i data-lucide="users" class="kpi-icon"></i>
           <div class="kpi-label">Clientes Únicos</div>
           <div class="kpi-value" id="kpi-clientes">—</div>
@@ -592,13 +602,13 @@ tr:hover td{background:rgba(255,255,255,0.016);}
           <div class="kpi-value" id="kpi-noshows">—</div>
           <div class="kpi-sub">Clientes ausentes</div>
         </div>
-        <div class="kpi-card" style="--accent-color:var(--green)">
+        <div class="kpi-card" style="--accent-color:var(--green);cursor:pointer;" onclick="showPage('analytics')">
           <i data-lucide="check-circle-2" class="kpi-icon"></i>
           <div class="kpi-label">Tasa Completadas</div>
           <div class="kpi-value" id="kpi-tasa">—</div>
           <div class="kpi-sub">De citas de hoy</div>
         </div>
-        <div class="kpi-card" style="--accent-color:var(--gold)">
+        <div class="kpi-card" style="--accent-color:var(--gold);cursor:pointer;" onclick="showPage('barberos')">
           <i data-lucide="scissors" class="kpi-icon"></i>
           <div class="kpi-label">Barberos Activos</div>
           <div class="kpi-value" id="kpi-barberos-activos">—</div>
@@ -625,30 +635,30 @@ tr:hover td{background:rgba(255,255,255,0.016);}
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
-        <div>
-          <div class="section-header">
+        <div class="chart-card" style="padding:18px;">
+          <div class="section-header" style="margin-bottom:10px;">
             <div class="section-title">Barberías Recientes</div>
-            <button class="btn btn-ghost" id="verTodasBtn">Ver todas →</button>
+            <button class="btn btn-ghost" style="padding:5px 10px;font-size:0.5rem;" id="verTodasBtn">Ver todas →</button>
           </div>
-          <div class="table-wrap">
-            <table><thead><tr><th>Barbería</th><th>Plan</th><th>Estado</th></tr></thead><tbody id="recentShops"></tbody></table>
+          <div class="table-wrap" style="box-shadow:none;border:none;background:transparent;">
+            <table><thead><tr><th>Barbería</th><th>Plan</th><th>Estado</th></tr></thead><tbody id="recentShops"><tr><td><div class="skeleton sk-bar" style="width:70%"></div></td><td><div class="skeleton sk-bar" style="width:50%"></div></td><td><div class="skeleton sk-bar" style="width:40%"></div></td></tr><tr><td><div class="skeleton sk-bar" style="width:60%"></div></td><td><div class="skeleton sk-bar" style="width:50%"></div></td><td><div class="skeleton sk-bar" style="width:45%"></div></td></tr><tr><td><div class="skeleton sk-bar" style="width:75%"></div></td><td><div class="skeleton sk-bar" style="width:50%"></div></td><td><div class="skeleton sk-bar" style="width:40%"></div></td></tr></tbody></table>
           </div>
         </div>
-        <div>
-          <div class="section-header"><div class="section-title">Actividad Reciente</div></div>
-          <div class="activity-feed" id="activityFeed"></div>
+        <div class="chart-card" style="padding:18px;">
+          <div class="section-header" style="margin-bottom:10px;"><div class="section-title">Actividad Reciente</div></div>
+          <div class="activity-feed" id="activityFeed" style="box-shadow:none;border:none;background:transparent;padding:0;"></div>
         </div>
       </div>
       <!-- Rankings -->
-      <div>
-        <div class="section-header">
+      <div class="chart-card" style="padding:18px;margin-bottom:14px;">
+        <div class="section-header" style="margin-bottom:10px;">
           <div class="section-title">⚡ Ranking de Barberías — Este Mes</div>
-          <button class="btn btn-ghost" onclick="loadGlobalKpis().then(renderDashboard)">↻ Actualizar</button>
+          <button class="btn btn-ghost" style="padding:5px 10px;font-size:0.5rem;" onclick="loadGlobalKpis().then(renderDashboard)">↻ Actualizar</button>
         </div>
-        <div class="table-wrap">
+        <div class="table-wrap" style="box-shadow:none;border:none;background:transparent;">
           <table>
             <thead><tr><th>#</th><th>Barbería</th><th>Plan</th><th>Citas/mes</th><th>Tasa completadas</th><th>Barbero Top</th></tr></thead>
-            <tbody id="shopRankingsTable"><tr><td colspan="6" style="color:var(--muted);text-align:center;padding:16px;font-size:0.62rem;">Cargando rankings...</td></tr></tbody>
+            <tbody id="shopRankingsTable"><tr><td><div class="skeleton sk-bar" style="width:20%"></div></td><td><div class="skeleton sk-bar" style="width:65%"></div></td><td><div class="skeleton sk-bar" style="width:40%"></div></td><td><div class="skeleton sk-bar" style="width:30%"></div></td><td><div class="skeleton sk-bar" style="width:35%"></div></td><td><div class="skeleton sk-bar" style="width:55%"></div></td></tr><tr><td><div class="skeleton sk-bar" style="width:20%"></div></td><td><div class="skeleton sk-bar" style="width:60%"></div></td><td><div class="skeleton sk-bar" style="width:40%"></div></td><td><div class="skeleton sk-bar" style="width:30%"></div></td><td><div class="skeleton sk-bar" style="width:35%"></div></td><td><div class="skeleton sk-bar" style="width:50%"></div></td></tr></tbody>
           </table>
         </div>
       </div>
@@ -2222,6 +2232,17 @@ async function loadGlobalKpis() {
   } catch(e){ addLog('WARN','KPIs RPC: '+e.message); }
 }
 
+let _dashPeriod = 'semana';
+function setDashPeriod(p) {
+  _dashPeriod = p;
+  document.querySelectorAll('#dashPeriodBtns button').forEach(b => {
+    const isActive = b.dataset.period === p;
+    b.style.borderColor = isActive ? 'var(--gold)' : '';
+    b.style.color = isActive ? 'var(--gold)' : '';
+  });
+  renderDashboard();
+}
+
 function renderDashboard() {
   const shops=_shops, citas=_citas;
   const activeShops=shops.filter(s=>s.activo).length;
@@ -2237,6 +2258,31 @@ function renderDashboard() {
   document.getElementById('mrrDisplay').textContent='$'+mrr;
   document.getElementById('shopsCount').textContent=shops.length;
 
+  // MRR trend — real % vs previous month
+  const mrrTrendEl = document.getElementById('kpi-mrr-trend');
+  if(mrrTrendEl && _globalKpis) {
+    const prev = _globalKpis.mrr_prev || 0;
+    const curr = _globalKpis.mrr || 0;
+    if(prev > 0) {
+      const pct = Math.round(((curr - prev) / prev) * 100);
+      if(pct > 0) { mrrTrendEl.className='kpi-trend up'; mrrTrendEl.textContent=`↑ +${pct}% vs mes anterior`; }
+      else if(pct < 0) { mrrTrendEl.className='kpi-trend down'; mrrTrendEl.textContent=`↓ ${pct}% vs mes anterior`; }
+      else { mrrTrendEl.className='kpi-trend up'; mrrTrendEl.textContent='→ Estable vs mes anterior'; }
+    } else if(curr > 0) {
+      mrrTrendEl.className='kpi-trend up'; mrrTrendEl.textContent='↑ Nuevo MRR este mes';
+    } else {
+      mrrTrendEl.className='kpi-trend'; mrrTrendEl.textContent='';
+    }
+  }
+
+  // Shops trend — activas + nuevas este mes
+  const shopsTrendEl = document.getElementById('kpi-shops-trend');
+  if(shopsTrendEl) {
+    const nuevas = _globalKpis?.shops_nuevas_mes || 0;
+    if(nuevas > 0) { shopsTrendEl.className='kpi-trend up'; shopsTrendEl.textContent=`↑ +${nuevas} nueva${nuevas>1?'s':''} este mes`; }
+    else { shopsTrendEl.className='kpi-trend up'; shopsTrendEl.textContent=`${activeShops} activa${activeShops!==1?'s':''} de ${shops.length}`; }
+  }
+
   // KPIs avanzados
   if(_globalKpis) {
     const completadas = _globalKpis.completadas_hoy;
@@ -2249,13 +2295,11 @@ function renderDashboard() {
     if(sinWA > 0) {
       addNotification(`⚠ ${sinWA} shop(s) sin WhatsApp configurado — bot inactivo`);
     }
-    // Segunda fila de KPIs
     const noShowsEl = document.getElementById('kpi-noshows');
     if(noShowsEl) noShowsEl.textContent = _globalKpis.noshows_hoy ?? '—';
     const tasaEl = document.getElementById('kpi-tasa');
     if(tasaEl) tasaEl.textContent = (total > 0 ? tasa : 0) + '%';
   }
-  // Clientes y barberos activos (calculados localmente)
   const clientesEl = document.getElementById('kpi-clientes');
   if(clientesEl) clientesEl.textContent = _globalKpis?.total_clientes ?? '—';
   const barberosActivosEl = document.getElementById('kpi-barberos-activos');
@@ -2273,14 +2317,36 @@ function renderDashboard() {
     document.getElementById('pendingBadge').style.display='none';
   }
 
+  // Alert panel — consolidate urgent items
+  renderAlertPanel(shops, pendingShops);
+
   renderRecentShops(shops.slice(0,5));
   renderActivity();
-  renderBarChart(citas);
+  renderBarChartReal();
   renderPlanDonut(shops);
   renderShopRankings();
   renderMrrHistorico(shops);
   renderTrialsPorVencer(shops);
   if(window.lucide) lucide.createIcons();
+}
+
+function renderAlertPanel(shops, pendingShops) {
+  const panel = document.getElementById('alertPanel');
+  if(!panel) return;
+  const alerts = [];
+  const hoy = new Date();
+  const trialsUrgentes = shops.filter(s => s.trial_activo && s.trial_ends_at && Math.ceil((new Date(s.trial_ends_at) - hoy) / 86400000) <= 3);
+  if(trialsUrgentes.length) alerts.push(`<span style="color:var(--red);font-weight:700;">⏰ ${trialsUrgentes.length} trial${trialsUrgentes.length>1?'s':''} vence${trialsUrgentes.length>1?'n':''} en ≤3 días</span> — ${trialsUrgentes.map(s=>s.nombre).join(', ')}`);
+  if(pendingShops > 0) alerts.push(`<span style="color:var(--orange);font-weight:700;">📋 ${pendingShops} solicitud${pendingShops>1?'es':''}</span> esperando aprobación`);
+  const sinWA = _globalKpis?.shops_sin_twilio || 0;
+  if(sinWA > 0) alerts.push(`<span style="color:var(--orange);font-weight:700;">⚠ ${sinWA} shop${sinWA>1?'s':''}</span> sin WhatsApp — bot inactivo`);
+  const sinActividad = shops.filter(s => s.activo && s.ultima_cita && Math.ceil((hoy - new Date(s.ultima_cita)) / 86400000) > 7);
+  if(sinActividad.length) alerts.push(`<span style="color:var(--muted);font-weight:700;">😴 ${sinActividad.length} barbería${sinActividad.length>1?'s':''}</span> sin citas en 7+ días`);
+
+  if(alerts.length === 0) { panel.style.display='none'; return; }
+  panel.style.display='block';
+  panel.innerHTML = `<div style="font-size:0.58rem;color:var(--red);letter-spacing:0.14em;text-transform:uppercase;font-weight:700;margin-bottom:8px;">⚡ Necesita tu atención</div>` +
+    alerts.map(a => `<div style="font-size:0.62rem;color:var(--text);padding:4px 0;line-height:1.5;">${a}</div>`).join('');
 }
 
 function renderShopRankings() {
@@ -2360,23 +2426,32 @@ function calcAgo(d) {
 }
 function fmt12rpt(h){if(!h)return'—';const[hh,mm]=(h+':00').split(':').map(Number),ap=hh>=12?'PM':'AM',h12=hh===0?12:hh>12?hh-12:hh;return h12+':'+(mm<10?'0':'')+mm+' '+ap;}
 
-function renderBarChart(citas) {
-  const days=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
-  const todayIdx=(new Date().getDay()+6)%7;
-  const counts=days.map((_,i)=>{
-    if(i===todayIdx) return citas.length;
-    const diff=Math.abs(i-todayIdx);
-    return Math.max(0, citas.length + Math.round((Math.random()-0.5)*4) - diff);
-  });
-  const total=counts.reduce((a,b)=>a+b,0);
-  const max=Math.max(...counts,1);
-  document.getElementById('chartTotal').textContent=`Total 7d: ${total}`;
-  document.getElementById('barChart').innerHTML=counts.map((c,i)=>`
-    <div class="bar-col">
-      <div class="bar-val">${c}</div>
-      <div class="bar ${i===todayIdx?'today':''}" style="height:${Math.max((c/max)*100,4)}%"></div>
-      <div class="bar-label">${days[i]}</div>
-    </div>`).join('');
+function renderBarChartReal() {
+  const dayNames = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const todayStr = new Date().toISOString().slice(0,10);
+
+  if(_globalKpis && _globalKpis.citas_por_dia_semana) {
+    const raw = _globalKpis.citas_por_dia_semana;
+    const last7 = [];
+    for(let i=6;i>=0;i--) {
+      const d = new Date(); d.setDate(d.getDate()-i);
+      const ds = d.toISOString().slice(0,10);
+      const found = raw.find(r => r.dia === ds);
+      last7.push({ dia: ds, total: found ? found.total : 0, label: dayNames[d.getDay()], isToday: ds === todayStr });
+    }
+    const total = last7.reduce((a,b)=>a+b.total,0);
+    const max = Math.max(...last7.map(d=>d.total),1);
+    document.getElementById('chartTotal').textContent=`Total 7d: ${total}`;
+    document.getElementById('barChart').innerHTML=last7.map(d=>`
+      <div class="bar-col">
+        <div class="bar-val">${d.total}</div>
+        <div class="bar ${d.isToday?'today':''}" style="height:${Math.max((d.total/max)*100,4)}%"></div>
+        <div class="bar-label">${d.label}</div>
+      </div>`).join('');
+  } else {
+    document.getElementById('chartTotal').textContent='Total 7d: —';
+    document.getElementById('barChart').innerHTML='<div style="color:var(--muted);font-size:0.6rem;padding:20px;text-align:center;width:100%;">Sin datos</div>';
+  }
 }
 
 function renderPlanDonut(shops) {
