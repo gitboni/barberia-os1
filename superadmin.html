@@ -680,22 +680,62 @@ tr:hover td{background:rgba(255,255,255,0.016);}
 
     <!-- ANALYTICS -->
     <div class="page" id="page-analytics">
-      <div class="section-header" style="margin-bottom:16px;">
-        <div class="section-title">📈 Analytics — Últimos 30 días</div>
-        <div style="display:flex;gap:8px;align-items:center;">
+      <div style="margin-bottom:22px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+        <div>
+          <div style="font-size:0.7rem;color:var(--gold);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.15em;margin-bottom:6px;font-weight:600;">Analytics · AuraOS</div>
+          <div style="font-size:1.85rem;font-weight:800;letter-spacing:-0.03em;color:var(--text);font-family:'Outfit',sans-serif;line-height:1.05;">Métricas Operativas</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <div style="display:flex;gap:4px;" id="anPeriodBtns">
+            <button class="btn btn-ghost" style="padding:6px 12px;font-size:0.52rem;" onclick="setAnPeriod(7)" data-period="7">7d</button>
+            <button class="btn btn-ghost" style="padding:6px 12px;font-size:0.52rem;border-color:var(--gold);color:var(--gold);" onclick="setAnPeriod(30)" data-period="30">30d</button>
+            <button class="btn btn-ghost" style="padding:6px 12px;font-size:0.52rem;" onclick="setAnPeriod(90)" data-period="90">90d</button>
+          </div>
           <select id="analyticsShopFilter" class="filter-select" style="font-size:0.58rem;" onchange="loadAnalytics()">
             <option value="">Todas las barberías</option>
           </select>
-          <button class="btn btn-ghost" onclick="loadAnalytics()">↻ Actualizar</button>
+          <button class="btn btn-ghost" style="padding:7px 14px;font-size:0.55rem;" onclick="exportAnalyticsCSV()" title="Exportar a CSV">↓ CSV</button>
+          <button class="btn btn-ghost" style="padding:7px 14px;font-size:0.55rem;" onclick="loadAnalytics()">↻</button>
         </div>
       </div>
 
       <!-- KPIs analytics -->
-      <div class="kpi-grid" style="margin-bottom:16px;" id="analyticsKpis">
-        <div class="kpi-card" style="--accent-color:var(--gold)"><div class="kpi-icon">📅</div><div class="kpi-label">Citas 30d</div><div class="kpi-value" id="an-total">—</div><div class="kpi-sub">Total registradas</div></div>
-        <div class="kpi-card" style="--accent-color:var(--green)"><div class="kpi-icon">✅</div><div class="kpi-label">Tasa completadas</div><div class="kpi-value" id="an-tasa">—</div><div class="kpi-sub">De citas no canceladas</div></div>
-        <div class="kpi-card" style="--accent-color:var(--red)"><div class="kpi-icon">🚫</div><div class="kpi-label">Cancelaciones</div><div class="kpi-value" id="an-cancel">—</div><div class="kpi-sub">Últimos 30 días</div></div>
-        <div class="kpi-card" style="--accent-color:var(--purple)"><div class="kpi-icon">🔁</div><div class="kpi-label">Retención</div><div class="kpi-value" id="an-retencion">—</div><div class="kpi-sub">Clientes con 2+ visitas</div></div>
+      <div class="kpi-grid" style="margin-bottom:16px;grid-template-columns:repeat(5,minmax(0,1fr));" id="analyticsKpis">
+        <div class="kpi-card" style="--accent-color:var(--gold)">
+          <i data-lucide="calendar" class="kpi-icon"></i>
+          <div class="kpi-label" id="an-total-label">Citas 30d</div>
+          <div class="kpi-value" id="an-total">—</div>
+          <div class="kpi-sub">Total registradas</div>
+          <div class="kpi-trend" id="an-total-trend"></div>
+        </div>
+        <div class="kpi-card" style="--accent-color:var(--green)">
+          <i data-lucide="dollar-sign" class="kpi-icon"></i>
+          <div class="kpi-label">Ingresos Estimados</div>
+          <div class="kpi-value" id="an-revenue">—</div>
+          <div class="kpi-sub">Citas completadas × precio</div>
+          <div class="kpi-trend" id="an-revenue-trend"></div>
+        </div>
+        <div class="kpi-card" style="--accent-color:var(--blue)">
+          <i data-lucide="check-circle-2" class="kpi-icon"></i>
+          <div class="kpi-label">Tasa Completadas</div>
+          <div class="kpi-value" id="an-tasa">—</div>
+          <div class="kpi-sub">De citas no canceladas</div>
+          <div class="kpi-trend" id="an-tasa-trend"></div>
+        </div>
+        <div class="kpi-card" style="--accent-color:var(--red)">
+          <i data-lucide="ban" class="kpi-icon"></i>
+          <div class="kpi-label">No-Shows</div>
+          <div class="kpi-value" id="an-noshows">—</div>
+          <div class="kpi-sub" id="an-cancel-sub">— canceladas</div>
+          <div class="kpi-trend" id="an-noshows-trend"></div>
+        </div>
+        <div class="kpi-card" style="--accent-color:var(--purple)">
+          <i data-lucide="repeat" class="kpi-icon"></i>
+          <div class="kpi-label">Retención</div>
+          <div class="kpi-value" id="an-retencion">—</div>
+          <div class="kpi-sub">Clientes con 2+ visitas</div>
+          <div class="kpi-trend" id="an-retencion-trend"></div>
+        </div>
       </div>
 
       <!-- Gráficas row 1 -->
@@ -714,12 +754,35 @@ tr:hover td{background:rgba(255,255,255,0.016);}
       <!-- Gráficas row 2 -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
         <div class="chart-card">
+          <div class="chart-title">📆 Por día de la semana</div>
+          <div id="an-diasem-chart" style="display:flex;flex-direction:column;gap:6px;"></div>
+        </div>
+        <div class="chart-card">
           <div class="chart-title">✂ Por barbero</div>
           <div id="an-barbero-chart" style="display:flex;flex-direction:column;gap:6px;"></div>
         </div>
+      </div>
+
+      <!-- Gráficas row 3 -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
         <div class="chart-card">
-          <div class="chart-title">💈 Servicios más populares</div>
+          <div class="chart-title">💈 Servicios más populares <span id="an-svc-rev" style="color:var(--green);font-size:0.55rem;"></span></div>
           <div id="an-servicios-chart" style="display:flex;flex-direction:column;gap:5px;"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">👤 Top Clientes</div>
+          <div id="an-topclientes-chart" style="display:flex;flex-direction:column;gap:5px;"></div>
+        </div>
+      </div>
+
+      <!-- Comparativa shops (solo si "Todas") -->
+      <div class="chart-card" id="an-comparativa-wrap" style="margin-bottom:14px;display:none;">
+        <div class="chart-title">🏪 Comparativa entre Barberías</div>
+        <div class="table-wrap" style="box-shadow:none;border:none;background:transparent;">
+          <table>
+            <thead><tr><th>Barbería</th><th>Citas</th><th>Completadas</th><th>Tasa</th><th>No-Shows</th><th>Ingresos est.</th><th>ARPU</th></tr></thead>
+            <tbody id="an-comparativa-body"></tbody>
+          </table>
         </div>
       </div>
 
@@ -729,7 +792,10 @@ tr:hover td{background:rgba(255,255,255,0.016);}
         <div id="an-retencion-chart" style="display:flex;gap:6px;flex-wrap:wrap;align-items:flex-end;min-height:60px;"></div>
       </div>
 
-      <div id="an-loading" style="text-align:center;padding:40px;color:var(--muted);font-size:0.6rem;letter-spacing:0.15em;display:none;">CARGANDO ANALYTICS...</div>
+      <div id="an-loading" style="text-align:center;padding:14px;color:var(--muted);font-size:0.55rem;letter-spacing:0.15em;display:none;">
+        <div class="skeleton sk-bar" style="width:90%;height:14px;margin:6px auto;"></div>
+        <div class="skeleton sk-bar" style="width:70%;height:14px;margin:6px auto;"></div>
+      </div>
     </div>
 
     <!-- SOLICITUDES -->
@@ -2477,18 +2543,27 @@ function renderPlanDonut(shops) {
 // ════════════════════════════════════════════
 let _analyticsData = null;
 
+let _anPeriod = 30; // días: 7, 30, 90
+function setAnPeriod(p) {
+  _anPeriod = p;
+  document.querySelectorAll('#anPeriodBtns button').forEach(b => {
+    const isActive = parseInt(b.dataset.period) === p;
+    b.style.borderColor = isActive ? 'var(--gold)' : '';
+    b.style.color = isActive ? 'var(--gold)' : '';
+  });
+  loadAnalytics();
+}
+
 async function loadAnalytics() {
   if(usingDemo) { renderAnalyticsDemo(); return; }
   const el = document.getElementById('an-loading');
   if(el) el.style.display = 'block';
 
   try {
-    // Filtro por shop
     const shopFilter = document.getElementById('analyticsShopFilter');
     const shopId = shopFilter ? shopFilter.value : '';
     const shopQ = shopId ? `&shop_id=eq.${shopId}` : '';
 
-    // Poblar selector de shops
     if(shopFilter && shopFilter.options.length === 1) {
       _shops.forEach(s => {
         const opt = document.createElement('option');
@@ -2498,17 +2573,36 @@ async function loadAnalytics() {
       if(shopId) shopFilter.value = shopId;
     }
 
-    const fechaDesde = new Date(); fechaDesde.setDate(fechaDesde.getDate()-30);
+    const N = _anPeriod;
+    const fechaDesde = new Date(); fechaDesde.setDate(fechaDesde.getDate()-N);
     const desde = fechaDesde.toISOString().split('T')[0];
+    const fechaPrev = new Date(); fechaPrev.setDate(fechaPrev.getDate()-(N*2));
+    const desdePrev = fechaPrev.toISOString().split('T')[0];
+    const hastaPrev = fechaDesde.toISOString().split('T')[0];
 
     const fechaRetencion = new Date(); fechaRetencion.setMonth(fechaRetencion.getMonth()-12);
     const desdeRetencion = fechaRetencion.toISOString().split('T')[0];
-    const [citas30, clientes30] = await Promise.all([
-      sbGet('citas', `fecha=gte.${desde}&estado=neq.null&select=id,fecha,hora,barbero,servicio,estado,shop_id,nombre${shopQ}&order=fecha.asc&limit=2000`),
-      sbGet('citas', `fecha=gte.${desdeRetencion}&select=nombre,shop_id${shopQ}&limit=5000`)
+
+    // Update labels
+    const totalLabelEl = document.getElementById('an-total-label');
+    if(totalLabelEl) totalLabelEl.textContent = `Citas ${N}d`;
+
+    const [citasAct, citasPrev, clientesAnio, servicios] = await Promise.all([
+      sbGet('citas', `fecha=gte.${desde}&estado=neq.null&select=id,fecha,hora,barbero,servicio,servicio_id,estado,shop_id,nombre,telefono${shopQ}&order=fecha.asc&limit=5000`),
+      sbGet('citas', `fecha=gte.${desdePrev}&fecha=lt.${hastaPrev}&estado=neq.null&select=id,estado,shop_id,nombre,servicio_id${shopQ}&limit=5000`),
+      sbGet('citas', `fecha=gte.${desdeRetencion}&select=nombre,shop_id${shopQ}&limit=8000`),
+      sbGet('servicios', `select=id,nombre,precio,shop_id&limit=2000`)
     ]);
 
-    _analyticsData = { citas: citas30, todosCitas: clientes30, desde };
+    _analyticsData = {
+      citas: citasAct,
+      citasPrev,
+      todosCitas: clientesAnio,
+      servicios,
+      desde,
+      periodN: N,
+      shopId
+    };
     renderAnalytics(_analyticsData);
   } catch(e) {
     console.error('Analytics error:', e);
@@ -2519,14 +2613,66 @@ async function loadAnalytics() {
   }
 }
 
+function trendHtml(curr, prev, suffix='', invertColor=false) {
+  if(prev == null || prev === 0) {
+    if(curr > 0) return `<span style="color:var(--green);">↑ Nuevo</span>`;
+    return '';
+  }
+  const pct = Math.round(((curr - prev) / prev) * 100);
+  if(pct === 0) return `<span style="color:var(--muted);">→ Estable</span>`;
+  const up = pct > 0;
+  const goodColor = invertColor ? (up?'var(--red)':'var(--green)') : (up?'var(--green)':'var(--red)');
+  return `<span style="color:${goodColor};">${up?'↑':'↓'} ${Math.abs(pct)}% vs período anterior${suffix}</span>`;
+}
+
+function exportAnalyticsCSV() {
+  if(!_analyticsData || !_analyticsData.citas) { showToast('No hay datos para exportar','error'); return; }
+  const { citas, servicios } = _analyticsData;
+  const priceMap = {};
+  (servicios||[]).forEach(s => { priceMap[s.id] = parseFloat(s.precio)||0; });
+  const shopMap = Object.fromEntries(_shops.map(s=>[s.id,s.nombre]));
+  const rows = [['Fecha','Hora','Barbería','Cliente','Servicio','Barbero','Estado','Precio est.']];
+  citas.forEach(c => {
+    rows.push([
+      c.fecha||'', c.hora||'', shopMap[c.shop_id]||'',
+      (c.nombre||'').replace(/,/g,' '), (c.servicio||'').replace(/,/g,' '),
+      (c.barbero||'').replace(/,/g,' '), c.estado||'',
+      c.servicio_id && priceMap[c.servicio_id] ? priceMap[c.servicio_id] : ''
+    ]);
+  });
+  const csv = rows.map(r => r.map(v => `"${(v+'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `analytics_${_anPeriod}d_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('CSV exportado', 'success');
+}
+
 function renderAnalytics(data) {
-  const { citas, todosCitas } = data;
+  const { citas, citasPrev, todosCitas, servicios, periodN, shopId } = data;
   const noCancel = citas.filter(c => c.estado !== 'Cancelada');
   const completadas = citas.filter(c => c.estado === 'Completada').length;
   const canceladas = citas.filter(c => c.estado === 'Cancelada').length;
+  const noShows = citas.filter(c => c.estado === 'No-Show').length;
   const tasa = noCancel.length > 0 ? Math.round((completadas / noCancel.length) * 100) : 0;
 
-  // Retención: clientes con 2+ visitas
+  // Previous period stats
+  const noCancelPrev = (citasPrev||[]).filter(c => c.estado !== 'Cancelada');
+  const completadasPrev = (citasPrev||[]).filter(c => c.estado === 'Completada').length;
+  const noShowsPrev = (citasPrev||[]).filter(c => c.estado === 'No-Show').length;
+  const tasaPrev = noCancelPrev.length > 0 ? Math.round((completadasPrev / noCancelPrev.length) * 100) : 0;
+
+  // Price map
+  const priceMap = {};
+  (servicios||[]).forEach(s => { priceMap[s.id] = parseFloat(s.precio)||0; });
+  const revenue = citas.filter(c => c.estado === 'Completada')
+    .reduce((sum, c) => sum + (c.servicio_id ? (priceMap[c.servicio_id]||0) : 0), 0);
+  const revenuePrev = (citasPrev||[]).filter(c => c.estado === 'Completada')
+    .reduce((sum, c) => sum + (c.servicio_id ? (priceMap[c.servicio_id]||0) : 0), 0);
+
+  // Retención
   const visitasPorCliente = {};
   todosCitas.forEach(c => {
     const key = (c.nombre || '').toLowerCase().trim() + (c.shop_id || '');
@@ -2538,9 +2684,21 @@ function renderAnalytics(data) {
 
   // KPIs
   setText('an-total', citas.length);
+  setText('an-revenue', '$' + Math.round(revenue).toLocaleString());
   setText('an-tasa', tasa + '%');
-  setText('an-cancel', canceladas);
+  setText('an-noshows', noShows);
+  setText('an-cancel-sub', `${canceladas} canceladas`);
   setText('an-retencion', retencion + '%');
+
+  // Trends
+  document.getElementById('an-total-trend').innerHTML = trendHtml(citas.length, (citasPrev||[]).length);
+  document.getElementById('an-revenue-trend').innerHTML = trendHtml(revenue, revenuePrev);
+  document.getElementById('an-tasa-trend').innerHTML = trendHtml(tasa, tasaPrev, ' pp', false);
+  document.getElementById('an-noshows-trend').innerHTML = trendHtml(noShows, noShowsPrev, '', true);
+  document.getElementById('an-retencion-trend').innerHTML = '';
+
+  // Hide cancel KPI sub if zero
+  if(canceladas === 0) setText('an-cancel-sub', 'Sin cancelaciones');
 
   // Citas por día
   const porDia = {};
@@ -2622,24 +2780,119 @@ function renderAnalytics(data) {
       </div>`).join('');
   }
 
-  // Servicios más populares
+  // Día de la semana
+  const diasNames = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const porDiaSem = [0,0,0,0,0,0,0];
+  citas.filter(c=>c.estado!=='Cancelada').forEach(c => {
+    if(!c.fecha) return;
+    const d = new Date(c.fecha + 'T12:00:00').getDay();
+    porDiaSem[d]++;
+  });
+  const maxDS = Math.max(...porDiaSem, 1);
+  const diasemEl = document.getElementById('an-diasem-chart');
+  if(diasemEl) {
+    diasemEl.innerHTML = diasNames.map((nm, i) => `
+      <div style="display:grid;grid-template-columns:88px 1fr 32px;align-items:center;gap:8px;">
+        <div style="font-size:0.58rem;color:var(--text);">${nm}</div>
+        <div style="height:9px;background:rgba(255,255,255,0.05);border-radius:5px;overflow:hidden;">
+          <div style="width:${Math.round((porDiaSem[i]/maxDS)*100)}%;height:100%;background:${porDiaSem[i]===maxDS?'var(--gold)':'rgba(201,168,76,0.4)'};border-radius:5px;transition:width 0.7s;"></div>
+        </div>
+        <div style="font-size:0.58rem;color:var(--muted);text-align:right;">${porDiaSem[i]}</div>
+      </div>`).join('');
+  }
+
+  // Servicios más populares (con revenue por servicio)
   const porServicio = {};
   citas.filter(c=>c.estado!=='Cancelada').forEach(c => {
     if(!c.servicio) return;
-    porServicio[c.servicio] = (porServicio[c.servicio] || 0) + 1;
+    if(!porServicio[c.servicio]) porServicio[c.servicio] = { cnt:0, rev:0 };
+    porServicio[c.servicio].cnt++;
+    if(c.estado === 'Completada' && c.servicio_id && priceMap[c.servicio_id]) {
+      porServicio[c.servicio].rev += priceMap[c.servicio_id];
+    }
   });
-  const servicios = Object.entries(porServicio).sort((a,b)=>b[1]-a[1]).slice(0,7);
-  const maxSvc = servicios[0] ? servicios[0][1] : 1;
+  const serviciosTop = Object.entries(porServicio).sort((a,b)=>b[1].cnt-a[1].cnt).slice(0,7);
+  const maxSvc = serviciosTop[0] ? serviciosTop[0][1].cnt : 1;
   const svcEl = document.getElementById('an-servicios-chart');
   if(svcEl) {
-    svcEl.innerHTML = servicios.map(([nombre, cnt], i) => `
-      <div style="display:grid;grid-template-columns:130px 1fr 28px;align-items:center;gap:8px;">
+    svcEl.innerHTML = serviciosTop.map(([nombre, v], i) => `
+      <div style="display:grid;grid-template-columns:120px 1fr 60px;align-items:center;gap:8px;">
         <div style="font-size:0.56rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${nombre}">${nombre}</div>
         <div style="height:8px;background:rgba(255,255,255,0.05);border-radius:4px;overflow:hidden;">
-          <div style="width:${Math.round((cnt/maxSvc)*100)}%;height:100%;background:rgba(212,160,23,${0.9-i*0.1});border-radius:4px;transition:width 0.7s;"></div>
+          <div style="width:${Math.round((v.cnt/maxSvc)*100)}%;height:100%;background:rgba(212,160,23,${0.9-i*0.1});border-radius:4px;transition:width 0.7s;"></div>
         </div>
-        <div style="font-size:0.56rem;color:var(--muted);text-align:right;">${cnt}</div>
+        <div style="font-size:0.5rem;color:var(--muted);text-align:right;">${v.cnt}${v.rev>0?` · <span style="color:var(--green)">$${Math.round(v.rev)}</span>`:''}</div>
       </div>`).join('');
+  }
+  const totalSvcRev = Object.values(porServicio).reduce((a,v)=>a+v.rev,0);
+  setText('an-svc-rev', totalSvcRev>0 ? `· $${Math.round(totalSvcRev).toLocaleString()} total` : '');
+
+  // Top Clientes
+  const porCliente = {};
+  citas.filter(c=>c.estado!=='Cancelada').forEach(c => {
+    if(!c.nombre) return;
+    const k = c.nombre.trim();
+    if(!porCliente[k]) porCliente[k] = { cnt:0, rev:0 };
+    porCliente[k].cnt++;
+    if(c.estado === 'Completada' && c.servicio_id && priceMap[c.servicio_id]) {
+      porCliente[k].rev += priceMap[c.servicio_id];
+    }
+  });
+  const topClientes = Object.entries(porCliente).sort((a,b)=>b[1].cnt-a[1].cnt).slice(0,7);
+  const maxCli = topClientes[0] ? topClientes[0][1].cnt : 1;
+  const topEl = document.getElementById('an-topclientes-chart');
+  if(topEl) {
+    if(!topClientes.length) {
+      topEl.innerHTML = '<div style="color:var(--muted);font-size:0.6rem;text-align:center;padding:14px;">Sin datos</div>';
+    } else {
+      topEl.innerHTML = topClientes.map(([nombre, v], i) => `
+        <div style="display:grid;grid-template-columns:18px 1fr 60px;align-items:center;gap:8px;">
+          <div style="font-size:0.6rem;color:var(--gold);font-family:'DM Mono',monospace;">#${i+1}</div>
+          <div style="font-size:0.6rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${nombre}">${nombre}</div>
+          <div style="font-size:0.52rem;color:var(--muted);text-align:right;">${v.cnt} ${v.cnt===1?'visita':'visitas'}${v.rev>0?` · <span style="color:var(--green)">$${Math.round(v.rev)}</span>`:''}</div>
+        </div>`).join('');
+    }
+  }
+
+  // Comparativa entre shops (solo si "Todas")
+  const compaWrap = document.getElementById('an-comparativa-wrap');
+  const compaBody = document.getElementById('an-comparativa-body');
+  if(compaWrap && compaBody) {
+    if(!shopId && _shops.length > 1) {
+      const shopStats = {};
+      citas.forEach(c => {
+        const sid = c.shop_id; if(!sid) return;
+        if(!shopStats[sid]) shopStats[sid] = { citas:0, completadas:0, noshows:0, cancel:0, revenue:0, clientes:new Set() };
+        shopStats[sid].citas++;
+        if(c.estado === 'Completada') {
+          shopStats[sid].completadas++;
+          if(c.servicio_id && priceMap[c.servicio_id]) shopStats[sid].revenue += priceMap[c.servicio_id];
+        }
+        if(c.estado === 'No-Show') shopStats[sid].noshows++;
+        if(c.estado === 'Cancelada') shopStats[sid].cancel++;
+        if(c.nombre) shopStats[sid].clientes.add(c.nombre.trim().toLowerCase());
+      });
+      const rows = Object.entries(shopStats).map(([sid, s]) => {
+        const shop = _shops.find(x=>x.id===sid);
+        const noCancelN = s.citas - s.cancel;
+        const tasaN = noCancelN > 0 ? Math.round((s.completadas/noCancelN)*100) : 0;
+        const arpu = s.clientes.size > 0 ? Math.round(s.revenue/s.clientes.size) : 0;
+        return { nombre: shop?.nombre || '(sin nombre)', ...s, tasa:tasaN, arpu };
+      }).sort((a,b)=>b.revenue-a.revenue);
+      compaBody.innerHTML = rows.map(r => `
+        <tr>
+          <td style="color:var(--text);font-weight:600;">${r.nombre}</td>
+          <td style="text-align:center;">${r.citas}</td>
+          <td style="text-align:center;color:var(--green);">${r.completadas}</td>
+          <td style="text-align:center;color:${r.tasa>=70?'var(--green)':r.tasa>=40?'var(--gold)':'var(--red)'};">${r.tasa}%</td>
+          <td style="text-align:center;color:${r.noshows>0?'var(--red)':'var(--muted)'};">${r.noshows}</td>
+          <td style="text-align:right;color:var(--green);font-weight:700;">$${Math.round(r.revenue).toLocaleString()}</td>
+          <td style="text-align:right;color:var(--gold);">$${r.arpu}</td>
+        </tr>`).join('');
+      compaWrap.style.display = 'block';
+    } else {
+      compaWrap.style.display = 'none';
+    }
   }
 
   // Retención detalle
@@ -2663,11 +2916,14 @@ function renderAnalytics(data) {
         <div style="font-size:0.46rem;color:var(--muted);text-align:center;">${labels[k]}</div>
       </div>`).join('');
   }
+  if(window.lucide) lucide.createIcons();
 }
 
 function renderAnalyticsDemo() {
   setText('an-total', '247'); setText('an-tasa', '78%');
-  setText('an-cancel', '18'); setText('an-retencion', '34%');
+  setText('an-revenue', '$3,892'); setText('an-noshows', '12');
+  setText('an-cancel-sub', '18 canceladas'); setText('an-retencion', '34%');
+  if(window.lucide) lucide.createIcons();
 }
 
 function setText(id, val) {
