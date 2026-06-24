@@ -5,7 +5,8 @@
     { "source": "/registro", "destination": "/register.html" },
     { "source": "/superadmin", "destination": "/superadmin.html" },
     { "source": "/privacidad", "destination": "/privacidad.html" },
-    { "source": "/terminos", "destination": "/terminos.html" }
+    { "source": "/terminos", "destination": "/terminos.html" },
+    { "source": "/acceso", "destination": "/acceso.html" }
   ],
   "headers": [
     {
