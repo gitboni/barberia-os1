@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Términos de Uso — AuraOS</title>
+<meta name="description" content="Términos y condiciones de uso de AuraOS. Reglas claras del servicio, planes, pagos, derechos y responsabilidades.">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#070708">
+<link rel="canonical" href="https://auraospro.com/terminos">
+<meta property="og:title" content="Términos de Uso — AuraOS">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://auraospro.com/terminos">
+<meta property="og:locale" content="es_DO">
+<link rel="icon" type="image/svg+xml" href="auraos-logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&family=DM+Mono:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+:root{
+  --bg:#070708;--surface:#0F0F12;--surface2:#141418;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --text:#E8E6E0;--muted:#5A5855;--muted2:#8A8885;
+  --gold:#D4A017;--gold2:#F5E050;--gold-dim:rgba(212,160,23,0.12);
+  --green:#2ECC71;--red:#E74C3C;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;font-size:16px;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overflow-x:hidden;opacity:0;transition:opacity 0.35s ease;}
+body.loaded{opacity:1;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.45;}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(212,160,23,0.3);}
+
+#progress-bar{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--gold2),var(--gold));background-size:200% 100%;z-index:1000;width:0%;transition:width 0.08s linear;animation:shimmer 3s linear infinite;}
+@keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:24px 52px;background:rgba(7,7,8,0);border-bottom:1px solid transparent;backdrop-filter:blur(0px);transition:all 0.5s cubic-bezier(0.16,1,0.3,1);}
+nav.scrolled{padding:14px 52px;background:rgba(7,7,8,0.72);border-bottom-color:rgba(255,255,255,0.05);backdrop-filter:blur(24px);box-shadow:0 10px 40px rgba(0,0,0,0.3);}
+.nav-logo{display:flex;align-items:center;gap:10px;font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:0.12em;background:linear-gradient(135deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none;}
+.nav-logo img{height:32px;width:32px;filter:drop-shadow(0 0 8px rgba(212,160,23,0.3));}
+.nav-links{display:flex;gap:34px;}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;transition:color 0.2s;position:relative;}
+.nav-links a:hover{color:var(--gold);}
+.nav-cta{background:var(--gold);color:#000;padding:10px 24px;font-family:'Inter',sans-serif;font-weight:600;font-size:0.62rem;letter-spacing:0.05em;text-transform:uppercase;text-decoration:none;transition:all 0.3s cubic-bezier(0.16,1,0.3,1);border-radius:100px;}
+.nav-cta:hover{background:var(--gold2);transform:scale(1.05);box-shadow:0 0 20px rgba(212,160,23,0.4);}
+
+.hero{min-height:78vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:160px 24px 80px;position:relative;overflow:hidden;}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 90% 60% at 50% -10%,rgba(212,160,23,0.09) 0%,transparent 60%),radial-gradient(ellipse 50% 50% at 85% 90%,rgba(212,160,23,0.04) 0%,transparent 50%);z-index:0;}
+.hero-mesh{position:absolute;inset:0;z-index:0;overflow:hidden;filter:blur(80px);pointer-events:none;}
+.hero-mesh-1{position:absolute;top:-20%;left:-10%;width:60%;height:60%;background:radial-gradient(circle,rgba(212,160,23,0.12) 0%,transparent 70%);animation:mesh-move 15s infinite alternate;}
+.hero-mesh-2{position:absolute;bottom:-10%;right:-10%;width:70%;height:70%;background:radial-gradient(circle,rgba(212,160,23,0.08) 0%,transparent 70%);animation:mesh-move 20s infinite alternate-reverse;}
+@keyframes mesh-move{0%{transform:translate(0,0) scale(1);}100%{transform:translate(15%,10%) scale(1.1);}}
+.light-rays{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:100%;height:100%;background:radial-gradient(circle,rgba(212,160,23,0.10) 0%,transparent 60%);z-index:0;pointer-events:none;animation:rays-rotate 30s linear infinite;}
+@keyframes rays-rotate{from{transform:translate(-50%,-50%) rotate(0deg);}to{transform:translate(-50%,-50%) rotate(360deg);}}
+
+.hero-badge{display:inline-flex;align-items:center;gap:9px;border:1px solid rgba(212,160,23,0.25);padding:7px 18px;font-size:0.55rem;letter-spacing:0.28em;text-transform:uppercase;color:var(--gold);margin-bottom:30px;animation:fadeIn 0.7s ease both;position:relative;z-index:1;font-family:'DM Mono',monospace;}
+.hero-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 10px var(--gold);}
+.hero-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(3.4rem,10vw,7.5rem);letter-spacing:0.03em;line-height:0.92;margin-bottom:22px;animation:slideUp 0.8s cubic-bezier(0.16,1,0.3,1) both 0.1s;position:relative;z-index:1;color:var(--text);}
+.hero-title .accent{display:block;background:linear-gradient(135deg,var(--gold) 20%,var(--gold2) 60%,var(--gold));background-size:200% 100%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:text-shimmer 5s linear infinite;}
+@keyframes text-shimmer{0%{background-position:0% 50%;}100%{background-position:200% 50%;}}
+.hero-italic{font-family:'Playfair Display',serif;font-style:italic;font-weight:400;color:var(--gold);}
+.hero-sub{font-size:0.92rem;color:var(--muted2);max-width:580px;line-height:1.85;margin:0 auto 38px;animation:slideUp 0.8s cubic-bezier(0.16,1,0.3,1) both 0.2s;letter-spacing:0.02em;position:relative;z-index:1;}
+.hero-meta{display:flex;gap:32px;justify-content:center;flex-wrap:wrap;position:relative;z-index:1;animation:fadeIn 0.8s ease both 0.4s;}
+.hero-meta-item{display:flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);letter-spacing:0.18em;text-transform:uppercase;}
+.hero-meta-item i{width:13px;height:13px;color:var(--gold);}
+.hero-meta-item strong{color:var(--text);font-weight:400;}
+
+.marquee-container{overflow:hidden;white-space:nowrap;padding:26px 0;background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);position:relative;z-index:1;}
+.marquee-content{display:inline-block;animation:marquee 50s linear infinite;}
+.marquee-item{display:inline-flex;align-items:center;gap:14px;margin-right:64px;font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--muted);opacity:0.4;transition:all 0.3s ease;cursor:default;letter-spacing:0.1em;}
+.marquee-item:hover{opacity:1;color:var(--gold);}
+.marquee-item i{width:16px;height:16px;}
+.marquee-sep{margin-right:64px;color:rgba(212,160,23,0.3);font-size:1rem;}
+@keyframes marquee{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+
+.layout{max-width:1180px;margin:0 auto;padding:90px 52px 70px;display:grid;grid-template-columns:240px 1fr;gap:80px;position:relative;z-index:1;}
+.page{min-width:0;}
+
+aside.toc{position:sticky;top:110px;align-self:start;max-height:calc(100vh - 140px);overflow-y:auto;padding-right:8px;}
+aside.toc::-webkit-scrollbar{width:2px;}
+.toc-label{font-family:'DM Mono',monospace;font-size:0.5rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+.toc-label::before{content:'';width:14px;height:1px;background:var(--gold);}
+aside.toc ul{list-style:none;display:flex;flex-direction:column;gap:2px;border-left:1px solid var(--border);}
+aside.toc a{font-size:0.66rem;color:var(--muted2);text-decoration:none;transition:all 0.25s;display:block;padding:7px 0 7px 16px;margin-left:-1px;border-left:1px solid transparent;letter-spacing:0.02em;line-height:1.45;}
+aside.toc a:hover{color:var(--text);border-left-color:rgba(212,160,23,0.4);}
+aside.toc a.active{color:var(--gold);border-left-color:var(--gold);font-weight:500;}
+aside.toc a .num{font-family:'DM Mono',monospace;color:var(--muted);font-size:0.55rem;margin-right:8px;letter-spacing:0.1em;}
+
+.seccion{margin-bottom:80px;scroll-margin-top:110px;opacity:0;transform:translateY(20px);transition:opacity 0.7s ease,transform 0.7s ease;}
+.seccion.visible{opacity:1;transform:translateY(0);}
+.sec-head{display:flex;align-items:flex-start;gap:24px;margin-bottom:28px;position:relative;}
+.sec-num{font-family:'Bebas Neue',sans-serif;font-size:5.5rem;line-height:0.85;color:transparent;-webkit-text-stroke:1px rgba(212,160,23,0.25);letter-spacing:0.02em;flex-shrink:0;margin-top:-8px;transition:color 0.4s,-webkit-text-stroke-color 0.4s;}
+.seccion.visible .sec-num{-webkit-text-stroke-color:rgba(212,160,23,0.5);}
+.sec-titles{flex:1;padding-top:8px;}
+.sec-label{font-family:'DM Mono',monospace;font-size:0.5rem;letter-spacing:0.32em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;display:flex;align-items:center;gap:10px;}
+.sec-label i{width:14px;height:14px;}
+.sec-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(1.7rem,3.2vw,2.5rem);letter-spacing:0.03em;line-height:1.05;color:var(--text);margin-bottom:4px;}
+.sec-title .italic{font-family:'Playfair Display',serif;font-style:italic;font-weight:400;color:var(--gold);}
+.copy-link{position:absolute;top:0;right:0;background:transparent;border:1px solid var(--border);color:var(--muted);padding:7px 12px;font-family:'DM Mono',monospace;font-size:0.5rem;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;transition:all 0.25s;opacity:0;display:flex;align-items:center;gap:6px;}
+.copy-link i{width:11px;height:11px;}
+.seccion:hover .copy-link{opacity:1;}
+.copy-link:hover{border-color:var(--gold);color:var(--gold);}
+.copy-link.copied{border-color:var(--green);color:var(--green);opacity:1;}
+
+.sec-body{font-size:0.78rem;color:var(--muted2);line-height:1.9;margin-bottom:14px;letter-spacing:0.01em;font-weight:300;}
+.sec-body strong{color:var(--text);font-weight:500;}
+.sec-body a{color:var(--gold);text-decoration:none;border-bottom:1px solid rgba(212,160,23,0.3);transition:border-color 0.2s;}
+.sec-body a:hover{border-bottom-color:var(--gold);}
+
+ul.items{list-style:none;display:flex;flex-direction:column;gap:14px;margin-top:8px;}
+ul.items li{font-size:0.76rem;color:var(--muted2);line-height:1.85;padding:14px 18px 14px 22px;position:relative;background:rgba(15,15,18,0.5);border-left:1px solid rgba(212,160,23,0.2);transition:all 0.25s;font-weight:300;letter-spacing:0.01em;}
+ul.items li:hover{background:rgba(15,15,18,0.9);border-left-color:var(--gold);transform:translateX(3px);}
+ul.items li strong{color:var(--text);font-weight:500;display:inline-block;margin-right:4px;}
+
+.callout{border:1px solid var(--border2);background:linear-gradient(135deg,rgba(212,160,23,0.05) 0%,var(--surface) 60%);padding:24px 28px;border-radius:18px;margin:20px 0;border-left:2px solid var(--gold);display:flex;gap:18px;align-items:flex-start;}
+.callout.danger{background:linear-gradient(135deg,rgba(231,76,60,0.05) 0%,var(--surface) 60%);border-left-color:var(--red);}
+.callout .co-ico{width:38px;height:38px;border:1px solid rgba(212,160,23,0.4);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--gold);flex-shrink:0;}
+.callout.danger .co-ico{border-color:rgba(231,76,60,0.4);color:var(--red);}
+.callout .co-ico i{width:16px;height:16px;}
+.callout .co-title{font-family:'DM Mono',monospace;font-size:0.55rem;letter-spacing:0.28em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;}
+.callout.danger .co-title{color:var(--red);}
+.callout p{font-size:0.74rem;color:var(--muted2);line-height:1.8;font-weight:300;}
+
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--border2),transparent);margin:60px 0;border:none;}
+
+.contact-box{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:40px 44px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;position:relative;overflow:hidden;}
+.contact-box::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.contact-block .c-label{font-family:'DM Mono',monospace;font-size:0.5rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.contact-block .c-val{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:0.04em;color:var(--gold);}
+.contact-block .c-val a{color:inherit;text-decoration:none;transition:color 0.2s;}
+.contact-block .c-val a:hover{color:var(--gold2);}
+.contact-block .c-sub{font-size:0.65rem;color:var(--muted2);margin-top:4px;font-weight:300;}
+
+footer{text-align:center;font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--muted);letter-spacing:0.2em;padding:40px 24px;border-top:1px solid var(--border);margin-top:50px;}
+footer a{color:var(--gold);text-decoration:none;}
+footer a:hover{color:var(--gold2);}
+
+.toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface2);border:1px solid var(--gold);color:var(--gold);padding:12px 22px;font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;opacity:0;pointer-events:none;transition:all 0.3s cubic-bezier(0.16,1,0.3,1);z-index:300;display:flex;align-items:center;gap:8px;border-radius:50px;}
+.toast i{width:14px;height:14px;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
+
+@media(max-width:960px){
+  .layout{grid-template-columns:1fr;gap:0;padding:70px 32px 50px;}
+  aside.toc{display:none;}
+}
+@media(max-width:600px){
+  nav{padding:14px 20px;}
+  .hero{padding:130px 20px 60px;}
+  .layout{padding-left:20px;padding-right:20px;}
+  .sec-head{gap:14px;}
+  .sec-num{font-size:3.8rem;}
+  .contact-box{flex-direction:column;align-items:flex-start;padding:28px;}
+  .nav-links{display:none;}
+  .hero-meta{gap:18px;}
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<nav id="nav">
+  <a class="nav-logo" href="/">
+    <img src="auraos-logo.svg" alt="" onerror="this.style.display='none'">
+    AURAOS
+  </a>
+  <div class="nav-links">
+    <a href="/#features">Producto</a>
+    <a href="/#pricing">Precios</a>
+    <a href="/privacidad">Privacidad</a>
+  </div>
+  <a class="nav-cta" href="/">← Volver</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="light-rays"></div>
+  <div class="hero-mesh">
+    <div class="hero-mesh-1"></div>
+    <div class="hero-mesh-2"></div>
+  </div>
+
+  <div class="hero-badge">
+    <span>Legal · Documento Vigente</span>
+  </div>
+
+  <h1 class="hero-title">
+    Términos de
+    <span class="accent">Uso</span>
+  </h1>
+
+  <p class="hero-sub">
+    Reglas claras del servicio <strong>AuraOS</strong> — qué te ofrecemos,
+    qué esperamos de ti, y cómo resolvemos las cosas cuando algo
+    <span class="hero-italic">sale distinto</span>.
+  </p>
+
+  <div class="hero-meta">
+    <div class="hero-meta-item"><i data-lucide="clock"></i> Última act.: <strong>23 Jun 2026</strong></div>
+    <div class="hero-meta-item"><i data-lucide="book-open"></i> Lectura: <strong>~6 min</strong></div>
+    <div class="hero-meta-item"><i data-lucide="git-commit"></i> Versión <strong>1.0</strong></div>
+  </div>
+</section>
+
+<div class="marquee-container">
+  <div class="marquee-content">
+    <span class="marquee-item"><i data-lucide="zap"></i> SETUP EN 2 MIN</span>
+    <span class="marquee-sep">·</span>
+    <span class="marquee-item"><i data-lucide="credit-card"></i> SIN PERMANENCIA</span>
+    <span class="marquee-sep">·</span>
+    <span class="marquee-item"><i data-lucide="shield"></i> CANCELA CUANDO QUIERAS</span>
+    <span class="marquee-sep">·</span>
+    <span class="marquee-item"><i data-lucide="message-circle"></i> SOPORTE 24/7</span>
+    <span class="marquee-sep">·</span>
+    <span class="marquee-item"><i data-lucide="refresh-cw"></i> 14 DÍAS DE PRUEBA</span>
+    <span class="marquee-sep">·</span>
+    <span class="marquee-item"><i data-lucide="zap"></i> SETUP EN 2 MIN</span>
+    <span class="marquee-sep">·</span>
+    <span class="marquee-item"><i data-lucide="credit-card"></i> SIN PERMANENCIA</span>
+    <span class="marquee-sep">·</span>
+    <span class="marquee-item"><i data-lucide="shield"></i> CANCELA CUANDO QUIERAS</span>
+    <span class="marquee-sep">·</span>
+  </div>
+</div>
+
+<div class="layout">
+
+  <aside class="toc">
+    <div class="toc-label">En esta página</div>
+    <ul>
+      <li><a href="#sec-1"><span class="num">01</span>Definiciones</a></li>
+      <li><a href="#sec-2"><span class="num">02</span>Aceptación</a></li>
+      <li><a href="#sec-3"><span class="num">03</span>Tu cuenta</a></li>
+      <li><a href="#sec-4"><span class="num">04</span>Planes y pagos</a></li>
+      <li><a href="#sec-5"><span class="num">05</span>Prueba gratuita</a></li>
+      <li><a href="#sec-6"><span class="num">06</span>Uso permitido</a></li>
+      <li><a href="#sec-7"><span class="num">07</span>Uso prohibido</a></li>
+      <li><a href="#sec-8"><span class="num">08</span>WhatsApp y bot</a></li>
+      <li><a href="#sec-9"><span class="num">09</span>Propiedad intelectual</a></li>
+      <li><a href="#sec-10"><span class="num">10</span>Disponibilidad</a></li>
+      <li><a href="#sec-11"><span class="num">11</span>Suspensión</a></li>
+      <li><a href="#sec-12"><span class="num">12</span>Responsabilidad</a></li>
+      <li><a href="#sec-13"><span class="num">13</span>Cambios</a></li>
+      <li><a href="#sec-14"><span class="num">14</span>Ley aplicable</a></li>
+      <li><a href="#sec-15"><span class="num">15</span>Contacto</a></li>
+    </ul>
+  </aside>
+
+  <div class="page">
+
+    <div class="seccion" id="sec-1">
+      <div class="sec-head">
+        <div class="sec-num">01</div>
+        <div class="sec-titles">
+          <div class="sec-label"><i data-lucide="book"></i> Glosario</div>
+          <h2 class="sec-title">Algunas <span class="italic">definiciones</span></h2>
+        </div>
+        <button class="copy-link" data-anchor="sec-1"><i data-lucide="link-2"></i>Copiar</button>
+      </div>
+      <ul class="items">
+        <li><strong>AuraOS:</strong> la plataforma SaaS de reservas automáticas por WhatsApp operada por Rafael Bonifacio Delgado, con sede en Santiago, República Dominicana.</li>
+        <li><strong>Servicio:</strong> el conjunto de funcionalidades web, app móvil y bot de WhatsApp que ofrecemos bajo la marca AuraOS.</li>
+        <li><strong>Negocio / Cliente:</strong> la barbería, salón, spa o establecimiento que contrata el Servicio para gestionar sus reservas.</li>
+        <li><strong>Cliente final:</strong> la persona que reserva citas en un Negocio a través del bot o la app.</li>
+        <li><strong>Cuenta:</strong> el acceso identificado con teléfono o correo que te permite usar el Servicio.</li>
+        <li><strong>Plan:</strong> el nivel de suscripción contratado (Free, Pro, Elite o equivalente vigente).</li>
+      </ul>
+    </div>
+
+    <div class="seccion" id="sec-2">
+      <div class="sec-head">
+        <div class="sec-num">02</div>
+        <div class="sec-titles">
+          <div class="sec-label"><i data-lucide="check-circle"></i> Acuerdo</div>
+          <h2 class="sec-title">Aceptación del <span class="italic">servicio</span></h2>
+        </div>
+        <button class="copy-link" data-anchor="sec-2"><i data-lucide="link-2"></i>Copiar</button>
+      </div>
+      <p class="sec-body">
+        Al registrarte, instalar la app móvil, interactuar con nuestro bot de WhatsApp o usar cualquier
+        funcionalidad del Servicio, aceptas estos Términos y nuestra <a href="/privacidad">Política de
+        Privacidad</a>. Si no estás de acuerdo, no uses el Servicio.
+      </p>
+      <p class="sec-body">
+        Si actúas en nombre de un Negocio, declaras que tienes autoridad para vincular a ese Negocio a estos Términos.
+      </p>
+    </div>
+
+    <div class="seccion" id="sec-3">
+      <div class="sec-head">
+        <div class="sec-num">03</div>
+        <div class="sec-titles">
+          <div class="sec-label"><i data-lucide="user"></i> Tu acceso</div>
+          <h2 class="sec-title">Cuenta y <span class="italic">credenciales</span></h2>
+        </div>
+        <button class="copy-link" data-anchor="sec-3"><i data-lucide="link-2"></i>Copiar</button>
+      </div>
+      <ul class="items">
+        <li><strong>Datos veraces:</strong> debes proporcionar información real (nombre, teléfono, email del Negocio). Datos falsos pueden causar suspensión.</li>
+        <li><strong>Seguridad:</strong> eres responsable de proteger tu contraseña. No la compartas. Cambiamos credenciales bajo tu solicitud verificada.</li>
+        <li><strong>Una cuenta por Negocio:</strong> cada local físico requiere su propia cuenta y plan. Compartir credenciales entre Negocios distintos no está permitido.</li>
+        <li><strong>Mayoría de edad:</strong> debes tener al menos 18 años para contratar el Servicio en nombre de un Negocio.</li>
+      </ul>
+    </div>
+
+    <div class="seccion" id="sec-4">
+      <div class="sec-head">
+        <div class="sec-num">04</div>
+        <div class="sec-titles">
+          <div class="sec-label"><i data-lucide="dollar-sign"></i> Suscripción</div>
+          <h2 class="sec-title">Planes y <span class="italic">pagos</span></h2>
+        </div>
+        <button class="copy-link" data-anchor="sec-4"><i data-lucide="link-2"></i>Copiar</button>
+      </div>
+      <ul class="items">
+        <li><strong>Facturación:</strong> los planes Pro y Elite se cobran mensual o anualmente por adelantado, según lo que elijas al contratar.</li>
+        <li><strong>Métodos de pago:</strong> aceptamos transferencia bancaria, PayPal y otros métodos vigentes en RD/LatAm.</li>
+        <li><strong>Renovación:</strong> tu plan se renueva automáticamente al fin de cada periodo, salvo cancelación previa.</li>
+        <li><strong>Sin permanencia:</strong> puedes cancelar tu plan en cualquier momento. La cancelación aplica al final del periodo ya pagado.</li>
+        <li><strong>Reembolsos:</strong> no se reembolsan periodos ya pagados, salvo error imputable a nosotros. Si cancelas a mitad de mes, sigues con acceso hasta el fin del periodo.</li>
+        <li><strong>Cambios de precio:</strong> te notificaremos con al menos 30 días de anticipación cualquier cambio de tarifa. Puedes cancelar si no aceptas el nuevo precio.</li>
+      </ul>
+    </div>
+
+    <div class="seccion" id="sec-5">
+      <div class="sec-head">
+        <div class="sec-num">05</div>
+        <div class="sec-titles">
+          <div class="sec-label"><i data-lucide="gift"></i> Trial</div>
+          <h2 class="sec-title">Prueba <span class="italic">gratuita</span></h2>
+        </div>
+        <button class="copy-link" data-anchor="sec-5"><i data-lucide="link-2"></i>Copiar</button>
+      </div>
+      <p class="sec-body">
+        Ofrecemos <strong>14 días de prueba gratuita sin tarjeta</strong> para que evalúes el Servicio. Durante el trial
+        tienes acceso completo a las funcionalidades del plan elegido. Al finalizar, debes elegir un plan de pago
+        para continuar; si no lo haces, tu cuenta pasa automáticamente al plan Free con funcionalidad reducida.
+      </p>
+    </div>
+
+    <div class="seccion" id="sec-6">
+      <div class="sec-head">
+        <div class="sec-num">06</div>
+        <div class="sec-titles">
+          <div class="sec-label"><i data-lucide="check"></i> Buen uso</div>
+          <h2 class="sec-title">Uso <span class="italic">permitido</span></h2>
+        </div>
+        <button class="copy-link" data-anchor="sec-6"><i data-lucide="link-2"></i>Copiar</button>
+      </div>
+      <p class="sec-body">
+        AuraOS está diseñado para gestionar reservas, citas, clientes y comunicaciones de Negocios de belleza
+        y bienestar (barberías, salones, spas, estéticas, centros de uñas) operando legalmente en
+        República Dominicana, Latinoamérica y mercados afines.
+      </p>
+    </div>
+
+    <div class="seccion" id="sec-7">
+      <div class="sec-head">
+        <div class="sec-num">07</div>
+        <div class="sec-titles">
+          <div class="sec-label"><i data-lucide="ban"></i> Restricciones</div>
+          <h2 class="sec-title">Uso <span class="italic">prohibido</span></h2>
+        </div>
+        <button class="copy-link" data-anchor="sec-7"><i data-lucide="link-2"></i>Copiar</button>
+      </div>
+      <ul class="items">
+        <li>Enviar spam, publicidad no solicitada o mensajes masivos no relacionados con la operación del Negocio.</li>
+        <li>Suplantar a otra persona, Negocio o entidad.</li>
+        <li>Cargar contenido ilegal, abusivo, discriminatorio, sexualmente explícito o que viole derechos de terceros.</li>
+        <li>Intentar hackear, vulnerar, hacer ingeniería inversa o sobrecargar nuestros sistemas.</li>
+        <li>Usar el Servicio para actividades fraudulentas, lavado de dinero o cualquier acto ilícito.</li>
+        <li>Revender el Servicio sin nuestro consentimiento escrito.</li>
+        <li>Saltarse los límites de mensajes, almacenamiento o usuarios fijados en tu plan.</li>
+      </ul>
+      <div class="callout danger">
+        <div class="co-ico"><i data-lucide="alert-triangle"></i></div>
+        <div>
+          <div class="co-title">Consecuencias</div>
+          <p>Cualquiera de estas conductas puede causar <strong>suspensión inmediata sin reembolso</strong> y, en casos graves, denuncia a las autoridades competentes.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="seccion" id="sec-8">
+      <div class="sec-head">
+        <div class="sec-num">08</div>
+        <div class="sec-titles">
+          <div class="sec-label"><i data-lucide="message-square"></i> WhatsApp</div>
+          <h2 class="sec-title">Bot de <span class="italic">WhatsApp</span></h2>
+        </div>
+        <button class="copy-link" data-anchor="sec-8"><i data-lucide="link-2"></i>Copiar</button>
+      </div>
+      <p class="sec-body">
+        El bot de AuraOS usa la API oficial de WhatsApp Business (Meta). Al usar el Servicio aceptas también
+        las políticas de Meta. Eres responsable de:
+      </p>
+      <ul class="items">
+        <li>Obtener consentimiento de tus clientes para enviarles mensajes automatizados.</li>
+        <li>Responder o derivar mensajes cuando el cliente solicite hablar con un humano.</li>
+        <li>No usar el bot para acoso, fraude o cualquier conducta prohibida por Meta.</li>
+        <li>Mantener tu número de WhatsApp Business activo y en buen estado dentro de Meta.</li>
+      </ul>
+      <p class="sec-body">
+        Si Meta bloquea o limita tu número por incumplimiento de sus políticas, AuraOS no puede revertirlo
+        y no es responsable de la pérdida temporal de servicio.
+      </p>
+    </div>
+
+    <div class="seccion" id="sec-9">
+      <div class="sec-head">
+        <div class="sec-num">09</div>
+        <div class="sec-titles">
+          <div class="sec-label"><i data-lucide="copyright"></i> Marcas y código</div>
+          <h2 class="sec-title">Propiedad <span class="italic">intelectual</span></h2>
+        </div>
+        <button class="copy-link" data-anchor="sec-9"><i data-lucide="link-2"></i>Copiar</button>
+      </div>
+      <p class="sec-body">
+        AuraOS, su logo, código fuente, diseño y contenido son propiedad de Rafael Bonifacio Delgado. Te otorgamos
+        una licencia limitada, no exclusiva e intransferible para usar el Servicio durante la vigencia de tu plan.
+      </p>
+      <p class="sec-body">
+        Los datos que tú cargas en el Servicio (clientes, citas, fotos, configuración) <strong>siguen siendo tuyos</strong>.
+        Solo los procesamos para operar el Servicio según nuestra <a href="/privacidad">Política de Privacidad</a>.
+      </p>
+    </div>
+
+    <div class="seccion" id="sec-10">
+      <div class="sec-head">
+        <div class="sec-num">10</div>
+        <div class="sec-titles">
+          <div class="sec-label"><i data-lucide="activity"></i> Uptime</div>
+          <h2 class="sec-title">Disponibilidad del <span class="italic">servicio</span></h2>
+        </div>
+        <button class="copy-link" data-anchor="sec-10"><i data-lucide="link-2"></i>Copiar</button>
+      </div>
+      <p class="sec-body">
+        Hacemos nuestro mejor esfuerzo para mantener AuraOS disponible 24/7. Sin embargo, el Servicio puede
+        sufrir interrupciones por mantenimientos programados, fallos de proveedores (Supabase, Vercel, Meta),
+        cortes de internet o fuerza mayor.
+      </p>
+      <p class="sec-body">
+        El plan Free se presta <strong>"tal cual"</strong> sin garantía de disponibilidad.
+        Para planes pagos, en caso de interrupciones extensas atribuibles a nosotros, podemos otorgar
+        créditos proporcionales en el siguiente periodo.
+      </p>
+    </div>
+
+    <div class="seccion" id="sec-11">
+      <div class="sec-head">
+        <div class="sec-num">11</div>
+        <div class="sec-titles">
+          <div class="sec-label"><i data-lucide="user-x"></i> Cierre de cuenta</div>
+          <h2 class="sec-title">Suspensión y <span class="italic">cancelación</span></h2>
+        </div>
+        <button class="copy-link" data-anchor="sec-11"><i data-lucide="link-2"></i>Copiar</button>
+      </div>
+      <ul class="items">
+        <li><strong>Por tu parte:</strong> puedes cancelar tu plan o eliminar tu cuenta en cualquier momento desde el panel o escribiendo a soporte.</li>
+        <li><strong>Por nuestra parte:</strong> podemos suspender o cancelar tu cuenta si violas estos Términos, tienes pagos vencidos por más de 15 días, o tu actividad pone en riesgo a otros usuarios.</li>
+        <li><strong>Avisaremos:</strong> antes de cancelar por violación grave, te enviaremos un aviso con 7 días para corregir, salvo casos urgentes (fraude, abuso, requerimiento legal).</li>
+        <li><strong>Datos al cerrar:</strong> tras la cancelación, conservamos tus datos 30 días por si quieres reactivar. Después se eliminan permanentemente (excepto registros legales/fiscales que debamos retener).</li>
+      </ul>
+    </div>
+
+    <div class="seccion" id="sec-12">
+      <div class="sec-head">
+        <div class="sec-num">12</div>
+        <div class="sec-titles">
+          <div class="sec-label"><i data-lucide="shield-alert"></i> Límites</div>
+          <h2 class="sec-title">Limitación de <span class="italic">responsabilidad</span></h2>
+        </div>
+        <button class="copy-link" data-anchor="sec-12"><i data-lucide="link-2"></i>Copiar</button>
+      </div>
+      <p class="sec-body">
+        AuraOS se presta tal cual y según disponibilidad. En la máxima medida permitida por la ley:
+      </p>
+      <ul class="items">
+        <li>No somos responsables por lucro cesante, daños indirectos, incidentales o consecuenciales.</li>
+        <li>No garantizamos que el Servicio esté libre de errores o interrupciones.</li>
+        <li>Nuestra responsabilidad total ante ti, por cualquier reclamo, está limitada al monto que pagaste por el Servicio en los últimos 12 meses.</li>
+        <li>No somos responsables por contenidos, decisiones o acciones de los Clientes finales de tu Negocio.</li>
+      </ul>
+    </div>
+
+    <div class="seccion" id="sec-13">
+      <div class="sec-head">
+        <div class="sec-num">13</div>
+        <div class="sec-titles">
+          <div class="sec-label"><i data-lucide="edit-3"></i> Modificaciones</div>
+          <h2 class="sec-title">Cambios a estos <span class="italic">Términos</span></h2>
+        </div>
+        <button class="copy-link" data-anchor="sec-13"><i data-lucide="link-2"></i>Copiar</button>
+      </div>
+      <p class="sec-body">
+        Podemos actualizar estos Términos para reflejar cambios legales, técnicos o de producto.
+        Si los cambios son materiales, te avisaremos por email o dentro del Servicio con al menos
+        <strong>15 días de anticipación</strong>.
+      </p>
+      <p class="sec-body">
+        Tu uso continuado del Servicio tras la entrada en vigencia de los nuevos Términos implica aceptación.
+        Si no aceptas, debes cancelar tu cuenta antes de esa fecha.
+      </p>
+    </div>
+
+    <div class="seccion" id="sec-14">
+      <div class="sec-head">
+        <div class="sec-num">14</div>
+        <div class="sec-titles">
+          <div class="sec-label"><i data-lucide="scale"></i> Jurisdicción</div>
+          <h2 class="sec-title">Ley aplicable y <span class="italic">disputas</span></h2>
+        </div>
+        <button class="copy-link" data-anchor="sec-14"><i data-lucide="link-2"></i>Copiar</button>
+      </div>
+      <p class="sec-body">
+        Estos Términos se rigen por las leyes de la <strong>República Dominicana</strong>.
+        Cualquier controversia se intentará resolver primero de buena fe entre las partes; si no es posible,
+        se someterá a los tribunales competentes de Santiago, República Dominicana.
+      </p>
+    </div>
+
+    <div class="seccion" id="sec-15">
+      <div class="sec-head">
+        <div class="sec-num">15</div>
+        <div class="sec-titles">
+          <div class="sec-label"><i data-lucide="mail"></i> Soporte</div>
+          <h2 class="sec-title">¿Dudas? <span class="italic">Escríbenos.</span></h2>
+        </div>
+        <button class="copy-link" data-anchor="sec-15"><i data-lucide="link-2"></i>Copiar</button>
+      </div>
+      <p class="sec-body">
+        Para cualquier pregunta legal, comercial o técnica sobre estos Términos, contáctanos por los canales abajo.
+        Respondemos en menos de 48 horas hábiles.
+      </p>
+
+      <div class="contact-box">
+        <div class="contact-block">
+          <div class="c-label">Responsable</div>
+          <div class="c-val">Rafael Bonifacio Delgado</div>
+          <div class="c-sub">Santiago, República Dominicana</div>
+        </div>
+        <div class="contact-block">
+          <div class="c-label">Email general</div>
+          <div class="c-val"><a href="mailto:info@auraospro.com">info@auraospro.com</a></div>
+        </div>
+        <div class="contact-block">
+          <div class="c-label">WhatsApp soporte</div>
+          <div class="c-val"><a href="https://wa.me/18498528825" target="_blank">+1 849-852-8825</a></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  © 2026 AuraOS · Rafael Bonifacio Delgado · <a href="/privacidad">Privacidad</a> · <a href="/">Inicio</a>
+</footer>
+
+<div class="toast" id="toast"><i data-lucide="check"></i><span id="toastMsg">Copiado</span></div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.body.classList.add('loaded');
+    if (window.lucide) lucide.createIcons();
+
+    const nav = document.getElementById('nav');
+    const bar = document.getElementById('progress-bar');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 30);
+      const h = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.width = (window.scrollY / h * 100) + '%';
+    });
+
+    const sections = document.querySelectorAll('.seccion');
+    const links = document.querySelectorAll('aside.toc a');
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          const id = e.target.id;
+          links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + id));
+        }
+      });
+    }, { threshold: 0.2 });
+    sections.forEach(s => io.observe(s));
+
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toastMsg');
+    document.querySelectorAll('.copy-link').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const anchor = btn.dataset.anchor;
+        const url = window.location.origin + window.location.pathname + '#' + anchor;
+        try {
+          await navigator.clipboard.writeText(url);
+          btn.classList.add('copied');
+          toastMsg.textContent = 'Enlace copiado';
+          toast.classList.add('show');
+          setTimeout(() => { toast.classList.remove('show'); btn.classList.remove('copied'); }, 1800);
+        } catch (e) {}
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
