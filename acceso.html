@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acceso Barberías — AuraOS</title>
+<meta name="description" content="Accede al panel de tu barbería en AuraOS. Busca tu negocio y entra con tu PIN.">
+<meta name="robots" content="noindex, follow">
+<link rel="icon" type="image/png" href="/auraos-logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070708;--surface:#0F0F12;--surface2:#15151A;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#E8E6E0;--muted:#5A5855;--muted2:#8A8885;
+  --gold:#D4A017;--gold2:#F5E050;--gold-dim:rgba(212,160,23,0.12);
+  --green:#2ECC71;--red:#E74C3C;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{font-size:16px;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;overflow-x:hidden;position:relative;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.5;}
+.bg-glow{position:fixed;width:600px;height:600px;background:radial-gradient(circle,rgba(212,160,23,0.07) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);animation:breathe 7s ease-in-out infinite;pointer-events:none;z-index:0;}
+@keyframes breathe{0%,100%{transform:translate(-50%,-50%) scale(1);}50%{transform:translate(-50%,-50%) scale(1.18);}}
+
+.card{position:relative;z-index:1;width:440px;max-width:100%;background:linear-gradient(160deg,rgba(255,255,255,0.05),rgba(255,255,255,0) 42%),rgba(14,14,18,0.94);border:1px solid var(--border2);border-radius:24px;padding:40px 36px;box-shadow:0 30px 80px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.04);backdrop-filter:blur(20px);animation:slideUp 0.5s cubic-bezier(0.16,1,0.3,1) both;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),var(--gold2),transparent);}
+@keyframes slideUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
+
+.brand{text-align:center;margin-bottom:28px;}
+.brand img{width:64px;height:64px;animation:spin 14s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.brand-name{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:0.14em;background:linear-gradient(90deg,var(--gold) 0%,#fff6da 50%,var(--gold) 100%);background-size:220% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 4s linear infinite;margin-top:6px;}
+@keyframes shimmer{to{background-position:-220% center;}}
+.brand-sub{font-size:0.5rem;color:var(--muted);letter-spacing:0.3em;text-transform:uppercase;margin-top:2px;}
+
+.title{font-family:'Inter',sans-serif;font-size:1.05rem;font-weight:700;color:var(--text);text-align:center;margin-bottom:6px;}
+.subtitle{font-size:0.72rem;color:var(--muted2);text-align:center;line-height:1.6;margin-bottom:24px;}
+
+.search-wrap{position:relative;margin-bottom:8px;}
+.search-ico{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:0.9rem;pointer-events:none;}
+.search-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:12px;color:var(--text);padding:14px 16px 14px 44px;font-family:'Inter',sans-serif;font-size:0.85rem;outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
+.search-input::placeholder{color:var(--muted);}
+.search-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,160,23,0.12);}
+
+.hint{font-size:0.6rem;color:var(--muted);text-align:center;letter-spacing:0.04em;margin-bottom:14px;}
+
+.results{display:flex;flex-direction:column;gap:8px;min-height:10px;}
+.shop-item{display:flex;align-items:center;gap:14px;padding:13px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;cursor:pointer;transition:all 0.2s;text-align:left;width:100%;font-family:inherit;color:inherit;animation:fadeIn 0.25s ease both;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.shop-item:hover{border-color:rgba(212,160,23,0.4);background:var(--surface2);transform:translateX(3px);}
+.shop-ico{width:40px;height:40px;border-radius:10px;background:var(--gold-dim);border:1px solid rgba(212,160,23,0.2);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+.shop-info{flex:1;min-width:0;}
+.shop-name{font-size:0.82rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.shop-meta{font-size:0.6rem;color:var(--muted);margin-top:2px;}
+.shop-arrow{color:var(--muted);font-size:0.9rem;flex-shrink:0;transition:color 0.2s,transform 0.2s;}
+.shop-item:hover .shop-arrow{color:var(--gold);transform:translateX(3px);}
+
+.state{text-align:center;padding:18px 10px;font-size:0.72rem;color:var(--muted);line-height:1.6;}
+.state.error{color:var(--red);}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(212,160,23,0.2);border-top-color:var(--gold);border-radius:50%;animation:rot 0.7s linear infinite;}
+@keyframes rot{to{transform:rotate(360deg);}}
+
+.footer-links{margin-top:26px;padding-top:20px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:10px;align-items:center;}
+.footer-links a{color:var(--muted2);text-decoration:none;font-size:0.66rem;letter-spacing:0.04em;transition:color 0.2s;}
+.footer-links a:hover{color:var(--gold);}
+.footer-links a strong{color:var(--gold);font-weight:600;}
+.back-link{display:inline-flex;align-items:center;gap:6px;}
+</style>
+</head>
+<body>
+<div class="bg-glow"></div>
+
+<div class="card">
+  <div class="brand">
+    <img src="/auraos-logo.png" alt="AuraOS" onerror="this.style.display='none'">
+    <div class="brand-name">AuraOS</div>
+    <div class="brand-sub">Acceso Barberías</div>
+  </div>
+
+  <div class="title">Entra al panel de tu barbería</div>
+  <div class="subtitle">Busca tu negocio por nombre y accede con tu PIN.</div>
+
+  <div class="search-wrap">
+    <span class="search-ico">🔍</span>
+    <input type="text" class="search-input" id="searchInput" placeholder="Nombre de tu barbería…" autocomplete="off" autofocus>
+  </div>
+  <div class="hint">Escribe al menos 2 letras</div>
+
+  <div class="results" id="results"></div>
+
+  <div class="footer-links">
+    <a href="/registro">¿Aún no tienes cuenta? <strong>Regístrate gratis →</strong></a>
+    <a href="/" class="back-link">← Volver al inicio</a>
+  </div>
+</div>
+
+<script>
+const SB_URL = 'https://mmokunpuslcfphalrwot.supabase.co';
+const SB_KEY = 'sb_publishable_aETz_9ECH5RcBMjmRhUnfw_g71zRdwT';
+
+const input = document.getElementById('searchInput');
+const resultsEl = document.getElementById('results');
+let debounceTimer = null;
+let lastQuery = '';
+
+function render(html){ resultsEl.innerHTML = html; }
+
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+async function buscar(q){
+  try{
+    const res = await fetch(`${SB_URL}/rest/v1/rpc/buscar_shops_publico`, {
+      method:'POST',
+      headers:{ 'apikey':SB_KEY, 'Authorization':`Bearer ${SB_KEY}`, 'Content-Type':'application/json' },
+      body: JSON.stringify({ p_query: q })
+    });
+    if(!res.ok) throw new Error('No se pudo buscar');
+    const shops = await res.json();
+    if(q !== lastQuery) return; // resultado viejo, ignorar
+    if(!Array.isArray(shops) || shops.length === 0){
+      render(`<div class="state">No encontramos ninguna barbería con ese nombre.<br>Verifica la ortografía o <a href="/registro" style="color:var(--gold);text-decoration:none;">regístrate</a>.</div>`);
+      return;
+    }
+    render(shops.map(s => `
+      <button class="shop-item" onclick="entrar('${escapeHtml(s.slug)}')">
+        <div class="shop-ico">${escapeHtml(s.icono) || '💈'}</div>
+        <div class="shop-info">
+          <div class="shop-name">${escapeHtml(s.nombre)}</div>
+          <div class="shop-meta">${escapeHtml(s.ciudad) || 'Barbería'} · Toca para entrar</div>
+        </div>
+        <div class="shop-arrow">→</div>
+      </button>
+    `).join(''));
+  }catch(e){
+    if(q !== lastQuery) return;
+    render(`<div class="state error">⚠ ${escapeHtml(e.message)}. Intenta de nuevo.</div>`);
+  }
+}
+
+function entrar(slug){
+  if(!slug) return;
+  window.location.href = '/admin/' + slug;
+}
+
+input.addEventListener('input', () => {
+  const q = input.value.trim();
+  lastQuery = q;
+  clearTimeout(debounceTimer);
+  if(q.length < 2){ render(''); return; }
+  render(`<div class="state"><span class="spinner"></span></div>`);
+  debounceTimer = setTimeout(() => buscar(q), 280);
+});
+
+input.addEventListener('keydown', (e) => {
+  if(e.key === 'Enter'){
+    const first = resultsEl.querySelector('.shop-item');
+    if(first) first.click();
+  }
+});
+</script>
+</body>
+</html>
