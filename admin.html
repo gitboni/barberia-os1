@@ -1277,7 +1277,9 @@ async function loadAll(){
     try{
       const hace90=new Date();hace90.setDate(hace90.getDate()-90);
       const fecha90=hace90.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
-      const historial=await sbGet('citas','shop_id=eq.'+S.shopId+'&fecha=gte.'+fecha90+'&order=fecha.desc&limit=500');
+      // limit 2000: con ~950 citas/90d en shops activos, el viejo limit=500 truncaba
+      // el trimestre en silencio (se perdía casi la mitad del rango).
+      const historial=await sbGet('citas','shop_id=eq.'+S.shopId+'&fecha=gte.'+fecha90+'&order=fecha.desc&limit=2000');
       S._todasCitas=historial.map(c=>({...c,hora:(c.hora||'').substring(0,5)}));
     }catch(_){S._todasCitas=S.citas;}
     // Precargar servicios para que estén listos en reportes
@@ -2196,6 +2198,35 @@ async function eliminarBloqueoBarbero(id){
 
 // ── REPORTES ──
 let _reporteRango = 'mes', _liqPct = 50;
+// Rango personalizado (YYYY-MM-DD). Solo se usan cuando _reporteRango === 'custom'.
+let _reporteDesde = '', _reporteHasta = '';
+
+// ── Rango único de fechas para reportes, gráficas y PDF ──
+// Devuelve {desde, hasta, label, numDias}. Los presets NO acotan por arriba:
+// mantienen el comportamiento histórico (incluyen citas ya agendadas a futuro).
+// El rango personalizado sí acota por ambos extremos.
+function _rangoReporte(){
+  const hoyStr = getHoyRD();
+  const hace = d => { const x = new Date(); x.setDate(x.getDate() - d); return x.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'}); };
+  const SIN_TOPE = '9999-12-31';
+  if(_reporteRango === 'hoy')       return { desde: hoyStr,   hasta: hoyStr,   label:'Hoy',              numDias:1  };
+  if(_reporteRango === 'semana')    return { desde: hace(7),  hasta: SIN_TOPE, label:'Últimos 7 días',   numDias:7  };
+  if(_reporteRango === 'trimestre') return { desde: hace(90), hasta: SIN_TOPE, label:'Últimos 90 días',  numDias:90 };
+  if(_reporteRango === 'custom' && _reporteDesde && _reporteHasta){
+    const dias = Math.max(1, Math.round((new Date(_reporteHasta+'T00:00:00') - new Date(_reporteDesde+'T00:00:00'))/86400000) + 1);
+    const f = s => new Date(s+'T00:00:00').toLocaleDateString('es-DO',{day:'2-digit',month:'short',year:'numeric'});
+    return { desde:_reporteDesde, hasta:_reporteHasta, label: f(_reporteDesde)+' — '+f(_reporteHasta), numDias: dias };
+  }
+  return { desde: hace(30), hasta: SIN_TOPE, label:'Últimos 30 días', numDias:30 };
+}
+function _enRango(fecha, r){ return !!fecha && fecha >= r.desde && fecha <= r.hasta; }
+function setRangoReporte(v){ _reporteRango = v; renderPage(); }
+function aplicarRangoCustom(){
+  const d = document.getElementById('rep-desde')?.value, h = document.getElementById('rep-hasta')?.value;
+  if(!d || !h){ toast('Elige fecha de inicio y de fin','error'); return; }
+  if(d > h){ toast('La fecha inicial no puede ser mayor que la final','error'); return; }
+  _reporteDesde = d; _reporteHasta = h; _reporteRango = 'custom'; renderPage();
+}
 function fmt12rpt(h){ if(!h)return'—'; const[hh,mm]=(h+':00').split(':').map(Number),ap=hh>=12?'PM':'AM',h12=hh===0?12:hh>12?hh-12:hh; return h12+':'+(mm<10?'0':'')+mm+' '+ap; }
 
 function renderReportes(){
@@ -2204,21 +2235,9 @@ function renderReportes(){
   const hoy = new Date();
 const hoyStr = hoy.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
 
-  let filtradas = [];
-  let txtRango = 'Hoy';
-  if(_reporteRango === 'hoy') {
-    filtradas = todasCitas.filter(c => c.fecha === hoyStr);
-  } else if(_reporteRango === 'semana') {
-    const sem = new Date(); sem.setDate(sem.getDate() - 7);
-    const semStr = sem.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
-    filtradas = todasCitas.filter(c => c.fecha >= semStr);
-    txtRango = 'Últimos 7 días';
-  } else {
-    const mes = new Date(); mes.setDate(mes.getDate() - 30);
-    const mesStr = mes.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
-    filtradas = todasCitas.filter(c => c.fecha >= mesStr);
-    txtRango = 'Últimos 30 días';
-  }
+  const _r = _rangoReporte();
+  const filtradas = todasCitas.filter(c => _enRango(c.fecha, _r));
+  const txtRango = _r.label;
 
   const completadas = filtradas.filter(c => c.estado === 'Completada');
   const ingresos = completadas.reduce((sum, c) => {
@@ -2228,23 +2247,11 @@ const hoyStr = hoy.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'}
   const ticketPromedio = completadas.length ? (ingresos / completadas.length).toFixed(0) : 0;
 
   // Días transcurridos en el rango para promedios
-  let numDias = 1;
-  if(_reporteRango === 'semana') numDias = 7;
-  else if(_reporteRango === 'mes') numDias = 30;
+  const numDias = _r.numDias;
   const ingresoPromDiario = (ingresos / numDias).toFixed(0);
 
   // Gastos en el rango
-  let gastosRango = [];
-  if(_reporteRango === 'hoy') gastosRango = S.gastos.filter(g => g.fecha === hoyStr);
-  else if(_reporteRango === 'semana') {
-    const sem = new Date(); sem.setDate(sem.getDate() - 7);
-    const semStr = sem.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
-    gastosRango = S.gastos.filter(g => g.fecha >= semStr);
-  } else {
-    const mes = new Date(); mes.setDate(mes.getDate() - 30);
-    const mesStr = mes.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
-    gastosRango = S.gastos.filter(g => g.fecha >= mesStr);
-  }
+  const gastosRango = S.gastos.filter(g => _enRango(g.fecha, _r));
   const totalGastos = gastosRango.reduce((sum, g) => sum + parseFloat(g.monto||0), 0);
   const utilidadReal = ingresos - totalGastos;
   const margenNeto = ingresos > 0 ? ((utilidadReal / ingresos) * 100).toFixed(1) : 0;
@@ -2284,12 +2291,20 @@ const hoyStr = hoy.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'}
       <div>
         <div style="font-size:0.75rem;color:var(--gold);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.15em;margin-bottom:6px;font-weight:600;">Analítica de Negocio</div>
         <div class="page-title" style="font-size:2rem; letter-spacing:-0.03em;">Dashboard Ejecutivo</div>
+        <div style="font-size:0.7rem;color:var(--muted);font-family:'DM Mono',monospace;margin-top:4px;">Periodo: <span style="color:var(--gold);font-weight:600;">${txtRango}</span></div>
       </div>
-      <div style="display:flex; gap:12px; align-items:center;">
+      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
         <div class="segmented-control" style="padding:4px;">
-          <button class="seg-btn ${_reporteRango==='hoy'?'active':''}" onclick="_reporteRango='hoy';renderPage()" style="font-size:0.65rem;">HOY</button>
-          <button class="seg-btn ${_reporteRango==='semana'?'active':''}" onclick="_reporteRango='semana';renderPage()" style="font-size:0.65rem;">SEMANA</button>
-          <button class="seg-btn ${_reporteRango==='mes'?'active':''}" onclick="_reporteRango='mes';renderPage()" style="font-size:0.65rem;">MES</button>
+          <button class="seg-btn ${_reporteRango==='hoy'?'active':''}" onclick="setRangoReporte('hoy')" style="font-size:0.65rem;">HOY</button>
+          <button class="seg-btn ${_reporteRango==='semana'?'active':''}" onclick="setRangoReporte('semana')" style="font-size:0.65rem;">SEMANA</button>
+          <button class="seg-btn ${_reporteRango==='mes'?'active':''}" onclick="setRangoReporte('mes')" style="font-size:0.65rem;">MES</button>
+          <button class="seg-btn ${_reporteRango==='trimestre'?'active':''}" onclick="setRangoReporte('trimestre')" style="font-size:0.65rem;">3 MESES</button>
+        </div>
+        <div class="segmented-control" style="padding:4px;gap:4px;align-items:center;">
+          <input type="date" id="rep-desde" value="${_reporteDesde}" title="Desde" style="background:transparent;border:none;color:var(--text);font-family:'DM Mono',monospace;font-size:0.62rem;padding:5px 4px;cursor:pointer;color-scheme:dark;outline:none;">
+          <span style="color:var(--muted);font-size:0.7rem;">→</span>
+          <input type="date" id="rep-hasta" value="${_reporteHasta}" title="Hasta" style="background:transparent;border:none;color:var(--text);font-family:'DM Mono',monospace;font-size:0.62rem;padding:5px 4px;cursor:pointer;color-scheme:dark;outline:none;">
+          <button class="seg-btn ${_reporteRango==='custom'?'active':''}" onclick="aplicarRangoCustom()" style="font-size:0.65rem;">APLICAR</button>
         </div>
         <button class="btn-sm btn-dark" onclick="exportarPDF()" style="height:38px;"><i data-lucide="download" style="width:14px;height:14px;"></i> PDF</button>
       </div>
@@ -2464,18 +2479,8 @@ function renderCharts(){
   const hoy = new Date();
   const hoyStr = hoy.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
 
-  let filtradas = [];
-  if(_reporteRango === 'hoy') {
-    filtradas = todasCitas.filter(c => c.fecha === hoyStr);
-  } else if(_reporteRango === 'semana') {
-    const sem = new Date(); sem.setDate(sem.getDate() - 7);
-    const semStr = sem.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
-    filtradas = todasCitas.filter(c => c.fecha >= semStr);
-  } else {
-    const mes = new Date(); mes.setDate(mes.getDate() - 30);
-    const mesStr = mes.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
-    filtradas = todasCitas.filter(c => c.fecha >= mesStr);
-  }
+  const _r = _rangoReporte();
+  const filtradas = todasCitas.filter(c => _enRango(c.fecha, _r));
 
   const chartDefaults = { 
     responsive:true, 
@@ -2507,18 +2512,7 @@ function renderCharts(){
       const sObj = S.servicios.find(s => s.nombre.trim().toUpperCase() === (c.servicio||'').trim().toUpperCase());
       return sum + (sObj ? parseFloat(sObj.precio||0) : 0);
     }, 0);
-    const hoyStr = getHoyRD();
-    let gastosR = 0;
-    if(_reporteRango === 'hoy') gastosR = S.gastos.filter(g => g.fecha === hoyStr).reduce((a,b)=>a+parseFloat(b.monto||0),0);
-    else if(_reporteRango === 'semana') {
-      const sem = new Date(); sem.setDate(sem.getDate() - 7);
-      const semStr = sem.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
-      gastosR = S.gastos.filter(g => g.fecha >= semStr).reduce((a,b)=>a+parseFloat(b.monto||0),0);
-    } else {
-      const mes = new Date(); mes.setDate(mes.getDate() - 30);
-      const mesStr = mes.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
-      gastosR = S.gastos.filter(g => g.fecha >= mesStr).reduce((a,b)=>a+parseFloat(b.monto||0),0);
-    }
+    const gastosR = S.gastos.filter(g => _enRango(g.fecha, _r)).reduce((a,b)=>a+parseFloat(b.monto||0),0);
 
     new Chart(c0, {
       type: 'bar',
@@ -2553,7 +2547,7 @@ function renderCharts(){
   const c1 = document.getElementById('chart-tendencia');
   if(c1){
     Chart.getChart('chart-tendencia')?.destroy();
-    if(_reporteRango !== 'hoy') {
+    if(_r.numDias > 1) {
       const dias = {};
       filtradas.forEach(c => { dias[c.fecha] = (dias[c.fecha]||0) + 1; });
       const dArr = Object.entries(dias).sort((a,b) => a[0].localeCompare(b[0]));
@@ -2685,17 +2679,8 @@ async function exportarPDF(){
   // Calcular datos financieros basados en el rango actual (mismo que la vista)
   const todasCitas = S._todasCitas || S.citas;
   const hoyStr = getHoyRD();
-  let filtradas = [];
-  if(_reporteRango === 'hoy') filtradas = todasCitas.filter(c => c.fecha === hoyStr);
-  else if(_reporteRango === 'semana') {
-    const sem = new Date(); sem.setDate(sem.getDate() - 7);
-    const semStr = sem.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
-    filtradas = todasCitas.filter(c => c.fecha >= semStr);
-  } else {
-    const mes = new Date(); mes.setDate(mes.getDate() - 30);
-    const mesStr = mes.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
-    filtradas = todasCitas.filter(c => c.fecha >= mesStr);
-  }
+  const _r = _rangoReporte();
+  const filtradas = todasCitas.filter(c => _enRango(c.fecha, _r));
   
   const completadas = filtradas.filter(c => c.estado === 'Completada');
   const ingresos = completadas.reduce((sum, c) => {
@@ -2703,17 +2688,7 @@ async function exportarPDF(){
     return sum + (sObj ? parseFloat(sObj.precio||0) : 0);
   }, 0);
 
-  let gastosRango = [];
-  if(_reporteRango === 'hoy') gastosRango = S.gastos.filter(g => g.fecha === hoyStr);
-  else if(_reporteRango === 'semana') {
-    const sem = new Date(); sem.setDate(sem.getDate() - 7);
-    const semStr = sem.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
-    gastosRango = S.gastos.filter(g => g.fecha >= semStr);
-  } else {
-    const mes = new Date(); mes.setDate(mes.getDate() - 30);
-    const mesStr = mes.toLocaleDateString('en-CA',{timeZone:'America/Santo_Domingo'});
-    gastosRango = S.gastos.filter(g => g.fecha >= mesStr);
-  }
+  const gastosRango = S.gastos.filter(g => _enRango(g.fecha, _r));
   const totalGastos = gastosRango.reduce((sum, g) => sum + parseFloat(g.monto||0), 0);
   const utilidad = ingresos - totalGastos;
 
@@ -2764,10 +2739,11 @@ async function exportarPDF(){
     <div class="shop-info">
       <h1>${shopNombre}</h1>
       <p>Reporte de Desempeño Operativo</p>
+      <p style="margin-top:6px;font-weight:600;color:#1a1a1a;">Periodo: ${_r.label}</p>
     </div>
     <div class="report-meta">
       <span class="badge">AuraOS Analytics</span>
-      <p>${fecha}</p>
+      <p>Emitido: ${fecha}</p>
     </div>
   </div>
 
